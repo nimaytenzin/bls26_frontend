@@ -1,0 +1,113 @@
+<div class="mt-4">
+    <p class="text-xl font-semibold">Lease Expiring Soon</p>
+    <p class="text-sm">Lease expiring in two months</p>
+    <p-divider type="dashed"></p-divider>
+
+    <div>
+        <div class="flex align-items-center mb-2 justify-content-between">
+            <div>
+                <p>
+                    Showing {{ paginatedUpcomingExpiryLease.data.length }} of
+                    {{ paginatedUpcomingExpiryLease.count }} Entries
+                </p>
+            </div>
+            <div class="">
+                <p-paginator
+                    (onPageChange)="onPageChange($event)"
+                    [first]="firstPageNumber"
+                    [rows]="rows"
+                    [totalRecords]="paginatedUpcomingExpiryLease.count"
+                    [rowsPerPageOptions]="rowsPerPageOptions"
+                    [showFirstLastIcon]="true"
+                    #paginator
+                ></p-paginator>
+            </div>
+        </div>
+        <div>
+            <p-table
+                [value]="paginatedUpcomingExpiryLease.data"
+                styleClass="p-datatable-striped mb-2"
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th></th>
+                        <th>Type</th>
+                        <th>Flat</th>
+                        <th>Plot</th>
+                        <th>Tenant Name</th>
+                        <th>Tenant Phone Number</th>
+                        <th>Use</th>
+                        <th>End Date</th>
+                        <th>Rent</th>
+                        <th></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item>
+                    <tr>
+                        <td>
+                            {{ getDaysUntilExpiry(item.leaseEndDate) }}
+                            Days remaining
+                        </td>
+                        <td>
+                            {{ item.type | lowercase }}
+                        </td>
+                        <td class="text-center">
+                            <p *ngIf="item.unit" style="text-wrap: nowrap">
+                                {{ item.unit?.floorLevel }}-{{
+                                    item.unit?.unitNumber
+                                }}
+                            </p>
+                            <p *ngIf="item.building" class="text-xs">
+                                {{ item.building.name }}
+                            </p>
+                        </td>
+                        <td>
+                            {{ item.plot.plotId }}
+                        </td>
+
+                        <td>
+                            <p
+                                pTooltip="double click to view Tenant details"
+                                tooltipPosition="left"
+                                class="cursor-pointer hover:underline hover:font-semibold"
+                                (dblclick)="
+                                    goToTenantDetailedView(item.tenant.id)
+                                "
+                            >
+                                {{ item.tenant?.nameEnglish }}
+                            </p>
+                        </td>
+                        <td>
+                            <p>{{ item.tenant.phoneNumber }}</p>
+                        </td>
+                        <td>
+                            {{ item.use }}
+                        </td>
+
+                        <td>
+                            {{ item.leaseEndDate | date : "mediumDate" }}
+                        </td>
+
+                        <td>Nu.{{ computeMonthlyPayable(item) }}</td>
+
+                        <td>
+                            <div class="flex gap-2">
+                                <p-button
+                                    size="small"
+                                    label="View"
+                                    (click)="goToDetailedView(item)"
+                                    severity="secondary"
+                                    icon="pi pi-eye"
+                                ></p-button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+
+            <p *ngIf="!paginatedUpcomingExpiryLease.count">
+                - No Expiring lease
+            </p>
+        </div>
+    </div>
+</div>

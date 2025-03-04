@@ -1,0 +1,238 @@
+<p-confirmPopup></p-confirmPopup>
+<div #mainCOntainer class="px-6 mt-6">
+    <p class="mb-3 mt-4 font-semibold">Lease Purpose and Charges</p>
+    <div class="grid mt-8">
+        <div class="col-4 field p-fluid">
+            <p>Lease Purpose</p>
+            <p-dropdown
+                [options]="uses"
+                [(ngModel)]="selectedUse"
+                [showClear]="true"
+                placeholder="Select Use"
+                appendTo="body"
+            >
+            </p-dropdown>
+        </div>
+        <div class="col-4 field p-fluid">
+            <p>Monthly rent</p>
+            <p-inputGroup>
+                <p-inputGroupAddon>Nu.</p-inputGroupAddon>
+                <p-inputNumber
+                    [(ngModel)]="rent"
+                    inputId="minmaxfraction"
+                    minFractionDigits="0"
+                    maxFractionDigits="10"
+                />
+            </p-inputGroup>
+        </div>
+        <div class="col-4 field p-fluid">
+            <p>Security Deposit</p>
+            <p-inputGroup>
+                <p-inputGroupAddon>Nu.</p-inputGroupAddon>
+                <p-inputNumber
+                    [(ngModel)]="securityDepositAmount"
+                    inputId="minmaxfraction"
+                    minFractionDigits="0"
+                    maxFractionDigits="10"
+                />
+            </p-inputGroup>
+        </div>
+
+        <div class="col-4 field p-fluid">
+            <p>Deposit to Account</p>
+            <p-dropdown
+                [options]="ownerBankAccounts"
+                [(ngModel)]="selectedOwnerBankAccount"
+                [showClear]="true"
+                placeholder="Select the Account to deposit to"
+            >
+                <ng-template pTemplate="selectedItem">
+                    <div
+                        class="flex align-items-center gap-2"
+                        *ngIf="selectedOwnerBankAccount"
+                    >
+                        {{ selectedOwnerBankAccount.accountNumber }}/{{
+                            selectedOwnerBankAccount.bankName
+                        }}
+                    </div>
+                </ng-template>
+                <ng-template let-item pTemplate="item">
+                    <p>{{ item.accountNumber }}/{{ item.bankName }}</p>
+                </ng-template>
+            </p-dropdown>
+        </div>
+
+        <div
+            class="col-4 field p-fluid"
+            *ngIf="propertyDetails.leaseType === leaseTypeEnum.LAND"
+        >
+            <p>Area Leased</p>
+
+            <div class="flex">
+                <p-inputGroup class="w-full">
+                    <p-inputNumber
+                        [(ngModel)]="areaLeased"
+                        inputId="minmaxfraction"
+                        minFractionDigits="0"
+                        maxFractionDigits="10"
+                    />
+                </p-inputGroup>
+                <p-dropdown
+                    [options]="areaUnits"
+                    [(ngModel)]="selectedAreaUnit"
+                    [showClear]="false"
+                    placeholder="Select Lessee Type"
+                >
+                </p-dropdown>
+            </div>
+        </div>
+        <div
+            class="col-4 field p-fluid"
+            *ngIf="propertyDetails.leaseType === leaseTypeEnum.LAND"
+        >
+            <p>Rate Per Area</p>
+            <div class="flex">
+                <p-inputGroup>
+                    <p-inputGroupAddon>Nu.</p-inputGroupAddon>
+                    <p-inputNumber
+                        [(ngModel)]="ratePerArea"
+                        inputId="minmaxfraction"
+                        minFractionDigits="0"
+                        maxFractionDigits="10"
+                    />
+                </p-inputGroup>
+                <p-dropdown
+                    [options]="areaUnits"
+                    [(ngModel)]="selectedAreaUnit"
+                    [showClear]="false"
+                    placeholder="Select Lessee Type"
+                >
+                </p-dropdown>
+            </div>
+        </div>
+    </div>
+
+    <div #additionalCharges class="mt-5">
+        <div class="flex justify-content-between">
+            <p class="font-semibold">Additional Lease Charges</p>
+            <p-button
+                label="Add Lease Charge"
+                size="small"
+                (click)="openCreateLeaseSurchargeModal()"
+            ></p-button>
+        </div>
+        <p-divider></p-divider>
+
+        <p-table
+            *ngIf="leaseCharges.length"
+            [value]="leaseCharges"
+            class="p-datatable-sm"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Particular</th>
+                    <th>Amount(NU)</th>
+                    <th>Source</th>
+                    <th></th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item let-editing="editing">
+                <tr>
+                    <td
+                        [pEditableColumn]="item.particular"
+                        pEditableColumnField="particular"
+                    >
+                        <p-cellEditor>
+                            <ng-template pTemplate="input">
+                                <input
+                                    pInputText
+                                    type="text"
+                                    [(ngModel)]="item.particular"
+                                />
+                            </ng-template>
+                            <ng-template pTemplate="output">
+                                {{ item.particular }}
+                            </ng-template>
+                        </p-cellEditor>
+                    </td>
+                    <td
+                        [pEditableColumn]="item.amount"
+                        pEditableColumnField="amount"
+                    >
+                        <p-cellEditor>
+                            <ng-template pTemplate="input">
+                                <p-inputNumber [(ngModel)]="item.amount" />
+                            </ng-template>
+                            <ng-template pTemplate="output">
+                                {{ item.amount }}
+                            </ng-template>
+                        </p-cellEditor>
+                    </td>
+                    <td>
+                        {{ item.origin }}
+                    </td>
+                    <td>
+                        <p
+                            class="text-red-500 cursor-pointer hover:underline"
+                            (click)="deleteCharge($event, item)"
+                        >
+                            remove
+                        </p>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+
+        <p *ngIf="!leaseCharges.length">- No additional lease charges</p>
+    </div>
+
+    <div
+        class="flex flex-column justify-content-end gap-2 align-items-end text-right mt-6"
+    >
+        <div>
+            <p class="text-lg font-bold">
+                Total Montly Payable :
+                <strong>
+                    {{ getTotalMonthlyPayabe() }}
+                </strong>
+            </p>
+        </div>
+
+        <p-button
+            label="Confirm and Proceed"
+            [disabled]="!checkDataValid()"
+            (click)="saveAndProceed()"
+        ></p-button>
+    </div>
+</div>
+<p-dialog
+    header="Add Charges"
+    [(visible)]="showAddLeaseChargeForm"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+>
+    <form [formGroup]="createLeaseChargeForm" class="p-fluid p-2">
+        <div class="grid">
+            <div class="field col-12">
+                <label for="particular">Particular</label>
+                <textarea
+                    rows="5"
+                    cols="30"
+                    pInputTextarea
+                    formControlName="particular"
+                ></textarea>
+            </div>
+            <div class="field col-12">
+                <label for="particular">Amount</label>
+                <p-inputNumber inputId="integeronly" formControlName="amount">
+                </p-inputNumber>
+            </div>
+        </div>
+
+        <p-button
+            (click)="createLeaseCharge()"
+            label="Add Surcharge"
+        ></p-button>
+    </form>
+</p-dialog>

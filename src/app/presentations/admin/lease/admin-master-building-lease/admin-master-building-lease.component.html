@@ -1,0 +1,33 @@
+<div class="flex justify-content-between mb-4">
+    <p class="font-semibold text-lg mb-2">Building Lease</p>
+    <p-button
+        label="Building Lease"
+        icon="pi pi-plus"
+        size="small"
+        (click)="goToLeaseBuilder()"
+    ></p-button>
+</div>
+<p-tabView [(activeIndex)]="activeIndex" (onChange)="handleTabChange($event)">
+    <p-tabPanel header="All">
+        <app-admin-building-lease-listings
+            [refreshEvent]="refreshEvent"
+        ></app-admin-building-lease-listings>
+    </p-tabPanel>
+    <p-tabPanel header="Active">
+        <app-admin-building-lease-active-listings [refreshEvent]="refreshEvent">
+        </app-admin-building-lease-active-listings>
+    </p-tabPanel>
+    <p-tabPanel header="Pending">
+        <app-admin-building-lease-pending-listings
+            [refreshEvent]="refreshEvent"
+        ></app-admin-building-lease-pending-listings>
+    </p-tabPanel>
+    <p-tabPanel header="Upcoming Expiry">
+        <app-admin-building-lease-upcoming-expiration-listings
+            [refreshEvent]="refreshEvent"
+        ></app-admin-building-lease-upcoming-expiration-listings>
+    </p-tabPanel>
+    <p-tabPanel header="Payment Status">
+        <app-admin-building-lease-payment-status></app-admin-building-lease-payment-status>
+    </p-tabPanel>
+</p-tabView>

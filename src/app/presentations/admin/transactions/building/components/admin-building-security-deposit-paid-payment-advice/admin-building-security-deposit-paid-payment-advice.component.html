@@ -1,0 +1,138 @@
+<div>
+    <div class="flex justify-content-between my-4">
+        <p class="text-xl font-semibold">Paid Security Deposit Payments</p>
+        <div class="flex gap-2">
+            <p-button
+                label="Download Pending List"
+                icon="pi pi-file-excel"
+                size="small"
+                severity="secondary"
+                (click)="downloadMasterTable()"
+            ></p-button>
+
+            <p-button
+                *ngIf="selectedPaymentAdivces.length > 1"
+                label="Pay Multiple Payment Advices"
+                icon="pi pi-wallet"
+                size="small"
+                (click)="openViewPaymentReceipt(selectedPaymentAdivces)"
+            ></p-button>
+        </div>
+    </div>
+
+    <div class="flex align-items-center mb-2 justify-content-between">
+        <div>
+            <p>
+                Showing {{ paginatedPaymentAdvice.data.length }} of
+                {{ paginatedPaymentAdvice.count }} Entries
+            </p>
+        </div>
+        <div class="">
+            <p-paginator
+                (onPageChange)="onPageChange($event)"
+                [first]="firstPageNumber"
+                [rows]="rows"
+                [totalRecords]="paginatedPaymentAdvice.count"
+                [rowsPerPageOptions]="rowsPerPageOptions"
+                [showFirstLastIcon]="true"
+                #paginator
+            ></p-paginator>
+        </div>
+    </div>
+
+    <p-table
+        [value]="paginatedPaymentAdvice?.data"
+        styleClass="p-datatable-striped"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Ref</th>
+                <th>Status</th>
+                <th>Title</th>
+                <th>Total Amount</th>
+                <th>Due by</th>
+                <th>Lease Type</th>
+
+                <th>Property</th>
+                <th>Tenant</th>
+
+                <th></th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+            <tr>
+                <td>
+                    <p>#{{ item.id }}</p>
+                </td>
+                <td>
+                    <p class="text-green-400 font-semibold">
+                        {{ item.status }}
+                    </p>
+                </td>
+                <td>
+                    <p>{{ item.title }}</p>
+                </td>
+
+                <td>Nu. {{ item.totalAmount }}</td>
+
+                <td>
+                    {{ item.dueDate | date : "mediumDate" }}
+                </td>
+                <td>
+                    <p>{{ item.leaseAgreement.type }} Lease</p>
+                </td>
+
+                <td>
+                    <!-- Show Unit information only if leaseType is UNIT -->
+
+                    <p *ngIf="item.leaseAgreement.type === leaseTypes.UNIT">
+                        Unit: {{ item.leaseAgreement.unit.floorLevel }} -
+                        {{ item.leaseAgreement.unit.unitNumber }}
+                    </p>
+
+                    <!-- Show Building information if leaseType is either UNIT or BUILDING -->
+                    <p
+                        *ngIf="
+                            item.leaseAgreement.type === leaseTypes.BUILDING ||
+                            item.leaseAgreement.type === leaseTypes.UNIT
+                        "
+                    >
+                        Building: {{ item.leaseAgreement.building?.name }}
+                    </p>
+
+                    <!-- Show Plot information if leaseType is LAND or BUILDING (exclude UNIT) -->
+                    <p *ngIf="item.leaseAgreement.type !== leaseTypes.UNIT">
+                        Plot: {{ item.leaseAgreement.plot.plotId }}
+                    </p>
+                </td>
+
+                <td>
+                    <p>
+                        Name:{{ item.leaseAgreement.tenant?.nameEnglish }}
+                        {{ item.leaseAgreement.tenant?.nameDzongkha }}
+                    </p>
+                    <p>Phone: {{ item.leaseAgreement.tenant?.phoneNumber }}</p>
+                </td>
+                <td>
+                    <div class="flex gap-2">
+                        <p-button
+                            size="small"
+                            label="Receipt"
+                            icon="pi pi-file-o"
+                            (click)="openViewPaymentReceipt([item])"
+                            severity="secondary"
+                        ></p-button>
+                        <p-button
+                            size="small"
+                            label="Refund/Settle"
+                            icon="pi pi-file-o"
+                            severity="secondary"
+                        ></p-button>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <p *ngIf="!paginatedPaymentAdvice.count">- No pending payment advice</p>
+</div>

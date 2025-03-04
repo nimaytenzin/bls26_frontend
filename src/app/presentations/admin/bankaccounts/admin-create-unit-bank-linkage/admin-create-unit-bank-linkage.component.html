@@ -1,0 +1,28 @@
+<div *ngFor="let owner of owners">
+    <p>{{ owner.firstName }} {{ owner.lastName }}</p>
+    <div *ngFor="let item of owner.bankAccounts" class="shadow-2 p-4">
+        <div>
+            <img style="height: 40px" [src]="getBankLogo(item.bankName)" />
+        </div>
+        <p>
+            Bank Name: <strong>{{ item.bankName }}</strong>
+        </p>
+        <p>
+            Account Number:
+            <strong>{{ item.accountNumber }}</strong>
+        </p>
+        <p>
+            Account Name:
+            <strong> {{ item.accountName }}</strong>
+        </p>
+
+        <div class="flex gap-2">
+            <p-button
+                size="small"
+                icon="pi pi-pencil"
+                label="Link Account"
+                (click)="linkBankAccount(item)"
+            ></p-button>
+        </div>
+    </div>
+</div>

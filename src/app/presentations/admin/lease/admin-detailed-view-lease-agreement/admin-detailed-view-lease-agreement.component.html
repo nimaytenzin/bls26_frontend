@@ -1,0 +1,1250 @@
+<div>
+    <div #header>
+        <div class="flex justify-content-between">
+            <div #leaseTitle>
+                <div class="flex gap-2">
+                    <p
+                        [ngClass]="getStatusClass(leaseAgreement?.status)"
+                        class="inline-flex px-2 border-round font-semibold align-items-center gap-2"
+                    >
+                        <i class="pi pi-bookmark-fill"></i>
+                        {{ leaseAgreement?.status }}
+                    </p>
+
+                    <p class="text-xl font-semibold">
+                        {{ pageTitle }}
+                    </p>
+                </div>
+                <p *ngIf="leaseAgreement?.leaseModificationRemarks">
+                    Modified on
+                    {{
+                        leaseAgreement.leaseModificationDate
+                            | date : "mediumDate"
+                    }}, remarks:
+                    {{ leaseAgreement.leaseModificationRemarks }}
+                </p>
+                <div #tenantDetails class="mt-4">
+                    <div
+                        *ngIf="
+                            leaseAgreement?.lesseeType ===
+                            lesseeTypeEnums.INDIVIDUAL
+                        "
+                    >
+                        <p>
+                            Tenant Name:
+                            <strong
+                                pTooltip="double click to view Tenant details"
+                                tooltipPosition="left"
+                                class="cursor-pointer text-blue-500 hover:underline hover:font-semibold"
+                                (dblclick)="
+                                    goToTenantDetailedView(
+                                        leaseAgreement.tenant.id
+                                    )
+                                "
+                            >
+                                {{
+                                    leaseAgreement?.tenant?.nameEnglish
+                                }}</strong
+                            >
+                        </p>
+                        <p>
+                            Tenant Phone Number:
+                            <strong>
+                                {{
+                                    leaseAgreement?.tenant?.phoneNumber
+                                }}</strong
+                            >
+                        </p>
+                        <p>
+                            Tenant CID:
+                            <strong> {{ leaseAgreement?.tenant?.cid }}</strong>
+                        </p>
+                        <p>
+                            Tenant Permanent Address:
+                            <strong>
+                                {{
+                                    leaseAgreement?.tenant?.permanentAddress
+                                }}</strong
+                            >
+                        </p>
+                    </div>
+
+                    <div
+                        *ngIf="
+                            leaseAgreement?.lesseeType !==
+                            lesseeTypeEnums.INDIVIDUAL
+                        "
+                    >
+                        <p>
+                            Name:
+                            {{ leaseAgreement?.organization?.name }}
+                        </p>
+
+                        <p class="font-semibold mt-2 mb-1">
+                            {{ leaseAgreement?.organization?.userType }}
+                            Details
+                        </p>
+                        <p>Name:{{ leaseAgreement?.tenant?.nameEnglish }}</p>
+                        <p>
+                            Phone Number:
+                            {{ leaseAgreement?.tenant?.phoneNumber }}
+                        </p>
+                        <p>
+                            CID:
+                            {{ leaseAgreement?.tenant?.cid }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex align-items-end gap-2 mt-4">
+                <p-button
+                    label="Download PDF"
+                    icon="pi pi-save"
+                    size="small"
+                    severity="secondary"
+                    (click)="downloadLeasePdf()"
+                >
+                </p-button>
+                <p-button
+                    *ngIf="!signedLeaseAgreement"
+                    label="Upload Signed Copy"
+                    icon="pi pi-cloud-upload"
+                    size="small"
+                    severity="secondary"
+                    (click)="showUploadSignedCopyModal = true"
+                >
+                </p-button>
+                <p-button
+                    label="Renew Lease"
+                    icon="pi pi-refresh"
+                    size="small"
+                    *ngIf="!leaseTerminated"
+                    [disabled]="!leaseAgreement?.leaseSigningDate"
+                    (click)="openRenewLeaseModal()"
+                >
+                </p-button>
+                <p-button
+                    label="Terminate Lease"
+                    severity="danger"
+                    icon="pi pi-times"
+                    size="small"
+                    *ngIf="!leaseTerminated"
+                    (click)="openConfirmLeaseTerminationModal()"
+                >
+                </p-button>
+            </div>
+        </div>
+        <p-divider></p-divider>
+    </div>
+    <div class="grid">
+        <div class="col-4">
+            <div
+                id="leaseDetailedMap"
+                style="height: 30vh; border-radius: 2%"
+            ></div>
+
+            <div #propertyLeased class="mt-4">
+                <p class="font-bold">Property Details</p>
+                <hr class="my-1" />
+                <p><strong>Lease Type:</strong> {{ leaseAgreement?.type }}</p>
+
+                <div class="my-3">
+                    <div
+                        *ngIf="leaseAgreement?.type === leaseTypeEnums.UNIT"
+                        class="my-2"
+                    >
+                        <p class="font-semibold mb-1">Unit Details</p>
+                        <p class="bg-green-200">
+                            <strong>Unit Number: </strong>
+                            {{ leaseAgreement?.unit?.floorLevel }}-{{
+                                leaseAgreement?.unit?.unitNumber
+                            }}
+                        </p>
+                        <p>
+                            <strong>Remarks: </strong>
+                            {{ leaseAgreement?.unit?.remarks }}
+                        </p>
+                        <p>
+                            <strong>Unit Config:</strong>
+                            {{
+                                getUnitConfigString(
+                                    leaseAgreement?.unit?.bedroomCount,
+                                    leaseAgreement?.unit?.toiletCount,
+                                    leaseAgreement?.unit?.balconyCount
+                                )
+                            }}
+                        </p>
+
+                        <!-- Building Details -->
+                        <p class="font-semibold mt-3 mb-1">Building Details</p>
+                        <p>
+                            <strong>Building Name:</strong>
+                            {{ leaseAgreement?.building?.name }}
+                        </p>
+                        <p>
+                            <strong>Building Number:</strong>
+                            {{ leaseAgreement?.building?.buildingNumber }}
+                        </p>
+                        <p>
+                            <strong>Building Address:</strong>
+                            {{
+                                leaseAgreement?.building?.address
+                                    ? leaseAgreement?.building?.address
+                                    : "Not assigned."
+                            }}
+                        </p>
+
+                        <!-- Thram Details -->
+                        <p class="font-semibold mt-3 mb-1">Thram Details</p>
+                        <p>
+                            <strong>PlotId:</strong>
+                            {{ leaseAgreement?.plot?.plotId }}
+                        </p>
+                        <p>
+                            <strong>Thram No:</strong>
+                            {{ leaseAgreement?.plot?.thram?.thramNo }}
+                        </p>
+                        <p>
+                            <strong>Location:</strong>
+                            {{
+                                leaseAgreement?.plot?.thram?.administrativeZone
+                                    ?.name
+                            }}
+                            <br />
+                            {{
+                                leaseAgreement?.plot?.thram?.administrativeZone
+                                    ?.nameDzo
+                                    ? "(" +
+                                      leaseAgreement.plot?.thram
+                                          ?.administrativeZone?.nameDzo +
+                                      ")"
+                                    : ""
+                            }},
+                            {{
+                                leaseAgreement?.plot?.thram
+                                    ?.subAdministrativeZone?.name
+                            }}
+                            {{
+                                leaseAgreement?.plot?.thram
+                                    ?.subAdministrativeZone?.nameDzo
+                                    ? "(" +
+                                      leaseAgreement?.plot?.thram
+                                          ?.subAdministrativeZone?.nameDzo +
+                                      ")"
+                                    : ""
+                            }}
+                        </p>
+                    </div>
+
+                    <div
+                        *ngIf="leaseAgreement?.type === leaseTypeEnums.BUILDING"
+                        class="my-2"
+                    >
+                        <p class="font-semibold mb-1">Building Details</p>
+                        <p>
+                            <strong>Building Name:</strong>
+                            {{ leaseAgreement?.building?.name }}
+                        </p>
+                        <p>
+                            <strong>Building Number:</strong>
+                            {{ leaseAgreement?.building?.buildingNumber }}
+                        </p>
+                        <p>
+                            <strong>Building Address:</strong>
+                            {{
+                                leaseAgreement?.building?.address
+                                    ? leaseAgreement?.building?.address
+                                    : "Not assigned."
+                            }}
+                        </p>
+
+                        <!-- Thram Details -->
+                        <p class="font-semibold mt-3 mb-1">Thram Details</p>
+                        <p>
+                            <strong>PlotId:</strong>
+                            {{ leaseAgreement?.plot?.plotId }}
+                        </p>
+                        <p>
+                            <strong>Thram No:</strong>
+                            {{ leaseAgreement?.plot?.thram?.thramNo }}
+                        </p>
+                        <p>
+                            <strong>Thram Location:</strong>
+                            {{
+                                leaseAgreement?.plot?.thram?.administrativeZone
+                                    ?.name
+                            }}
+                            {{
+                                leaseAgreement?.plot?.thram?.administrativeZone
+                                    ?.nameDzo
+                                    ? "(" +
+                                      leaseAgreement.plot?.thram
+                                          ?.administrativeZone?.nameDzo +
+                                      ")"
+                                    : ""
+                            }},
+                            {{
+                                leaseAgreement?.plot?.thram
+                                    ?.subAdministrativeZone?.name
+                            }}
+                            {{
+                                leaseAgreement?.plot?.thram
+                                    ?.subAdministrativeZone?.nameDzo
+                                    ? "(" +
+                                      leaseAgreement?.plot?.thram
+                                          ?.subAdministrativeZone?.nameDzo +
+                                      ")"
+                                    : ""
+                            }}
+                        </p>
+                    </div>
+
+                    <!-- Show Thram details only if type is LAND -->
+                    <div
+                        *ngIf="leaseAgreement?.type === leaseTypeEnums.LAND"
+                        class="my-2"
+                    >
+                        <p class="font-semibold mb-1">Thram Details</p>
+                        <p class="bg-green-200">
+                            <strong>PlotId:</strong>
+                            {{ leaseAgreement?.plot?.plotId }}
+                        </p>
+                        <p>
+                            <strong>Thram No:</strong>
+                            {{ leaseAgreement?.plot?.thram?.thramNo }}
+                        </p>
+                        <p>
+                            <strong>Thram Location:</strong>
+                            {{
+                                leaseAgreement?.plot?.thram?.administrativeZone
+                                    ?.name
+                            }}
+                            {{
+                                leaseAgreement?.plot?.thram?.administrativeZone
+                                    ?.nameDzo
+                                    ? "(" +
+                                      leaseAgreement.plot?.thram
+                                          ?.administrativeZone?.nameDzo +
+                                      ")"
+                                    : ""
+                            }},
+                            {{
+                                leaseAgreement?.plot?.thram
+                                    ?.subAdministrativeZone?.name
+                            }}
+                            {{
+                                leaseAgreement?.plot?.thram
+                                    ?.subAdministrativeZone?.nameDzo
+                                    ? "(" +
+                                      leaseAgreement?.plot?.thram
+                                          ?.subAdministrativeZone?.nameDzo +
+                                      ")"
+                                    : ""
+                            }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-8">
+            <p-tabView
+                [(activeIndex)]="activeIndex"
+                (onChange)="handleTabChange($event)"
+                *ngIf="leaseAgreement"
+            >
+                <p-tabPanel header="Summary">
+                    <div
+                        class="flex justify-content-between"
+                        *ngIf="!leaseTerminated"
+                    >
+                        <div class="flex flex-column gap-2">
+                            <p class="font-bold">
+                                {{
+                                    leaseAgreement?.leaseSigningDate
+                                        ? "Lease Signing Date" +
+                                          leaseAgreement.leaseSigningDate
+                                        : "Lease Not Accepted by the Tenant"
+                                }}
+                            </p>
+                            <p>
+                                Security Deposit Payment Status:
+                                {{
+                                    leaseAgreement?.securityDepositPaid
+                                        ? "PAID"
+                                        : "DUE"
+                                }}
+
+                                <span
+                                    *ngIf="leaseAgreement?.securityDepositPaid"
+                                    class="font-semibold hover:underline cursor-pointer"
+                                    (click)="openPRDetails()"
+                                >
+                                    (receipt)
+                                </span>
+                            </p>
+                            <p>
+                                Entry Damage Report Status:
+                                {{
+                                    leaseAgreement?.entryDamageReportSubmitted
+                                        ? "Submitted"
+                                        : "Not Submitted"
+                                }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 mt-5 text-md">
+                        <div #parties class="w-6">
+                            <p class="font-bold">Parties</p>
+                            <hr class="my-1" />
+                            <div class="mb-2">
+                                <p
+                                    *ngIf="
+                                        leaseAgreement?.lessorType ===
+                                        lessorTypes.ADMIN
+                                    "
+                                >
+                                    Lessor/Owner:
+                                    <Strong
+                                        >{{ admin?.nameEnglish }}/{{
+                                            admin?.nameDzongkha
+                                        }}
+                                    </Strong>
+                                </p>
+
+                                <div #lessee class="mt-4">
+                                    <p>
+                                        Tenant/Lessee Type:
+                                        <strong>
+                                            {{
+                                                leaseAgreement?.lesseeType
+                                            }}</strong
+                                        >
+                                    </p>
+                                    <div
+                                        *ngIf="
+                                            leaseAgreement?.lesseeType ===
+                                            lesseeTypeEnums.INDIVIDUAL
+                                        "
+                                    >
+                                        <p class="mt-2 mb-1">Tenant Details</p>
+                                        <p>
+                                            Name:
+                                            <strong>
+                                                {{
+                                                    leaseAgreement?.tenant
+                                                        ?.nameEnglish
+                                                }}</strong
+                                            >
+                                        </p>
+                                        <p>
+                                            Phone Number:
+                                            <strong>
+                                                {{
+                                                    leaseAgreement?.tenant
+                                                        ?.phoneNumber
+                                                }}</strong
+                                            >
+                                        </p>
+                                        <p>
+                                            CID:
+                                            <strong>
+                                                {{
+                                                    leaseAgreement?.tenant?.cid
+                                                }}</strong
+                                            >
+                                        </p>
+                                        <p>
+                                            Permanent Address:
+                                            <strong>
+                                                {{
+                                                    leaseAgreement?.tenant
+                                                        ?.permanentAddress
+                                                }}</strong
+                                            >
+                                        </p>
+                                    </div>
+
+                                    <div
+                                        *ngIf="
+                                            leaseAgreement?.lesseeType !==
+                                            lesseeTypeEnums.INDIVIDUAL
+                                        "
+                                    >
+                                        <p class="mt-2 mb-1 font-semibold">
+                                            {{
+                                                leaseAgreement?.organization
+                                                    ?.type | titlecase
+                                            }}
+                                            Details
+                                        </p>
+                                        <p>
+                                            {{
+                                                leaseAgreement?.organization
+                                                    ?.type | titlecase
+                                            }}
+                                            Name:
+                                            <strong>
+                                                {{
+                                                    leaseAgreement?.organization
+                                                        ?.name
+                                                }}</strong
+                                            >
+                                        </p>
+                                        <p>
+                                            License Number:
+                                            <strong>
+                                                {{
+                                                    leaseAgreement?.organization
+                                                        ?.licenseNumber
+                                                        ? leaseAgreement
+                                                              ?.organization
+                                                              ?.licenseNumber
+                                                        : "NA"
+                                                }}</strong
+                                            >
+                                        </p>
+
+                                        <p class="font-semibold mt-2 mb-1">
+                                            {{
+                                                leaseAgreement?.organization
+                                                    ?.userType | titlecase
+                                            }}
+                                            Details
+                                        </p>
+                                        <p>
+                                            Name:
+                                            <strong>{{
+                                                leaseAgreement?.tenant
+                                                    ?.nameEnglish
+                                            }}</strong>
+                                        </p>
+                                        <p>
+                                            Phone Number:
+                                            <strong>{{
+                                                leaseAgreement?.tenant
+                                                    ?.phoneNumber
+                                            }}</strong>
+                                        </p>
+                                        <p>
+                                            CID:
+                                            <strong>
+                                                {{
+                                                    leaseAgreement?.tenant?.cid
+                                                }}</strong
+                                            >
+                                        </p>
+                                        <p>
+                                            Permanent Address:
+                                            <strong>
+                                                {{
+                                                    leaseAgreement?.tenant
+                                                        ?.permanentAddress
+                                                }}</strong
+                                            >
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div #charges class="w-6">
+                            <p class="font-bold">Payments</p>
+                            <hr class="my-1" />
+                            <p>
+                                Monthly Rent:
+                                <strong> Nu.{{ leaseAgreement?.rent }}</strong>
+                            </p>
+                            <p>
+                                Security Deposit:
+                                <strong>
+                                    Nu.{{
+                                        leaseAgreement?.securityDepositAmount
+                                    }}</strong
+                                >
+                            </p>
+
+                            <p class="mt-2 mb-1 font-semibold">
+                                Additional Surcharges
+                            </p>
+
+                            <p
+                                *ngFor="
+                                    let item of leaseAgreement?.leaseSurcharges
+                                "
+                            >
+                                - {{ item.particular }}, Amount: Nu.
+                                {{ item.amount }}
+                            </p>
+                            <p *ngIf="!leaseAgreement?.leaseSurcharges?.length">
+                                - No additional Surcharges
+                            </p>
+                            <p-divider></p-divider>
+                            <div
+                                class="my-2 flex justify-content-between gap-3"
+                            >
+                                <p>Total Monthly Payable:</p>
+                                <div class="text-right">
+                                    <p>
+                                        <strong
+                                            >Nu.{{
+                                                totalMonthlyPayable
+                                            }}</strong
+                                        >
+                                    </p>
+
+                                    <p>
+                                        <strong>{{
+                                            getWords(totalMonthlyPayable)
+                                        }}</strong>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <p>Pay to</p>
+                                <div class="flex-1 text-right">
+                                    <p>
+                                        Account Number:
+                                        {{
+                                            leaseAgreement.bankAccount
+                                                ?.accountNumber
+                                        }}
+                                    </p>
+                                    <p>
+                                        Account Name:
+                                        {{
+                                            leaseAgreement.bankAccount
+                                                ?.accountName
+                                        }}
+                                    </p>
+                                    <p>
+                                        Bank:
+                                        {{
+                                            leaseAgreement.bankAccount?.bankName
+                                        }}
+                                    </p>
+                                </div>
+                            </div>
+                            <p class="mt-4 text-sm">
+                                Total Monthly charges payable on or before day
+                                {{ leaseAgreement?.paymentDueDay }} of the
+                                following month.
+                            </p>
+
+                            <p class="text-sm">
+                                Any amout due after the above date shall result
+                                in application of a penalty of
+                                {{ leaseAgreement?.penaltyPercentagePerAnnum }}
+                                % per annum on the amount due applied daily.
+                            </p>
+                            <!-- <p class="text-right">
+                                <strong> Apply late payment penalty:</strong>
+                                {{
+                                    leaseAgreement?.applyLatePaymentFee
+                                        ? "Yes"
+                                        : "No"
+                                }}
+                                .
+                            </p> -->
+                        </div>
+                    </div>
+                    <div class="flex gap-4 mt-6">
+                        <div #duration class="w-6">
+                            <p class="font-bold">Duration</p>
+                            <hr class="my-1" />
+                            <p>
+                                Lease Start Date:
+                                <strong>
+                                    {{
+                                        leaseAgreement?.leaseStartDate
+                                            | date : "mediumDate"
+                                    }}
+                                </strong>
+                            </p>
+                            <p>
+                                Lease End Date:
+                                <strong>
+                                    {{
+                                        leaseAgreement?.leaseEndDate
+                                            | date : "mediumDate"
+                                    }}</strong
+                                >
+                            </p>
+                            <p>
+                                Duration:
+                                <strong>
+                                    {{ leaseAgreement?.leaseDurationMonths }}
+                                    Months</strong
+                                >
+                            </p>
+                        </div>
+                        <div #terms class="w-6">
+                            <p class="font-bold">General Terms</p>
+                            <hr class="my-1" />
+                            <p>
+                                Purpose:
+                                <strong>
+                                    {{ leaseAgreement?.use }}
+                                </strong>
+                            </p>
+                            <p>
+                                Rent Increment Notice Period:
+                                <strong>
+                                    {{
+                                        leaseAgreement?.rentIncreaseNoticePeriod
+                                    }}
+                                    Months</strong
+                                >
+                            </p>
+                            <p>
+                                Tenant Vacation Notice Period:
+                                <strong
+                                    >{{
+                                        leaseAgreement?.vacationNoticePeriod
+                                    }}
+                                    Months</strong
+                                >
+                            </p>
+                            <p>
+                                Eviction Notice Period:
+                                <strong>
+                                    {{ leaseAgreement?.evictionNoticePeriod }}
+                                    Months</strong
+                                >
+                            </p>
+
+                            <p>
+                                Tenant Sublet Authority:
+                                <strong>
+                                    {{
+                                        leaseAgreement?.tenantSubletAuthority
+                                            ? "Yes"
+                                            : "No"
+                                    }}</strong
+                                >
+                            </p>
+                            <p>
+                                Tenant Premature Termination:
+                                <strong>
+                                    {{
+                                        leaseAgreement?.tenantPrematureTermination
+                                            ? "Yes"
+                                            : "No"
+                                    }}
+                                </strong>
+                            </p>
+                            <p>
+                                Owner Premature Termination:
+                                <strong>
+                                    {{
+                                        leaseAgreement?.ownerPrematureTermination
+                                            ? "Yes"
+                                            : "No"
+                                    }}
+                                </strong>
+                            </p>
+
+                            <p>
+                                Penalty Percentage per annum on over dues:
+                                <strong>
+                                    {{
+                                        leaseAgreement?.penaltyPercentagePerAnnum
+                                    }}
+                                    %
+                                </strong>
+                            </p>
+                            <p>
+                                Rent Increment:
+                                <strong>
+                                    {{
+                                        leaseAgreement?.rentIncrementPercentage
+                                    }}
+                                    %
+                                </strong>
+                                every
+                                <strong>
+                                    {{
+                                        leaseAgreement?.rentIncrementDurationYear
+                                    }}</strong
+                                >
+                            </p>
+                        </div>
+                    </div>
+                </p-tabPanel>
+                <p-tabPanel header="PDF View">
+                    <div
+                        style="width: 100%; height: 60vh"
+                        class="flex flex-column align-items-center justify-content-center"
+                        *ngIf="showPdfLoading"
+                    >
+                        <p-progressSpinner
+                            styleClass="w-4rem h-4rem"
+                            strokeWidth="8"
+                            fill="var(--surface-ground)"
+                            animationDuration=".5s"
+                        />
+                        <p>Loading Lease agreement</p>
+                    </div>
+
+                    <div
+                        *ngIf="signedLeaseAgreement"
+                        class="mt-3 mb-4 text-center"
+                    >
+                        <p-button
+                            label="Reupload Signed Copy"
+                            icon="pi pi-cloud-upload"
+                            size="small"
+                            severity="secondary"
+                            (click)="showReUploadSignedCopyModal = true"
+                        >
+                        </p-button>
+                        <p class="mt-3">
+                            The following is the signed lease agreement copy
+                        </p>
+                    </div>
+                    <pdf-viewer
+                        [src]="pdfSrc"
+                        [render-text]="true"
+                        [original-size]="false"
+                        style="width: 100%; height: 60vh"
+                        (after-load-complete)="pdfLoaded()"
+                    ></pdf-viewer>
+                </p-tabPanel>
+
+                <p-tabPanel header="Payment History">
+                    <app-admin-lease-payments
+                        [leaseAgreement]="leaseAgreement"
+                    ></app-admin-lease-payments>
+                </p-tabPanel>
+                <p-tabPanel header="Entry Damages">
+                    <!-- <div
+                    class="my-2 py-3 flex justify-content-between align-items-end"
+                >
+                    <div class="flex gap-2">
+                        <p-button
+                            size="small"
+                            label="Damage Item"
+                            icon="pi pi-plus"
+                            (click)="openCreateEntryDamageItem()"
+                        ></p-button>
+                    </div>
+                </div>
+                <p-divider></p-divider> -->
+
+                    <div class="flex gap-4 w-full">
+                        <div
+                            style="height: 60vh; overflow-y: scroll"
+                            class="w-7"
+                        >
+                            <div
+                                *ngFor="let item of entryDamageReportItems"
+                                class="p-2 cursor-pointer"
+                                [ngClass]="{
+                                    'bg-gray-100':
+                                        item.id === selectedDamageItem?.id
+                                }"
+                            >
+                                <div class="flex justify-content-between">
+                                    <p>
+                                        Status:
+                                        <span class="font-semibold">
+                                            {{ item.status }}
+                                        </span>
+                                    </p>
+                                    <p>
+                                        Date Submitted:
+                                        {{ item.createdAt | date : "short" }}
+                                    </p>
+                                </div>
+
+                                <p class="font-semibold">
+                                    {{ item.title }}({{ item.location }})
+                                </p>
+
+                                <p>Description:{{ item.description }}</p>
+                                <div
+                                    *ngIf="item.status === 'RESOLVED'"
+                                    class="pt-2"
+                                >
+                                    <p class="font-semibold">Resolution</p>
+                                    <p>Remarks: {{ item.resolutionRemarks }}</p>
+                                    <div class="flex jusitfy-content-between">
+                                        <p>
+                                            Resolution Date:
+                                            {{
+                                                item.resolutionDate
+                                                    | date : "short"
+                                            }}
+                                        </p>
+                                        <p>
+                                            Charges Incurred: Nu.{{
+                                                item.resolutionCharges
+                                            }}
+                                        </p>
+                                    </div>
+                                    <p>Resolved by: {{ item.resolvedBy }}</p>
+                                </div>
+
+                                <div
+                                    class="flex gap-4 justify-content-between align-items-end"
+                                >
+                                    <div
+                                        class="flex gap-2"
+                                        style="margin-top: 0.6rem"
+                                    >
+                                        <div
+                                            *ngFor="
+                                                let image of item.images;
+                                                let index = index
+                                            "
+                                        >
+                                            <p-image
+                                                [src]="image.itemImageSrc"
+                                                alt="Image"
+                                                height="80"
+                                                [preview]="true"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="flex flex-column gap-2 justify-content-end align-items-end"
+                                    >
+                                        <p-button
+                                            size="small"
+                                            *ngIf="item.status !== 'RESOLVED'"
+                                            label="Resolve"
+                                            icon="pi pi-wrench"
+                                            (click)="
+                                                openResolveDamageItemModal(item)
+                                            "
+                                        ></p-button>
+                                        <p-button
+                                            label="load conversation"
+                                            size="small"
+                                            icon="pi pi-mail"
+                                            severity="secondary"
+                                            (click)="loadChat(item)"
+                                        ></p-button>
+                                    </div>
+                                </div>
+                                <p-divider></p-divider>
+                            </div>
+
+                            <div *ngIf="!entryDamageReportItems.length">
+                                <p>
+                                    - No Entry Damage Items submitted by the
+                                    tenant
+                                </p>
+                            </div>
+                        </div>
+                        <div class="w-5">
+                            <app-damage-item-chat-box
+                                [damageItem]="selectedDamageItem"
+                            ></app-damage-item-chat-box>
+                        </div>
+                    </div>
+                </p-tabPanel>
+                <p-tabPanel header="Maintenance Requests">
+                    <!-- <div
+                    class="my-2 py-3 flex justify-content-between align-items-end"
+                >
+                    <div class="flex gap-2">
+                        <p-button
+                            size="small"
+                            label="Damage Item"
+                            icon="pi pi-plus"
+                            (click)="openCreateEntryDamageItem()"
+                        ></p-button>
+                    </div>
+                </div>
+                <p-divider></p-divider> -->
+
+                    <div class="flex gap-4 w-full">
+                        <div class="flex flex-column gap-4 w-8">
+                            <div
+                                *ngFor="let item of maintenanceRequestItems"
+                                class="p-2 cursor-pointer"
+                                [ngClass]="{
+                                    'bg-gray-100':
+                                        item.id === selectedDamageItem?.id
+                                }"
+                            >
+                                <div class="flex justify-content-between">
+                                    <p>
+                                        Status:
+                                        <span class="font-semibold">
+                                            {{ item.status }}
+                                        </span>
+                                    </p>
+                                    <p>
+                                        Date Submitted:
+                                        {{
+                                            item.submissionDate | date : "short"
+                                        }}
+                                    </p>
+                                </div>
+
+                                <p class="font-semibold">
+                                    {{ item.title }}({{ item.location }})
+                                </p>
+
+                                <p>Description:{{ item.description }}</p>
+                                <div
+                                    *ngIf="item.status === 'RESOLVED'"
+                                    class="pt-2"
+                                >
+                                    <p class="font-semibold">Resolution</p>
+                                    <p>Remarks: {{ item.resolutionRemarks }}</p>
+                                    <div class="flex jusitfy-content-between">
+                                        <p>
+                                            Resolution Date:
+                                            {{
+                                                item.resolutionDate
+                                                    | date : "short"
+                                            }}
+                                        </p>
+                                        <p>
+                                            Charges Incurred: Nu.{{
+                                                item.resolutionCharges
+                                            }}
+                                        </p>
+                                    </div>
+                                    <p>Resolved by: {{ item.resolvedBy }}</p>
+                                </div>
+
+                                <div
+                                    class="flex gap-4 justify-content-between align-items-end"
+                                >
+                                    <div
+                                        class="flex gap-2"
+                                        style="margin-top: 0.6rem"
+                                    >
+                                        <div
+                                            *ngFor="
+                                                let image of item.images;
+                                                let index = index
+                                            "
+                                        >
+                                            <p-image
+                                                [src]="image.itemImageSrc"
+                                                alt="Image"
+                                                height="80"
+                                                [preview]="true"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="flex flex-column gap-2 justify-content-end align-items-end"
+                                    >
+                                        <p-button
+                                            size="small"
+                                            *ngIf="item.status !== 'RESOLVED'"
+                                            label="Resolve"
+                                            icon="pi pi-wrench"
+                                            (click)="
+                                                openResolveDamageItemModal(item)
+                                            "
+                                        ></p-button>
+                                        <p-button
+                                            label="load conversation"
+                                            size="small"
+                                            icon="pi pi-mail"
+                                            severity="secondary"
+                                            (click)="loadChat(item)"
+                                        ></p-button>
+                                    </div>
+                                </div>
+                                <p-divider></p-divider>
+                            </div>
+
+                            <div *ngIf="!maintenanceRequestItems.length">
+                                - No maintenance request submitted by the tenant
+                            </div>
+                        </div>
+                        <div class="w-5">
+                            <app-damage-item-chat-box
+                                [damageItem]="selectedDamageItem"
+                            ></app-damage-item-chat-box>
+                        </div>
+                    </div>
+                </p-tabPanel>
+                <p-tabPanel header="Notifications">
+                    <app-admin-lease-notifications
+                        [leaseAgreement]="leaseAgreement"
+                    ></app-admin-lease-notifications>
+                </p-tabPanel>
+            </p-tabView>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <p-dialog
+        header="Terminate Lease"
+        [modal]="true"
+        [(visible)]="showTerminateLeaseModal"
+        appendTo="body"
+    >
+        <div>
+            <div class="flex flex-column gap-3 mb-3 p-fluid">
+                <label for="username" class="font-semibold"
+                    >Termination Date</label
+                >
+                <p-calendar
+                    [(ngModel)]="leaseModificationDate"
+                    [showIcon]="true"
+                    appendTo="body"
+                    [showOnFocus]="false"
+                    inputId="buttondisplay"
+                />
+            </div>
+            <div class="flex flex-column gap-3 mb-3">
+                <label for="username" class="font-semibold">Remarks</label>
+                <textarea
+                    rows="5"
+                    cols="30"
+                    pInputTextarea
+                    [(ngModel)]="leaseModificationRemarks"
+                ></textarea>
+            </div>
+
+            <div class="flex justify-content-end gap-2">
+                <p-button
+                    label="Cancel"
+                    severity="secondary"
+                    (onClick)="showTerminateLeaseModal = false"
+                />
+                <p-button
+                    label="Terminate Lease"
+                    severity="danger"
+                    (click)="confirmLeaseTermination()"
+                />
+            </div>
+        </div>
+    </p-dialog>
+
+    <p-dialog
+        header="Renew Lease"
+        [modal]="true"
+        [(visible)]="showRenewLeaseModal"
+        appendTo="body"
+        [style]="{ width: '25rem' }"
+    >
+        <div>
+            <p>
+                The lease will be renewed based on the existing terms and
+                conditions. If any of those have changed, please terminate the
+                lease and create a new lease.
+            </p>
+            <div class="flex flex-column gap-3 mb-3 p-fluid">
+                <label for="username" class="font-semibold"
+                    >Renew Lease Up to Date</label
+                >
+                <p-calendar
+                    [(ngModel)]="newLeaseEndDate"
+                    [showIcon]="true"
+                    appendTo="body"
+                    view="month"
+                    dateFormat="mm/yy"
+                    [showOnFocus]="false"
+                    inputId="buttondisplay"
+                />
+            </div>
+
+            <div class="flex justify-content-end gap-2">
+                <p-button
+                    label="Cancel"
+                    severity="secondary"
+                    (onClick)="showTerminateLeaseModal = false"
+                />
+                <p-button
+                    label="Renew Lease"
+                    (onClick)="confirmLeaseRenewal()"
+                />
+            </div>
+        </div>
+    </p-dialog>
+
+    <p-dialog
+        header="Upload Signed Copy"
+        [modal]="true"
+        [(visible)]="showUploadSignedCopyModal"
+        appendTo="body"
+        [style]="{ width: '25rem' }"
+    >
+        <div>
+            <div
+                class="flex flex-column align-items-center justify-content-center gap-2 mb-4"
+            >
+                <label for="username" class="font-semibold">
+                    Please select a pdf scanned and signed lease agreement.
+                </label>
+                <p-fileUpload
+                    mode="basic"
+                    #fileUpload1
+                    name="file"
+                    chooseLabel="Select Signed Lease Copy(PDF)"
+                    chooseIcon="pi pi-file"
+                    accept=".pdf"
+                    maxFileSize="100000000"
+                    (onSelect)="
+                        onLeaseSignedCopyFileSelected($event, fileUpload1)
+                    "
+                ></p-fileUpload>
+            </div>
+
+            <div class="flex justify-content-end mt-5 gap-2">
+                <p-button
+                    label="Cancel"
+                    severity="secondary"
+                    (onClick)="showUploadSignedCopyModal = false"
+                />
+                <p-button
+                    label="Upload Signed Copy"
+                    (onClick)="uploadLeaseSignedCopy()"
+                />
+            </div>
+        </div>
+    </p-dialog>
+
+    <p-dialog
+        header="Re Upload Signed Copy"
+        [modal]="true"
+        [(visible)]="showReUploadSignedCopyModal"
+        appendTo="body"
+        [style]="{ width: '25rem' }"
+    >
+        <div>
+            <div
+                class="flex flex-column align-items-center justify-content-center gap-2 mb-4"
+            >
+                <label for="username" class="font-semibold">
+                    Please select a pdf scanned signed lease agreement.
+                </label>
+                <p-fileUpload
+                    mode="basic"
+                    #fileUpload
+                    name="file"
+                    chooseLabel="Select Signed Lease Copy(PDF)"
+                    chooseIcon="pi pi-file"
+                    accept=".pdf"
+                    maxFileSize="100000000"
+                    (onSelect)="
+                        onLeaseSignedCopyFileSelected($event, fileUpload)
+                    "
+                ></p-fileUpload>
+            </div>
+
+            <div class="flex justify-content-end mt-5 gap-2">
+                <p-button
+                    label="Cancel"
+                    severity="secondary"
+                    (onClick)="showUploadSignedCopyModal = false"
+                />
+                <p-button
+                    label="Upload Signed Copy"
+                    (onClick)="reuploadSignedCopy()"
+                />
+            </div>
+        </div>
+    </p-dialog>
+</div>

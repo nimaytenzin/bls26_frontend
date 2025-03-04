@@ -1,0 +1,19 @@
+.image-container {
+    width: 200px; /* Full width of the parent container */
+    height: 200px; /* Set the height to a fixed value */
+
+    background-size: cover; /* Ensure the image covers the div while maintaining aspect ratio */
+    background-position: center; /* Center the image within the div */
+}
+
+.thumbnail-container {
+    display: grid;
+    justify-content: center;
+}
+
+.image-thumbnail {
+    width: 3rem; /* Set a fixed size for the thumbnail */
+    height: 3rem;
+    background-size: cover; /* Ensure the image covers the div while maintaining aspect ratio */
+    background-position: center; /* Center the image within the div */
+}

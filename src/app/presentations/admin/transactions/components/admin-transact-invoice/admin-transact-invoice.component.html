@@ -1,0 +1,107 @@
+<form [formGroup]="transactInvoiceForm" class="p-fluid p-2 text-lg">
+    <p-toast></p-toast>
+    <div class="grid">
+        <hr class="col-12 m-0 p-0" />
+        <div class="col-12">
+            <p>InvoiceRef: {{ invoice.id }}</p>
+            <p class="font-semibold">Subject: {{ invoice.title }}</p>
+        </div>
+
+        <div class="col-12">
+            <p-table
+                [value]="invoice.invoiceItems"
+                [styleClass]="'p-datatable-sm'"
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>particular</th>
+                        <th>amount</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-i>
+                    <tr class="noborder">
+                        <td>
+                            {{ i.particular }}
+                        </td>
+                        <td>Nu.{{ i.amount }}</td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="summary">
+                    <p class="text-lg text-right">
+                        Grand Total: Nu.{{ invoice.totalAmount }}
+                    </p>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <div class="field col-12 md:col-6">
+            <label for="buildingType">Transaction Type</label>
+            <p-dropdown
+                [options]="transactionTypes"
+                formControlName="transactionType"
+                [className]="
+                    transactInvoiceForm.get('transactionType').invalid &&
+                    showErrors
+                        ? 'ng-invalid ng-dirty'
+                        : ''
+                "
+            ></p-dropdown>
+            <div
+                *ngIf="
+                    transactInvoiceForm.get('transactionType').invalid &&
+                    showErrors
+                "
+                class="error text-red-500 text-sm pt-1 italic"
+            >
+                Transaction Type is required
+            </div>
+        </div>
+
+        <!-- <div class="col-12">
+            <p *ngIf=""></p>
+        </div> -->
+
+        <div class="field col-12 md:col-6">
+            <label for="attic">Transaction Mode</label>
+
+            <p-dropdown
+                [options]="transactionModes"
+                formControlName="transactionMode"
+                [className]="
+                    transactInvoiceForm.get('transactionMode').invalid &&
+                    showErrors
+                        ? 'ng-invalid ng-dirty'
+                        : ''
+                "
+            ></p-dropdown>
+            <div
+                *ngIf="
+                    transactInvoiceForm.get('transactionMode').invalid &&
+                    showErrors
+                "
+                class="error text-red-500 text-sm pt-1 italic"
+            >
+                Transaction Type is required
+            </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+            <label for="latitude">Transaction Reference</label>
+            <input pInputText formControlName="transactionRef" />
+            <div
+                *ngIf="
+                    transactInvoiceForm.get('transactionRef').invalid &&
+                    showErrors
+                "
+                class="error text-red-500 text-sm pt-1 italic"
+            >
+                Transaction Ref is required
+            </div>
+        </div>
+    </div>
+    <p-button
+        (click)="transact()"
+        type="submit"
+        label="Execute Transaction"
+    ></p-button>
+</form>

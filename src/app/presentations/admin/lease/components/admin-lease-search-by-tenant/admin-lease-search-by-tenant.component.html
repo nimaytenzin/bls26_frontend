@@ -1,0 +1,71 @@
+<div class="flex mb-4 gap-4">
+    <div class="max-w-2xl">
+        <p class="my-2">Search by Phone Number</p>
+
+        <p-inputGroup>
+            <p-inputGroupAddon> +975 </p-inputGroupAddon>
+
+            <p-inputNumber
+                [(ngModel)]="phoneNumber"
+                mode="decimal"
+                placeholder="Phone Number"
+                inputId="withoutgrouping"
+                (keyup.enter)="searchByTenantPhoneNumber()"
+                [useGrouping]="false"
+            />
+            <button
+                type="button"
+                pButton
+                label="Search"
+                (click)="searchByTenantPhoneNumber()"
+            ></button>
+        </p-inputGroup>
+    </div>
+
+    <div class="max-w-2xl">
+        <p class="my-2">Search by CID</p>
+
+        <p-inputGroup>
+            <input
+                type="text"
+                [(ngModel)]="cid"
+                pInputText
+                placeholder="CID"
+                (keyup.enter)="searchByTenantCid()"
+            />
+            <button
+                type="button"
+                pButton
+                label="Search"
+                (click)="searchByTenantCid()"
+            ></button>
+        </p-inputGroup>
+    </div>
+</div>
+
+<div *ngIf="tenant">
+    <p>
+        Tenant Name: <strong> {{ tenant.nameEnglish }}</strong>
+    </p>
+    <p>
+        Phone Number: <strong> {{ tenant.phoneNumber }}</strong>
+    </p>
+    <p>
+        CID: <strong>{{ tenant.cid }}</strong>
+    </p>
+    <p>
+        Permanent Address: <strong>{{ tenant.permanentAddress }}</strong>
+    </p>
+
+    <p-button
+        label="Detailed view"
+        size="small"
+        severity="secondary"
+        (click)="goToTenantDetailedView(tenant.id)"
+    ></p-button>
+</div>
+
+<p-divider></p-divider>
+<div *ngIf="tenant">
+    <app-admin-tenant-lease [tenantId]="tenant.id"></app-admin-tenant-lease>
+</div>

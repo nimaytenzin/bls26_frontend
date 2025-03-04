@@ -1,0 +1,46 @@
+<div class="flex p-2 p-fluid flex-column gap-2">
+    <p>Your Message. Please keep it short</p>
+    <textarea
+        rows="10"
+        cols="30"
+        pInputTextarea
+        [(ngModel)]="message"
+    ></textarea>
+
+    <p-divider></p-divider>
+
+    <div>
+        <div class="flex gap-2">
+            <p-inputSwitch [(ngModel)]="broadCastToAll" />
+
+            <p>Broadcast to all tenants?</p>
+        </div>
+        <div class="my-4" *ngIf="!broadCastToAll">
+            <p class="mb-2">Please select a building to broadcast</p>
+            <p-dropdown
+                [options]="buildings"
+                [(ngModel)]="selectedBuilding"
+                appendTo="body"
+                placeholder="Select a Building"
+            >
+                <ng-template pTemplate="selectedItem">
+                    <p>
+                        {{ selectedBuilding.plots[0].plotId }}|{{
+                            selectedBuilding.name
+                        }}
+                    </p>
+                </ng-template>
+                <ng-template let-item pTemplate="item">
+                    <p>{{ item.plots[0].plotId }}|{{ item.name }}</p>
+                </ng-template>
+            </p-dropdown>
+            <p class="mt-2">
+                Only the Tenants in the selected building will be notified
+            </p>
+        </div>
+        <p *ngIf="broadCastToAll">
+            Tenants in all the buildings will be notified
+        </p>
+        <p-button label="Broadcast SMS" (click)="broadCastSms()"></p-button>
+    </div>
+</div>

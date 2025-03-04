@@ -1,0 +1,59 @@
+<div class="p-fluid">
+    <form [formGroup]="damageItemForm" class="flex flex-column gap-4">
+        <div class="flex flex-column gap-2">
+            <label for="type">Type</label>
+            <p-dropdown
+                [options]="damageTypes"
+                formControlName="type"
+                placeholder="Damage Type"
+            />
+        </div>
+        <div class="flex flex-column gap-2">
+            <label for="title">Title</label>
+            <input pInputText id="title" formControlName="title" />
+        </div>
+        <div class="flex flex-column gap-2">
+            <label for="location">Location</label>
+            <input pInputText id="location" formControlName="location" />
+        </div>
+        <div class="flex flex-column gap-2">
+            <label for="description">Description</label>
+            <textarea
+                pInputTextarea
+                id="description"
+                formControlName="description"
+            ></textarea>
+        </div>
+
+        <p-fileUpload
+            name="images[]"
+            (onSelect)="onUpload($event)"
+            [multiple]="true"
+            accept="image/*"
+            maxFileSize="100000000"
+        >
+            <ng-template pTemplate="content">
+                <ul *ngIf="images.length">
+                    <li *ngFor="let file of uploadedFiles">
+                        -{{ file.size }} bytes
+                    </li>
+                </ul>
+            </ng-template>
+        </p-fileUpload>
+        <div class="flex gap-2">
+            <button
+                pButton
+                label="Submit"
+                icon="pi pi-check"
+                (click)="submit()"
+            ></button>
+            <button
+                pButton
+                label="Cancel"
+                icon="pi pi-times"
+                class="p-button-secondary"
+                (click)="close()"
+            ></button>
+        </div>
+    </form>
+</div>

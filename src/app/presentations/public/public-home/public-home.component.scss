@@ -1,0 +1,150 @@
+.hero {
+    background-image: url("/assets/images/herobg.png");
+    background-repeat: no-repeat;
+
+    // Mobile-first styles
+    @media (min-width: 320px) {
+        // Small phones (e.g., iPhone X)
+        background-size: auto 20%;
+        background-position: bottom;
+    }
+
+    @media (min-width: 480px) {
+        // Small tablets (e.g., iPad Mini)
+        // Adjustments for small tablets
+        background-size: 100% auto;
+        background-position: bottom;
+    }
+
+    @media (min-width: 768px) {
+        // Medium tablets (e.g., Samsung Galaxy Tab S)
+        // Adjustments for medium tablets
+        background-size: 100% auto;
+        background-position: bottom;
+    }
+
+    @media (min-width: 1024px) {
+        // Small desktops or laptops
+        // Adjustments for small desktops or laptops
+        background-size: 100% auto;
+        background-position: bottom;
+    }
+
+    @media (min-width: 1440px) {
+        // Large desktops
+        // Adjustments for large desktops
+        background-size: 100% auto;
+        background-position: bottom;
+    }
+}
+
+.logo {
+    position: absolute;
+    top: 1rem;
+    left: 5rem;
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    justify-content: center;
+    gap: 0.5rem;
+    img {
+        height: 2rem;
+    }
+}
+.cloud1 {
+    position: absolute;
+    opacity: 0.5;
+    z-index: 22;
+    filter: grayscale(1);
+    @media (min-width: 320px) {
+        transform: scale(0.3);
+        bottom: 20%;
+    }
+    @media (min-width: 1440px) {
+        transform: scale(0.65);
+        bottom: 40%;
+    }
+}
+
+.cloud2 {
+    position: absolute;
+    bottom: 38%;
+    left: -5%;
+    opacity: 0.3;
+    z-index: 22;
+    transform: scale(0.4);
+    filter: grayscale(1);
+    @media (min-width: 320px) {
+        transform: scale(0.3);
+        bottom: 22%;
+    }
+}
+
+.cloud5 {
+    position: absolute;
+    bottom: 42%;
+    left: -10%;
+    z-index: 22;
+    opacity: 0.3;
+    transform: scale(0.7);
+    filter: grayscale(1);
+    @media (min-width: 320px) {
+        transform: scale(0.4);
+        bottom: 23%;
+    }
+}
+
+.cloud3 {
+    position: absolute;
+    bottom: 46%;
+    right: 0;
+    opacity: 0.3;
+    z-index: 22;
+    transform: scale(0.8);
+    filter: grayscale(1);
+    @media (min-width: 320px) {
+        transform: scale(0.5);
+        bottom: 23%;
+    }
+}
+.cloud4 {
+    position: absolute;
+    bottom: 44%;
+    margin-right: -30px;
+    right: 0;
+    z-index: 22;
+    opacity: 0.4;
+    transform: scale(0.5) rotate(180deg);
+
+    filter: grayscale(1);
+    @media (min-width: 320px) {
+        transform: scale(0.5);
+        bottom: 23%;
+    }
+}
+
+.varpad {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+@media screen and (min-width: 768px) {
+    .varpad {
+        padding-left: 5rem;
+        padding-right: 5rem;
+    }
+}
+
+@media screen and (min-width: 1024px) {
+    .varpad {
+        padding-left: 10rem;
+        padding-right: 10rem;
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    .varpad {
+        padding-left: 20rem;
+        padding-right: 20rem;
+    }
+}

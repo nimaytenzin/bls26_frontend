@@ -1,0 +1,632 @@
+<div class="flex gap-4 my-4 justify-content-start align-items-end">
+    <div class="flex flex-column gap-2">
+        <p class="mt-4">Lease Type</p>
+        <p-dropdown
+            [options]="leaseTypes"
+            [(ngModel)]="selectedLeaseType"
+            placeholder="Select Lease Type"
+        />
+    </div>
+    <div class="flex flex-column gap-2">
+        <label for="plotId">Plot ID</label>
+        <input pInputText id="plotId" [(ngModel)]="plotId" type="text" />
+    </div>
+
+    <p-button
+        label="Load Property Details By Plot"
+        (click)="fetchPlotDetails()"
+    ></p-button>
+</div>
+
+<div #propertyDetails class="mt-4" *ngIf="searchedPlot">
+    <div #plotDetails>
+        <p class="text-lg font-semibold mb-2 mt-4">Plot Details</p>
+        <p-table [value]="plotArray" [tableStyle]="{ 'min-width': '50rem' }">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Plot Id</th>
+                    <th>Thram no</th>
+                    <th>Area</th>
+                    <th>Owner</th>
+                    <th>Admin Zone</th>
+                    <th>Sub Admin Zone</th>
+                    <th>Remarks</th>
+                    <th></th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+                <tr
+                    [ngClass]="{
+                        'bg-green-100':
+                            selectedLeaseType === leaseTypeEnum.LAND &&
+                            item.id === selectedPlot?.id
+                    }"
+                >
+                    <td>{{ item.plotId }}</td>
+                    <td>{{ item.thram.thramNo }}</td>
+                    <td>
+                        <p>
+                            {{ searchedPlot?.netArea }}
+                            {{ searchedPlot?.areaUnit }}
+                        </p>
+                    </td>
+                    <td>
+                        <p *ngFor="let owner of searchedPlot?.thram?.owners">
+                            - {{ owner.nameEnglish }}/{{ owner.nameDzongkha }}
+                        </p>
+                    </td>
+                    <td>
+                        <p>
+                            {{ item?.thram?.administrativeZone?.name }}
+                        </p>
+                    </td>
+                    <td>
+                        <p>
+                            {{ item?.thram?.subAdministrativeZone?.name }}
+                        </p>
+                    </td>
+                    <td>
+                        <p>
+                            {{ item?.remarks }}
+                        </p>
+                    </td>
+                    <td>
+                        <p-button
+                            *ngIf="
+                                !selectedPlot ||
+                                (selectedPlot &&
+                                    selectedLeaseType !== leaseTypeEnum.LAND)
+                            "
+                            [disabled]="
+                                selectedLeaseType !== leaseTypeEnum.LAND
+                            "
+                            (click)="selectPlot()"
+                            size="small"
+                            label="Select Plot"
+                        ></p-button>
+                        <p
+                            *ngIf="
+                                selectedPlot &&
+                                selectedLeaseType === leaseTypeEnum.LAND
+                            "
+                            class="text-green-700 font-semibold"
+                        >
+                            <i class="pi pi-check"></i>
+                            Plot Selected
+
+                            <span
+                                (click)="removePlotSelection()"
+                                class="ml-1 hover:underline cursor-pointer text-red-500"
+                            >
+                                (x)
+                            </span>
+                        </p>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <div #buildingDetails *ngIf="selectedLeaseType === leaseTypeEnum.BUILDING">
+        <p class="text-lg font-semibold mt-4 mb-2">Building Details</p>
+        <p-table
+            *ngIf="searchedPlot?.buildings.length"
+            [value]="searchedPlot?.buildings"
+            class="p-datatable-sm"
+            [tableStyle]="{ 'min-width': '50rem' }"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Building Name</th>
+                    <th>Building Number</th>
+                    <th>Building Type</th>
+                    <th>Floor Config</th>
+                    <th>Year of Construction</th>
+                    <th>Year of Capitalization</th>
+                    <th></th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-building>
+                <tr
+                    [ngClass]="{
+                        'bg-green-100':
+                            building.id === selectedBuilding?.id &&
+                            selectedLeaseType === leaseTypeEnum.BUILDING
+                    }"
+                >
+                    <td>
+                        <p>
+                            {{ building.name || "Not assigned" }}
+                        </p>
+                    </td>
+                    <td>
+                        <p>
+                            {{ building.buildingNumber }}
+                        </p>
+                    </td>
+                    <td>
+                        <p>
+                            {{ building.buildingType }}
+                        </p>
+                    </td>
+                    <td>
+                        <p>
+                            <strong>
+                                {{
+                                    getBuildingFloorConfiguration(
+                                        building.regularFloorCount,
+                                        building.basementCount,
+                                        building.stiltCount,
+                                        building.atticCount,
+                                        building.jamthogCount
+                                    )
+                                }}</strong
+                            >
+                        </p>
+                    </td>
+                    <td>
+                        <p>
+                            {{ building.yearOfConstruction || "No Data" }}
+                        </p>
+                    </td>
+                    <td>
+                        <p>
+                            {{ building.yearOfCapitalization || "No Data" }}
+                        </p>
+                    </td>
+
+                    <td>
+                        <div>
+                            <p-button
+                                *ngIf="
+                                    !selectedBuilding ||
+                                    (selectedBuilding &&
+                                        selectedLeaseType !==
+                                            leaseTypeEnum.BUILDING)
+                                "
+                                (click)="selectBuilding(building)"
+                                [disabled]="
+                                    selectedLeaseType !== leaseTypeEnum.BUILDING
+                                "
+                                size="small"
+                                label="Select Building"
+                            ></p-button>
+
+                            <div
+                                *ngIf="
+                                    selectedBuilding &&
+                                    selectedBuilding.id === building.id &&
+                                    selectedLeaseType === leaseTypeEnum.BUILDING
+                                "
+                            >
+                                <p class="text-green-700 font-semibold">
+                                    <i class="pi pi-check"></i>
+                                    Building Selected
+                                    <span
+                                        (click)="removeBuildingSelection()"
+                                        class="ml-1 hover:underline cursor-pointer text-red-500"
+                                    >
+                                        (x)
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+        <p *ngIf="!searchedPlot?.buildings.length">
+            - No building/s on this plot
+        </p>
+    </div>
+
+    <div #unitDetails *ngIf="selectedLeaseType === leaseTypeEnum.UNIT">
+        <p class="text-lg font-semibold mt-4 mb-2">Unit Details</p>
+
+        <div *ngFor="let building of searchedPlot?.buildings" class="my-3">
+            <p class="font-semibold">
+                {{ building.name }}
+            </p>
+            <p-table
+                *ngIf="building.units.length"
+                [value]="building.units"
+                class="p-datatable-sm"
+                [tableStyle]="{ 'min-width': '50rem' }"
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>#</th>
+                        <th>Unit Number</th>
+                        <th>Details</th>
+                        <th>Remarks</th>
+                        <th></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                    <tr
+                        [ngClass]="{
+                            'bg-green-100':
+                                item.id === selectedUnit?.id &&
+                                selectedLeaseType === leaseTypeEnum.LAND
+                        }"
+                    >
+                        <td>
+                            {{ rowIndex + 1 }}
+                        </td>
+
+                        <td>
+                            <p>{{ item.floorLevel }}-{{ item.unitNumber }}</p>
+                        </td>
+
+                        <td>
+                            <p>
+                                {{ item.bedroomCount }} Bed{{
+                                    item.bedroomCount > 1 ? "s" : ""
+                                }},{{ item.toiletCount }} Bath{{
+                                    item.toiletCount > 1 ? "s" : ""
+                                }},{{ item.balconyCount }} Balcon{{
+                                    item.toiletCount > 1 ? "ies" : "y"
+                                }}
+                            </p>
+                        </td>
+                        <td>
+                            <p>{{ item.remarks ? item.remarks : "NA" }}</p>
+                        </td>
+
+                        <td>
+                            <div>
+                                <p-button
+                                    *ngIf="
+                                        !selectedUnit ||
+                                        (selectedUnit &&
+                                            selectedLeaseType !==
+                                                leaseTypeEnum.UNIT)
+                                    "
+                                    (click)="selectUnit(item, building)"
+                                    [disabled]="
+                                        selectedLeaseType !== leaseTypeEnum.UNIT
+                                    "
+                                    size="small"
+                                    label="Select Unit"
+                                ></p-button>
+
+                                <div
+                                    *ngIf="
+                                        selectedUnit &&
+                                        selectedUnit.id === item.id &&
+                                        selectedLeaseType === leaseTypeEnum.UNIT
+                                    "
+                                >
+                                    <p class="text-green-700 font-semibold">
+                                        <i class="pi pi-check"></i>
+                                        Unit Selected
+                                        <span
+                                            (click)="removeUnitSelection()"
+                                            class="ml-1 hover:underline cursor-pointer text-red-500"
+                                        >
+                                            (x)
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+            <p *ngIf="!building.units.length">
+                - No Unit/s in {{ building.name }}
+            </p>
+        </div>
+
+        <p *ngIf="!searchedPlot?.buildings.length">- No Unit/s on this plot</p>
+    </div>
+</div>
+
+<div *ngIf="selectedPlot || selectedBuilding || selectedUnit" class="mt-4 mb-4">
+    <p-divider></p-divider>
+
+    <p class="font-semibold text-lg mt-4 mb-2">
+        Check Property Availablity for Lease
+    </p>
+    <div class="flex gap-4 align-items-center">
+        <div
+            class="p-fluid flex justify-content-center gap-3 align-items-center"
+        >
+            <p>Lease Start Date</p>
+            <p-calendar
+                view="month"
+                [(ngModel)]="leaseStartDate"
+                dateFormat="mm/yy"
+                appendTo="body"
+            ></p-calendar>
+        </div>
+        <div
+            class="p-fluid flex justify-content-center gap-3 align-items-center"
+        >
+            <p>Lease End Date</p>
+            <p-calendar
+                view="month"
+                [(ngModel)]="leaseEndDate"
+                dateFormat="mm/yy"
+                appendTo="body"
+                [minDate]="leaseStartDate"
+            >
+            </p-calendar>
+        </div>
+        <p-button
+            label="Check Availability"
+            (click)="checkPropertyAvailabilityForLease()"
+        ></p-button>
+    </div>
+    <div *ngIf="leaseStartDate && leaseEndDate" class="mt-2">
+        <p>
+            Lease Duration in Years:
+            <strong>
+                {{
+                    getDurationDiffInYears(leaseStartDate, leaseEndDate)
+                }}</strong
+            >
+        </p>
+    </div>
+</div>
+
+<div class="mt-4" *ngIf="propertyAvailabilityResult">
+    <p
+        *ngIf="propertyAvailabilityResult.available"
+        class="text-green-600 font-semibold"
+    >
+        <i class="pi pi-check"></i>
+        Property Available for Lease for the selected Dates.
+    </p>
+    <div *ngIf="!propertyAvailabilityResult.available">
+        <p class="text-red-600 font-semibold">
+            <i class="pi pi-exclamation-circle"></i>
+            There are some active existing lease agreements with this property.
+        </p>
+        <p>
+            Please terminate the following lease (OR) select the dates after the
+            lease End date of the following lease Agreement.
+        </p>
+    </div>
+
+    <div
+        *ngIf="
+            propertyAvailabilityResult &&
+            propertyAvailabilityResult.conflictingLeases
+        "
+    >
+        <div>
+            <p-table
+                [value]="propertyAvailabilityResult.conflictingLeases"
+                styleClass="p-datatable-striped mb-2"
+            >
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>ref</th>
+                        <th>Status</th>
+                        <th>Plot</th>
+                        <th>Lessee Type</th>
+                        <th>Lessee</th>
+                        <th>Purpose</th>
+
+                        <th>Monthly Payable</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item>
+                    <tr>
+                        <td>
+                            <p>
+                                {{ item.id }}
+                            </p>
+                        </td>
+                        <td>
+                            <p
+                                [ngClass]="getStatusClass(item.status)"
+                                class="border-round text-center font-semibold text-sm"
+                            >
+                                {{ getStatusName(item.status) }}
+                            </p>
+                        </td>
+
+                        <td>
+                            <p style="text-wrap: nowrap">
+                                {{ item.plot.plotId }}
+                            </p>
+                        </td>
+
+                        <td>
+                            {{ item.lesseeType | lowercase }}
+                        </td>
+
+                        <td>
+                            <div *ngIf="item.lesseeType === 'INDIVIDUAL'">
+                                <p style="text-wrap: nowrap">
+                                    Name: {{ item.tenant?.nameEnglish }}
+                                </p>
+                                <p>
+                                    {{ item.tenant.phoneNumber }}
+                                </p>
+                            </div>
+                            <div *ngIf="item.lesseeType !== 'INDIVIDUAL'">
+                                <p>Name: {{ item.organization.name }}</p>
+                                <p
+                                    pTooltip="double click to view Tenant details"
+                                    tooltipPosition="left"
+                                    class="cursor-pointer hover:underline font-semibold"
+                                    (dblclick)="
+                                        goToTenantDetailedView(item.tenant.id)
+                                    "
+                                    style="text-wrap: nowrap"
+                                >
+                                    {{ item.organization.userType }} :
+                                    {{ item.tenant?.nameEnglish }}
+                                </p>
+                                <p>
+                                    Phone Number: {{ item.tenant.phoneNumber }}
+                                </p>
+                            </div>
+                        </td>
+                        <td>
+                            {{ item.use | lowercase }}
+                        </td>
+                        <td>
+                            <p>Nu. {{ computeMonthlyPayable(item) }}</p>
+                        </td>
+                        <td>
+                            <p style="text-wrap: nowrap">
+                                {{ item.leaseStartDate | date : "mediumDate" }}
+                            </p>
+                        </td>
+                        <td>
+                            {{ item.leaseEndDate | date : "mediumDate" }}
+                        </td>
+
+                        <td>
+                            <div class="flex gap-2">
+                                <p-button
+                                    size="small"
+                                    label="Terminate"
+                                    (click)="openTerminateLeaseModal(item)"
+                                    severity="danger"
+                                    icon="pi pi-times"
+                                ></p-button>
+                                <p-button
+                                    size="small"
+                                    label="View"
+                                    (click)="goToDetailedView(item)"
+                                    severity="secondary"
+                                    icon="pi pi-eye"
+                                ></p-button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4" *ngIf="propertyPaymentDueResult">
+    <p
+        *ngIf="!propertyPaymentDueResult.totalOverDue"
+        class="text-green-600 font-semibold"
+    >
+        <i class="pi pi-check"></i>
+        No Dues for this property
+    </p>
+
+    <div *ngIf="propertyPaymentDueResult.totalOverDue">
+        <p class="text-yellow-600 font-semibold">
+            <i class="pi pi-exclamation-circle"></i>
+            There are unpaid dues for the selected property.
+        </p>
+
+        <p class="font-semibold mt-2 mb-2 text-lg">
+            Total Due: Nu.{{ propertyPaymentDueResult.totalOverDue }}
+        </p>
+
+        <p-table
+            [value]="propertyPaymentDueResult?.pendingPaymentAdvices"
+            styleClass="p-datatable-striped"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Ref</th>
+                    <th>Status</th>
+                    <th>Title</th>
+                    <th>Total Amount</th>
+                    <th>Due by</th>
+
+                    <th>Payer</th>
+
+                    <th></th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+                <tr>
+                    <td>
+                        <p>#{{ item.id }}</p>
+                    </td>
+                    <td>
+                        <p
+                            [ngClass]="getPaymentStatusClass(item.status)"
+                            class="border-round text-center font-semibold text-sm"
+                        >
+                            {{ item.status | titlecase }}
+                        </p>
+                    </td>
+                    <td>
+                        <p>{{ item.title }}</p>
+                    </td>
+
+                    <td>Nu. {{ item.totalAmount }}</td>
+
+                    <td>
+                        {{ item.dueDate | date : "mediumDate" }}
+                    </td>
+
+                    <td>
+                        <p>
+                            Name:{{ item.leaseAgreement.tenant?.nameEnglish }}
+                        </p>
+                        <p>
+                            Phone: {{ item.leaseAgreement.tenant?.phoneNumber }}
+                        </p>
+                    </td>
+                    <td>
+                        <div class="flex gap-2">
+                            <p-button
+                                size="small"
+                                label="Payment Advice"
+                                icon="pi pi-file-o"
+                                (click)="openViewPaymentReceipt([item])"
+                                severity="secondary"
+                            ></p-button>
+                            <p-button
+                                size="small"
+                                label="Write Off"
+                                (click)="writeOffPaymentAdvice(item)"
+                                severity="danger"
+                                icon="pi pi-times"
+                            ></p-button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>
+
+<div
+    *ngIf="propertyAvailabilityResult && propertyPaymentDueResult"
+    style="min-height: 10vh"
+>
+    <p-divider></p-divider>
+
+    <div *ngIf="propertyAvailabilityResult?.available" class="mt-4 mb-4">
+        <p
+            class="font-semibold text-yellow-700"
+            *ngIf="propertyPaymentDueResult?.totalOverDue"
+        >
+            <i class="pi pi-exclamation-circle"></i> There are outstanding dues
+            associated with this property. While these do not affect lease
+            creation, please review and address them.
+        </p>
+        <p
+            class="text-lg font-semibold text-red-600"
+            *ngIf="!propertyAvailabilityResult?.available"
+        >
+            <i class="pi pi-exclamation-circle"></i> Property cannot be leased
+            as there are conflicting lease agreements with the selected
+            property.
+        </p>
+        <p-button
+            label="Confirm Property Selection"
+            serverity="success"
+            (click)="confirmPropertySelection()"
+        ></p-button>
+    </div>
+</div>

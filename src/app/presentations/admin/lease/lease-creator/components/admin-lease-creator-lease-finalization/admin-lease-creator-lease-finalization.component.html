@@ -1,0 +1,192 @@
+<p-confirmPopup></p-confirmPopup>
+<p class="font-semibold text-lg mt-4 mb-3">Finalize Lease Agreement</p>
+<div #property *ngIf="propertyDetails">
+    <p class="font-semibold mt-4 mb-2">Property Details</p>
+    <p>Lease Type: {{ propertyDetails.leaseType }}</p>
+
+    <p>
+        Lease Start Date:
+        {{ propertyDetails.leaseStartDate }} |
+        {{ formatDateToLocalISO(propertyDetails.leaseStartDate) }}
+    </p>
+    <p>
+        Lease End Date:
+
+        {{ propertyDetails.leaseEndDate }} |
+        {{ formatDateToLocalISO(propertyDetails.leaseEndDate) }}
+    </p>
+
+    <div #plotDetails>
+        <p>PlotID: {{ propertyDetails.plot.plotId }}</p>
+
+        <p>
+            Area: {{ propertyDetails.plot.netArea }}
+            {{ propertyDetails.plot.areaUnit }}
+        </p>
+        <p>Thram No: {{ propertyDetails.plot.thram.thramNo }}</p>
+        <p>
+            Admin Zone: {{ propertyDetails.plot.thram.administrativeZone.name }}
+        </p>
+        <p>
+            Sub Admin Zone:
+            {{ propertyDetails.plot.thram.subAdministrativeZone.name }}
+        </p>
+    </div>
+    <div #buildingDetails *ngIf="propertyDetails.building">
+        <p>Building Name: {{ propertyDetails.building.name }}</p>
+    </div>
+    <div #unitDetails *ngIf="propertyDetails.unit"></div>
+</div>
+
+<div #tenant *ngIf="tenantDetails">
+    <p class="font-semibold mt-4 mb-2">Tenant Details</p>
+    <p>Tenant Type: {{ tenantDetails.lesseeType }}</p>
+    <p>
+        Name: {{ tenantDetails.tenant.nameEnglish }}
+        {{
+            tenantDetails.tenant.nameDzongkha
+                ? "/" + tenantDetails.tenant.nameDzongkha
+                : ""
+        }}
+    </p>
+    <p>Contact: {{ tenantDetails.tenant.phoneNumber }}</p>
+    <p>Permanent Address: {{ tenantDetails.tenant.permanentAddress }}</p>
+</div>
+
+<div #generalTerms class="" *ngIf="leasePurposeAndCharges">
+    <p class="font-semibold mt-4 mb-2">Purpose and Charges</p>
+    <p>Monthly Rent: Nu.{{ leasePurposeAndCharges.rent }}</p>
+    <div *ngIf="leasePurposeAndCharges.leaseCharges.length">
+        <p class="font-semibold mb-1 mt-1">Additional terms</p>
+        <p *ngFor="let item of leasePurposeAndCharges.leaseCharges">
+            - {{ item.particular }}: Nu. {{ item.amount }}
+        </p>
+    </div>
+    <p>Total Monthly payable: Nu. {{ getTotalMonthlyPayabe() }}</p>
+
+    <p>
+        Security Deposit: Nu.{{ leasePurposeAndCharges.securityDepositAmount }}
+    </p>
+
+    <p>Land Area Leased: {{ leasePurposeAndCharges.areaLeasedInSqFt }} SqFt</p>
+    <p>Rate per Sqft: Nu. {{ leasePurposeAndCharges.ratePerArea }}/Sqft</p>
+</div>
+
+<div #detailedTerms *ngIf="leaseTerms">
+    <p class="font-semibold mt-4 mb-2">Terms</p>
+    <div>
+        <p>
+            - Is the tenant allowed to sublet the property?
+            <strong>
+                {{ leaseTerms.tenantSubletAuthority ? "Yes" : "No" }}
+            </strong>
+        </p>
+
+        <p>
+            - Can the tenant terminate the lease early?
+            <strong>
+                {{ leaseTerms.tenantPrematureTermination ? "Yes" : "No" }}
+            </strong>
+        </p>
+
+        <p>
+            - Can the owner terminate the lease early?
+            <strong>
+                {{ leaseTerms.ownerPrematureTermination ? "Yes" : "No" }}
+            </strong>
+        </p>
+
+        <p>
+            - Rent is due by day
+            <strong> {{ leaseTerms.paymentDueDay }} </strong> of the following
+            month. Penalties will apply after this date.
+        </p>
+        <p>
+            - Penalty for late payment:
+            <strong> {{ leaseTerms.penaltyPercentagePerAnnum }}% </strong> per
+            annum on the overdue amount, charged daily.
+        </p>
+
+        <p>
+            - Rent will be increased:
+            <strong> {{ leaseTerms.rentIncrementPercentage }}% </strong> every
+            <strong> {{ leaseTerms.rentIncremenetDuration }} </strong> year/s.
+        </p>
+        <p>
+            - Notice period for rent increase:
+            <strong>{{ leaseTerms.rentIncreaseNoticePeriod }} month/s</strong>
+        </p>
+
+        <p>
+            - Tenant’s notice period for vacating:
+            <strong> {{ leaseTerms.vacationNoticePeriod }} month/s</strong>
+        </p>
+
+        <p>
+            - Notice period for eviction:
+            <strong> {{ leaseTerms.evictionNoticePeriod }} month/s</strong>
+        </p>
+    </div>
+
+    <div #additinalRules class="mt-2">
+        <p class="font-semibold mb-1">Additional terms</p>
+        <p *ngFor="let item of leaseTerms.leaseRules">
+            - {{ item.particular }}
+        </p>
+    </div>
+</div>
+
+<div class="mt-5 flex justify-content-end">
+    <p-button
+        label="Finalize"
+        (click)="confirmCreateLeaseAgreement()"
+    ></p-button>
+</div>
+
+<p-dialog
+    header="Create Lease"
+    [modal]="true"
+    [(visible)]="showConfirmLeaseCreateModal"
+>
+    <p class="font-semibold text-lg mb-2">Notification Options</p>
+    <div class="flex flex-column gap-2 mb-4">
+        <div class="flex align-items-center gap-4 mb-1">
+            <p>-Lease Creation Notification</p>
+            <p-selectButton
+                [options]="yesNoOptions"
+                [(ngModel)]="notifyLeaseCreation"
+                optionLabel="name"
+                optionValue="value"
+                [allowEmpty]="false"
+            />
+        </div>
+        <div class="flex align-items-center gap-4">
+            <p>-Lease Lease Security Deposit Payment Notification</p>
+            <p-selectButton
+                [options]="yesNoOptions"
+                [(ngModel)]="notifySecurityDepositPayment"
+                optionLabel="name"
+                optionValue="value"
+                [allowEmpty]="false"
+            />
+        </div>
+        <div class="flex align-items-center gap-4">
+            <p>-Lease Lease Acceptance Reminder Notification</p>
+            <p-selectButton
+                [options]="yesNoOptions"
+                [(ngModel)]="notifyLeaseAcceptance"
+                optionLabel="name"
+                optionValue="value"
+                [allowEmpty]="false"
+            />
+        </div>
+    </div>
+    <div class="flex justify-content-end gap-2">
+        <p-button
+            label="Cancel"
+            severity="secondary"
+            (onClick)="showConfirmLeaseCreateModal = false"
+        />
+        <p-button label="Create Lease" (click)="createLeaseAgreement()" />
+    </div>
+</p-dialog>

@@ -1,0 +1,72 @@
+<p class="text-2xl font-semibold">Damage Items</p>
+<p-divider></p-divider>
+<div *ngFor="let item of damageItems" class="p-2 cursor-pointer">
+    <div class="flex justify-content-between">
+        <p>
+            Status:
+            <span class="font-semibold">
+                {{ item.status }}
+            </span>
+        </p>
+        <p>
+            Date Submitted:
+            {{ item.submissionDate | date : "short" }}
+        </p>
+    </div>
+
+    <p class="font-semibold">{{ item.title }}({{ item.location }})</p>
+
+    <p>Description:{{ item.description }}</p>
+    <div *ngIf="item.status === 'RESOLVED'" class="pt-2">
+        <p class="font-semibold">Resolution</p>
+        <p>Remarks: {{ item.resolutionRemarks }}</p>
+        <div class="flex jusitfy-content-between">
+            <p>
+                Resolution Date:
+                {{ item.resolutionDate | date : "short" }}
+            </p>
+            <p>Charges Incurred: Nu.{{ item.resolutionCharges }}</p>
+        </div>
+        <p>Resolved by: {{ item.resolvedBy }}</p>
+    </div>
+
+    <div class="flex gap-4 justify-content-between align-items-end">
+        <div class="flex gap-2" style="margin-top: 0.6rem">
+            <div *ngFor="let image of item.images; let index = index">
+                <p-image
+                    [src]="image.itemImageSrc"
+                    alt="Image"
+                    height="80"
+                    [preview]="true"
+                />
+            </div>
+        </div>
+
+        <div class="flex flex-column gap-2 justify-content-end align-items-end">
+            <p-button
+                size="small"
+                *ngIf="item.status !== 'RESOLVED'"
+                label="Resolve"
+                icon="pi pi-wrench"
+                (click)="openResolveDamageItemModal(item)"
+            ></p-button>
+            <p-button
+                label="load conversation"
+                size="small"
+                icon="pi pi-mail"
+                severity="secondary"
+                (click)="loadChat(item, $event)"
+            ></p-button>
+        </div>
+    </div>
+    <p-divider></p-divider>
+</div>
+
+<div *ngIf="!damageItems.length">- No Damage/Maintenance Reports</div>
+
+<p-overlayPanel #op>
+    <app-damage-item-chat-box
+        *ngIf="selectedDamageItem"
+        [damageItem]="selectedDamageItem"
+    ></app-damage-item-chat-box>
+</p-overlayPanel>

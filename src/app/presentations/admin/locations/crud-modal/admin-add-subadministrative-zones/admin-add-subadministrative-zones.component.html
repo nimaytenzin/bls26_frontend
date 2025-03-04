@@ -1,0 +1,66 @@
+<form [formGroup]="createSubAdministrativeZoneForm" class="p-fluid p-2">
+    <div class="grid">
+        <div class="field col-12 md:col-6">
+            <label for="dzongkhag">Dzongkhag</label>
+            <p-dropdown
+                id="dzongkhag"
+                [options]="dzongkhags"
+                optionValue="id"
+                optionLabel="name"
+                formControlName="dzongkhagId"
+                (onChange)="getAdministrativeZonesByDzongkhag($event)"
+            ></p-dropdown>
+        </div>
+        <div class="field col-12 md:col-6">
+            <label for="administrativezone">Administrative Zone</label>
+            <p-dropdown
+                id="administrativezone"
+                [options]="administrativeZones"
+                optionValue="id"
+                optionLabel="name"
+                formControlName="administrativeZoneId"
+            ></p-dropdown>
+        </div>
+
+        <div class="field col-12 md:col-6">
+            <label for="name">Name</label>
+            <input pInputText id="name" type="text" formControlName="name" />
+        </div>
+        <div class="field col-12 md:col-6">
+            <label for="nameDzo">Name in Dzongkha</label>
+            <input
+                pInputText
+                id="nameDzo"
+                type="text"
+                formControlName="nameDzo"
+            />
+        </div>
+
+        <div class="field col-12 md:col-6">
+            <label for="type">Type</label>
+            <p-dropdown
+                id="type"
+                [options]="subadministrativeZoneTypes"
+                formControlName="type"
+            ></p-dropdown>
+        </div>
+
+        <div class="field col-12 md:col-6">
+            <label for="location">Location</label>
+            <p-dropdown
+                id="location"
+                [options]="locations"
+                formControlName="location"
+            ></p-dropdown>
+        </div>
+    </div>
+    <p-messages
+        [(value)]="messages"
+        [enableService]="false"
+        [closable]="false"
+    ></p-messages>
+    <p-button
+        (click)="createSubAdministiveZone()"
+        label="Create Sub Administrative Zone"
+    ></p-button>
+</form>

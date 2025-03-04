@@ -1,0 +1,32 @@
+<div class="px-4">
+    <div class="flex gap-2 align-items-center">
+        <div
+            *ngIf="!profileUri"
+            style="height: 2.8rem; width: 2.8rem; border-radius: 100%"
+            class="bg-blue-300 flex text-white justify-content-center align-items-center text-5xl"
+        >
+            {{ tenantDetails?.firstName[0] }}
+        </div>
+        <div
+            *ngIf="profileUri"
+            style="
+                height: 2.8rem;
+                width: 2.8rem;
+                border-radius: 100%;
+                background-size: cover;
+            "
+            [ngStyle]="{ 'background-image': 'url(' + profileUri + ')' }"
+            class="bg-blue-300 flex text-white justify-content-center align-items-center text-5xl"
+        ></div>
+        <div>
+            <p>
+                Welcome,
+
+                {{ tenantDetails?.firstName }} {{ tenantDetails?.middleName }}
+                {{ tenantDetails?.lastName }}
+            </p>
+            <p>+975 {{ tenantDetails?.phoneNumber }}</p>
+        </div>
+    </div>
+    <p-divider></p-divider>
+</div>

@@ -1,0 +1,391 @@
+<div
+    class="flex hero flex-column align-items-center justify-content-center"
+    style="height: 100dvh; margin: 0; overflow: hidden"
+>
+    <div class="logo">
+        <img src="assets/logo.png" />
+        <p>{{ companyName }}</p>
+    </div>
+    <div #centerElement class="p-4" style="z-index: 99">
+        <div class="text-left">
+            <p class="font-serif text-6xl md:text-7xl text-center">
+                {{ companyName }}
+            </p>
+
+            <p class="text-center font-uchen">
+                ཞི་བདེ་སེམས་ཀྱི་ནོར་བུ་ཨིན། ཞི་བདེའི་རིམ་ལུགས་ལག་ལེན་མཛད།།
+            </p>
+            <p class="text-lg md:text-xl text-center mt-4">
+                This platform is your gateway to automated rental property
+                management suite on cloud.
+            </p>
+        </div>
+        <div
+            class="flex w-full flex-column p-fluid align-items-center justify-content-center gap-2 mt-4"
+        >
+            <div class="flex gap-2 my-2">
+                <div class="flex align-items-center">
+                    <p-button
+                        severity=""
+                        label=" Login"
+                        (click)="login()"
+                    ></p-button>
+                </div>
+                <div class="flex align-items-center">
+                    <p-button
+                        label="Request for Demo"
+                        (click)="showRequestDemoModal = true"
+                        severity="secondary"
+                    >
+                    </p-button>
+                </div>
+            </div>
+
+            <hr />
+        </div>
+    </div>
+    <div class="cloud1">
+        <img src="assets/images/cloud1.png" />
+    </div>
+    <div class="cloud2">
+        <img src="assets/images/cloud1.png" />
+    </div>
+    <div class="cloud4">
+        <img src="assets/images/cloud1.png" />
+    </div>
+    <div class="cloud3">
+        <img src="assets/images/cloud3.png" />
+    </div>
+
+    <div class="cloud5">
+        <img src="assets/images/cloud3.png" />
+    </div>
+</div>
+
+<div class="varpad">
+    <div class="surface-section py-8 text-center">
+        <div class="mb-3 font-bold text-3xl">
+            <span class="text-900">Make self-managing </span>
+            <span class="text-blue-600">your rentals simple</span>
+        </div>
+
+        <div class="grid">
+            <div class="col-12 md:col-4 mb-4 px-5">
+                <span
+                    class="p-3 shadow-2 mb-3 inline-block surface-card"
+                    style="border-radius: 10px"
+                >
+                    <i class="pi pi-users text-4xl text-blue-500"></i>
+                </span>
+                <div class="text-900 text-xl mb-3 font-medium">
+                    Built for HomeOwners
+                </div>
+                <span class="text-700 line-height-3"
+                    >Our platform is built by landlord for landlords. It
+                    streamlines the rental process, offering automated tools to
+                    manage properties efficiently from anywhere in the
+                    world.</span
+                >
+            </div>
+            <div class="col-12 md:col-4 md:mb-4 mb-0 px-3">
+                <span
+                    class="p-3 shadow-2 mb-3 inline-block surface-card"
+                    style="border-radius: 10px"
+                >
+                    <i class="pi pi-shield text-4xl text-blue-500"></i>
+                </span>
+                <div class="text-900 text-xl mb-3 font-medium">
+                    Secured Rent Collection
+                </div>
+                <span class="text-700 line-height-3">
+                    Secured Rental Payments powered by RMA Payment Gateway. -
+                    Keep track of all your payments in one place for easy
+                    bookkeeping during tax season.Get notified as soon as your
+                    tenant pays, or if their payment is past due.
+                </span>
+            </div>
+
+            <div class="col-12 md:col-4 mb-4 px-5">
+                <span
+                    class="p-3 shadow-2 mb-3 inline-block surface-card"
+                    style="border-radius: 10px"
+                >
+                    <i class="pi pi-file-o text-4xl text-blue-500"></i>
+                </span>
+                <div class="text-900 text-xl mb-3 font-medium">
+                    Lease Agreements
+                </div>
+                <span class="text-700 line-height-3"
+                    >Draft and customize lease agreements in accordance with the
+                    Tenancy Act 2015. Set up Move and Move out checklist to
+                    ensure hassle free onboarding and outboarding of tenants.
+                </span>
+            </div>
+
+            <div class="col-12 md:col-4 mb-4 px-5">
+                <span
+                    class="p-3 shadow-2 mb-3 inline-block surface-card"
+                    style="border-radius: 10px"
+                >
+                    <i class="pi pi-bell text-4xl text-blue-500"></i>
+                </span>
+                <div class="text-900 text-xl mb-3 font-medium">
+                    SMS and Reminders
+                </div>
+                <span class="text-700 line-height-3"
+                    >Set up automatic late fees and enable autopay for tenants.
+                    Receive email reminders for timely payments and
+                    notifications for overdue rent. SMS reminder to all your
+                    tenants</span
+                >
+            </div>
+
+            <div class="col-12 md:col-4 mb-4 px-5 feature-item">
+                <span
+                    class="p-3 shadow-2 mb-3 inline-block surface-card"
+                    style="border-radius: 10px"
+                >
+                    <i class="pi pi-wrench text-4xl text-blue-500"></i>
+                </span>
+                <div class="text-900 text-3xl mb-3 font-medium">
+                    Maintenance & Damage Items
+                </div>
+                <span class="text-700 line-height-3"
+                    >Allow tenants to quickly report maintenance issues and
+                    property damage.Managers can track the status of each
+                    request and add resolution of status.</span
+                >
+            </div>
+        </div>
+    </div>
+
+    <div class="surface-ground px-4 py-8 md:px-6 lg:px-8">
+        <div class="text-900 font-bold text-6xl mb-4 text-center">
+            Pricing Plans
+        </div>
+        <div class="text-700 text-xl mb-6 text-center line-height-3">
+            Choose from one of the following pricing plans to onboard with
+            zhidhay- your cloud rental management platform
+        </div>
+
+        <div class="grid">
+            <div class="col-12 lg:col-4">
+                <div class="p-3 h-full">
+                    <div
+                        class="shadow-2 p-3 h-full flex flex-column surface-card"
+                        style="border-radius: 6px"
+                    >
+                        <div class="text-900 font-medium text-xl mb-2">
+                            Basic
+                        </div>
+                        <div class="text-600">
+                            Self managment of your rental properties with
+                            support from zhidhay
+                        </div>
+                        <hr
+                            class="my-3 mx-0 border-top-1 border-none surface-border"
+                        />
+                        <div class="flex align-items-center">
+                            <span class="font-bold text-2xl text-900"
+                                >Nu.100</span
+                            >
+                            <span class="ml-2 font-medium text-600"
+                                >per unit per month</span
+                            >
+                        </div>
+                        <hr
+                            class="my-3 mx-0 border-top-1 border-none surface-border"
+                        />
+                        <ul class="list-none p-0 m-0 flex-grow-1">
+                            <li class="flex align-items-center mb-3">
+                                <i
+                                    class="pi pi-check-circle text-green-500 mr-2"
+                                ></i>
+                                <span class="text-900"> Tenant Onboarding</span>
+                            </li>
+                            <li class="flex align-items-center mb-3">
+                                <i
+                                    class="pi pi-times-circle text-red-500 mr-2"
+                                ></i>
+                                <span class="text-900"
+                                    >Tenant Screening and Management</span
+                                >
+                            </li>
+                            <li class="flex align-items-center mb-3">
+                                <i
+                                    class="pi pi-check-circle text-green-500 mr-2"
+                                ></i>
+                                <span class="text-900"
+                                    >Self Management portal</span
+                                >
+                            </li>
+                            <li class="flex align-items-center mb-3">
+                                <i
+                                    class="pi pi-check-circle text-green-500 mr-2"
+                                ></i>
+                                <span class="text-900"
+                                    >24x7 Technical Support</span
+                                >
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 lg:col-4">
+                <div class="p-3 h-full">
+                    <div
+                        class="shadow-2 p-3 h-full flex flex-column surface-card"
+                        style="border-radius: 6px"
+                    >
+                        <div class="text-900 font-medium text-xl mb-2">
+                            Premium
+                        </div>
+                        <div class="text-600">
+                            Complete Managment of your rental properties with
+                            support from zhidhay and reporting
+                        </div>
+                        <hr
+                            class="my-3 mx-0 border-top-1 border-none surface-border"
+                        />
+                        <div class="flex align-items-center">
+                            <span class="font-bold text-2xl text-900"
+                                >Nu.250</span
+                            >
+                            <span class="ml-2 font-medium text-600"
+                                >per unit per month</span
+                            >
+                        </div>
+                        <hr
+                            class="my-3 mx-0 border-top-1 border-none surface-border"
+                        />
+                        <ul class="list-none p-0 m-0 flex-grow-1">
+                            <li class="flex align-items-center mb-3">
+                                <i
+                                    class="pi pi-check-circle text-green-500 mr-2"
+                                ></i>
+                                <span class="text-900"> Tenant Onboarding</span>
+                            </li>
+                            <li class="flex align-items-center mb-3">
+                                <i
+                                    class="pi pi-check-circle text-green-500 mr-2"
+                                ></i>
+                                <span class="text-900"
+                                    >Tenant Screening and Management</span
+                                >
+                            </li>
+                            <li class="flex align-items-center mb-3">
+                                <i
+                                    class="pi pi-check-circle text-green-500 mr-2"
+                                ></i>
+                                <span class="text-900"
+                                    >Self Management portal</span
+                                >
+                            </li>
+
+                            <li class="flex align-items-center mb-3">
+                                <i
+                                    class="pi pi-check-circle text-green-500 mr-2"
+                                ></i>
+                                <span class="text-900"
+                                    >24X7 Technical Support</span
+                                >
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="surface-section px-4 py-8 md:px-6 lg:px-8">
+        <div class="text-700 text-center flex flex-column align-items-center">
+            <div class="text-900 font-bold text-5xl mb-3">Why wait?</div>
+            <div class="text-700 text-xl font-light">
+                Transform your rental management today! Contact us now to book a
+                demo and experience the future of effortless property
+                management.
+            </div>
+            <div class="flex align-items-center my-2">
+                <p-button
+                    label="Request for Demo"
+                    (click)="showRequestDemoModal = true"
+                    severity="secondary"
+                >
+                </p-button>
+            </div>
+
+            <p>Request for Demo and We will get back to you.</p>
+        </div>
+    </div>
+</div>
+
+<p-sidebar [(visible)]="showRequestDemoModal" styleClass="requestdemo-sidebar ">
+    <p class="text-2xl mt-2 text-center text-primary">Book a demo</p>
+    <p class="mb-4 text-justify">
+        Get a Personalized Introduction to Zhidhay. Book a custom demo with our
+        Sales team to explore how Zhidhay could work for your property.
+    </p>
+
+    <form [formGroup]="requestDemoForm" class="p-fluid flex flex-column gap-4">
+        <div class="flex flex-column gap-2">
+            <label for="name" class="font-semibold">Name</label>
+            <input
+                pInputText
+                id="name"
+                class="flex-auto"
+                formControlName="name"
+                autocomplete="off"
+            />
+        </div>
+        <div class="flex flex-column gap-2">
+            <label for="email" class="font-semibold">Phone Number</label>
+
+            <p-inputGroup>
+                <p-inputGroupAddon>+975 </p-inputGroupAddon>
+                <p-inputNumber
+                    formControlName="phoneNumber"
+                    inputId="withoutgrouping"
+                    [useGrouping]="false"
+                />
+            </p-inputGroup>
+        </div>
+
+        <div class="flex flex-column gap-2">
+            <label for="email" class="font-semibold">Preferred Date</label>
+            <p-calendar
+                [showIcon]="true"
+                appendTo="body"
+                formControlName="preferredDemoDate"
+            />
+        </div>
+
+        <div class="flex flex-column gap-2">
+            <label for="email" class="font-semibold">
+                Tell us about your self or ask us anything.
+            </label>
+            <textarea
+                id="remarks"
+                rows="5"
+                cols="30"
+                pInputTextarea
+                formControlName="remarks"
+                (input)="onTextareaInput($event)"
+            ></textarea>
+
+            <div [ngClass]="characterCountExceeded ? 'text-red-400' : ''">
+                message length: {{ getRemarksCharCount() }} /
+                {{ characterLimit }}
+            </div>
+        </div>
+
+        <div class="flex justify-content-end gap-2">
+            <p-button
+                label="Cancel"
+                severity="secondary"
+                (click)="showRequestDemoModal = false"
+            />
+            <p-button label="Request Demo" (click)="requestDemo()" />
+        </div>
+    </form>
+</p-sidebar>

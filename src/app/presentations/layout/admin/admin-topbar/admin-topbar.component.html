@@ -1,0 +1,97 @@
+<div class="layout-topbar">
+    <button
+        #menubutton
+        class="p-link layout-menu-button layout-topbar-button"
+        (click)="layoutService.onMenuToggle()"
+    >
+        <i class="pi pi-bars"></i>
+    </button>
+    <!-- <a class="layout-topbar-logo ml-4" routerLink="">
+        <img [src]="this.adminProfileUri" style="height: 30px" />
+    </a> -->
+
+    <div class="flex ml-4 gap-2 align-items-center">
+        <div>
+            <img [src]="this.adminProfileUri" style="height: 30px" />
+        </div>
+        <div class="flex flex-column">
+            <p>
+                {{ authenticatedUser.nameEnglish }}
+            </p>
+            <p class="text-xs">
+                {{ currentRole.name }}
+                {{ admin?.nameEnglish ? "at " + admin.nameEnglish : "" }}
+            </p>
+        </div>
+    </div>
+    <button
+        #topbarmenubutton
+        class="p-link layout-topbar-menu-button layout-topbar-button"
+        (click)="layoutService.showProfileSidebar()"
+    >
+        <i class="pi pi-ellipsis-v"></i>
+    </button>
+
+    <div
+        #topbarmenu
+        class="layout-topbar-menu"
+        [ngClass]="{
+            'layout-topbar-menu-mobile-active':
+                layoutService.state.profileSidebarVisible
+        }"
+    >
+        <button
+            class="p-link layout-topbar-button"
+            (click)="profileSideBarVisible = true"
+        >
+            <i class="pi pi-user"></i>
+            <span>Profile</span>
+        </button>
+        <button class="p-link layout-topbar-button" (click)="logout()">
+            <i class="pi pi-cog"></i>
+            <span>Logout</span>
+        </button>
+    </div>
+</div>
+<p-toast />
+<p-confirmPopup />
+
+<p-sidebar [(visible)]="profileSideBarVisible" position="right">
+    <app-admin-update-user></app-admin-update-user>
+</p-sidebar>
+
+<p-dialog
+    header="Update Password"
+    [modal]="true"
+    [closable]="false"
+    [(visible)]="isNotVerified"
+    [style]="{ width: '25rem' }"
+>
+    <span class="p-text-secondary block mb-5"
+        >Please Update your password.</span
+    >
+    <div class="flex align-items-center gap-3 mb-3">
+        <label for="username" class="font-semibold w-6rem">Password</label>
+        <input
+            pInputText
+            id="username"
+            class="flex-auto"
+            [(ngModel)]="newPassword"
+            autocomplete="off"
+        />
+    </div>
+    <div class="flex align-items-center gap-3 mb-5">
+        <label for="email" class="font-semibold w-6rem">Password Reentry</label>
+        <input
+            pInputText
+            id="email"
+            class="flex-auto"
+            [(ngModel)]="newPasswordReentry"
+            autocomplete="off"
+        />
+    </div>
+
+    <div class="flex justify-content-center gap-2">
+        <p-button label="Update Password" (click)="resetPassword()" />
+    </div>
+</p-dialog>

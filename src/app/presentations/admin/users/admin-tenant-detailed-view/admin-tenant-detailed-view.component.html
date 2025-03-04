@@ -1,0 +1,123 @@
+<div class="grid">
+    <div class="col-3" *ngIf="tenant">
+        <div class="card">
+            <div class="flex justify-content-end">
+                <p-button
+                    icon="pi pi-pencil"
+                    size="small"
+                    severity="secondary"
+                    [rounded]="true"
+                    (click)="openUpdateUserDetailsModal()"
+                />
+            </div>
+
+            <div class="flex justify-content-center mb-4">
+                <p-avatar
+                    [label]="tenant.nameEnglish.charAt(0)"
+                    styleClass="mr-2"
+                    size="xlarge"
+                    shape="circle"
+                />
+            </div>
+            <p>
+                Name English:
+                <strong> {{ tenant.nameEnglish }}</strong>
+            </p>
+            <p>
+                Name Dzongkha:
+                <strong> {{ tenant.nameDzongkha }}</strong>
+            </p>
+            <p>
+                CID:
+                <strong>{{ tenant.cid }}</strong>
+            </p>
+            <p>
+                PhoneNumber:
+                <strong> {{ tenant.phoneNumber }}</strong>
+            </p>
+            <p>
+                Permanent Address:
+                <strong> {{ tenant.permanentAddress }}</strong>
+            </p>
+        </div>
+
+        <div
+            class="card max-w-lg flex flex-column justify-content-center align-items-center"
+        >
+            <p-knob
+                [(ngModel)]="tenantScore"
+                [valueColor]="getColorForScore(tenantScore)"
+                valueTemplate="{value}pts"
+                [readonly]="true"
+            />
+            <p>Tenant Credit Score</p>
+            <p class="text-xs">
+                Score is deducted every time tenant <br />
+                delays payments and is assessed during exit
+            </p>
+        </div>
+        <div class="card">
+            <div class="flex justify-content-between align-items-center">
+                <p class="mt-3 font-semibold mb-2">Organizations</p>
+                <p-button
+                    size="small"
+                    severity="secondary"
+                    [rounded]="true"
+                    icon="pi pi-plus"
+                    (click)="openCreateOrganizationModal()"
+                ></p-button>
+            </div>
+            <p class="text-xs">
+                Organization refers to the businesses or institutions which they
+                own or are manager of
+            </p>
+            <p-divider></p-divider>
+            <div class="flex flex-column gap-4">
+                <div
+                    *ngFor="let item of tenant.organizations"
+                    class="flex algin-items-center justify-content-between"
+                >
+                    <div>
+                        <p>
+                            {{ item.type | lowercase }}
+                        </p>
+                        <p>{{ item.name }} {{ item.userType }}</p>
+                    </div>
+                    <p-button
+                        size="small"
+                        severity="secondary"
+                        icon="pi pi-pencil"
+                        [rounded]="true"
+                        [text]="true"
+                        (click)="openEditOrganizationModal(item)"
+                    ></p-button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-9 flex flex-column overflow-y-scroll">
+        <p-tabView>
+            <p-tabPanel header="Lease">
+                <div style="height: 80vh; overflow: scroll">
+                    <app-admin-tenant-lease
+                        [tenantId]="tenantId"
+                    ></app-admin-tenant-lease>
+                </div>
+            </p-tabPanel>
+            <p-tabPanel header="Payments">
+                <div style="height: 80vh; overflow: scroll">
+                    <app-admin-tenant-payments
+                        [tenantId]="tenantId"
+                    ></app-admin-tenant-payments>
+                </div>
+            </p-tabPanel>
+            <p-tabPanel header="Notifications">
+                <div style="height: 80vh; overflow: scroll">
+                    <app-admin-tenant-notifications [tenantId]="tenantId">
+                        [tenantId]="tenantId"
+                    </app-admin-tenant-notifications>
+                </div>
+            </p-tabPanel>
+        </p-tabView>
+    </div>
+</div>

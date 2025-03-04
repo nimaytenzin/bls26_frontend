@@ -1,0 +1,167 @@
+<div class="flex align-items-center justify-content-between my-4">
+    <p class="text-lg">Units</p>
+    <div class="flex gap-2">
+        <p-button
+            label="Download Excel"
+            icon="pi pi-file-excel"
+            size="small"
+            (click)="downloadMasterTable()"
+        ></p-button>
+    </div>
+</div>
+
+<div class="flex align-items-center mb-2 justify-content-between">
+    <div>
+        <p>
+            Showing {{ paginatedUnits.data.length }} of
+            {{ paginatedUnits.count }} Entries
+        </p>
+    </div>
+    <div class="">
+        <p-paginator
+            (onPageChange)="onPageChange($event)"
+            [first]="firstPageNumber"
+            [rows]="rows"
+            [totalRecords]="paginatedUnits.count"
+            [rowsPerPageOptions]="rowsPerPageOptions"
+            [showFirstLastIcon]="true"
+            #paginator
+        ></p-paginator>
+    </div>
+</div>
+
+<p-table
+    [value]="paginatedUnits.data"
+    class="p-datatable-sm"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    #dt
+    [globalFilterFields]="['floorLevel', 'unitNumber']"
+>
+    <ng-template pTemplate="caption">
+        <div class="flex flex-column align-items-end justify-content-end">
+            <p class="text-sm font-normal">
+                Filter by Unit Number or FloorLevel
+            </p>
+            <input
+                pInputText
+                type="text"
+                (input)="dt.filterGlobal($event.target.value, 'contains')"
+                placeholder="Search keyword"
+            />
+        </div>
+    </ng-template>
+    <ng-template pTemplate="header">
+        <tr>
+            <th>Unit</th>
+            <th>Building</th>
+            <th>Plot</th>
+            <th>Location</th>
+
+            <th>Tenant</th>
+            <th></th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+        <tr>
+            <td>
+                <p>{{ item.floorLevel }}-{{ item.unitNumber }}</p>
+                <p class="text-xs">
+                    {{ item.remarks }}
+                </p>
+            </td>
+            <td>
+                <p
+                    pTooltip="double click to view Building details"
+                    tooltipPosition="left"
+                    class="cursor-pointer hover:underline hover:font-semibold text-blue-600"
+                    (dblclick)="goToBuildingDetailedView(item.building)"
+                >
+                    {{
+                        item.building?.name
+                            ? item.building.name
+                            : item.building.buildingNumber
+                    }}
+                </p>
+            </td>
+            <td>
+                <p
+                    *ngFor="let plot of item.building?.plots"
+                    pTooltip="double click to view Plot details"
+                    tooltipPosition="left"
+                    class="cursor-pointer hover:underline hover:font-semibold text-blue-600"
+                    (dblclick)="goToPlotDetailedView(plot)"
+                >
+                    {{ plot.plotId }}
+                </p>
+            </td>
+
+            <td>
+                <p>
+                    <strong
+                        >{{ item.building.subadministrativeZone?.name }}, <br />
+                        {{ item.building.administrativeZone?.name }},
+                        {{ item.building.dzongkhag?.name }}</strong
+                    >
+                </p>
+            </td>
+
+            <td>
+                <div *ngFor="let lease of item.leaseAgreements">
+                    <div *ngIf="lease.lesseeType === LESSEETYPES.INDIVIDUAL">
+                        <p
+                            pTooltip="double click to view Tenant details"
+                            tooltipPosition="left"
+                            class="cursor-pointer hover:underline hover:font-semibold text-blue-600"
+                            (dblclick)="goToTenantDetailedView(lease.tenantId)"
+                        >
+                            Name: {{ lease.tenant.nameEnglish }}
+                            {{ lease.tenant.nameDzongkha }}
+                        </p>
+                        <p>Phone Number: {{ lease.tenant.phoneNumber }}</p>
+                        <p>CID: {{ lease.tenant.cid }}</p>
+                    </div>
+                    <div *ngIf="lease.lesseeType !== LESSEETYPES.INDIVIDUAL">
+                        <p>Name: {{ lease.organization.name }}</p>
+                        <p class="font-semibold mt-1 mb-2">
+                            {{ lease.organization.userType }} Details
+                        </p>
+                        <p
+                            pTooltip="double click to view Tenant details"
+                            tooltipPosition="left"
+                            class="cursor-pointer hover:underline hover:font-semibold text-blue-600"
+                            (dblclick)="goToTenantDetailedView(lease.tenantId)"
+                        >
+                            Name: {{ lease.tenant.nameEnglish }}
+                            {{ lease.tenant.nameDzongkha }}
+                        </p>
+                        <p>Phone Number: {{ lease.tenant.phoneNumber }}</p>
+                        <p>CID: {{ lease.tenant.cid }}</p>
+                    </div>
+
+                    <p
+                        class="text-sm text-blue-700 cursor-pointer hover:underline"
+                        (click)="goToLeaseView(lease.id)"
+                    >
+                        (view lease)
+                    </p>
+                </div>
+                <div *ngIf="!item.leaseAgreements.length">
+                    - No active lease
+                </div>
+            </td>
+
+            <td>
+                <div class="flex gap-2">
+                    <p-button
+                        size="small"
+                        icon="pi pi-eye"
+                        label="View"
+                        (click)="openViewUnit(item.id, item.building.id)"
+                    ></p-button>
+                </div>
+            </td>
+        </tr>
+    </ng-template>
+</p-table>
+
+<p *ngIf="!paginatedUnits.count" class="mt-4">- No Units Registered</p>

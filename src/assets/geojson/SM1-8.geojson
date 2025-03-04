@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "SM1-8",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "OBJECTID": 708192, "OriginalCo": 4, "SpatialAcc": 2, "Operator": "taship_p", "DateModifi": "2014-09-30", "MapSheet": null, "OriginalPr": 3, "PlotID": "SM1-8", "FCode": "IA040", "Shape_area": 704.63028086199995, "Shape_len": 112.98552859 }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ 89.65753761379618, 27.438113852025165, 2284.37028 ], [ 89.657408987568161, 27.437986739853159, 2283.439760000000206 ], [ 89.657128612028444, 27.438224844241198, 2280.641279999999824 ], [ 89.657257607551813, 27.438342320208271, 2283.262540000000172 ], [ 89.65753761379618, 27.438113852025165, 2284.37028 ] ] ] ] } }
+]
+}

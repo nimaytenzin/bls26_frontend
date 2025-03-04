@@ -1,0 +1,104 @@
+<div
+    class="bg-gray-100 flex align-items-center justify-content-center min-w-screen overflow-hidden"
+    style="height: 100dvh"
+>
+    <p-toast appendTo="body" />
+    <div
+        class="flex bg-white border-round-md flex-column gap-2 p-4 align-items-center justify-content-center"
+    >
+        <div>
+            <a
+                routerLink="/"
+                class="flex align-items-center gap-2 hover:underline"
+            >
+                <img style="height: 25px" src="assets/zhidhaylogo.png" />
+                <p class="text-4xl">{{ companyDetails.webAppName }}</p>
+            </a>
+            <p-divider type="dashed"></p-divider>
+        </div>
+        <form [formGroup]="loginForm" class="w-full p-4 p-fluid">
+            <label for="email1" class="block font-semibold text-900 mb-2"
+                >CID</label
+            >
+            <input
+                id="email1"
+                type="text"
+                placeholder="CID"
+                pInputText
+                autocomplete=""
+                formControlName="cid"
+            />
+
+            <label for="email1" class="block font-semibold text-900 mt-4 mb-2"
+                >Password</label
+            >
+            <p-password
+                formControlName="password"
+                placeholder="your password"
+                [feedback]="false"
+            />
+            <div
+                class="flex my-6 align-items-center justify-content-between mb-5 gap-5"
+            >
+                <div class="flex align-items-center">
+                    <p-checkbox
+                        id="rememberMe"
+                        [binary]="true"
+                        styleClass="mr-2"
+                        formControlName="rememberMe"
+                    ></p-checkbox>
+                    <label for="rememberMe">Remember me</label>
+                </div>
+                <!-- <a
+                    class="font-medium no-underline ml-2 text-right cursor-pointer"
+                    >Forgot password?</a
+                > -->
+            </div>
+            <div class="flex gap-2">
+                <button
+                    pButton
+                    pRipple
+                    label="Login"
+                    class="w-full"
+                    (click)="login()"
+                ></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<p-dialog
+    [modal]="true"
+    [(visible)]="showLoading"
+    closable="false"
+    styleClass="bg-transparent"
+    [style]="{ width: '25rem', background: 'transparent' }"
+>
+    <div
+        class="flex h-full w-full flex-column align-items-center justify-content-center"
+    >
+        <p>Validating your credentials</p>
+        <p-progressSpinner
+            styleClass="w-4rem h-4rem"
+            strokeWidth="8"
+            fill="var(--surface-ground)"
+            animationDuration=".5s"
+        />
+    </div>
+</p-dialog>
+
+<p-dialog
+    header="Role Selection"
+    [modal]="true"
+    [(visible)]="showRoleSelection"
+    [style]="{ width: '25rem' }"
+>
+    <span class="p-text-secondary block mb-5"
+        >You have multiple roles.Please select a role to use</span
+    >
+    <div *ngFor="let role of authenticatedUser?.roles">
+        <p>Role: {{ role.role }}</p>
+        <p>Admin:{{ role.adminId }}</p>
+        <button (click)="onSelectRole(role)">Select</button>
+    </div>
+</p-dialog>

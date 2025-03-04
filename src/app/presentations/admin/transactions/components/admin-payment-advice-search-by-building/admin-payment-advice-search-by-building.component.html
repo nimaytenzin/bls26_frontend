@@ -1,0 +1,111 @@
+<p class="my-2">Search for Buildings by their Plot ID</p>
+<div class="flex mb-4">
+    <div class="max-w-2xl">
+        <p-inputGroup>
+            <input
+                type="text"
+                [(ngModel)]="plotId"
+                pInputText
+                (ngModelChange)="plotId = $event.toUpperCase()"
+                placeholder="Plot ID"
+            />
+            <button
+                type="button"
+                pButton
+                label="Search"
+                (click)="searchBuildingByPlot()"
+                (keyup.enter)="searchBuildingByPlot()"
+            ></button>
+        </p-inputGroup>
+    </div>
+</div>
+
+<div *ngIf="!plot?.id">
+    <p>No results to show..please search first</p>
+</div>
+
+<div *ngIf="plot?.id">
+    <p>PlotId: {{ plot.plotId }}</p>
+    <p>
+        Location: {{ plot?.dzongkhag?.name }},
+        {{ plot?.administrativeZone?.name }},
+        {{ plot?.subAdministrativeZone?.name }}
+    </p>
+    <p>Precinct: {{ plot?.precinctName }}</p>
+
+    <div *ngIf="plot.buildings.length" class="mt-4">
+        <p>Buildings</p>
+        <p-divider type="dashed"></p-divider>
+
+        <p-table
+            [value]="plot.buildings"
+            styleClass="p-datatable-striped p-datatable-sm"
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Configuration</th>
+                    <th></th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+                <tr>
+                    <td>
+                        <p>#{{ item.id }}</p>
+                    </td>
+                    <td>
+                        <p class="text-red-400 font-semibold">
+                            {{ item.name }}
+                        </p>
+                    </td>
+                    <td>
+                        <p>G+3</p>
+                    </td>
+
+                    <td>
+                        <div class="flex gap-2 align-items-center">
+                            <p-button
+                                *ngIf="item.id !== selectedBuilding?.id"
+                                label="Load Data"
+                                size="small"
+                                (click)="loadData(item)"
+                            >
+                            </p-button>
+                            <p-button
+                                *ngIf="item.id === selectedBuilding?.id"
+                                label="Data Loaded"
+                                size="small"
+                                [disabled]="true"
+                                severity="secondary"
+                            >
+                            </p-button>
+                            <p *ngIf="item.id === selectedBuilding?.id">
+                                <i class="pi pi-check text-green-400"></i>
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <div *ngIf="!plot.buildings.length" class="text-red-400">
+        No Buildings found on this plot
+    </div>
+
+    <div *ngIf="dataLoadTriggered">
+        <p-tabView>
+            <p-tabPanel header="Pending Advices">
+                <app-admin-payment-advice-building-pending-list
+                    [building]="selectedBuilding"
+                ></app-admin-payment-advice-building-pending-list>
+            </p-tabPanel>
+            <p-tabPanel header="Paid Advices">
+                <app-admin-payment-advice-building-paid-list
+                    [building]="selectedBuilding"
+                ></app-admin-payment-advice-building-paid-list>
+            </p-tabPanel>
+        </p-tabView>
+    </div>
+</div>

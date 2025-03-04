@@ -1,0 +1,87 @@
+<div class="py-2 border-round shadow-lg text-lg">
+    <p-toast></p-toast>
+    <p-confirmDialog></p-confirmDialog>
+
+    <div class="flex align-items-center justify-content-between">
+        <p class="font-bold">Unit Rules</p>
+        <p-button
+            icon="pi pi-plus"
+            (click)="openCreateUnitRuleModal()"
+            size="small"
+            label="Rule"
+            class="p-0"
+        ></p-button>
+    </div>
+
+    <div
+        *ngFor="let item of unitRules; let i = index"
+        class="flex justify-content-between mt-4"
+    >
+        <p>{{ i + 1 }}) {{ item.particular }}</p>
+        <div>
+            <p-button
+                icon="pi pi-pencil"
+                (click)="openUpdateUnitRuleModal(item)"
+                [text]="true"
+                class="p-0"
+            ></p-button>
+            <p-button
+                icon="pi pi-trash"
+                (click)="openDeleteUnitRuleModal(item, $event)"
+                [text]="true"
+                class="p-0"
+                severity="danger"
+            ></p-button>
+        </div>
+    </div>
+
+    <p class="mt-4" *ngIf="!unitRules || unitRules.length === 0">
+        <small> ... No unit rules added </small>
+    </p>
+
+    <p-dialog
+        header="Add Unit Rule"
+        [(visible)]="showCreateUnitRuleModal"
+        [style]="{ width: '500px' }"
+        [modal]="true"
+    >
+        <form [formGroup]="createUnitRuleForm" class="p-fluid p-2">
+            <div class="grid">
+                <div class="field col-12">
+                    <label for="particular">Particulars</label>
+                    <textarea
+                        rows="5"
+                        cols="30"
+                        pInputTextarea
+                        formControlName="particular"
+                    ></textarea>
+                </div>
+            </div>
+
+            <p-button (click)="createUnitRule()" label="Create Rule"></p-button>
+        </form>
+    </p-dialog>
+
+    <p-dialog
+        header="Update Unit Rule"
+        [(visible)]="showUpdateUnitRuleModal"
+        [style]="{ width: '500px' }"
+        [modal]="true"
+    >
+        <form [formGroup]="updateUnitRuleForm" class="p-fluid p-2">
+            <div class="grid">
+                <div class="field col-12">
+                    <label for="particular">Particulars</label>
+                    <textarea
+                        rows="5"
+                        cols="30"
+                        pInputTextarea
+                        formControlName="particular"
+                    ></textarea>
+                </div>
+            </div>
+
+            <p-button (click)="updateUnitRule()" label="Update Rule"></p-button>
+        </form>
+    </p-dialog>
+</div>
