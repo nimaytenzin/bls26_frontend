@@ -1,7 +1,7 @@
 //export const API_URL = 'http://localhost:3002';
 export const API_URL = 'https://www.zhidhay.com/api';
 export const CHAT_APIURL = 'https://chat.zhidhay.com';
-export const COMPANY_NAME = 'zhidhay.com';
+export const COMPANY_NAME = 'EMS';
 export const ZHICHAR_API_URL = 'https://zhichar.bt/dev';
 //export const GEOMETRYSERVERURL = 'http://localhost:3000';
 export const GEOMETRYSERVERURL = 'https://www.zhidhay.com/geom-api';

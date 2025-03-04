@@ -4,7 +4,7 @@
 
 export const environment = {
     production: false,
-    secretKey: 'nimaytenzin@123',
+    secretKey: 'the$ecretKey',
 };
 
 /*

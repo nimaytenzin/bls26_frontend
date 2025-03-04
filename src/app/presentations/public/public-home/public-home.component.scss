@@ -1,40 +1,40 @@
 .hero {
-    background-image: url("/assets/images/herobg.png");
+    background-image: url("/assets/bg.jpg");
     background-repeat: no-repeat;
 
     // Mobile-first styles
     @media (min-width: 320px) {
         // Small phones (e.g., iPhone X)
         background-size: auto 20%;
-        background-position: bottom;
+        background-position: top;
     }
 
     @media (min-width: 480px) {
         // Small tablets (e.g., iPad Mini)
         // Adjustments for small tablets
         background-size: 100% auto;
-        background-position: bottom;
+        background-position: top;
     }
 
     @media (min-width: 768px) {
         // Medium tablets (e.g., Samsung Galaxy Tab S)
         // Adjustments for medium tablets
         background-size: 100% auto;
-        background-position: bottom;
+        background-position: top;
     }
 
     @media (min-width: 1024px) {
         // Small desktops or laptops
         // Adjustments for small desktops or laptops
         background-size: 100% auto;
-        background-position: bottom;
+        background-position: top;
     }
 
     @media (min-width: 1440px) {
         // Large desktops
         // Adjustments for large desktops
         background-size: 100% auto;
-        background-position: bottom;
+        background-position: top;
     }
 }
 

@@ -1,7 +1,7 @@
 export const environment = {
     production: true,
     API_URL: '',
-    secretKey: 'nimaytenzin@123',
+    secretKey: 'the$3cr3t',
 };
 
 recaptcha: {
