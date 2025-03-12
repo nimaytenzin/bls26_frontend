@@ -2,8 +2,7 @@
     <button
         #menubutton
         class="p-link layout-menu-button layout-topbar-button"
-        (click)="layoutService.onMenuToggle()"
-    >
+        (click)="layoutService.onMenuToggle()" >
         <i class="pi pi-bars"></i>
     </button>
     <!-- <a class="layout-topbar-logo ml-4" routerLink="">
@@ -16,11 +15,12 @@
         </div>
         <div class="flex flex-column">
             <p>
-                {{ authenticatedUser.nameEnglish }}
+                Kinley Wangyel
             </p>
             <p class="text-xs">
-                {{ currentRole.name }}
-                {{ admin?.nameEnglish ? "at " + admin.nameEnglish : "" }}
+                <!-- {{ currentRole.name }} -->
+                  Admin
+                <!-- {{ admin?.nameEnglish ? "at " + admin.nameEnglish : "" }} -->
             </p>
         </div>
     </div>
@@ -36,8 +36,7 @@
         #topbarmenu
         class="layout-topbar-menu"
         [ngClass]="{
-            'layout-topbar-menu-mobile-active':
-                layoutService.state.profileSidebarVisible
+            'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible
         }"
     >
         <button
@@ -56,9 +55,9 @@
 <p-toast />
 <p-confirmPopup />
 
-<p-sidebar [(visible)]="profileSideBarVisible" position="right">
+<!-- <p-sidebar [(visible)]="profileSideBarVisible" position="right">
     <app-admin-update-user></app-admin-update-user>
-</p-sidebar>
+</p-sidebar> -->
 
 <p-dialog
     header="Update Password"

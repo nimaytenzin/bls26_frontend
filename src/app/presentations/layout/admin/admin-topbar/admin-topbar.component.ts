@@ -76,31 +76,31 @@ export class AdminTopbarComponent {
         private messageService: MessageService,
         private userService: UserDataService
     ) {
-        this.authenticatedUser = this.authService.GetAuthenticatedUser();
-        this.currentRole = this.authService.GetCurrentRole();
-        this.isNotVerified = !Boolean(this.authenticatedUser.isVerified);
+        // this.authenticatedUser = this.authService.GetAuthenticatedUser();
+        // this.currentRole = this.authService.GetCurrentRole();
+        // // this.isNotVerified = !Boolean(this.authenticatedUser.isVerified);
 
-        console.log(this.isNotVerified);
-        if (this.currentRole.name === USERROLESENUM.ADMIN) {
-            this.userService
-                .FindOneAuthenticated(this.authenticatedUser.id)
-                .subscribe((res) => {
-                    this.admin = res;
-                    this.adminProfileUri =
-                        API_URL + '/' + this.admin.profileUri;
-                });
-        } else if (
-            this.currentRole.name === USERROLESENUM.MANAGER ||
-            USERROLESENUM.OWNER
-        ) {
-            this.userService
-                .FindOneAuthenticated(this.currentRole.adminId)
-                .subscribe((res) => {
-                    this.admin = res;
-                    this.adminProfileUri =
-                        API_URL + '/' + this.admin.profileUri;
-                });
-        }
+        // console.log(this.isNotVerified);
+        // if (this.currentRole.name === USERROLESENUM.ADMIN) {
+        //     this.userService
+        //         .FindOneAuthenticated(this.authenticatedUser.id)
+        //         .subscribe((res) => {
+        //             this.admin = res;
+        //             this.adminProfileUri =
+        //                 API_URL + '/' + this.admin.profileUri;
+        //         });
+        // } else if (
+        //     this.currentRole.name === USERROLESENUM.MANAGER ||
+        //     USERROLESENUM.OWNER
+        // ) {
+        //     this.userService
+        //         .FindOneAuthenticated(this.currentRole.adminId)
+        //         .subscribe((res) => {
+        //             this.admin = res;
+        //             this.adminProfileUri =
+        //                 API_URL + '/' + this.admin.profileUri;
+        //         });
+        // }
     }
 
     logout() {

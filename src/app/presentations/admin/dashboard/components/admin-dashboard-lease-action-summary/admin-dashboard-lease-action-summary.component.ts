@@ -28,7 +28,7 @@ import { PaginatedData } from 'src/app/core/dto/paginated-data.dto';
     ],
 })
 export class AdminDashboardLeaseActionSummaryComponent implements OnInit {
-    paginatedUpcomingExpiryLease: PaginatedData<LeaseAgreeementDTO> = {
+    paginatedUpcomingExpiryLease: PaginatedData<any> = {
         firstPage: 0,
         currentPage: 0,
         previousPage: 0,
@@ -73,17 +73,47 @@ export class AdminDashboardLeaseActionSummaryComponent implements OnInit {
             pageNo: this.currentPage,
             pageSize: this.rows,
         };
-
-        this.leaseAgreementDataService
-            .GetAllUpcomingExpiryLeaseByAdminPaginated(
-                this.authService.GetCurrentRole().adminId,
-                queryParams
-            )
-            .subscribe({
-                next: (res) => {
-                    this.paginatedUpcomingExpiryLease = res;
+        this.paginatedUpcomingExpiryLease = {
+            firstPage: 0,
+            currentPage: 0,
+            previousPage: 0,
+            nextPage: 0,
+            lastPage: 0,
+            limit: 0,
+            count: 3,
+            data: [
+                {
+                    "name":"Kinley Wangchuk",
+                    "amount":10000,
+                    "package":"Yearly",
+                    "dueDate":"2025-03-14"
                 },
-            });
+                {
+                    "name":"Sonam Dendup",
+                    "amount":1000,
+                    "package":"3 Month",
+                    "dueDate":"2025-03-14"
+                },
+                {
+                    "name":"Pema Chophel",
+                    "amount":10000,
+                    "package":"Yearly",
+                    "dueDate":"2025-03-14"
+                },
+
+            ],
+        };
+
+        // this.leaseAgreementDataService
+        //     .GetAllUpcomingExpiryLeaseByAdminPaginated(
+        //         this.authService.GetCurrentRole().adminId,
+        //         queryParams
+        //     )
+        //     .subscribe({
+        //         next: (res) => {
+        //             this.paginatedUpcomingExpiryLease = res;
+        //         },
+        //     });
     }
 
     computeMonthlyPayable(item: LeaseAgreeementDTO) {

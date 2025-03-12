@@ -80,18 +80,20 @@ export class LoginComponent {
     }
 
     login(): void {
-        if (this.isFormInvalid()) return;
+        this.router.navigate(['/admin']);
+        // if (this.isFormInvalid()) return;
 
-        const loginData = {
-            cid: this.loginForm.value.cid,
-            password: this.loginForm.value.password,
-        };
+        // const loginData = {
+        //     cid: this.loginForm.value.cid,
+        //     password: this.loginForm.value.password,
+        // };
 
-        this.showLoading = true;
-        this.authService.Login(loginData).subscribe({
-            next: (res: any) => this.handleLoginSuccess(res, loginData),
-            error: (err) => this.handleLoginError(err),
-        });
+        // this.showLoading = true;
+        // this.authService.Login(loginData).subscribe({
+        //     next: (res: any) => this.handleLoginSuccess(res, loginData),
+        //     error: (err) => this.handleLoginError(err),
+        // });
+
     }
 
     private isFormInvalid(): boolean {
