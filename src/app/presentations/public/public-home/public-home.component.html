@@ -1,37 +1,153 @@
 <div
-    class="flex hero flex-column align-items-center justify-content-center"
-    style="height: 50dvh; margin: 0; overflow: hidden"
+    class="flex justify-content-between align-items-center py-4"
+    style="padding: 0 8rem"
 >
+    <div class="flex align-items-center gap-2">
+        <img src="assets/logo/logo_no_bg.webp" style="height: 50px" />
+        <span class="text-3xl font-bold">Little Steps</span>
+    </div>
+
+    <div class="flex gap-4 text-lg">
+        <p>Features</p>
+        <p>Users</p>
+        <p>Pricing</p>
+        <p>About</p>
+    </div>
 </div>
-<div>
-    <div #centerElement class="p-4" style="z-index: 99">
-        <div class="text-center">
-            <p class="font-serif text-5xl md:text-6xl text-center">
-            </p>
-            <img src="assets/logo/logo_no_bg.webp" class="w-2 h-auto" />
-        </div>
-        <div
-            class="flex w-full flex-column p-fluid align-items-center justify-content-center gap-2 mt-4"
-        >
-            <div class="flex gap-2 my-2">
-                <div class="flex align-items-center">
+<div class="flex justify-content-center">
+    <div class="w-10">
+        <div class="flex p-6 align-items-center">
+            <div class="w-6 flex flex-column gap-4">
+                <h1 class="text-7xl font-bold" style="color: #074870">
+                    Simplify your billing processes, increase enrollment, and
+                    build deeper connections with families and staff.
+                </h1>
+                <p>
+                    Little Steps saves you time on administrative tasks,
+                    simplifies payments, and delivers developmentally
+                    appropriate curriculum aligned to state standards for your
+                    early childhood program.
+                </p>
+                <div class="flex gap-2">
+                    <!-- <button class="demo-button">Request Demo</button> -->
+                    <p-button severity="secondary">
+                        <p class="px-4 text-xl">Request Demo</p>
+                    </p-button>
                     <p-button
-                        severity=""
-                        label=" Login"
-                        (click)="login()"
-                    ></p-button>
-                </div>
-                <div class="flex align-items-center">
-                    <p-button
-                        label="Request for Demo"
-                        (click)="showRequestDemoModal = true"
                         severity="secondary"
+                        text="true"
+                        (click)="login()"
                     >
+                        <p class="px-4 text-xl">Login</p>
                     </p-button>
                 </div>
             </div>
+            <div class="w-6">
+                <img src="assets/home/hero.png" class="w-full h-auto" />
+            </div>
+        </div>
 
-            <hr />
+        <div
+            class="flex flex-column align-items-center mt-5"
+            style="margin-top: 10rem"
+        >
+            <p
+                class="text-center text-6xl font-semibold"
+                style="color: #023f64; margin-top: 4rem; margin-bottom: 5rem"
+            >
+                Grow your venter with Little Step's all in one solution
+            </p>
+
+            <div class="grid w-8 text-center">
+                <div class="col-12 md:col-4">
+                    <div class="flex flex-column">
+                        <img
+                            src="assets/home/centermanagement.svg"
+                            style="height: 50px"
+                            alt=""
+                        />
+                        <p class="text-4xl mt-3 font-semibold">
+                            Center Management
+                        </p>
+                        <p>
+                            From managing staff and classrooms to communicating
+                            with parents and reviewing reports, everything is at
+                            your fingertips.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 md:col-4">
+                    <div class="flex flex-column">
+                        <img
+                            src="assets/home/moneylogo.svg"
+                            style="height: 50px"
+                            alt=""
+                        />
+                        <p class="text-4xl mt-3 font-semibold">
+                            Billing and Payments
+                        </p>
+                        <p>
+                            Offer families a convenient and secure way to pay,
+                            track invoices, and generate billing reports.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-12 md:col-4">
+                    <div class="flex flex-column">
+                        <img
+                            src="assets/home/qualityconnection.svg"
+                            style="height: 50px"
+                            alt=""
+                        />
+                        <p class="text-4xl mt-3 font-semibold">
+                            Communications
+                        </p>
+                        <p>
+                            Engage with families in real-time through secure
+                            messaging and alerts.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 md:col-4">
+                    <p-card header="Attendance Tracking">
+                        <p>
+                            Track student and staff attendance with contactless
+                            check-ins and real-time data.
+                        </p>
+                    </p-card>
+                </div>
+                <div class="col-12 md:col-4">
+                    <p-card header="Learning & Development">
+                        <p>
+                            Monitor student progress and customize learning
+                            plans to meet developmental needs.
+                        </p>
+                    </p-card>
+                </div>
+                <div class="col-12 md:col-4">
+                    <p-card header="Daily Activity Report">
+                        <p>
+                            Send automated daily reports to parents, including
+                            photos, meals, and incident reports.
+                        </p>
+                    </p-card>
+                </div>
+            </div>
+
+            <div class="flex align-items-center gap-2 my-4">
+                <img src="assets/logo/logo_no_bg.webp" style="height: 100px" />
+            </div>
+        </div>
+
+        <!-- CTA SECTION -->
+        <div class="cta-section text-center">
+            <h2>Join educators and families in Bhutan using Little Steps</h2>
+            <p-button
+                label="Get Started"
+                class="p-button-raised p-button-success"
+            ></p-button>
         </div>
     </div>
 </div>

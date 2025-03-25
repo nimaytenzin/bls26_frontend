@@ -1,5 +1,5 @@
 <div
-    class="bg-gray-100 flex align-items-center justify-content-center min-w-screen overflow-hidden"
+    class="bg-white flex align-items-center justify-content-center min-w-screen overflow-hidden"
     style="height: 100dvh"
 >
     <p-toast appendTo="body" />
@@ -7,13 +7,10 @@
         class="flex bg-white border-round-md flex-column gap-2 p-4 align-items-center justify-content-center"
     >
         <div>
-            <a
-                routerLink="/"
-                class="flex align-items-center gap-2 hover:underline"
-            >
-                <img style="height: 25px" src="assets/logo/logo_no_bg.webp" />
-                <p class="text-4xl">{{ companyDetails.webAppName }}</p>
-            </a>
+            <div class="flex flex-column align-items-center gap-2">
+                <img style="height: 400px" src="assets/logo/logo_no_bg.webp" />
+                <p class="text-2xl">{{ companyDetails.webAppName }}</p>
+            </div>
             <p-divider type="dashed"></p-divider>
         </div>
         <form [formGroup]="loginForm" class="w-full p-4 p-fluid">

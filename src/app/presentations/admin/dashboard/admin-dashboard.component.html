@@ -1,57 +1,155 @@
 <div class="flex gap-6 align-items-center justify-content-center px-4">
     <div class="w-8">
-        <div class="flex gap-4 my-4 justify-content-between align-items-end">
-            <p>
-                Welcome Kinley Wangyel
-            </p>
-        </div>
-        <p-divider type="dashed"></p-divider>
-
         <div class="flex gap-3 my-4">
-            <div class="flex-1 border-1 surface-border border-round-md p-2">
-                <p class="text-xl font-bold">Payments</p>
+            <div class="flex-1 border-1 surface-border border-round-md p-3">
+                <div class="flex flex-column align-items-center mb-4">
+                    <i class="pi pi-calendar"></i>
+                    <p class="text-xl font-bold">Attendance</p>
+                </div>
+                <div class="flex justify-content-between align-items-center">
+                    <div class="flex flex-column gap-2">
+                        <div class="flex align-items-center gap-3">
+                            <p-tag severity="success" value="2" />
+                            <p>Checked In</p>
+                        </div>
+                        <div class="flex align-items-center gap-3">
+                            <p-tag severity="danger" value="0" />
+                            <p>Checked Out</p>
+                        </div>
+                        <div class="flex align-items-center gap-3">
+                            <p-tag severity="info" value="3" />
+                            <p>Absent</p>
+                        </div>
+                        <div class="flex align-items-center gap-3">
+                            <p-tag severity="secondary" value="0" />
+                            <p>On Leave</p>
+                        </div>
+                    </div>
+                    <div class="attendance-progress">
+                        <div class="progress-circle">
+                            <svg
+                                width="120"
+                                height="120"
+                                viewBox="0 0 120 120"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <circle
+                                    class="circle-bg"
+                                    cx="60"
+                                    cy="60"
+                                    r="54"
+                                />
+                                <circle
+                                    class="circle-fg"
+                                    cx="60"
+                                    cy="60"
+                                    r="54"
+                                    stroke-dasharray="339.292"
+                                    stroke-dashoffset="169.646"
+                                />
+                            </svg>
+                            <p class="progress-text">2 / 5</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 border-1 surface-border border-round-md p-3">
+                <div class="flex flex-column align-items-center mb-4">
+                    <i class="pi pi-dollar"></i>
+                    <p class="text-xl font-bold">Payments</p>
+                </div>
                 <p-divider type="dashed"></p-divider>
                 <div class="text-left">
-                    <p class="text-l">
-                        Collected payments
-                    </p>
+                    <p class="text-l">Collected payments</p>
 
                     <p class="text-xl">
                         <strong>BTN. 150,000</strong>
                     </p>
-                    <br>
+                    <br />
                     <p-progressBar [value]="80" color="darkseagreen" />
                 </div>
             </div>
-            <div class="flex-1 border-1 surface-border border-round-md p-2">
-                <p class="text-xl font-bold">Stats</p>
-                <p-divider type="dashed"></p-divider>
-                <div class="text-left">
-                    <p class="text-l">
-                        Total Students
-                    </p>
-                    <p><strong>100</strong></p>
-                    <p class="text-l">
-                        Facilitators
-                    </p>
-                    <p><strong>5</strong></p>
+            <div class="flex-1 border-1 surface-border border-round-md p-3">
+                <div class="flex flex-column align-items-center mb-4">
+                    <i class="pi pi-chart-bar"></i>
+                    <p class="text-xl font-bold">Over view</p>
+                </div>
+
+                <div>
+                    <div class="flex justify-content-between">
+                        <p class="text-l">Classrooms</p>
+                        <p><strong>3</strong></p>
+                    </div>
+                    <div class="flex justify-content-between">
+                        <p class="text-l">Active Children</p>
+                        <p><strong>30</strong></p>
+                    </div>
+                    <div class="flex justify-content-between">
+                        <p class="text-l">Facilitators</p>
+                        <p><strong>2</strong></p>
+                    </div>
+                </div>
+                <div class="flex justify-content-center mt-4">
+                    <p-button
+                        label="Enroll New"
+                        size="small"
+                        severity="secondary"
+                        (click)="goToEnrollStudent()"
+                    ></p-button>
                 </div>
             </div>
         </div>
 
-        <!-- <div class="flex justify-content-between gap-3 my-4"> -->
-
+        <br />
         <div class="flex gap-2">
-            <!-- <div class="border-1 w-4 surface-border border-round-md p-2">
-                <app-admin-dashboard-pending-payment-list></app-admin-dashboard-pending-payment-list>
-            </div> -->
-            <div class="border-1 w-12 surface-border border-round-md p-2">
-                <app-admin-dashboard-lease-action-summary></app-admin-dashboard-lease-action-summary>
+            <div class="flex-1 border-1 surface-border border-round-md p-2">
+                <div class="flex justify-content-between align-items-center">
+                    <p class="text-xl font-bold">Staff Management & Ratios</p>
+                    <p-button label="view staffs" size="small"></p-button>
+                </div>
+
+                <p-divider type="dashed"></p-divider>
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th class="text-left"></th>
+                            <th class="text-left">
+                                <p-button
+                                    size="small"
+                                    text="true"
+                                    label="Class A"
+                                    (click)="goToDetailedClassView()"
+                                >
+                                </p-button>
+                            </th>
+                            <th class="text-left">Class B</th>
+                        </tr>
+                    </thead>
+                    <p-divider class="w-full"></p-divider>
+                    <tbody>
+                        <tr>
+                            <td>Ratio</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>
+                        <p-divider type="dashed "></p-divider>
+                        <tr>
+                            <td>Facilitators</td>
+                            <td>1</td>
+                            <td>-</td>
+                        </tr>
+                        <p-divider type="dashed "></p-divider>
+                        <tr>
+                            <td>Students</td>
+                            <td>1</td>
+                            <td>-</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-        <br>
 
-        <div class="flex gap-2">
+        <div class="flex mt-4 gap-2">
             <div class="flex-1 border-1 surface-border border-round-md p-2">
                 <p class="text-xl font-bold">Pricing Charts</p>
                 <p-divider type="dashed"></p-divider>
@@ -80,7 +178,6 @@
                         </tr>
                     </tbody>
                 </table>
-
             </div>
         </div>
     </div>
@@ -89,4 +186,4 @@
         <app-admin-dashboard-damage-items></app-admin-dashboard-damage-items>
     </div> -->
 </div>
-<br><br>
+<br /><br />

@@ -1,0 +1,235 @@
+<!-- admin-master-students.component.html -->
+<div class="p-m-4">
+    <button
+        pButton
+        label="Admit Student"
+        (click)="openAdmitChildren()"
+        class="p-mb-3"
+    ></button>
+
+    <p-table [value]="students" [paginator]="true" [rows]="10">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Image</th>
+                <th>Student Code</th>
+                <th>Full Name</th>
+                <th>Preferred Name</th>
+                <th>CID</th>
+
+                <th>Date of Birth</th>
+                <th>Parent</th>
+                <th>Actions</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-student>
+            <tr>
+                <td>
+                    <img
+                        [src]="student.image || 'assets/images/tshotsho.jpeg'"
+                        alt="Student"
+                        class="student-image"
+                        style="max-width: 50px"
+                    />
+                </td>
+                <td>{{ student.studentCode }}</td>
+                <td>{{ student.fullName }}</td>
+                <td>{{ student.preferredName }}</td>
+                <td>
+                    {{ student.cid }}
+                </td>
+                <td>{{ student.dob | date }}</td>
+                <td>{{ student.parentName }}</td>
+                <td>
+                    <div class="flex gap-2">
+                        <button
+                            pButton
+                            icon="pi pi-eye"
+                            label="View"
+                            (click)="viewStudent(student)"
+                        ></button>
+                        <button
+                            pButton
+                            icon="pi pi-pencil"
+                            (click)="openDialog(student)"
+                        ></button>
+                        <button
+                            pButton
+                            icon="pi pi-trash"
+                            severity="danger"
+                            (click)="deleteStudent(student.id)"
+                        ></button>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <!-- Edit/Add Dialog -->
+    <!-- Edit/Add Dialog -->
+    <p-dialog [(visible)]="showDialog" [style]="{ width: '70vw' }">
+        <div class="p-fluid grid">
+            <div class="col-6">
+                <div class="p-field">
+                    <label>Student Code</label>
+                    <input
+                        pInputText
+                        [(ngModel)]="currentStudent.studentCode"
+                    />
+                </div>
+                <div class="p-field">
+                    <label>Full Name</label>
+                    <input pInputText [(ngModel)]="currentStudent.fullName" />
+                </div>
+                <div class="p-field">
+                    <label>Preferred Name</label>
+                    <input
+                        pInputText
+                        [(ngModel)]="currentStudent.preferredName"
+                    />
+                </div>
+                <div class="p-field">
+                    <label>Date of Birth</label>
+                    <p-calendar [(ngModel)]="currentStudent.dob"></p-calendar>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="p-field">
+                    <label>Student Image</label>
+                    <p-fileUpload
+                        mode="basic"
+                        accept="image/*"
+                        (onSelect)="handleImageUpload($event)"
+                    ></p-fileUpload>
+                    <img
+                        [src]="currentStudent.image"
+                        *ngIf="currentStudent.image"
+                        style="max-width: 150px; margin-top: 10px"
+                    />
+                </div>
+            </div>
+
+            <div class="col-12 grid">
+                <div class="col-6">
+                    <div class="p-field">
+                        <label>Parent Name</label>
+                        <input
+                            pInputText
+                            [(ngModel)]="currentStudent.parentName"
+                        />
+                    </div>
+                    <div class="p-field">
+                        <label>Contact Number</label>
+                        <input
+                            pInputText
+                            [(ngModel)]="currentStudent.contactNumber"
+                        />
+                    </div>
+                    <div class="p-field">
+                        <label>Alternate Contact</label>
+                        <input
+                            pInputText
+                            [(ngModel)]="currentStudent.alternateContact"
+                        />
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="p-field">
+                        <label>Medical Conditions</label>
+                        <p-chips
+                            [(ngModel)]="currentStudent.medicalConditions"
+                        ></p-chips>
+                    </div>
+                    <div class="p-field">
+                        <label>Special Instructions</label>
+                        <textarea
+                            pInputTextarea
+                            [(ngModel)]="currentStudent.specialInstructions"
+                            rows="3"
+                        ></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="p-field">
+                    <label>General Notes</label>
+                    <textarea
+                        pInputTextarea
+                        [(ngModel)]="currentStudent.notes"
+                        rows="5"
+                    ></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save and Cancel Buttons -->
+        <div class="flex justify-content-end mt-3">
+            <button
+                pButton
+                label="Cancel"
+                icon="pi pi-times"
+                class="p-button-text"
+                (click)="showDialog = false"
+            ></button>
+            <button
+                pButton
+                label="Save"
+                icon="pi pi-check"
+                class="p-button-success ml-2"
+                (click)="saveStudent()"
+            ></button>
+        </div>
+    </p-dialog>
+
+    <!-- View Student Card Dialog -->
+    <p-dialog [(visible)]="showViewDialog" [style]="{ width: '500px' }">
+        <div *ngIf="selectedStudent" class="flex flex-column">
+            <img
+                [src]="selectedStudent.image || 'assets/images/tshotsho.jpeg'"
+                class="student-photo"
+                style="width: 100%"
+            />
+            <p class="text-3xl text-center">
+                {{ selectedStudent.fullName }} <br />
+
+                <span class="text-sm">
+                    {{ selectedStudent.preferredName }}</span
+                >
+            </p>
+
+            <div class="student-info">
+                <p>
+                    <strong> MoESD Student Code:</strong>
+                    {{ selectedStudent.studentCode }}
+                </p>
+                <p>
+                    <strong>Date of Birth:</strong>
+                    {{ selectedStudent.dob | date }}
+                </p>
+                <p>
+                    <strong>Preferred Name:</strong>
+                    {{ selectedStudent.preferredName }}
+                </p>
+                <p><strong>Parent:</strong> {{ selectedStudent.parentName }}</p>
+                <p>
+                    <strong>Contact:</strong>
+                    {{ selectedStudent.contactNumber }}
+                </p>
+                <p>
+                    <strong>Alt. Contact:</strong>
+                    {{ selectedStudent.alternateContact }}
+                </p>
+            </div>
+
+            <div
+                class="medical-notes"
+                *ngIf="selectedStudent.specialInstructions"
+            >
+                <p class="text-lg">Special Instructions</p>
+                <p>{{ selectedStudent.specialInstructions }}</p>
+            </div>
+        </div>
+    </p-dialog>
+</div>

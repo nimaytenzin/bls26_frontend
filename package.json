@@ -40,6 +40,7 @@
     "leaflet": "^1.9.4",
     "ng-recaptcha": "^13.2.1",
     "ng2-pdf-viewer": "^10.3.4",
+    "ngx-markdown": "^19.1.0",
     "ngx-socket-io": "^4.7.0",
     "pdfmake": "^0.2.9",
     "primeflex": "^3.3.1",

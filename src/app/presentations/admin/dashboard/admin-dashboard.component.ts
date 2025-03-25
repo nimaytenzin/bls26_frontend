@@ -26,6 +26,7 @@ import { Router } from '@angular/router';
 import { ToWords } from 'to-words';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { TagModule } from 'primeng/tag';
 
 @Component({
     selector: 'app-admin-dashboard',
@@ -41,133 +42,21 @@ import { ProgressBarModule } from 'primeng/progressbar';
         DividerModule,
         TabViewModule,
         ProgressBarModule,
-
-        AdminDashboardLeaseActionSummaryComponent,
         TooltipModule,
+        TagModule,
     ],
-    providers: [DialogService],
+    providers: [],
 })
 export class AdminDashboardComponent implements OnInit {
-    ref: DynamicDialogRef;
+    constructor(private router: Router) {}
 
-    buildings: BuildingDTO[] = [];
-    getBuildingFloorConfiguration = PARSEBUILDINGFLOORS;
-    expiringLeaseAgreements = [];
+    ngOnInit() {}
 
-    summaryStats: AdminSummaryStatisticsDTO = {
-        buildingCount: 0,
-        unitCount: 0,
-        activeLeaseCount: 0,
-        totalRentalIncome: 0,
-        pendingPaymentAmount: 0,
-        thramCount: 0,
-        plotCount: 0,
-        pendingPaymentAdviceCount: 0,
-        ownerCount: 0,
-    };
-
-    paymentSummaryStats: PaymentAdviceSummaryDTO = {
-        totalMonthlyRentalIncome: 0,
-        totalSecurityDepositAmount: 0,
-        totalPendingRentalAmount: 0,
-        totalPendingSecurityDepositAmount: 0,
-    };
-
-    totalPending: number = 0;
-    authenticatedUser: AuthenticatedUserDTO;
-
-    payments: PaymentAdviceDto[] = [];
-
-    constructor(
-        private buildingDataService: BuildingDataService,
-        private statsService: StatsDataService,
-        private paymentAdviceService: PaymentAdviceDataService,
-        private dialogService: DialogService,
-        private cdr: ChangeDetectorRef,
-        private authService: AuthService,
-        private router: Router,
-        private paymentAdviceDataService: PaymentAdviceDataService
-    ) {}
-
-    ngOnInit() {
-        this.authenticatedUser = this.authService.GetAuthenticatedUser();
-
-        this.statsService
-            .GetSummaryStatsByAdmin(this.authService.GetCurrentRole().adminId)
-            .subscribe({
-                next: (res) => {
-                    console.log('SUMARY STATS', res);
-                    this.summaryStats = res;
-                },
-            });
-        this.getPaymentsSummary();
+    goToEnrollStudent() {
+        this.router.navigate(['admin/enroll']);
     }
 
-    getPaymentsSummary() {
-        this.paymentAdviceDataService
-            .GetPaymentAdviceSummaryByAdmin(
-                this.authService.GetCurrentRole().adminId
-            )
-            .subscribe({
-                next: (res) => {
-                    this.paymentSummaryStats = res;
-                },
-            });
-    }
-
-    roundUp(number: number) {
-        return Math.ceil(number);
-    }
-    ngAfterViewChecked() {
-        this.cdr.detectChanges();
-    }
-
-    openBroadcastSmsModal() {
-        this.ref = this.dialogService.open(
-            AdminDashboardBroadcastSmsComponent,
-            {
-                header: 'Broadcast SMS',
-                data: {},
-            }
-        );
-    }
-
-    goToPayments() {
-        this.router.navigate(['/admin/master-transactions']);
-    }
-    goToMapView() {
-        this.router.navigate(['/admin/master-properties/map-view']);
-    }
-
-    getWords(number: number) {
-        const toWords = new ToWords({
-            localeCode: 'en-IN',
-            converterOptions: {
-                currency: true,
-                ignoreDecimal: false,
-                ignoreZeroCurrency: false,
-                doNotAddOnly: false,
-                currencyOptions: {
-                    name: 'Ngultrum',
-                    plural: 'Ngultrum',
-                    symbol: 'Nu.',
-                    fractionalUnit: {
-                        name: 'Chetrum',
-                        plural: 'Chetrums',
-                        symbol: '',
-                    },
-                },
-            },
-        });
-
-        return toWords.convert(number);
-    }
-
-    calculateDueProgress(total: number, pending: number): number {
-        if (!total || total <= 0) {
-            return 0;
-        }
-        const progress = ((total - pending) / total) * 100;
-        return Math.round(Math.min(progress, 100));
+    goToDetailedClassView() {
+        this.router.navigate(['admin/class']);
     }
 }

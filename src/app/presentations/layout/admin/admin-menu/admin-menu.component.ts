@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { AdminLayoutService } from '../service/admin-layout.service';
 import { ADMINSIDEBARITEMS } from 'src/app/core/constants/sidebarmenu';
 import { AuthService } from 'src/app/core/dataservice/users-and-auth/auth.service';
+import { USERROLESENUM } from 'src/app/core/constants/enums';
 
 @Component({
     selector: 'app-admin-menu',
@@ -17,8 +18,11 @@ export class AdminMenuComponent implements OnInit {
     ) {}
 
     ngOnInit() {
-        const userRole = this.authService.GetCurrentRole().name;
-        this.model = this.filterMenuItemsByRole(ADMINSIDEBARITEMS, userRole);
+        // const userRole = this.authService.GetCurrentRole().name;
+        this.model = this.filterMenuItemsByRole(
+            ADMINSIDEBARITEMS,
+            USERROLESENUM.ADMIN
+        );
     }
 
     private filterMenuItemsByRole(items: any[], role: string): any[] {
