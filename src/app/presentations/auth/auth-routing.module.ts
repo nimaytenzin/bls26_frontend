@@ -21,11 +21,6 @@ import { RouterModule } from '@angular/router';
                         (m) => m.AccessModule
                     ),
             },
-            {
-                path: 'login',
-                loadChildren: () =>
-                    import('./login/login.module').then((m) => m.LoginModule),
-            },
         ]),
     ],
     exports: [RouterModule],

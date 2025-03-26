@@ -88,6 +88,6 @@ export class PublicHomeComponent implements OnInit, AfterViewInit {
     ngAfterViewInit(): void {}
 
     login() {
-        this.router.navigate(['admin']);
+        this.router.navigate(['auth']);
     }
 }
