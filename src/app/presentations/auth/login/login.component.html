@@ -1,6 +1,5 @@
 <div
     class="bg-white flex align-items-center justify-content-center min-w-screen overflow-hidden"
-    style="height: 100dvh"
 >
     <p-toast appendTo="body" />
     <div
@@ -15,18 +14,18 @@
         </div>
         <form [formGroup]="loginForm" class="w-full p-4 p-fluid">
             <label for="email1" class="block font-semibold text-900 mb-2"
-                >CID</label
+                >Email</label
             >
             <input
-                id="email1"
+                id="email"
                 type="text"
-                placeholder="CID"
+                placeholder="Email"
                 pInputText
                 autocomplete=""
-                formControlName="cid"
+                formControlName="email"
             />
 
-            <label for="email1" class="block font-semibold text-900 mt-4 mb-2"
+            <label for="password" class="block font-semibold text-900 mt-4 mb-2"
                 >Password</label
             >
             <p-password

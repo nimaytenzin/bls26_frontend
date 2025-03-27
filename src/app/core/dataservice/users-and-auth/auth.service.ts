@@ -33,7 +33,7 @@ export class AuthService {
     constructor(private http: HttpClient, private router: Router) {}
 
     Login(data) {
-        return this.http.post(`${this.apiUrl}/auth/login`, data);
+        return this.http.post(`${this.apiUrl}/user/login`, data);
     }
 
     UpdateUserDetails(id: number, data: UpdateUserDetailsDTO) {

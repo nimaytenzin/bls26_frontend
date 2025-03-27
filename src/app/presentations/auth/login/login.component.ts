@@ -44,7 +44,7 @@ export class LoginComponent {
 
     private initializeLoginForm(): void {
         this.loginForm = this.fb.group({
-            cid: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
+            email: ['', [Validators.required]],
             password: ['', [Validators.required]],
             rememberMe: [false],
         });
@@ -80,25 +80,25 @@ export class LoginComponent {
     }
 
     login(): void {
-        this.router.navigate(['/admin']);
-        // if (this.isFormInvalid()) return;
+        // this.router.navigate(['/admin']);
+        if (this.isFormInvalid()) return;
 
-        // const loginData = {
-        //     cid: this.loginForm.value.cid,
-        //     password: this.loginForm.value.password,
-        // };
+        const loginData = {
+            email: this.loginForm.value.email,
+            password: this.loginForm.value.password,
+        };
 
-        // this.showLoading = true;
-        // this.authService.Login(loginData).subscribe({
-        //     next: (res: any) => this.handleLoginSuccess(res, loginData),
-        //     error: (err) => this.handleLoginError(err),
-        // });
+        this.showLoading = true;
+        this.authService.Login(loginData).subscribe({
+            next: (res: any) => this.handleLoginSuccess(res, loginData),
+            error: (err) => this.handleLoginError(err),
+        });
 
     }
 
     private isFormInvalid(): boolean {
-        if (!this.loginForm.value.cid) {
-            this.showMessage('Missing Field', 'Please enter your CID la.');
+        if (!this.loginForm.value.email) {
+            this.showMessage('Missing Field', 'Please enter your Email la.');
             return true;
         }
         if (!this.loginForm.value.password) {
@@ -111,7 +111,6 @@ export class LoginComponent {
     private handleLoginSuccess(res: any, loginData: any): void {
         this.authService.SetAuthToken(res.token);
         this.saveCredentialsIfRememberMe(loginData);
-
         setTimeout(() => {
             this.showLoading = false;
             this.determineNextRoute();
@@ -154,13 +153,7 @@ export class LoginComponent {
     }
 
     determineNextRoute(): void {
-        const authenticatedUser = this.authService.GetAuthenticatedUser();
-        if (authenticatedUser.roles.length > 1) {
-            this.showRoleSelection = true;
-        } else {
-            console.log(authenticatedUser.roles);
-            this.navigateToRole(authenticatedUser.roles[0]);
-        }
+        this.router.navigate(['/admin']);
     }
 
     navigateToRole(role: any): void {
