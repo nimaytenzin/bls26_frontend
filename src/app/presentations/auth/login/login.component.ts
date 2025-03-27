@@ -153,7 +153,14 @@ export class LoginComponent {
     }
 
     determineNextRoute(): void {
-        this.router.navigate(['/admin']);
+        const authenticatedUser = this.authService.GetAuthenticatedUser();
+        console.log(authenticatedUser.role)
+        if (authenticatedUser.role == "owner") {
+            this.router.navigate(['/admin']);
+        }else{
+            this.showMessage('Error', 'You do not have the required role for this action.');
+
+        }
     }
 
     navigateToRole(role: any): void {
@@ -167,7 +174,7 @@ export class LoginComponent {
 
         const route =
             role.name === USERROLESENUM.ADMIN ||
-            role.name === USERROLESENUM.MANAGER
+                role.name === USERROLESENUM.MANAGER
                 ? '/admin'
                 : '/owner';
 
