@@ -1,142 +1,47 @@
-<div class="facility-profile">
-    <div class="cover-photo"></div>
+<div class="facility-container">
+<button pButton type="button" class="p-button p-button-rounded p-button-success" icon="pi pi-plus" label="Add Facility" (click)="openAddFacilityModal()"></button>
 
-    <div class="profile-header">
-        <div class="profile-avatar">
-            <p-avatar
-                image="assets/logo/logo_no_bg.webp"
-                size="xlarge"
-                shape="circle"
-            ></p-avatar>
-        </div>
-        <div class="profile-info">
-            <h1 class="facility-name">Little Steps ECCD</h1>
-            <p class="facility-location">Thimphu, Bhutan</p>
-        </div>
-    </div>
+  <p-table [value]="facilities" styleClass="p-datatable-striped">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Contact</th>
+        <th>Current Capacity</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-facility let-i="rowIndex">
+      <tr>
+        <td>{{ i + 1 }}</td>
+        <td>{{ facility.name }}</td>
+        <td>{{ facility.address }}</td>
+        <td>{{ facility.contact }}</td>
+        <td>{{ facility.currentCapacity }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
 
-    <div class="facility-content">
-        <section class="section">
-            <h2>About</h2>
-            <p>
-                Giggles ECCD is committed to providing a nurturing environment
-                where children feel valued and safe. Our center is designed to
-                encourage curiosity, exploration, and learning through
-                structured play and engaging activities. We believe that every
-                child is unique and deserves a tailored learning experience.
-            </p>
-            <p>
-                Our experienced facilitators focus on developing key skills in
-                communication, problem-solving, creativity, and social
-                interaction. We strive to create a foundation for lifelong
-                learning and success.
-            </p>
-        </section>
+<!-- Add Facility Modal -->
+<div class="modal" *ngIf="isAddFacilityModalOpen">
+  <div class="modal-content">
+    <h2>Add Facility</h2>
+    <form (ngSubmit)="addFacility()">
+      <label for="name">Name:</label>
+      <input id="name" [(ngModel)]="newFacility.name" name="name" required />
 
-        <section class="section">
-            <h2>Facilities at the Center</h2>
-            <ul class="facilities-list">
-                <li>Facilitator-led activities and child-chosen activities.</li>
-                <li>No screen time at the center.</li>
-                <li>
-                    Learning areas include Math, Reading & Literacy, Role-Play,
-                    Blocks & Construction, Creative Arts, Games & Puzzle,
-                    Science, Sand & Water.
-                </li>
-                <li>Potty training not mandatory.</li>
-                <li>
-                    Healthy & nutritious evening snacks provided by the center.
-                </li>
-                <li>
-                    ECCD trained facilitators and assistants with adequate
-                    teacher-to-child ratio.
-                </li>
-                <li>CCTV surveillance throughout the premises.</li>
-            </ul>
-        </section>
+      <label for="address">Address:</label>
+      <input id="address" [(ngModel)]="newFacility.address" name="address" required />
 
-        <section class="section">
-            <h2>Summer Timing</h2>
-            <p>Drop off – Anytime after <strong>8:30 AM</strong>.</p>
-            <p>Pick up – Anytime before <strong>5:30 PM</strong>.</p>
-            <p>
-                Summer Break – As per Ministry of Education and Skills
-                Development (MoESD).
-            </p>
-        </section>
+      <label for="contact">Contact:</label>
+      <input id="contact" [(ngModel)]="newFacility.contact" name="contact" required />
 
-        <section class="section">
-            <h2>Winter Timing</h2>
-            <p>Drop off – Anytime after <strong>9:30 AM</strong>.</p>
-            <p>Pick up – Anytime before <strong>4:30 PM</strong>.</p>
-            <p>Winter Break – December.</p>
-        </section>
+      <label for="currentCapacity">Current Capacity:</label>
+      <input id="currentCapacity" [(ngModel)]="newFacility.currentCapacity" name="currentCapacity" required />
 
-        <section class="section">
-            <h2>Terms & Conditions</h2>
-            <p>
-                We request parents/guardians to familiarize themselves with the
-                center before enrolling their child. A brief orientation session
-                will be conducted to help you understand our policies,
-                activities, and expectations.
-            </p>
-            <p>
-                In the event of unforeseen circumstances (natural disaster,
-                pandemic, etc.), the center reserves the right to modify
-                operating hours and safety protocols.
-            </p>
-            <p>
-                All personal information shared with the center will be kept
-                confidential and used only for the well-being and development of
-                the child.
-            </p>
-        </section>
-
-        <section class="section">
-            <h2>Important Notes</h2>
-            <ul class="notes-list">
-                <li>
-                    <i class="pi pi-info-circle"></i>
-                    Saturday-Sunday/Government Holidays – <strong>OFF</strong>.
-                </li>
-                <li>
-                    <i class="pi pi-info-circle"></i>
-                    Parents/Guardians are requested to familiarize themselves
-                    with the center before enrollment.
-                </li>
-                <li>
-                    <i class="pi pi-info-circle"></i>
-                    Enrollment may be terminated by either party if deemed
-                    unbefitting.
-                </li>
-                <li>
-                    <i class="pi pi-info-circle"></i>
-                    Any important conditions regarding your child should be
-                    informed to the center beforehand.
-                </li>
-            </ul>
-        </section>
-
-        <section class="section">
-            <h2>Health & Safety</h2>
-            <p>
-                The health and safety of children are our top priorities. Our
-                center follows strict hygiene protocols, and regular
-                sanitization of all learning areas is conducted. Children are
-                monitored for any signs of illness, and immediate action is
-                taken if needed.
-            </p>
-            <p>
-                Emergency response procedures are in place, and staff are
-                trained to handle any medical or safety emergencies.
-            </p>
-        </section>
-
-        <section class="section">
-            <h2>Contact Information</h2>
-            <p><strong>Email:</strong> infogiggleseccd.com</p>
-            <p><strong>Phone:</strong> +975 123 456 789</p>
-            <p><strong>Address:</strong> Changzamtog, Thimphu, Bhutan</p>
-        </section>
-    </div>
+      <button type="submit">Add</button>
+      <button type="button" (click)="closeAddFacilityModal()">Cancel</button>
+    </form>
+  </div>
 </div>

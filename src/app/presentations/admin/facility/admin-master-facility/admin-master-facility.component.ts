@@ -7,6 +7,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
+import { TableModule } from 'primeng/table';
 
 @Component({
     selector: 'app-admin-master-facility',
@@ -20,45 +21,39 @@ import { DialogModule } from 'primeng/dialog';
         CardModule,
         AvatarModule,
         ButtonModule,
+        TableModule, // Added TableModule for PrimeNG table
     ],
 })
 export class AdminMasterFacilityComponent implements OnInit {
-    facilityName = 'Giggles ECCD';
-    facilityDescription = `Giggles ECCD is committed to providing a nurturing environment...`;
-    summerTiming = `Drop off – Anytime after 8:30am.<br>
-                    Pick up – Anytime before 5:30pm.<br>
-                    Summer Break – As per MoESD.`;
-    winterTiming = `Drop off – Anytime after 9:30am.<br>
-                    Pick up – Anytime before 4:30pm.<br>
-                    Winter Break – December.`;
-    termsConditions = `We request parents/guardians to familiarize themselves with the center before enrolling...`;
-
-    facilitiesAtCenter = [
-        'Facilitator led activities, Child chosen activities, Outdoor activities.',
-        'No screen time at the center.',
-        'Learning areas include Math, Reading & Literacy, Role-Play, Blocks & Construction, Creative Arts, Games & Puzzle, Science, Sand & Water.',
-        'Potty training not mandatory.',
-        'Healthy & Nutritious evening snacks will be provided by the center.',
-        'ECCD trained facilitators and assistants with adequate teacher to child ratio.',
-        'CCTV surveillance throughout the premises.',
-    ];
-
-    importantNotes = [
-        { text: 'Saturday-Sunday/Government Holidays – OFF.' },
-        {
-            text: 'Parents/Guardians are requested to familiarize themselves with the center before enrollment.',
-        },
-        {
-            text: 'Enrollment may be terminated by either party if deemed unbefitting.',
-        },
-        {
-            text: 'Any important conditions regarding your child should be informed to the center beforehand.',
-        },
-    ];
+    facilities: any[] = [];
+    isAddFacilityModalOpen: boolean = false;
+    newFacility: any = {};
 
     constructor(private sanitizer: DomSanitizer) {}
 
-    ngOnInit(): void {}
+    ngOnInit(): void {
+        // Initialize facilities or fetch from a service
+        this.facilities = [
+            { name: 'Facility 1', address: 'Address 1', contact: '1234567890', currentCapacity: 50 },
+            { name: 'Facility 2', address: 'Address 2', contact: '0987654321', currentCapacity: 30 },
+        ];
+    }
+
+    openAddFacilityModal(): void {
+        this.isAddFacilityModalOpen = true;
+    }
+
+    closeAddFacilityModal(): void {
+        this.isAddFacilityModalOpen = false;
+    }
+
+    addFacility(): void {
+        if (this.newFacility.name && this.newFacility.address && this.newFacility.contact && this.newFacility.currentCapacity) {
+            this.facilities.push({ ...this.newFacility });
+            this.newFacility = {};
+            this.closeAddFacilityModal();
+        }
+    }
 
     editField(field: string) {}
 }
