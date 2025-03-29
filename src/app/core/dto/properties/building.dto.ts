@@ -45,6 +45,16 @@ export interface CreateBuildingDTO {
 
     plots: PlotDTO[];
 }
+export interface FacilityDTO{
+    id?:number;
+    name: string;
+    description?: string;
+    address: string;
+    ownerId:number;
+    capacity:number;
+    contact:string;
+}
+
 
 export interface BuildingDTO {
     id: number;

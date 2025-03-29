@@ -110,6 +110,7 @@ export class LoginComponent {
 
     private handleLoginSuccess(res: any, loginData: any): void {
         this.authService.SetAuthToken(res.token);
+        this.authService.setUserIdFromToken(res.token);
         this.saveCredentialsIfRememberMe(loginData);
         setTimeout(() => {
             this.showLoading = false;
@@ -158,7 +159,7 @@ export class LoginComponent {
         if (authenticatedUser.role == "owner") {
             this.router.navigate(['/admin']);
         }else{
-            this.showMessage('Error', 'You do not have the required role for this action.');
+            this.showMessage('Error', 'You do not have the required role for this');
 
         }
     }

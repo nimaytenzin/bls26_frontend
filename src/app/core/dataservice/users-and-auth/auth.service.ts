@@ -30,11 +30,20 @@ export class AuthService {
     authTokenKey = AUTH_TOKEN_KEY;
     currentRoleKey = CURRENT_ROLE_KEY;
 
-    constructor(private http: HttpClient, private router: Router) {}
+    constructor(private http: HttpClient, private router: Router) { }
 
     Login(data) {
         return this.http.post(`${this.apiUrl}/user/login`, data);
     }
+
+    setUserIdFromToken(token: string): void {
+        const decodedToken = jwtDecode<{ userId: string }>(token);
+        if (decodedToken && decodedToken.userId) {
+            localStorage.setItem('userId', decodedToken.userId);
+        }
+    }
+
+
 
     UpdateUserDetails(id: number, data: UpdateUserDetailsDTO) {
         return this.http.patch(

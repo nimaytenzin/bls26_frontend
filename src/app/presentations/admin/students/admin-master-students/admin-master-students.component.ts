@@ -1,7 +1,7 @@
 // admin-master-students.component.ts
 import { Component, OnInit } from '@angular/core';
 import { PrimeNGConfig } from 'primeng/api';
-import { Student } from '../student.dto';
+import { Child } from '../child.dto';
 import { StudentService } from '../student.service';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
@@ -14,7 +14,10 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { ChipsModule } from 'primeng/chips';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { FileUploadModule } from 'primeng/fileupload';
+import { DropdownModule } from 'primeng/dropdown';
 import { Router } from '@angular/router';
+import { FacilityDataService } from 'src/app/services/facility-data.service';
+import { FacilityDTO } from 'src/app/core/dto/properties/building.dto';
 
 @Component({
     selector: 'app-admin-master-students',
@@ -32,50 +35,82 @@ import { Router } from '@angular/router';
         ChipsModule,
         FileUploadModule,
         InputTextareaModule,
+        DropdownModule,
     ],
 })
 export class AdminMasterStudentsComponent implements OnInit {
-    students: Student[] = [];
+    students: Child[] = [];
     showDialog = false;
     showViewDialog = false;
     editMode = false;
-    currentStudent: Student = this.emptyStudent();
-    selectedStudent: Student | null = null;
+    currentStudent: Child = this.emptyStudent();
+    selectedStudent: Child | null = null;
+    facilities: FacilityDTO[] = [];
+    selectedFacility: FacilityDTO;
 
     constructor(
         private studentService: StudentService,
+        private facilityService: FacilityDataService,
         private primengConfig: PrimeNGConfig,
         private router: Router
-    ) {}
+    ) { }
 
     ngOnInit() {
         this.primengConfig.ripple = true;
-        this.loadStudents();
+        this.loadFacility();
     }
 
-    private emptyStudent(): Student {
+    viewFacility(facility: FacilityDTO) {
+        this.selectedFacility = facility;
+        this.loadStudents(facility.id);
+
+    }
+
+    async loadFacility() {
+        this.facilityService.getFacilityByOwnerId(Number(localStorage.getItem('userId'))).subscribe((res) => {
+            if (res) {
+                this.facilities = res
+            } else {
+                console.error('Facility not found');
+            }
+        })
+    }
+
+    private emptyStudent(): Child {
         return {
-            id: '',
+            id: 0,
             studentCode: '',
-            cid: '',
-            fullName: '',
+            name: '',
             preferredName: '',
-            dob: new Date(),
-            parentName: '',
-            contactNumber: '',
-            alternateContact: '',
-            registrationDate: new Date(),
-            medicalConditions: [],
-            notes: '',
-            specialInstructions: '',
+            dob: undefined,
+            cid: '',
+            registartion: {
+                start_date:'',
+                end_date:'',
+                status: ''
+            },
+            parent: {
+                name:''
+            },
+            childNote: {
+                medicalConditions: [],
+                specialInstructions: '',
+                notes: ''
+            }
         };
     }
 
-    loadStudents() {
-        this.students = this.studentService.getAllStudents();
+    async loadStudents(facilityId: number) {
+        this.studentService.getChildByFacility(facilityId).subscribe((res) => {
+            if (res) {
+                this.students = res;
+            } else {
+                console.error('Students not found');
+            }
+        });
     }
 
-    openDialog(student?: Student) {
+    openDialog(student?: Child) {
         this.editMode = !!student;
         this.currentStudent = student ? { ...student } : this.emptyStudent();
         this.showDialog = true;
@@ -85,28 +120,23 @@ export class AdminMasterStudentsComponent implements OnInit {
         this.router.navigateByUrl('admin/enroll');
     }
 
-    viewStudent(student: Student) {
+    viewStudent(student: Child) {
         this.selectedStudent = student;
         this.showViewDialog = true;
     }
 
     handleImageUpload(event: any) {
-        const file = event.files[0];
-        const reader = new FileReader();
-        reader.onload = () => {
-            this.currentStudent.image = reader.result as string;
-        };
-        reader.readAsDataURL(file);
+        // const file = event.files[0];
+        // const reader = new FileReader();
+        // reader.onload = () => {
+        //     this.currentStudent.image = reader.result as string;
+        // };
+        // reader.readAsDataURL(file);
     }
 
     saveStudent() {
-        this.studentService.saveStudent(this.currentStudent);
-        this.showDialog = false;
-        this.loadStudents();
     }
 
     deleteStudent(id: string) {
-        this.studentService.deleteStudent(id);
-        this.loadStudents();
     }
 }

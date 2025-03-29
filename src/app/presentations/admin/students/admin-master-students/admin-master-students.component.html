@@ -1,11 +1,22 @@
 <!-- admin-master-students.component.html -->
 <div class="p-m-4">
-    <button
-        pButton
-        label="Admit Student"
-        (click)="openAdmitChildren()"
-        class="p-mb-3"
-    ></button>
+    <div class="p-grid" style="width: 100%">
+        <div class="p-col-12 p-md-4">
+            <label for="facilityDropDown">Select facility</label>
+            <p-dropdown [options]="facilities" [(ngModel)]="selectedFacility" optionLabel="name"
+                placeholder="Choose a facility" id="facilityDropDown"></p-dropdown>
+            <button pButton label="Load Facility" icon="pi pi-download" class="p-button"
+                (click)="viewFacility(selectedFacility)" [disabled]="!selectedFacility">Load Facility</button>
+        </div>
+        <br>
+        <br>
+
+        <div class="p-col-12 p-md-4" *ngIf="selectedFacility">
+            <button pButton label="Admit Student" (click)="openAdmitChildren()" class="p-button">Enroll Child</button>
+        </div>
+        <br>
+        <br>
+    </div>
 
     <p-table [value]="students" [paginator]="true" [rows]="10">
         <ng-template pTemplate="header">
@@ -24,12 +35,8 @@
         <ng-template pTemplate="body" let-student>
             <tr>
                 <td>
-                    <img
-                        [src]="student.image || 'assets/images/tshotsho.jpeg'"
-                        alt="Student"
-                        class="student-image"
-                        style="max-width: 50px"
-                    />
+                    <img [src]="student.image || 'assets/images/tshotsho.jpeg'" alt="Student" class="student-image"
+                        style="max-width: 50px" />
                 </td>
                 <td>{{ student.studentCode }}</td>
                 <td>{{ student.fullName }}</td>
@@ -41,23 +48,10 @@
                 <td>{{ student.parentName }}</td>
                 <td>
                     <div class="flex gap-2">
-                        <button
-                            pButton
-                            icon="pi pi-eye"
-                            label="View"
-                            (click)="viewStudent(student)"
-                        ></button>
-                        <button
-                            pButton
-                            icon="pi pi-pencil"
-                            (click)="openDialog(student)"
-                        ></button>
-                        <button
-                            pButton
-                            icon="pi pi-trash"
-                            severity="danger"
-                            (click)="deleteStudent(student.id)"
-                        ></button>
+                        <button pButton icon="pi pi-eye" label="View" (click)="viewStudent(student)"></button>
+                        <button pButton icon="pi pi-pencil" (click)="openDialog(student)"></button>
+                        <button pButton icon="pi pi-trash" severity="danger"
+                            (click)="deleteStudent(student.id)"></button>
                     </div>
                 </td>
             </tr>
@@ -71,21 +65,15 @@
             <div class="col-6">
                 <div class="p-field">
                     <label>Student Code</label>
-                    <input
-                        pInputText
-                        [(ngModel)]="currentStudent.studentCode"
-                    />
+                    <input pInputText [(ngModel)]="currentStudent.studentCode" />
                 </div>
                 <div class="p-field">
                     <label>Full Name</label>
-                    <input pInputText [(ngModel)]="currentStudent.fullName" />
+                    <input pInputText [(ngModel)]="currentStudent.name" />
                 </div>
                 <div class="p-field">
                     <label>Preferred Name</label>
-                    <input
-                        pInputText
-                        [(ngModel)]="currentStudent.preferredName"
-                    />
+                    <input pInputText [(ngModel)]="currentStudent.preferredName" />
                 </div>
                 <div class="p-field">
                     <label>Date of Birth</label>
@@ -96,16 +84,9 @@
             <div class="col-6">
                 <div class="p-field">
                     <label>Student Image</label>
-                    <p-fileUpload
-                        mode="basic"
-                        accept="image/*"
-                        (onSelect)="handleImageUpload($event)"
-                    ></p-fileUpload>
-                    <img
-                        [src]="currentStudent.image"
-                        *ngIf="currentStudent.image"
-                        style="max-width: 150px; margin-top: 10px"
-                    />
+                    <p-fileUpload mode="basic" accept="image/*" (onSelect)="handleImageUpload($event)"></p-fileUpload>
+                    <img [src]="currentStudent.avatarUrl" *ngIf="currentStudent.avatarUrl"
+                        style="max-width: 150px; margin-top: 10px" />
                 </div>
             </div>
 
@@ -113,41 +94,18 @@
                 <div class="col-6">
                     <div class="p-field">
                         <label>Parent Name</label>
-                        <input
-                            pInputText
-                            [(ngModel)]="currentStudent.parentName"
-                        />
-                    </div>
-                    <div class="p-field">
-                        <label>Contact Number</label>
-                        <input
-                            pInputText
-                            [(ngModel)]="currentStudent.contactNumber"
-                        />
-                    </div>
-                    <div class="p-field">
-                        <label>Alternate Contact</label>
-                        <input
-                            pInputText
-                            [(ngModel)]="currentStudent.alternateContact"
-                        />
+                        <input pInputText [(ngModel)]="currentStudent.parent.name" />
                     </div>
                 </div>
 
                 <div class="col-6">
                     <div class="p-field">
                         <label>Medical Conditions</label>
-                        <p-chips
-                            [(ngModel)]="currentStudent.medicalConditions"
-                        ></p-chips>
+                        <p-chips [(ngModel)]="currentStudent.childNote.medicalConditions"></p-chips>
                     </div>
                     <div class="p-field">
                         <label>Special Instructions</label>
-                        <textarea
-                            pInputTextarea
-                            [(ngModel)]="currentStudent.specialInstructions"
-                            rows="3"
-                        ></textarea>
+                        <textarea pInputTextarea [(ngModel)]="currentStudent.childNote.specialInstructions" rows="3"></textarea>
                     </div>
                 </div>
             </div>
@@ -155,48 +113,30 @@
             <div class="col-12">
                 <div class="p-field">
                     <label>General Notes</label>
-                    <textarea
-                        pInputTextarea
-                        [(ngModel)]="currentStudent.notes"
-                        rows="5"
-                    ></textarea>
+                    <textarea pInputTextarea [(ngModel)]="currentStudent.childNote.notes" rows="5"></textarea>
                 </div>
             </div>
         </div>
 
         <!-- Save and Cancel Buttons -->
         <div class="flex justify-content-end mt-3">
-            <button
-                pButton
-                label="Cancel"
-                icon="pi pi-times"
-                class="p-button-text"
-                (click)="showDialog = false"
-            ></button>
-            <button
-                pButton
-                label="Save"
-                icon="pi pi-check"
-                class="p-button-success ml-2"
-                (click)="saveStudent()"
-            ></button>
+            <button pButton label="Cancel" icon="pi pi-times" class="p-button-text"
+                (click)="showDialog = false"></button>
+            <button pButton label="Save" icon="pi pi-check" class="p-button-success ml-2"
+                (click)="saveStudent()"></button>
         </div>
     </p-dialog>
 
     <!-- View Student Card Dialog -->
     <p-dialog [(visible)]="showViewDialog" [style]="{ width: '500px' }">
         <div *ngIf="selectedStudent" class="flex flex-column">
-            <img
-                [src]="selectedStudent.image || 'assets/images/tshotsho.jpeg'"
-                class="student-photo"
-                style="width: 100%"
-            />
+            <img [src]="selectedStudent.image || 'assets/images/tshotsho.jpeg'" class="student-photo"
+                style="width: 100%" />
             <p class="text-3xl text-center">
-                {{ selectedStudent.fullName }} <br />
+                {{ selectedStudent.name}} <br />
 
                 <span class="text-sm">
-                    {{ selectedStudent.preferredName }}</span
-                >
+                    {{ selectedStudent.preferredName }}</span>
             </p>
 
             <div class="student-info">
@@ -212,23 +152,16 @@
                     <strong>Preferred Name:</strong>
                     {{ selectedStudent.preferredName }}
                 </p>
-                <p><strong>Parent:</strong> {{ selectedStudent.parentName }}</p>
+                <p><strong>Parent:</strong> {{ selectedStudent.parent.name}}</p>
                 <p>
                     <strong>Contact:</strong>
                     {{ selectedStudent.contactNumber }}
                 </p>
-                <p>
-                    <strong>Alt. Contact:</strong>
-                    {{ selectedStudent.alternateContact }}
-                </p>
             </div>
 
-            <div
-                class="medical-notes"
-                *ngIf="selectedStudent.specialInstructions"
-            >
+            <div class="medical-notes" *ngIf="selectedStudent.childNote !== undefined">
                 <p class="text-lg">Special Instructions</p>
-                <p>{{ selectedStudent.specialInstructions }}</p>
+                <p>{{ selectedStudent.childNote.specialInstructions }}</p>
             </div>
         </div>
     </p-dialog>

@@ -8,12 +8,17 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { AdminCreateFacilityComponent } from './admin-create-facility/admin-create-facility.component';
+import { FacilityDTO } from 'src/app/core/dto/properties/building.dto';
+import { FacilityDataService } from 'src/app/services/facility-data.service';
 
 @Component({
     selector: 'app-admin-master-facility',
     templateUrl: './admin-master-facility.component.html',
     styleUrls: ['./admin-master-facility.component.css'],
     standalone: true,
+    providers: [DialogService],
     imports: [
         CommonModule,
         DialogModule,
@@ -25,22 +30,36 @@ import { TableModule } from 'primeng/table';
     ],
 })
 export class AdminMasterFacilityComponent implements OnInit {
-    facilities: any[] = [];
+    facilities: FacilityDTO[] = [];
     isAddFacilityModalOpen: boolean = false;
     newFacility: any = {};
+    ref: DynamicDialogRef;
 
-    constructor(private sanitizer: DomSanitizer) {}
+    constructor(private sanitizer: DomSanitizer, private dialogService: DialogService, private facilityService: FacilityDataService) { }
 
     ngOnInit(): void {
         // Initialize facilities or fetch from a service
-        this.facilities = [
-            { name: 'Facility 1', address: 'Address 1', contact: '1234567890', currentCapacity: 50 },
-            { name: 'Facility 2', address: 'Address 2', contact: '0987654321', currentCapacity: 30 },
-        ];
+        this.getFacilities();
+    }
+
+    async getFacilities() {
+        const userId = localStorage.getItem('userId');
+
+        if (userId) {
+            // Fetch facilities by owner ID
+            this.facilityService.getFacilityByOwnerId(+userId).subscribe((res) => {
+                this.facilities = res;
+            });
+        }
     }
 
     openAddFacilityModal(): void {
-        this.isAddFacilityModalOpen = true;
+        this.ref = this.dialogService.open(AdminCreateFacilityComponent, {
+            header: 'Create Facility',
+        });
+        this.ref.onClose.subscribe((res) => {
+            this.getFacilities();
+        });
     }
 
     closeAddFacilityModal(): void {
@@ -48,12 +67,7 @@ export class AdminMasterFacilityComponent implements OnInit {
     }
 
     addFacility(): void {
-        if (this.newFacility.name && this.newFacility.address && this.newFacility.contact && this.newFacility.currentCapacity) {
-            this.facilities.push({ ...this.newFacility });
-            this.newFacility = {};
-            this.closeAddFacilityModal();
-        }
     }
 
-    editField(field: string) {}
+    editField(field: string) { }
 }
