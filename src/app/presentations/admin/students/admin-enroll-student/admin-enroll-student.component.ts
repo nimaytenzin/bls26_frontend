@@ -1,6 +1,6 @@
 // admin-enroll-student.component.ts
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
@@ -12,6 +12,12 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ButtonModule } from 'primeng/button';
+import { Stepper, StepperModule } from 'primeng/stepper';
+import { FacilityDTO } from 'src/app/core/dto/properties/building.dto';
+import { FacilityDataService } from 'src/app/services/facility-data.service';
+import { PackageService } from 'src/app/services/package.service';
+import { ChildDto, PackageDTO } from 'src/app/core/dto/ems';
+import { ChildService } from 'src/app/services/child.service';
 
 interface Classroom {
     name: string;
@@ -57,28 +63,31 @@ interface SpecialNote {
         CommonModule,
         InputTextareaModule,
         CheckboxModule,
+        StepperModule,
         ButtonModule,
     ],
 })
 export class AdminEnrollStudentComponent implements OnInit {
+    @ViewChild('customStepper') customStepper!: Stepper;
+    //steppers
+    index: number = 0;
+
     // Personal Information
-    firstName = '';
-    middleName = '';
-    lastName = '';
+    childName = '';
     preferredName = '';
     dob: Date = new Date();
     gender = 'Male';
-    profilePicture = '';
+    profilePicture = null;
     studentCode = '';
+    cid: string = '';
 
     // Enrollment
-    classrooms: Classroom[] = [{ name: 'Class A' }, { name: 'Class B' }];
-    selectedClassRoom: Classroom | null = null;
+    facilities: FacilityDTO[] = [];
+    selectedFacility: FacilityDTO | null = null;
     enrollmentStatus = 'Active';
     enrollmentDate: Date = new Date();
     graduationDate: Date = new Date();
-    daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    selectedDays: { [key: string]: boolean } = {};
+    packageStartDate: Date = new Date();
 
     // Contacts
     parentsGuardians: ParentGuardian[] = [];
@@ -88,93 +97,88 @@ export class AdminEnrollStudentComponent implements OnInit {
     currentAddress = '';
     permanentAddress = '';
 
-    // Medical
+    // child notes 
     allergyRecords: AllergyRecord[] = [];
-
-    // Notes
     specialNotes: SpecialNote[] = [];
+
+    //registration packages and payments
+    packages: PackageDTO[] = [];
+    selectedPackage: PackageDTO | null = null;
 
     // Dialog Management
     displayDialog = false;
     currentDialog: 'parent' | 'emergency' | 'allergy' | 'note' | null = null;
     dialogHeader = '';
 
-    // Dialog Data
-    relationships = ['Parent', 'Guardian', 'Other'];
-    severityLevels = ['Low', 'Moderate', 'Severe'];
-    noteTypes = [
-        'Favorite Things',
-        'Special Instruction',
-        'Schedule',
-        'Others',
-    ];
 
-    tempParent: Partial<ParentGuardian> = {};
-    tempEmergency: Partial<EmergencyContact> = {};
-    tempAllergy: Partial<AllergyRecord> = {};
-    tempNote: Partial<SpecialNote> = {};
+    constructor(
+        private facilityService: FacilityDataService, 
+        private packageService: PackageService,
+        private childService: ChildService
+    ) {
+        this.facilityService.getFacilityByOwnerId(Number(localStorage.getItem('userId'))).subscribe((data) => {
+            this.facilities = data;
+        });
+    }
 
-    ngOnInit() {}
+    ngOnInit() { }
 
-    handleImageUpload(event: any) {
+    getPackagesByFacilityId(event: any) {
+        this.packageService.getAllPackagesByFacilityId(event.value.id).subscribe((data) => {
+            this.packages = data;
+        });
+    }
+
+    searchByStudentCode(event: any) {
+        this.studentCode = event.target.value;
+        if (this.studentCode.length > 0) {
+            this.childService.getChildByStudentCode(this.studentCode).subscribe((data) => {
+                this.childName = data.name;
+                this.preferredName = data.preferredName;
+                this.dob = data.dob;
+                this.gender  = data.gender;
+                this.profilePicture = data.avatarUrl;
+            });
+        } 
+    }
+
+    handlePhotoUpload(event: any) {
+        console.log(event)
         const file = event.files[0];
-        const reader = new FileReader();
-        reader.onload = () => {
-            this.profilePicture = reader.result as string;
-        };
-        reader.readAsDataURL(file);
-    }
-
-    openDialog(type: 'parent' | 'emergency' | 'allergy' | 'note') {
-        this.currentDialog = type;
-        this.displayDialog = true;
-
-        switch (type) {
-            case 'parent':
-                this.dialogHeader = 'Add Parent/Guardian';
-                this.tempParent = {};
-                break;
-            case 'emergency':
-                this.dialogHeader = 'Add Emergency Contact';
-                this.tempEmergency = {};
-                break;
-            case 'allergy':
-                this.dialogHeader = 'Add Allergy Record';
-                this.tempAllergy = {};
-                break;
-            case 'note':
-                this.dialogHeader = 'Add Special Note';
-                this.tempNote = {};
-                break;
+        if (file) {
+            this.childService.uploadPhoto(file).subscribe((filePath) => {
+                if (filePath) {
+                    this.profilePicture = filePath;
+                } else {
+                    console.error('Photo upload failed.');
+                }
+            });
         }
     }
 
-    saveEntry() {
-        switch (this.currentDialog) {
-            case 'parent':
-                this.parentsGuardians.push({
-                    ...this.tempParent,
-                } as ParentGuardian);
-                break;
-            case 'emergency':
-                this.emergencyContacts.push({
-                    ...this.tempEmergency,
-                } as EmergencyContact);
-                break;
-            case 'allergy':
-                this.allergyRecords.push({
-                    ...this.tempAllergy,
-                } as AllergyRecord);
-                break;
-            case 'note':
-                this.specialNotes.push({ ...this.tempNote } as SpecialNote);
-                break;
+
+    createChildEntity(){
+        let child:ChildDto = {
+            name: this.childName,
+            preferredName: this.preferredName,
+            cid:this.cid, 
+            avatarUrl:"" ,
+            studentCode: '',
+            dob: undefined,
+            gender: '',
+            parentId: 0,
+            facilityId: 0
         }
-        this.closeDialog();
+    }
+    onNextStepper() {
+        console.log("Next Stepper Index: ", this.index);
+        this.customStepper.activeStep = this.index + 1;
     }
 
-    closeDialog() {
-        this.displayDialog = false;
-        this.currentDialog;
+
+
+    submitForm() {
+
     }
+
 }

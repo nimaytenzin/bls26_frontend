@@ -1,4 +1,5 @@
 export const API_URL = 'http://localhost:3000';
+export const BASE_URL = 'http://localhost:3000';
 export const COMPANY_NAME = 'LittleSteps';
 export const ZHICHAR_API_URL = 'https://zhichar.bt/dev';
 //export const GEOMETRYSERVERURL = 'http://localhost:3000';

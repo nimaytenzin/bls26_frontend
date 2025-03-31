@@ -1,0 +1,450 @@
+<!-- admin-enroll-student.component.html -->
+<div class="grid justify-content-center">
+    <div class="col-8">
+        <div class="grid">
+            <div class="col-3 text-right">
+                <p class="font-semibold">MoESD Student Code</p>
+            </div>
+            <div class="col-9">
+                <input pInputText [(ngModel)]="studentCode" class="w-full" />
+            </div>
+        </div>
+
+        <!-- Personal Information Section -->
+        <div class="grid">
+            <div class="col-3 text-right">
+                <p class="font-semibold">Name</p>
+            </div>
+            <div class="col-9 flex gap-2 flex-column">
+                <div class="flex flex-column gap-2">
+                    <label for="firstName">First Name</label>
+                    <input
+                        pInputText
+                        id="firstName"
+                        [(ngModel)]="firstName"
+                        class="w-full"
+                    />
+                </div>
+                <div class="flex flex-column gap-2">
+                    <label for="middleName">Middle Name</label>
+                    <input
+                        pInputText
+                        id="middleName"
+                        [(ngModel)]="middleName"
+                        class="w-full"
+                    />
+                </div>
+                <div class="flex flex-column gap-2">
+                    <label for="lastName">Last Name</label>
+                    <input
+                        pInputText
+                        id="lastName"
+                        [(ngModel)]="lastName"
+                        class="w-full"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <!-- Preferred Name -->
+        <div class="grid">
+            <div class="col-3 text-right">
+                <p class="font-semibold">Preferred Name</p>
+            </div>
+            <div class="col-9">
+                <input pInputText [(ngModel)]="preferredName" class="w-full" />
+            </div>
+        </div>
+
+        <!-- Date of Birth -->
+        <div class="grid mt-3">
+            <div class="col-3 text-right">
+                <p class="font-semibold">Date of Birth</p>
+            </div>
+            <div class="col-9">
+                <p-calendar [(ngModel)]="dob" appendTo="body"></p-calendar>
+            </div>
+        </div>
+
+        <!-- Gender -->
+        <div class="grid mt-3">
+            <div class="col-3 text-right">
+                <p class="font-semibold">Gender</p>
+            </div>
+            <div class="col-9">
+                <div class="flex flex-wrap gap-3">
+                    <div class="flex align-items-center">
+                        <p-radioButton
+                            name="gender"
+                            value="Male"
+                            [(ngModel)]="gender"
+                        />
+                        <label class="ml-2">Male</label>
+                    </div>
+                    <div class="flex align-items-center">
+                        <p-radioButton
+                            name="gender"
+                            value="Female"
+                            [(ngModel)]="gender"
+                        />
+                        <label class="ml-2">Female</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Picture -->
+        <div class="grid mt-3">
+            <div class="col-3 text-right">
+                <p class="font-semibold">Profile Picture</p>
+            </div>
+            <div class="col-9">
+                <p-fileUpload
+                    mode="basic"
+                    label="Choose"
+                    accept="image/*"
+                    (onSelect)="handleImageUpload($event)"
+                ></p-fileUpload>
+                <img
+                    [src]="profilePicture"
+                    *ngIf="profilePicture"
+                    style="max-width: 150px; margin-top: 10px"
+                />
+            </div>
+        </div>
+
+        <!-- Enrollment Section -->
+        <p-divider></p-divider>
+        <p class="font-bold text-xl text-center mt-4">Enrollment</p>
+
+        <div class="grid mt-3">
+            <div class="col-3 text-right">
+                <p class="font-semibold">Classroom</p>
+            </div>
+            <div class="col-9">
+                <p-dropdown
+                    [options]="classrooms"
+                    [(ngModel)]="selectedClassRoom"
+                    optionLabel="name"
+                    placeholder="Select Classroom"
+                ></p-dropdown>
+            </div>
+        </div>
+
+        <div class="grid mt-3">
+            <div class="col-3 text-right">
+                <p class="font-semibold">Status</p>
+            </div>
+            <div class="col-9">
+                <div class="flex flex-wrap gap-3">
+                    <div class="flex align-items-center">
+                        <p-radioButton
+                            name="status"
+                            value="Active"
+                            [(ngModel)]="enrollmentStatus"
+                        />
+                        <label class="ml-2">Active</label>
+                    </div>
+                    <div class="flex align-items-center">
+                        <p-radioButton
+                            name="status"
+                            value="Not Active"
+                            [(ngModel)]="enrollmentStatus"
+                        />
+                        <label class="ml-2">Not Active</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dates Section -->
+        <div class="grid mt-3">
+            <div class="col-3 text-right">
+                <p class="font-semibold">Date of Enrollment</p>
+            </div>
+            <div class="col-9">
+                <p-calendar
+                    [(ngModel)]="enrollmentDate"
+                    appendTo="body"
+                ></p-calendar>
+            </div>
+        </div>
+        <div class="grid mt-3">
+            <div class="col-3 text-right">
+                <p class="font-semibold">Date of Graduation</p>
+            </div>
+            <div class="col-9">
+                <p-calendar
+                    [(ngModel)]="graduationDate"
+                    appendTo="body"
+                ></p-calendar>
+            </div>
+        </div>
+
+        <!-- Schedule Section -->
+        <div class="grid mt-3">
+            <div class="col-3 text-right">
+                <p class="font-semibold">Schedule</p>
+            </div>
+            <div class="col-9">
+                <div class="flex flex-wrap gap-3">
+                    <div
+                        *ngFor="let day of daysOfWeek"
+                        class="flex align-items-center"
+                    >
+                        <p-checkbox
+                            [binary]="true"
+                            [(ngModel)]="selectedDays[day]"
+                        ></p-checkbox>
+                        <label class="ml-2">{{ day }}</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contacts Section -->
+        <p-divider></p-divider>
+        <p class="font-bold text-xl text-center mt-4">Contacts</p>
+
+        <!-- Parents & Guardians -->
+        <div class="flex justify-content-between align-items-center mt-4">
+            <p class="font-bold text-lg">Parents & Guardians</p>
+            <p-button
+                label="Add"
+                icon="pi pi-plus"
+                severity="secondary"
+                (click)="openDialog('parent')"
+                size="small"
+            ></p-button>
+        </div>
+        <div
+            *ngFor="let parent of parentsGuardians; let i = index"
+            class="p-2 border-round bg-gray-100 mt-2 flex justify-content-between align-items-center"
+        >
+            <div>
+                {{ parent.name }} ({{ parent.relationship }})<br />
+                {{ parent.contact }} | {{ parent.email }}
+            </div>
+            <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                size="small"
+                (click)="deleteParent(i)"
+            ></p-button>
+        </div>
+
+        <!-- Emergency Contacts -->
+        <div class="flex justify-content-between align-items-center mt-4">
+            <p class="font-bold text-lg">Emergency Contacts</p>
+            <p-button
+                label="Add"
+                icon="pi pi-plus"
+                severity="secondary"
+                size="small"
+                (click)="openDialog('emergency')"
+            ></p-button>
+        </div>
+        <div
+            *ngFor="let contact of emergencyContacts; let i = index"
+            class="p-2 border-round bg-gray-100 mt-2 flex justify-content-between align-items-center"
+        >
+            <div>
+                {{ contact.name }} ({{ contact.relationship }})<br />
+                {{ contact.contact }}
+            </div>
+            <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                size="small"
+                (click)="deleteEmergencyContact(i)"
+            ></p-button>
+        </div>
+
+        <!-- Address Section -->
+        <p-divider></p-divider>
+        <p class="font-bold text-xl text-center mt-4">Address</p>
+        <div class="grid mt-3">
+            <div class="col-3 text-right">
+                <p class="font-semibold">Current Address</p>
+            </div>
+            <div class="col-9">
+                <input pInputText [(ngModel)]="currentAddress" class="w-full" />
+            </div>
+        </div>
+        <div class="grid mt-3">
+            <div class="col-3 text-right">
+                <p class="font-semibold">Permanent Address</p>
+            </div>
+            <div class="col-9">
+                <input
+                    pInputText
+                    [(ngModel)]="permanentAddress"
+                    class="w-full"
+                />
+            </div>
+        </div>
+
+        <!-- Medical Section -->
+        <p-divider></p-divider>
+        <p class="font-bold text-xl text-center mt-4">Medical Records</p>
+        <div class="flex justify-content-center mt-3">
+            <p-button
+                label="Add Allergy"
+                icon="pi pi-plus"
+                severity="secondary"
+                (click)="openDialog('allergy')"
+                size="small"
+            ></p-button>
+        </div>
+        <div
+            *ngFor="let allergy of allergyRecords; let i = index"
+            class="p-2 border-round bg-gray-100 mt-2 flex justify-content-between align-items-center"
+        >
+            <div>
+                <span [class]="'severity-' + allergy.severity.toLowerCase()">
+                    {{ allergy.severity }}:
+                </span>
+                {{ allergy.remarks }}
+            </div>
+            <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                size="small"
+                (click)="deleteAllergy(i)"
+            ></p-button>
+        </div>
+
+        <!-- Additional Notes -->
+        <p-divider></p-divider>
+        <p class="font-bold text-xl text-center mt-4">Additional Notes</p>
+        <div class="flex justify-content-center mt-3">
+            <p-button
+                label="Add Note"
+                icon="pi pi-plus"
+                severity="secondary"
+                size="small"
+                (click)="openDialog('note')"
+            ></p-button>
+        </div>
+        <div
+            *ngFor="let note of specialNotes; let i = index"
+            class="p-2 border-round bg-gray-100 mt-2 flex justify-content-between align-items-center"
+        >
+            <div>
+                <strong>{{ note.type }}:</strong> {{ note.remarks }}
+            </div>
+            <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                size="small"
+                (click)="deleteNote(i)"
+            ></p-button>
+        </div>
+
+        <p-divider></p-divider>
+
+        <div class="flex mt-5 mb-5 justify-content-center">
+            <p-button label="Enroll Student"></p-button>
+        </div>
+    </div>
+</div>
+
+<!-- Dialogs -->
+<p-dialog
+    [(visible)]="displayDialog"
+    [style]="{ width: '450px' }"
+    [header]="dialogHeader"
+>
+    <!-- Parent/Guardian Dialog -->
+    <div *ngIf="currentDialog === 'parent'" class="p-fluid">
+        <div class="field">
+            <label>Name</label>
+            <input pInputText [(ngModel)]="tempParent.name" required />
+        </div>
+        <div class="flex gap-2">
+            <div class="field">
+                <label>Contact</label>
+                <input pInputText [(ngModel)]="tempParent.contact" required />
+            </div>
+            <div class="field">
+                <label>Email</label>
+                <input pInputText [(ngModel)]="tempParent.email" type="email" />
+            </div>
+        </div>
+        <div class="field">
+            <label>Relationship to Child</label>
+            <p-dropdown
+                [options]="relationships"
+                [(ngModel)]="tempParent.relationship"
+                appendTo="body"
+            ></p-dropdown>
+        </div>
+    </div>
+
+    <!-- Emergency Contact Dialog -->
+    <div *ngIf="currentDialog === 'emergency'" class="p-fluid">
+        <div class="field">
+            <label>Name</label>
+            <input pInputText [(ngModel)]="tempEmergency.name" required />
+        </div>
+        <div class="field">
+            <label>Contact</label>
+            <input pInputText [(ngModel)]="tempEmergency.contact" required />
+        </div>
+        <div class="field">
+            <label>Relationship</label>
+            <input
+                pInputText
+                [(ngModel)]="tempEmergency.relationship"
+                required
+            />
+        </div>
+    </div>
+
+    <!-- Allergy Dialog -->
+    <div *ngIf="currentDialog === 'allergy'" class="p-fluid">
+        <div class="field">
+            <label>Severity</label>
+            <p-dropdown
+                [options]="severityLevels"
+                [(ngModel)]="tempAllergy.severity"
+            ></p-dropdown>
+        </div>
+        <div class="field">
+            <label>Remarks</label>
+            <textarea
+                pInputTextarea
+                [(ngModel)]="tempAllergy.remarks"
+                rows="3"
+            ></textarea>
+        </div>
+    </div>
+
+    <!-- Note Dialog -->
+    <div *ngIf="currentDialog === 'note'" class="p-fluid">
+        <div class="field">
+            <label>Type</label>
+            <p-dropdown
+                [options]="noteTypes"
+                [(ngModel)]="tempNote.type"
+            ></p-dropdown>
+        </div>
+        <div class="field">
+            <label>Remarks</label>
+            <textarea
+                pInputTextarea
+                [(ngModel)]="tempNote.remarks"
+                rows="3"
+            ></textarea>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancel" (onClick)="closeDialog()"></p-button>
+        <p-button
+            label="Save"
+            (onClick)="saveEntry()"
+            severity="primary"
+        ></p-button>
+    </ng-template>
+</p-dialog>
