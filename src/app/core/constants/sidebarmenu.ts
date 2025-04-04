@@ -61,14 +61,7 @@ export const ADMINSIDEBARITEMS = [
                 icon: 'pi pi-fw pi-th-large',
                 routerLink: ['/admin/students'],
                 roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
-            },
-
-            {
-                label: 'Class',
-                icon: 'pi pi-fw pi-th-large',
-                routerLink: ['/admin/class'],
-                roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
-            },
+            }
         ],
     },
 
@@ -78,7 +71,7 @@ export const ADMINSIDEBARITEMS = [
             {
                 label: 'Fee Setup',
                 icon: 'pi pi-fw pi-th-large',
-                routerLink: ['/admin/master-lease/lands'],
+                routerLink: ['/admin/package'],
                 roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
             },
             {

@@ -9,11 +9,16 @@ import { PackageDTO } from '../core/dto/ems';
 })
 export class PackageService {
 
-  private apiUrl = API_URL
+  private apiUrl = API_URL + "/package"
 
   constructor(private http: HttpClient) { }
 
   getAllPackagesByFacilityId(id: number): Observable<PackageDTO[]> {
-    return this.http.get<PackageDTO[]>(`${this.apiUrl}/package/facility/${id}`);
+    return this.http.get<PackageDTO[]>(`${this.apiUrl}/facility/${id}`);
   }
+
+  createPackage(packageData: PackageDTO): Observable<PackageDTO> {
+    return this.http.post<PackageDTO>(`${this.apiUrl}`, packageData);
+  }
+
 }

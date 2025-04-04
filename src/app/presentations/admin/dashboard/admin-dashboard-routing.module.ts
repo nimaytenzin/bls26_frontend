@@ -5,6 +5,7 @@ import { AdminMasterStudentsComponent } from '../students/admin-master-students/
 import { AdminEnrollStudentComponent } from '../students/admin-enroll-student/admin-enroll-student.component';
 import { AdminClassDetailedViewComponent } from '../class/admin-class-detailed-view/admin-class-detailed-view.component';
 import { AdminMasterFacilityComponent } from '../facility/admin-master-facility/admin-master-facility.component';
+import { AdminMasterPackageComponent } from '../students/admin-master-package/admin-master-package.component';
 
 const routes: Routes = [
     {
@@ -22,6 +23,10 @@ const routes: Routes = [
     {
         path: 'enroll',
         component: AdminEnrollStudentComponent,
+    },
+    {
+        path: 'package',
+        component: AdminMasterPackageComponent,
     },
     {
         path: 'class',

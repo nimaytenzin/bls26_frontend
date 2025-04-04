@@ -1,0 +1,74 @@
+<div class="p-m-4">
+    <div class="p-grid" style="width: 100%">
+        <div class="p-col-12 p-md-4">
+            <label for="facilityDropDown">Select facility</label>
+            <p-dropdown [options]="facilities" [(ngModel)]="selectedFacility" optionLabel="name"
+                placeholder="Choose a facility" id="facilityDropDown"></p-dropdown>
+            <button pButton label="Load Facility" icon="pi pi-download" class="p-button"
+                (click)="viewFacility(selectedFacility)" [disabled]="!selectedFacility">Load Facility</button>
+        </div>
+        <br>
+        <br>
+
+        <div class="p-col-12 p-md-4" *ngIf="selectedFacility">
+            <button pButton label="Add Package" (click)="openAddPackageDialog()" class="p-button">Add Package</button>
+        </div>
+        <br>
+        <br>
+    </div>
+
+    <p-table [value]="packages" [paginator]="true" [rows]="10">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Package Name</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Billing Cycle</th>
+                <th>Actions</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-package>
+            <tr>
+                <td>{{ package.name }}</td>
+                <td>{{ package.description }}</td>
+                <td>{{ package.price  }}</td>
+                <td>{{ package.billing_cycle }}</td>
+                <td>
+                    <div class="flex gap-2">
+                        <button pButton icon="pi pi-trash" severity="danger"
+                            (click)="deletePackage(package.id)"></button>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <!-- Add/Edit Package Dialog -->
+    <p-dialog [(visible)]="showDialog" [style]="{ width: '50vw' }">
+        <div class="col-9 flex gap-2 flex-column mt-5 w-full">
+            <div class="flex gap-2">
+                <label for="packageName">Package Name</label>
+                <input pInputText id="packageName" [(ngModel)]="currentPackage.name" />
+            </div>
+            <div class="flex gap-2">
+                <label for="packageDescription">Description</label>
+                <textarea pInputTextarea id="packageDescription" [(ngModel)]="currentPackage.description"
+                    rows="3"></textarea>
+            </div>
+            <div class="flex gap-2">
+                <label for="packagePrice">Price</label>
+                <input pInputText id="packagePrice" [(ngModel)]="currentPackage.price" />
+            </div>
+            <div class="flex gap-2">
+                <label for="billingCycle">Billing Cycle</label>
+                <p-dropdown id="billingCycle" [options]="billingCycles" [(ngModel)]="currentPackage.billing_cycle" optionLabel="name" placeholder="Select Billing Cycle" (onChange)="currentPackage.billing_cycle = $event.value.name"></p-dropdown>
+            </div>
+        </div>
+        <div class="flex justify-content-end mt-3">
+            <button pButton label="Cancel" icon="pi pi-times" class="p-button-text"
+                (click)="showDialog = false"></button>
+            <button pButton label="Save" icon="pi pi-check" class="p-button-success ml-2"
+                (click)="savePackage()"></button>
+        </div>
+    </p-dialog>
+</div>
