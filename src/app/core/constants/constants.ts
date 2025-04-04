@@ -15,7 +15,7 @@ interface IZhidhayContactDetails {
 
 export const ZHIDHAYCONTACTDETAILS: IZhidhayContactDetails = {
     name: '',
-    webAppName: 'LittleSteps Inc.',
+    webAppName: 'Chey Chey Jabchor',
     phoneNumber: 17263764,
     email: 'info@zhidhay.com',
     address: 'Babesa, Thim Throm',

@@ -69,17 +69,17 @@ export const ADMINSIDEBARITEMS = [
         label: 'Payments',
         items: [
             {
-                label: 'Fee Setup',
+                label: 'Package Setup',
                 icon: 'pi pi-fw pi-th-large',
                 routerLink: ['/admin/package'],
                 roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
             },
-            {
-                label: 'Payments',
-                icon: 'pi pi-fw pi-th-large',
-                routerLink: ['/admin/master-lease/lands'],
-                roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
-            },
+            // {
+            //     label: 'Payments',
+            //     icon: 'pi pi-fw pi-th-large',
+            //     routerLink: ['/admin/master-lease/lands'],
+            //     roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
+            // },
         ],
     },
 ];
