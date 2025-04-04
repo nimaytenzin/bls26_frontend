@@ -7,13 +7,6 @@ export interface UserDTO {
 }
 
 
-export interface ParentDTO extends UserDTO {
-    profile?: {
-        userId: number;
-        children_count: number;
-        subscription_status: string;
-    }
-}
 
 export interface PackageDTO {
     id?: number;
@@ -25,6 +18,7 @@ export interface PackageDTO {
 }
 
 export interface ChildDto {
+    id?: number;
     preferredName: string;
     cid: string;
     avatarUrl: string;
@@ -33,5 +27,24 @@ export interface ChildDto {
     dob: Date;
     gender: string;
     parentId: number;
+    facilityId?: number;
+}
+
+export interface RegistrationDto {
+    childId: number;
+    parentId: number;
     facilityId: number;
+    packageId:number;
+    start_date:Date;
+    end_date:Date;
+    status:string;
+  }
+  
+
+
+export interface ChildNoteDto {
+    childId: number;
+    medicalCondition: string;
+    specialInstruction: string;
+    notes: string;
 }

@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { ParentDataService } from './parent-data.service';
+import { RegistrationService } from './registration.service';
 
-describe('ParentDataService', () => {
-  let service: ParentDataService;
+describe('RegistrationService', () => {
+  let service: RegistrationService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(ParentDataService);
+    service = TestBed.inject(RegistrationService);
   });
 
   it('should be created', () => {

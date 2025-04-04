@@ -18,6 +18,10 @@ export class ChildService {
     return this.http.get<ChildDto>(`${this.apiUrl}/student-code/${studentCode}`);
   }
 
+  createChild(child: ChildDto): Observable<ChildDto> {
+    return this.http.post<ChildDto>(this.apiUrl, child);
+  }
+
   uploadPhoto(file: File): Observable<string | null> {
     const formData = new FormData();
     formData.append('photo', file);

@@ -1,15 +1,59 @@
 <p-stepper orientation="horizontal" [linear]="true" #customStepper>
-    <!-- Step 1: Basic Information -->
-    <p-stepperPanel header="Basic Information">
+    <!-- step 1: parent registration -->
+    <p-stepperPanel header="Parent Information">
         <ng-template pTemplate="content" let-index="index">
+            <div class="col-9 flex gap-2 flex-column mt-5 w-full">
+                <h3 style="color: gray;">Parent Registration</h3>
+                <div class="flex gap-2">
+                    <div class="w-full">
+                        <label for="currentAddressSearch">Parent CID</label>
+                        <div class="flex gap-2">
+                            <input pInputText id="currentAddressSearch" [(ngModel)]="parentCid"
+                                placeholder="Enter Parent CID. Click search to see if they already exists"
+                                class="w-full" required />
+                            <p-button label="Search" icon="pi pi-search" class="p-button-outlined"
+                                (onClick)="searchParentByCid()"></p-button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-2 mt-3">
+                    <div class="w-full">
+                        <label for="parentName">Name</label>
+                        <input pInputText id="parentName" [(ngModel)]="parentName" class="w-full" required />
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <div class="w-full">
+                        <label for="parentEmail">Email</label>
+                        <input pInputText id="parentEmail" [(ngModel)]="parentEmail" class="w-full" required />
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <div class="w-full">
+                        <label for="contact">Contact</label>
+                        <input pInputText id="contact" [(ngModel)]="parentContact" class="w-full" required />
+                    </div>
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <p-button label="Clear" icon="pi pi-times" class="p-button-danger" (onClick)="clearParentForm()" />
+                </div>
+                <div class="flex pt-4 justify-content-end">
+                    <p-button label="Next" icon="pi pi-arrow-right" iconPos="right" (onClick)="onNextStepper(index)" />
+                </div>
+            </div>
+        </ng-template>
+    </p-stepperPanel>
+
+    <!-- Step 2: child Information -->
+    <p-stepperPanel header="Basic Information">
+        <ng-template pTemplate="content" let-index="index" let-prevCallback="prevCallback">
             <div class="col-9 flex gap-2 flex-column mt-5 w-full">
                 <h3 style="color: gray;">Child Information</h3>
                 <div class="flex flex-column flex-grow-1 gap-2">
                     <label for="firstName">MoESD Student Code</label>
                     <div class="flex gap-2">
                         <input pInputText id="studenCode" [(ngModel)]="studentCode" class="w-full" />
-                        <p-button label="Search" icon="pi pi-search" iconPos="right"
-                            (onClick)="searchChild()" />
+                        <p-button label="Search" icon="pi pi-search" iconPos="right" (onClick)="searchByStudentCode()" />
                     </div>
                 </div>
 
@@ -43,7 +87,8 @@
                 </div>
                 <div class="flex flex-column gap-2 mt-3">
                     <label for="photoUpload">Upload Photo</label>
-                    <p-fileUpload name="photo" accept="image/*" maxFileSize="1000000" customUpload="true" (onSelect)="onPhotoSelect($event)" (uploadHandler)="handlePhotoUpload($event)">
+                    <p-fileUpload name="photo" accept="image/*" maxFileSize="1000000" customUpload="true"
+                        (uploadHandler)="handlePhotoUpload($event)">
                     </p-fileUpload>
                     <div *ngIf="photoPreview" class="mt-3">
                         <label>Photo Preview:</label>
@@ -52,55 +97,8 @@
                     </div>
                     <div *ngIf="profilePicture" class="mt-3">
                         <label>Photo Preview:</label>
-                        <img [src]="profilePicture" class="w-full"
-                            style="max-height: 700px; object-fit: contain;" />
+                        <img [src]="profilePicture" class="w-full" style="max-height: 700px; object-fit: contain;" />
                     </div>
-                </div>
-                <div class="flex pt-4 justify-content-end">
-                    <p-button label="Next" icon="pi pi-arrow-right" iconPos="right" (onClick)="onNextStepper(index)" />
-                </div>
-            </div>
-        </ng-template>
-    </p-stepperPanel>
-
-    <!-- step 2: parent registration -->
-    <p-stepperPanel header="Parent Information">
-        <ng-template pTemplate="content" let-index="index" let-prevCallback="prevCallback">
-            <div class="col-9 flex gap-2 flex-column mt-5 w-full">
-                <h3 style="color: gray;">Search Registered Parent</h3>
-                <div class="flex gap-2">
-                    <label for="currentAddressSearch">Search Registered Parent</label>
-                    <input pInputText id="currentAddressSearch" [(ngModel)]="currentAddressSearch"
-                        placeholder="Seach parent by CID..." class="w-full" />
-                    <p-button label="Search" icon="pi pi-search" class="p-button-outlined"
-                        (onClick)="searchCurrentAddress()"></p-button>
-                </div>
-                <p-divider align="center" class="mt-5 mb-5">
-                    <b style="color: gray;">OR</b>
-                </p-divider>
-                <h3 style="color: gray;">Register New Parent</h3>
-                <div class="flex gap-2">
-                    <div class="w-full">
-                        <label for="parentName">Name</label>
-                        <input pInputText id="parentName" [(ngModel)]="parentName" class="w-full" />
-                    </div>
-                    <div class="w-full">
-                        <label for="parentEmail">Email</label>
-                        <input pInputText id="parentEmail" [(ngModel)]="parentEmail" class="w-full" />
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <div class="w-full">
-                        <label for="contact">Contact</label>
-                        <input pInputText id="contact" [(ngModel)]="contact" class="w-full" />
-                    </div>
-                    <div class="w-full">
-                        <label for="cid">CID Number</label>
-                        <input pInputText id="cid" [(ngModel)]="cid" class="w-full" />
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <p-button label="Clear" icon="pi pi-times" class="p-button-danger" (onClick)="clearParentForm()" />
                 </div>
                 <div class="flex pt-4 justify-content-between">
                     <p-button label="Back" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()" />
@@ -115,24 +113,14 @@
     <p-stepperPanel header="Registration Details">
         <ng-template pTemplate="content" let-index="index" let-prevCallback="prevCallback">
             <div class="col-9 flex gap-2 flex-column mt-5 w-full">
-                <h3 style="color: gray;">Registration Details</h3>
-                <div class="flex gap-2">
-                    <div class="flex flex-column gap-2 flex-grow-1">
-                        <label for="enrollmentDate">Enrollment Date</label>
-                        <p-calendar [style]="{'width':'100%'}" id="enrollmentDate" [(ngModel)]="enrollmentDate"
-                            dateFormat="yy-mm-dd"></p-calendar>
-                    </div>
-                    <div class="flex flex-column gap-2 flex-grow-1">
-                        <label for="selecteFacility">Facility</label>
-                        <p-dropdown id="selectedFacility" [style]="{'width':'100%'}" [options]="facilities"
-                            optionLabel="name" [(ngModel)]="selectedFacility"
-                            (onChange)="getPackagesByFacilityId($event)"
-                            aria-placeholder="Select facility"></p-dropdown>
-                    </div>
+                <h4 style="color: gray;">Choose a subscription type</h4>
+                <div class="flex flex-column gap-2 flex-grow-1 ">
+                    <label for="selecteFacility">Facility</label>
+                    <p-dropdown id="selectedFacility" [style]="{'width':'100%'}" [options]="facilities"
+                        optionLabel="name" [(ngModel)]="selectedFacility" (onChange)="getPackagesByFacilityId($event)"
+                        aria-placeholder="Select facility"></p-dropdown>
                 </div>
-                <p-divider></p-divider>
-                <h4 style="color: gray;">Subscription Details</h4>
-                <div class="flex gap-2">
+                <div class="flex gap-2 mt-3">
                     <div class="flex flex-column gap-2 flex-grow-1">
                         <label for="packages">Packages</label>
                         <p-dropdown id="selectedFacility" [style]="{'width':'100%'}" [options]="packages"
@@ -150,7 +138,7 @@
                         <p><strong>Duration:</strong> {{ selectedPackage.duration }} months</p>
                     </div>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 mt-3">
                     <div class="flex flex-column gap-2 flex-grow-1">
                         <label for="start_date">Package Start Date</label>
                         <p-calendar [style]="{'width':'100%'}" id="packageStartDate" [(ngModel)]="packageStartDate"
