@@ -6,6 +6,10 @@ import { AdminEnrollStudentComponent } from '../students/admin-enroll-student/ad
 import { AdminClassDetailedViewComponent } from '../class/admin-class-detailed-view/admin-class-detailed-view.component';
 import { AdminMasterFacilityComponent } from '../facility/admin-master-facility/admin-master-facility.component';
 import { AdminMasterPackageComponent } from '../students/admin-master-package/admin-master-package.component';
+import { AdminFacilityPageComponent } from '../facility/admin-facility-page/admin-facility-page.component';
+import { AdminStudentReportCardComponent } from '../students/admin-student-report-card/admin-student-report-card.component';
+import { AdminIntegratedAccountingToolComponent } from '../payment/admin-integrated-accounting-tool/admin-integrated-accounting-tool.component';
+import { AdminMasterClassComponent } from '../class/admin-master-class/admin-master-class.component';
 
 const routes: Routes = [
     {
@@ -13,12 +17,20 @@ const routes: Routes = [
         component: AdminDashboardComponent,
     },
     {
-        path: 'students',
+        path: 'attendance',
         component: AdminMasterStudentsComponent,
     },
     {
+        path: 'student/detailed',
+        component: AdminStudentReportCardComponent,
+    },
+    {
         path: 'facility',
-        component: AdminMasterFacilityComponent,
+        component: AdminFacilityPageComponent,
+    },
+    {
+        path: 'facility/detailed',
+        component: AdminFacilityPageComponent,
     },
     {
         path: 'enroll',
@@ -29,8 +41,12 @@ const routes: Routes = [
         component: AdminMasterPackageComponent,
     },
     {
+        path: 'accounting',
+        component: AdminIntegratedAccountingToolComponent,
+    },
+    {
         path: 'class',
-        component: AdminClassDetailedViewComponent,
+        component: AdminMasterClassComponent,
     },
 ];
 

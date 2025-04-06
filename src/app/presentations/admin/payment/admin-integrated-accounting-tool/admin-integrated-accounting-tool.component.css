@@ -1,0 +1,35 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.custom-progressbar-income ::ng-deep .p-progressbar-value {
+  background-color: #10B981;
+}
+
+.custom-progressbar-expense ::ng-deep .p-progressbar-value {
+  background-color: #F43F5E;
+}
+
+.custom-progressbar-net ::ng-deep .p-progressbar-value {
+  background-color: #3B82F6;
+}
+
+.custom-progressbar-outstanding ::ng-deep .p-progressbar-value {
+  background-color: #F97316;
+}
+
+.p-datatable {
+  .p-datatable-thead > tr > th {
+    background-color: #f8f9fa;
+  }
+  
+  .p-datatable-tbody > tr {
+    transition: background-color 0.2s;
+    
+    &:hover {
+      background-color: #f8f9fa !important;
+    }
+  }
+}

@@ -42,7 +42,6 @@ export const ADMINSIDEBARITEMS = [
                 label: 'Dashboard',
                 icon: 'pi pi-fw pi-home',
                 routerLink: ['/admin'],
-                roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
             },
         ],
     },
@@ -54,14 +53,33 @@ export const ADMINSIDEBARITEMS = [
                 label: 'Facility',
                 icon: 'pi pi-fw pi-th-large',
                 routerLink: ['/admin/facility'],
-                roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
+            },
+            {
+                label: 'Classes',
+                icon: 'pi pi-fw pi-th-large',
+                routerLink: ['/admin/class'],
+            },
+            {
+                label: 'Facilitators',
+                icon: 'pi pi-fw pi-th-large',
+                routerLink: ['/admin/students'],
+            },
+            {
+                label: 'Attendance',
+                icon: 'pi pi-fw pi-th-large',
+                routerLink: ['/admin/attendance'],
             },
             {
                 label: 'Students',
                 icon: 'pi pi-fw pi-th-large',
+                routerLink: ['/admin/student/detailed'],
+            },
+
+            {
+                label: 'Infrastructure',
+                icon: 'pi pi-fw pi-th-large',
                 routerLink: ['/admin/students'],
-                roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
-            }
+            },
         ],
     },
 
@@ -72,7 +90,11 @@ export const ADMINSIDEBARITEMS = [
                 label: 'Package Setup',
                 icon: 'pi pi-fw pi-th-large',
                 routerLink: ['/admin/package'],
-                roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
+            },
+            {
+                label: 'Accounting Tool',
+                icon: 'pi pi-fw pi-th-large',
+                routerLink: ['/admin/accounting'],
             },
             // {
             //     label: 'Payments',

@@ -1,0 +1,185 @@
+<div
+    class="p-6 space-y-8 text-[15px] max-w-5xl mx-auto bg-white rounded-lg shadow-md"
+>
+    <!-- Student Info -->
+    <div class="flex items-center space-x-6 gap-4 my-4">
+        <img
+            src="/assets/images/tshotsho.jpeg"
+            alt="Sonam Dechen Tshogyal"
+            class="h-28 w-28 object-cover rounded-full shadow-lg border-4 border-blue-300"
+        />
+        <div>
+            <div
+                class="bg-blue-50 border-l-4 border-blue-400 p-5 rounded-lg shadow-sm"
+            >
+                <h2 class="text-2xl font-bold text-blue-700">
+                    Sonam Dechen Tshogyal
+                </h2>
+                <div class="text-gray-600 mt-1">
+                    Age: 4 | Group:
+                    <span class="font-semibold text-pink-500"
+                        >Butterflies 🦋</span
+                    >
+                </div>
+                <div class="mt-2 text-sm text-gray-500 italic">
+                    "Growing with kindness and curiosity"
+                </div>
+                <h3 class="text-blue-700 text-lg font-semibold mb-2">
+                    👨‍👩‍👧 Parent Details
+                </h3>
+                <p class="text-gray-700">
+                    <strong>Mother:</strong> Dechen Yangzom
+                </p>
+                <p class="text-gray-700">
+                    <strong>Father:</strong> Tshogyal Wangdi
+                </p>
+                <p class="text-gray-700">
+                    <strong>Phone:</strong> +975 77 123 456
+                </p>
+            </div>
+
+            <div
+                class="bg-yellow-50 border-l-4 border-yellow-400 p-5 rounded-lg shadow-sm"
+            >
+                <h3
+                    class="text-yellow-700 text-lg font-semibold mb-2 flex items-center gap-2"
+                >
+                    📈 Progress Notes
+                </h3>
+                <p class="text-gray-700 text-lg">
+                    Sonam has shown notable improvement in language skills and
+                    social interactions. She actively participates in group
+                    activities and enjoys storytelling time. Motor coordination
+                    has improved, and she is confidently handling
+                    age-appropriate tasks.
+                </p>
+            </div>
+            <div
+                class="bg-green-50 border-l-4 border-green-400 p-5 rounded-lg shadow-sm"
+            >
+                <h3
+                    class="text-green-700 text-lg font-semibold mb-2 flex items-center gap-2"
+                >
+                    📝 Assessment Notes
+                </h3>
+                <ul class="list-disc pl-6 space-y-1 text-gray-700 text-lg">
+                    <li>
+                        Language comprehension:
+                        <span class="font-medium text-green-600"
+                            >Excellent</span
+                        >
+                    </li>
+                    <li>Fine motor skills: Improved steadily over the term</li>
+                    <li>
+                        Social behavior: Cooperative and empathetic with peers
+                    </li>
+                    <li>Emotional regulation: Calm and expressive</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex gap-6 mt-9">
+        <div class="bg-blue-50 p-4 rounded-xl shadow-sm w-4">
+            <h3 class="text-blue-600 text-base font-semibold mb-3 text-center">
+                📅 Weekly Attendance
+            </h3>
+            <p-chart
+                type="line"
+                [data]="attendanceData"
+                [options]="chartOptions"
+            ></p-chart>
+        </div>
+        <div class="bg-yellow-50 p-4 rounded-xl shadow-sm w-4">
+            <h3
+                class="text-yellow-600 text-base font-semibold mb-3 text-center"
+            >
+                😊 Mood Stats
+            </h3>
+            <p-chart
+                type="pie"
+                [data]="moodData"
+                [options]="chartOptions"
+            ></p-chart>
+        </div>
+        <div class="bg-purple-50 p-4 flex-1 rounded-xl shadow-sm w-4">
+            <h3
+                class="text-purple-600 text-base font-semibold mb-3 text-center"
+            >
+                📊 BMI Trend
+            </h3>
+            <p-chart
+                type="line"
+                [data]="bmiData"
+                [options]="chartOptions"
+            ></p-chart>
+        </div>
+    </div>
+
+    <!-- Parent Details -->
+
+    <!-- Photo Album -->
+
+    <div class="photo-album-container p-card p-mb-4">
+        <h3 class="album-title">
+            <i class="pi pi-images"></i> Sonam's Memories
+        </h3>
+
+        <div class="flex gap-1">
+            <div
+                *ngFor="let photo of sonamPhotos; let i = index"
+                class="masonry-item"
+                [style.grid-row-end]="'span ' + (i % 3 === 0 ? 2 : 1)"
+                (click)="showFullImage(photo)"
+            >
+                <img
+                    [src]="photo"
+                    [alt]="'Student activity ' + (i + 1)"
+                    class="masonry-image"
+                    loading="lazy"
+                />
+                <div class="image-overlay">
+                    <span class="image-caption">
+                        {{ getPhotoCaption(i) }}
+                    </span>
+                    <i class="pi pi-search-plus overlay-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox Dialog -->
+    <p-dialog
+        [(visible)]="displayLightbox"
+        [modal]="true"
+        [dismissableMask]="true"
+        [style]="{ width: '80vw' }"
+        [contentStyle]="{ padding: '0', overflow: 'hidden' }"
+    >
+        <div class="lightbox-content">
+            <img
+                [src]="selectedPhoto"
+                alt="Enlarged view"
+                class="lightbox-image"
+            />
+            <div class="lightbox-caption">
+                {{ lightboxCaption }}
+                <span class="lightbox-counter">
+                    {{ currentPhotoIndex + 1 }} / {{ sonamPhotos.length }}
+                </span>
+            </div>
+            <button
+                pButton
+                icon="pi pi-chevron-left"
+                class="lightbox-nav left"
+                (click)="navigatePhoto(-1)"
+            ></button>
+            <button
+                pButton
+                icon="pi pi-chevron-right"
+                class="lightbox-nav right"
+                (click)="navigatePhoto(1)"
+            ></button>
+        </div>
+    </p-dialog>
+</div>

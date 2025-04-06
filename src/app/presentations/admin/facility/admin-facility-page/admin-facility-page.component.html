@@ -1,0 +1,612 @@
+<div class="facility-page-container">
+    <div class="chat-button-container">
+        <button
+            pButton
+            icon="pi pi-comments"
+            class="p-button-rounded p-button-success chat-button"
+            (click)="toggleChatPanel()"
+            pBadge
+            value="1"
+        ></button>
+    </div>
+
+    <!-- Cover Photo Section -->
+    <div
+        class="cover-photo"
+        [style.background-image]="'url(' + coverImage + ')'"
+    >
+        <div class="profile-image-container">
+            <p-avatar
+                [image]="profileImage"
+                size="xlarge"
+                shape="circle"
+            ></p-avatar>
+        </div>
+    </div>
+
+    <!-- Profile Info Section -->
+    <div class="profile-info p-card p-mb-3">
+        <div class="profile-header">
+            <h1>{{ centerName }}</h1>
+            <p class="location">
+                <i class="pi pi-map-marker"></i> {{ location }}
+            </p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button
+                pButton
+                [class.active]="activeTab === 'timeline'"
+                (click)="setActiveTab('timeline')"
+                label="Timeline"
+                icon="pi pi-home"
+            ></button>
+            <button
+                pButton
+                [class.active]="activeTab === 'about'"
+                (click)="setActiveTab('about')"
+                label="About"
+                icon="pi pi-info-circle"
+            ></button>
+            <button
+                pButton
+                [class.active]="activeTab === 'photos'"
+                (click)="setActiveTab('photos')"
+                label="Photos"
+                icon="pi pi-images"
+            ></button>
+            <button
+                pButton
+                [class.active]="activeTab === 'events'"
+                (click)="setActiveTab('events')"
+                label="Events"
+                icon="pi pi-calendar"
+            ></button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Left Sidebar -->
+        <div class="left-sidebar">
+            <h3>About</h3>
+            <p>{{ aboutText }}</p>
+
+            <h3>Contact Information</h3>
+            <p><i class="pi pi-phone"></i> {{ contactInfo.phone }}</p>
+            <p><i class="pi pi-envelope"></i> {{ contactInfo.email }}</p>
+            <p><i class="pi pi-globe"></i> {{ contactInfo.website }}</p>
+            <p><i class="pi pi-map"></i> {{ contactInfo.address }}</p>
+
+            <h3>Center Stats</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.followers }}</div>
+                    <div class="stat-label">Followers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.likes }}</div>
+                    <div class="stat-label">Likes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.checkins }}</div>
+                    <div class="stat-label">Check-ins</div>
+                </div>
+            </div>
+
+            <h3>People Who Like This</h3>
+            <div class="friend-list">
+                <div class="friend">
+                    <p-avatar
+                        image="https://randomuser.me/api/portraits/women/33.jpg"
+                        shape="circle"
+                    ></p-avatar>
+                    <span>Yeshi Choden</span>
+                </div>
+                <div class="friend">
+                    <p-avatar
+                        image="https://randomuser.me/api/portraits/men/45.jpg"
+                        shape="circle"
+                    ></p-avatar>
+                    <span>Nima Yoezer Tenzin</span>
+                </div>
+                <div class="friend">
+                    <p-avatar
+                        image="https://randomuser.me/api/portraits/women/68.jpg"
+                        shape="circle"
+                    ></p-avatar>
+                    <span>Kinley Wangyel</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Feed -->
+        <div class="main-feed">
+            <!-- Timeline Tab Content -->
+            <div *ngIf="activeTab === 'timeline'">
+                <!-- Create Post -->
+                <div
+                    class="create-post p-card p-mb-3"
+                    (click)="showPostModal = true"
+                >
+                    <div class="post-header">
+                        <p-avatar
+                            [image]="profileImage"
+                            shape="circle"
+                        ></p-avatar>
+                        <div class="post-prompt">
+                            What's new at your center?
+                        </div>
+                    </div>
+                    <div class="post-options">
+                        <button
+                            pButton
+                            icon="pi pi-image"
+                            label="Photo/Video"
+                            class="p-button-text"
+                        ></button>
+                        <button
+                            pButton
+                            icon="pi pi-calendar"
+                            label="Event"
+                            class="p-button-text"
+                        ></button>
+                    </div>
+                </div>
+
+                <!-- Posts -->
+                <div class="post p-card p-mb-3" *ngFor="let post of posts">
+                    <div class="post-header">
+                        <p-avatar
+                            [image]="post.avatar"
+                            shape="circle"
+                        ></p-avatar>
+                        <div class="post-author">
+                            <div class="author-name">{{ post.author }}</div>
+                            <div class="post-time">{{ post.timeAgo }}</div>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <p>{{ post.content }}</p>
+                        <img
+                            *ngIf="post.image"
+                            [src]="post.image"
+                            alt="Post image"
+                            class="post-image"
+                        />
+                    </div>
+                    <div class="post-stats">
+                        <span
+                            ><i class="pi pi-thumbs-up"></i>
+                            {{ post.likes }}</span
+                        >
+                        <span>{{ post.comments }} comments</span>
+                        <span>{{ post.shares }} shares</span>
+                    </div>
+                    <div class="post-actions">
+                        <button
+                            pButton
+                            [class.liked]="post.isLiked"
+                            (click)="likePost(post)"
+                            icon="pi pi-thumbs-up"
+                            label="Like"
+                        ></button>
+                        <button
+                            pButton
+                            icon="pi pi-comment"
+                            label="Comment"
+                        ></button>
+                        <button
+                            pButton
+                            icon="pi pi-share-alt"
+                            label="Share"
+                        ></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Tab Content -->
+            <div *ngIf="activeTab === 'about'" class="p-6">
+                <h2>About {{ centerName }}</h2>
+                <p>{{ aboutText }}</p>
+
+                <h3>Our Mission</h3>
+                <p>
+                    To provide a safe, nurturing, and stimulating environment
+                    where children can learn and grow through play and
+                    exploration.
+                </p>
+
+                <h3>Programs Offered</h3>
+                <ul>
+                    <li>Infant Care (6-18 months)</li>
+                    <li>Toddler Program (18-36 months)</li>
+                    <li>Preschool (3-5 years)</li>
+                    <li>Summer Camp (2-5 years)</li>
+                </ul>
+
+                <h3>Facilities</h3>
+                <ul>
+                    <li>
+                        Spacious classrooms with age-appropriate learning
+                        centers
+                    </li>
+                    <li>Outdoor playground with safety-certified equipment</li>
+                    <li>Indoor gym for active play during inclement weather</li>
+                    <li>Art and music room</li>
+                </ul>
+            </div>
+
+            <!-- Photos Tab Content -->
+            <div *ngIf="activeTab === 'photos'" class="p-6">
+                <h2 class="text-xl font-semibold mb-4">Photo Gallery</h2>
+
+                <div
+                    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
+                >
+                    <div
+                        *ngFor="let photo of photos"
+                        class="relative cursor-pointer group overflow-hidden rounded-lg shadow-md"
+                        (click)="showPhoto(photo)"
+                    >
+                        <img
+                            [src]="photo.thumbnailImageSrc"
+                            [alt]="photo.alt"
+                            class="w-full h-full object-cover transform group-hover:scale-105 transition duration-300"
+                        />
+                        <div
+                            class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-sm p-2 text-center"
+                        >
+                            {{ photo.title }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Events Tab Content -->
+                <div *ngIf="activeTab === 'events'" class="p-6">
+                    <h2>Upcoming Events</h2>
+
+                    <div class="flex gap-6 w-full">
+                        <div class="calendar-view w-6">
+                            <p-calendar
+                                [(ngModel)]="date"
+                                [inline]="true"
+                                [showWeek]="true"
+                            ></p-calendar>
+                        </div>
+
+                        <div class="flex-1 flex flex-column w-6">
+                            <div
+                                *ngFor="let event of events"
+                                class="flex p-card mb-3"
+                                style="width: 500px"
+                            >
+                                <div class="event-date">
+                                    <div class="month">
+                                        {{ getEventMonth(event) }}
+                                    </div>
+                                    <div class="day">
+                                        {{ getEventDay(event) }}
+                                    </div>
+                                </div>
+                                <div class="event-details">
+                                    <h3>{{ event.title }}</h3>
+                                    <p>
+                                        <i class="pi pi-clock"></i>
+                                        {{ event.startTime }} -
+                                        {{ event.endTime }}
+                                    </p>
+                                    <p>
+                                        <i class="pi pi-map-marker"></i>
+                                        {{ event.location }}
+                                    </p>
+                                    <p>{{ event.description }}</p>
+                                    <button
+                                        pButton
+                                        label="More Info"
+                                        icon="pi pi-info-circle"
+                                        class="p-button-text"
+                                    ></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+
+            <div *ngIf="activeTab === 'events'" class="p-6">
+                <div *ngFor="let event of events.slice(0, 2)" class="event">
+                    <div class="event-date">
+                        <span class="day">{{ getEventDay(event) }}</span>
+                        <span class="month">{{ getEventMonth(event) }}</span>
+                    </div>
+                    <div class="event-details">
+                        <div class="event-title">{{ event.title }}</div>
+                        <div class="event-time">
+                            {{ event.startTime }} - {{ event.endTime }}
+                        </div>
+                    </div>
+                </div>
+                <button
+                    pButton
+                    label="See All Events"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    class="p-button-text p-mt-2"
+                ></button>
+            </div>
+        </div>
+        <div class="right-sidebar">
+            <h3>Upcoming Events</h3>
+            <div *ngFor="let event of events.slice(0, 2)" class="event">
+                <div class="event-date">
+                    <span class="day">{{ getEventDay(event) }}</span>
+                    <span class="month">{{ getEventMonth(event) }}</span>
+                </div>
+                <div class="event-details">
+                    <div class="event-title">{{ event.title }}</div>
+                    <div class="event-time">
+                        {{ event.startTime }} - {{ event.endTime }}
+                    </div>
+                </div>
+            </div>
+            <button
+                pButton
+                label="See All Events"
+                icon="pi pi-arrow-right"
+                iconPos="right"
+                class="p-button-text p-mt-2"
+            ></button>
+
+            <h3>Photo Highlights</h3>
+            <div class="photo-highlights">
+                <div
+                    *ngFor="let photo of photos.slice(0, 4)"
+                    class="photo-highlight"
+                >
+                    <img [src]="photo.thumbnailImageSrc" [alt]="photo.alt" />
+                </div>
+            </div>
+            <button
+                pButton
+                label="See All Photos"
+                icon="pi pi-arrow-right"
+                iconPos="right"
+                class="p-button-text p-mt-2"
+            ></button>
+        </div>
+    </div>
+
+    <!-- Create Post Modal -->
+    <p-dialog
+        header="Create Post"
+        [(visible)]="showPostModal"
+        [style]="{ width: '500px' }"
+        [modal]="true"
+    >
+        <div class="post-modal-content">
+            <div class="post-author">
+                <p-avatar [image]="profileImage" shape="circle"></p-avatar>
+                <span>{{ centerName }}</span>
+            </div>
+
+            <textarea
+                pInputTextarea
+                [(ngModel)]="newPostContent"
+                placeholder="What's on your mind?"
+                rows="5"
+                autoResize="true"
+            ></textarea>
+
+            <div class="uploaded-files" *ngIf="uploadedFiles.length > 0">
+                <div
+                    *ngFor="let file of uploadedFiles; let i = index"
+                    class="uploaded-file"
+                >
+                    <img
+                        [src]="URL.createObjectURL(file)"
+                        *ngIf="file.type.startsWith('image/')"
+                        alt="Uploaded image"
+                    />
+                    <div class="file-info">
+                        <span>{{ file.name }}</span>
+                        <button
+                            pButton
+                            icon="pi pi-times"
+                            (click)="removeFile(i)"
+                            class="p-button-rounded p-button-text p-button-danger"
+                        ></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="post-options">
+                <span>Add to your post</span>
+                <div class="option-buttons">
+                    <button
+                        pButton
+                        icon="pi pi-image"
+                        pTooltip="Photo/Video"
+                        tooltipPosition="top"
+                        class="p-button-rounded p-button-text"
+                    ></button>
+                    <button
+                        pButton
+                        icon="pi pi-user-plus"
+                        pTooltip="Tag People"
+                        tooltipPosition="top"
+                        class="p-button-rounded p-button-text"
+                    ></button>
+                    <button
+                        pButton
+                        icon="pi pi-map-marker"
+                        pTooltip="Check In"
+                        tooltipPosition="top"
+                        class="p-button-rounded p-button-text"
+                    ></button>
+                    <button
+                        pButton
+                        icon="pi pi-smile"
+                        pTooltip="Feeling/Activity"
+                        tooltipPosition="top"
+                        class="p-button-rounded p-button-text"
+                    ></button>
+                </div>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <button
+                pButton
+                label="Post"
+                icon="pi pi-send"
+                (click)="createPost()"
+                [disabled]="
+                    !newPostContent.trim() && uploadedFiles.length === 0
+                "
+            ></button>
+        </ng-template>
+    </p-dialog>
+
+    <div class="chat-panel" [class.visible]="showChatPanel">
+        <div class="chat-header">
+            <h3>Messages</h3>
+            <button
+                pButton
+                icon="pi pi-times"
+                class="p-button-text"
+                (click)="toggleChatPanel()"
+            ></button>
+        </div>
+
+        <div class="chat-container">
+            <!-- Contacts List -->
+            <div class="contacts-list">
+                <div class="contacts-filter">
+                    <button
+                        pButton
+                        label="All"
+                        class="p-button-text"
+                        (click)="currentChat = null"
+                    ></button>
+                    <button
+                        pButton
+                        label="Parents"
+                        class="p-button-text"
+                        (click)="currentChat = null"
+                    ></button>
+                    <button
+                        pButton
+                        label="Coordinators"
+                        class="p-button-text"
+                        (click)="currentChat = null"
+                    ></button>
+                    <button
+                        pButton
+                        label="By Class"
+                        class="p-button-text"
+                        (click)="currentChat = null"
+                    ></button>
+                </div>
+
+                <div class="contacts">
+                    <div
+                        *ngFor="let contact of chatContacts"
+                        class="contact"
+                        [class.active]="currentChat?.id === contact.id"
+                        (click)="selectChat(contact)"
+                    >
+                        <p-avatar
+                            [image]="contact.avatar"
+                            shape="circle"
+                            [size]="'large'"
+                        ></p-avatar>
+                        <div class="contact-info">
+                            <div class="contact-name">{{ contact.name }}</div>
+                            <div class="contact-role">
+                                {{ contact.role }}
+                                <span *ngIf="contact.class"
+                                    >• {{ contact.class }}</span
+                                >
+                            </div>
+                            <div class="contact-last-message">
+                                {{ contact.lastMessage }}
+                            </div>
+                        </div>
+                        <div class="contact-status">
+                            <span
+                                *ngIf="contact.unreadCount > 0"
+                                class="unread-badge"
+                                >{{ contact.unreadCount }}</span
+                            >
+                            <i
+                                *ngIf="contact.online"
+                                class="pi pi-circle-fill online-indicator"
+                            ></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Area -->
+            <div class="chat-area" *ngIf="currentChat">
+                <div class="chat-header">
+                    <p-avatar
+                        [image]="currentChat.avatar"
+                        shape="circle"
+                        [size]="'large'"
+                    ></p-avatar>
+                    <div class="chat-contact-info">
+                        <div class="chat-contact-name">
+                            {{ currentChat.name }}
+                        </div>
+                        <div class="chat-contact-status">
+                            <span *ngIf="currentChat.online" class="online"
+                                >Online</span
+                            >
+                            <span *ngIf="!currentChat.online" class="offline"
+                                >Offline</span
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="messages">
+                    <div
+                        *ngFor="let message of getMessagesForCurrentChat()"
+                        class="message"
+                        [class.own]="message.isOwn"
+                    >
+                        <div class="message-content">{{ message.content }}</div>
+                        <div class="message-time">
+                            {{ message.timestamp | date : "shortTime" }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-input">
+                    <textarea
+                        pInputTextarea
+                        [(ngModel)]="chatMessage"
+                        placeholder="Type a message..."
+                    ></textarea>
+                    <button
+                        pButton
+                        icon="pi pi-send"
+                        (click)="sendMessage()"
+                    ></button>
+                </div>
+            </div>
+
+            <!-- No chat selected view -->
+            <div class="no-chat-selected" *ngIf="!currentChat">
+                <i class="pi pi-comments"></i>
+                <h4>Select a conversation</h4>
+                <p>Choose from your contacts to start chatting</p>
+            </div>
+        </div>
+    </div>
+</div>

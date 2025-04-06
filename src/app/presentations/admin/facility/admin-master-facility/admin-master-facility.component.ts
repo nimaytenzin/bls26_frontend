@@ -30,12 +30,24 @@ import { FacilityDataService } from 'src/app/services/facility-data.service';
     ],
 })
 export class AdminMasterFacilityComponent implements OnInit {
-    facilities: FacilityDTO[] = [];
+    facilities: FacilityDTO[] = [
+        {
+            name: 'Little Steps',
+            address: '124 Babesa Lam',
+            ownerId: 1,
+            capacity: 20,
+            contact: '17263764',
+        },
+    ];
     isAddFacilityModalOpen: boolean = false;
     newFacility: any = {};
     ref: DynamicDialogRef;
 
-    constructor(private sanitizer: DomSanitizer, private dialogService: DialogService, private facilityService: FacilityDataService) { }
+    constructor(
+        private sanitizer: DomSanitizer,
+        private dialogService: DialogService,
+        private facilityService: FacilityDataService
+    ) {}
 
     ngOnInit(): void {
         // Initialize facilities or fetch from a service
@@ -47,9 +59,11 @@ export class AdminMasterFacilityComponent implements OnInit {
 
         if (userId) {
             // Fetch facilities by owner ID
-            this.facilityService.getFacilityByOwnerId(+userId).subscribe((res) => {
-                this.facilities = res;
-            });
+            this.facilityService
+                .getFacilityByOwnerId(+userId)
+                .subscribe((res) => {
+                    this.facilities = res;
+                });
         }
     }
 
@@ -66,8 +80,7 @@ export class AdminMasterFacilityComponent implements OnInit {
         this.isAddFacilityModalOpen = false;
     }
 
-    addFacility(): void {
-    }
+    addFacility(): void {}
 
-    editField(field: string) { }
+    editField(field: string) {}
 }
