@@ -1,0 +1,27 @@
+<public-navbar></public-navbar>
+
+<div class="login-wrapper">
+  <div class="login-card">
+    <h2>Welcome Back 👋</h2>
+    <p>Please login to access your dashboard</p>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" formControlName="email" placeholder="Enter your email" />
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" formControlName="password" placeholder="Enter your password" />
+      </div>
+
+      <button type="submit" [disabled]="loginForm.invalid" class="btn primary">Login</button>
+
+      <div class="login-footer">
+        <a routerLink="/auth/reset-password">Forgot password?</a> |
+        <a routerLink="/auth/register">Create an account</a>
+      </div>
+    </form>
+  </div>
+</div>

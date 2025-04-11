@@ -1,0 +1,19 @@
+<nav class="navbar">
+  <div class="container">
+    <div class="logo">LittleSteps</div>
+
+    <!-- Hamburger icon -->
+    <div class="menu-icon" (click)="toggleMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <!-- Nav links -->
+    <ul class="nav-links" [class.open]="isMenuOpen">
+      <li><a routerLink="/about" (click)="closeMenu()">About Us</a></li>
+      <li><a routerLink="/contact" (click)="closeMenu()">Contact</a></li>
+      <li><a routerLink="/faq" (click)="closeMenu()">FAQ</a></li>
+    </ul>
+  </div>
+</nav>

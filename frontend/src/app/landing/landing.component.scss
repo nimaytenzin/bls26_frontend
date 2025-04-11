@@ -1,0 +1,143 @@
+.landing-wrapper {
+  background-image: url('/images/landing-background.png');
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  min-height: calc(100vh - 280px); // adjust if your navbar is taller/shorter
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem 2rem;
+  font-family: 'Poppins', sans-serif;
+  color: #fff;
+  text-align: center;
+
+  @media (min-width: 768px) {
+    text-align: left;
+    padding: 6rem 8%;
+  }
+}
+
+.overlay {
+  background: rgba(0, 0, 0, 0.5); // 🔄 was 0.5 — lightened for better image visibility
+  padding: 2.5rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1100px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.content {
+  max-width: 650px;
+  margin: auto;
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+
+    span {
+      color: #ffc107;
+    }
+  }
+
+  p {
+    font-size: 1.15rem;
+    margin-bottom: 2rem;
+    color: #f5f5f5;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  .actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    @media (min-width: 768px) {
+      justify-content: flex-start;
+    }
+
+    .btn {
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      font-weight: 500;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+
+      &.primary {
+        background-color: #007bff;
+        color: #fff;
+
+        &:hover {
+          background-color: #0056b3;
+        }
+      }
+
+      &.outline {
+        background-color: transparent;
+        border: 2px solid #fff;
+        color: #fff;
+
+        &:hover {
+          background-color: #fff;
+          color: #000;
+        }
+      }
+    }
+  }
+}
+
+.benefits-section {
+  padding: 4rem 2rem;
+  background-color: #f7f9fc;
+  text-align: center;
+  color: #333;
+
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 2.5rem;
+    font-weight: 600;
+    color: #007bff;
+  }
+
+  .benefits-grid {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: 1fr;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 992px) {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .benefit {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: translateY(-5px);
+      }
+
+      h3 {
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
+        color: #333;
+      }
+
+      p {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        color: #555;
+      }
+    }
+  }
+}
