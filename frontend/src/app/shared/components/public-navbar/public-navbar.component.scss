@@ -15,11 +15,23 @@
     flex-wrap: wrap;
   }
 
-  .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #007bff;
-  }
+  .branding {
+    display: flex;
+    align-items: center;
+    gap: 0;
+
+    .logo-image {
+      width: 30px;
+      height: 30px;
+    }
+
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #007bff;
+      margin-left: 5px;
+    }
+  } 
 
   .menu-icon {
     display: none;
