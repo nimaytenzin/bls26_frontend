@@ -7,20 +7,23 @@
     <div class="role-toggle">
       <button 
         [class.active]="selectedRole === 'parent'" 
-        (click)="selectRole('parent')">I'm a Parent</button>
+        (click)="selectRole('parent')">
+        I’m a Parent
+      </button>
       <button 
-        [class.active]="selectedRole === 'provider'" 
-        (click)="selectRole('provider')">I'm a Provider</button>
+        [class.active]="selectedRole === 'eccd'" 
+        (click)="selectRole('eccd')">
+        I’m an ECCD Center
+      </button>
     </div>
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-      <!-- Shared Fields -->
       <div class="form-group">
         <label>Full Name</label>
         <input type="text" formControlName="name" placeholder="Your full name" />
       </div>
 
-      <div class="form-group" *ngIf="selectedRole === 'provider'">
+      <div class="form-group" *ngIf="selectedRole === 'eccd'">
         <label>Organization Name</label>
         <input type="text" formControlName="organization" placeholder="ECCD Center Name" />
       </div>
@@ -35,7 +38,7 @@
         <input type="password" formControlName="password" placeholder="Password" />
       </div>
 
-      <button type="submit" [disabled]="registerForm.invalid" class="btn primary">Register</button>
+      <button class="btn primary" type="submit" [disabled]="registerForm.invalid">Register</button>
     </form>
 
     <div class="register-footer">

@@ -9,25 +9,29 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 })
 export class RegisterComponent {
   registerForm: FormGroup;
-  selectedRole: 'parent' | 'provider' = 'parent';
+  selectedRole: 'parent' | 'eccd' = 'parent';
 
   constructor(private fb: FormBuilder) {
     this.registerForm = this.fb.group({
       name: ['', Validators.required],
-      organization: [''], // only used for providers
+      organization: [''],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
-  selectRole(role: 'parent' | 'provider') {
+  selectRole(role: 'parent' | 'eccd') {
     this.selectedRole = role;
-    if (role === 'provider') {
-      this.registerForm.get('organization')?.setValidators([Validators.required]);
+
+    const orgCtrl = this.registerForm.get('organization');
+
+    if (role === 'eccd') {
+      orgCtrl?.setValidators([Validators.required]);
     } else {
-      this.registerForm.get('organization')?.clearValidators();
+      orgCtrl?.clearValidators();
     }
-    this.registerForm.get('organization')?.updateValueAndValidity();
+
+    orgCtrl?.updateValueAndValidity();
   }
 
   onSubmit() {
@@ -37,8 +41,8 @@ export class RegisterComponent {
         role: this.selectedRole
       };
 
-      console.log('Registration Data:', formData);
-      // TODO: send to backend
+      console.log('Register form submitted:', formData);
+      // TODO: Send to backend
     }
   }
 }
