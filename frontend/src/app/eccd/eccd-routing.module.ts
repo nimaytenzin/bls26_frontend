@@ -1,9 +1,15 @@
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
+
 import { EccdDashboardComponent } from "./eccd-dashboard/eccd-dashboard.component";
+import { AttendanceComponent } from "./staff/attendance/attendance.component";
+
+
 
 const routes: Routes = [
-  { path: "dashboard", component: EccdDashboardComponent},
+  { path: "", component: EccdDashboardComponent},
+  { path: "dashboard", component: EccdDashboardComponent },
+  { path: "staff/attendance", component: AttendanceComponent },
 ]
 
 @NgModule({                     

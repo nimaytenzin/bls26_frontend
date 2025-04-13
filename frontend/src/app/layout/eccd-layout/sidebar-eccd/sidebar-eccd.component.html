@@ -1,0 +1,27 @@
+<nav class="sidebar">
+    <h3>ECCD Menu</h3>
+    <ul>
+      <li><a routerLink="/eccd/dashboard" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a></li>
+  
+      <li><strong>Children</strong></li>
+      <li><a routerLink="/eccd/children/attendance" routerLinkActive="active" (click)="onNavClick()">Attendance</a></li>
+      <li><a routerLink="/eccd/children/profiles" routerLinkActive="active">Profiles</a></li>
+      <li><a routerLink="/eccd/children/meals" routerLinkActive="active">Meals</a></li>
+      <li><a routerLink="/eccd/children/milestones" routerLinkActive="active">Milestones</a></li>
+  
+      <li><strong>Staff</strong></li>
+      <li><a routerLink="/eccd/staff/attendance" routerLinkActive="active" (click)="onNavClick()">Attendance</a></li>
+      <li><a routerLink="/eccd/staff/scheduling" routerLinkActive="active">Scheduling</a></li>
+  
+      <li><strong>Activities</strong></li>
+      <li><a routerLink="/eccd/activities/post" routerLinkActive="active">Post Activity</a></li>
+  
+      <li><strong>Communication</strong></li>
+      <li><a routerLink="/eccd/announcements" routerLinkActive="active">Announcements</a></li>
+      <li><a routerLink="/eccd/chats" routerLinkActive="active">Chats</a></li>
+  
+      <li><strong>Reports & Billing</strong></li>
+      <li><a routerLink="/eccd/reports" routerLinkActive="active">Reports</a></li>
+      <li><a routerLink="/eccd/billing" routerLinkActive="active">Payments</a></li>
+    </ul>
+  </nav>  

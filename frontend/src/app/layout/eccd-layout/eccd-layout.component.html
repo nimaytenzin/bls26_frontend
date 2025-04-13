@@ -1,0 +1,13 @@
+<div class="layout-container" [class.mobile]="isMobile">
+  <sidebar-eccd
+    [class.mobile]="isMobile"
+    [class.open]="sidebarOpen && isMobile"
+    *ngIf="!isMobile || sidebarOpen"
+    (closeSidebar)="isMobile ? toggleSidebar() : null"
+  ></sidebar-eccd>
+
+  <main class="main-content">
+    <button class="sidebar-toggle" (click)="toggleSidebar()">☰</button>
+    <router-outlet></router-outlet>
+  </main>
+</div>
