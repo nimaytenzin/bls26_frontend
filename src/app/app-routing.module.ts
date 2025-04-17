@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { LandingComponent } from './landing/landing.component';
-import { EccdLayoutComponent } from './layout/eccd-layout/eccd-layout.component';
+import { FacilityLayoutComponent } from './layout/facility-layout/facility-layout.component';
 
 const routes: Routes = [
   { path: 'landing', component: LandingComponent }, // This is the path for the dashboard component
@@ -10,17 +10,13 @@ const routes: Routes = [
     loadChildren: () =>
     import('./auth/auth.module').then(m => m.AuthModule) },  // Lazy load it
 
-  { path: 'parent',
-    loadChildren: () =>
-    import('./parent/parent.module').then(m => m.ParentModule) },  // Lazy load it
-
   {
-    path: 'eccd',
-    component: EccdLayoutComponent, // ✅ from layout
+    path: 'facility',
+    component: FacilityLayoutComponent, // ✅ from layout
     children: [
       {
         path: '',
-        loadChildren: () => import('./eccd/eccd.module').then(m => m.EccdModule)
+        loadChildren: () => import('./facility/facility.module').then(m => m.FacilityModule)
       }
     ]
   }, // Lazy load it

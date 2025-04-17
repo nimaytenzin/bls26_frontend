@@ -3,23 +3,22 @@ import { NgModule } from '@angular/core'; // Required for @NgModule
 
 import { AppRoutingModule } from './app-routing.module'; // if you're using routing
 import { AuthRoutingModule } from './auth/auth-routing.module'; // if you're using routing for authentication
-import { EccdLayoutModule } from './layout/eccd-layout/eccd-layout.module';
 
 import { AppComponent } from './app.component';
 import { LandingComponent } from './landing/landing.component';
 import { SharedModule } from "./shared/shared.module";
+import { FacilityLayoutModule } from './layout/facility-layout/facility-layout.module';
 
 @NgModule({
     declarations: [
       AppComponent,
       LandingComponent,
-
     ],
     imports: [
       BrowserModule,
       AppRoutingModule, // this must export RouterModule
       AuthRoutingModule, // this must export RouterModule
-      EccdLayoutModule, // this must export RouterModule
+      FacilityLayoutModule, // this must export RouterModule
       SharedModule,
     ],
     providers: [],
@@ -27,4 +26,3 @@ import { SharedModule } from "./shared/shared.module";
     bootstrap: [AppComponent]
   })
   export class AppModule {}
-  

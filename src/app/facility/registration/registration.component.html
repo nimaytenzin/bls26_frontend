@@ -1,0 +1,93 @@
+<form [formGroup]="registrationForm" (ngSubmit)="onSubmit()" novalidate>
+  <!-- Step 1: Child Info -->
+  <div *ngIf="currentStep === 0" formGroupName="child">
+    <h3>Step 1: Child Information</h3>
+
+    <div class="form-group">
+      <input formControlName="name" placeholder=" " required />
+      <label>Full Name</label>
+      <div class="error" *ngIf="isInvalid('child.name')">Name is required.</div>
+    </div>
+
+    <div class="form-group">
+      <input formControlName="preferredName" placeholder=" " />
+      <label>Preferred Name</label>
+    </div>
+
+    <div class="form-group">
+      <input formControlName="cid" placeholder=" " required />
+      <label>CID</label>
+      <div class="error" *ngIf="isInvalid('child.cid')">CID is required.</div>
+    </div>
+
+    <div class="form-group">
+      <input formControlName="studentCode" placeholder=" " required />
+      <label>Student Code</label>
+      <div class="error" *ngIf="isInvalid('child.studentCode')">Student Code is required.</div>
+    </div>
+
+    <div class="form-group">
+      <input formControlName="dob" type="date" placeholder=" " required />
+      <label>Date of Birth</label>
+      <div class="error" *ngIf="isInvalid('child.dob')">Date of Birth is required.</div>
+    </div>
+
+    <div class="form-group">
+      <select formControlName="gender" placeholder=" ">
+        <option value="" disabled>Select Gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+      <label>Gender</label>
+    </div>
+  </div>
+
+  <!-- Step 2: Child Notes -->
+  <div *ngIf="currentStep === 1" formGroupName="childNote">
+    <h3>Step 2: Child Notes</h3>
+    <div class="form-group">
+      <textarea formControlName="medicalCondition" placeholder=" "></textarea>
+      <label>Medical Condition</label>
+    </div>
+    <div class="form-group">
+      <textarea formControlName="specialInstruction" placeholder=" "></textarea>
+      <label>Special Instructions</label>
+    </div>
+    <div class="form-group">
+      <textarea formControlName="notes" placeholder=" "></textarea>
+      <label>Other Notes</label>
+    </div>
+  </div>
+
+  <!-- Step 3: Parent(s) -->
+  <div *ngIf="currentStep === 2" formArrayName="parents">
+    <h3>Step 3: Parent(s)</h3>
+    <div *ngFor="let parent of parents.controls; let i = index" [formGroupName]="i" class="parent-card">
+      <div class="form-group">
+        <input formControlName="name" placeholder=" " />
+        <label>Parent Name</label>
+      </div>
+      <div class="form-group">
+        <input formControlName="email" placeholder=" " />
+        <label>Email</label>
+      </div>
+      <div class="form-group">
+        <input formControlName="cid" placeholder=" " />
+        <label>CID</label>
+      </div>
+      <div class="form-group">
+        <input formControlName="phone" placeholder=" " />
+        <label>Phone</label>
+      </div>
+      <button type="button" class="remove-btn" (click)="removeParent(i)" *ngIf="parents.length > 1">Remove</button>
+    </div>
+    <button type="button" class="add-btn" (click)="addParent()">+ Add Parent</button>
+  </div>
+
+  <!-- Navigation -->
+  <div class="step-nav">
+    <button type="button" (click)="prevStep()" [disabled]="currentStep === 0">Back</button>
+    <button type="button" (click)="nextStep()" *ngIf="currentStep < 2">Next</button>
+    <button type="submit" *ngIf="currentStep === 2">Submit</button>
+  </div>
+</form>

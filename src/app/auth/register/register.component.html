@@ -1,17 +1,17 @@
-<public-navbar></public-navbar>
+<app-public-navbar></app-public-navbar>
 
 <div class="register-wrapper">
   <div class="register-card">
     <h2>Create Your Account</h2>
 
     <div class="role-toggle">
-      <button 
-        [class.active]="selectedRole === 'parent'" 
+      <button
+        [class.active]="selectedRole === 'parent'"
         (click)="selectRole('parent')">
         I’m a Parent
       </button>
-      <button 
-        [class.active]="selectedRole === 'eccd'" 
+      <button
+        [class.active]="selectedRole === 'eccd'"
         (click)="selectRole('eccd')">
         I’m an ECCD Center
       </button>
