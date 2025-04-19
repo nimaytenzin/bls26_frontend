@@ -4,7 +4,7 @@ import { LandingComponent } from './landing/landing.component';
 import { FacilityLayoutComponent } from './layout/facility-layout/facility-layout.component';
 
 const routes: Routes = [
-  { path: 'landing', component: LandingComponent }, // This is the path for the dashboard component
+  { path: '', component: LandingComponent },
 
   { path: 'auth',
     loadChildren: () =>
@@ -21,7 +21,7 @@ const routes: Routes = [
     ]
   }, // Lazy load it
 
-  { path: '**', redirectTo: 'landing' } // Redirect to the landing page for any unknown routes
+  //{ path: '**', redirectTo: '' } // Redirect to the landing page for any unknown routes
 ];
 
 // configures NgModule imports and exports

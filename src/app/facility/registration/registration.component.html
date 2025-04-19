@@ -1,7 +1,7 @@
 <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()" novalidate>
   <!-- Step 1: Child Info -->
   <div *ngIf="currentStep === 0" formGroupName="child">
-    <h3>Step 1: Child Information</h3>
+    <h3>Child Information</h3>
 
     <div class="form-group">
       <input formControlName="name" placeholder=" " required />
@@ -42,26 +42,49 @@
     </div>
   </div>
 
-  <!-- Step 2: Child Notes -->
-  <div *ngIf="currentStep === 1" formGroupName="childNote">
-    <h3>Step 2: Child Notes</h3>
-    <div class="form-group">
-      <textarea formControlName="medicalCondition" placeholder=" "></textarea>
-      <label>Medical Condition</label>
+  <!-- Step 2: Child Notes + Package -->
+  <div *ngIf="currentStep === 1">
+    <div formGroupName="childNote">
+      <h3>Child Notes</h3>
+      <div class="form-group">
+        <textarea formControlName="medicalCondition" placeholder=" "></textarea>
+        <label>Medical Condition</label>
+      </div>
+      <div class="form-group">
+        <textarea formControlName="specialInstruction" placeholder=" "></textarea>
+        <label>Special Instructions</label>
+      </div>
+      <div class="form-group">
+        <textarea formControlName="notes" placeholder=" "></textarea>
+        <label>Other Notes</label>
+      </div>
     </div>
-    <div class="form-group">
-      <textarea formControlName="specialInstruction" placeholder=" "></textarea>
-      <label>Special Instructions</label>
-    </div>
-    <div class="form-group">
-      <textarea formControlName="notes" placeholder=" "></textarea>
-      <label>Other Notes</label>
+
+    <div formGroupName="packageForm">
+      <h3>Package Information</h3>
+      <div class="form-group">
+        <select formControlName="packageId">
+          <option value="" disabled>Select a Package</option>
+          <option *ngFor="let pkg of packages" [value]="pkg.id">{{ pkg.name }} ({{ pkg.price | currency }})</option>
+        </select>
+        <label>Package</label>
+        <div class="error" *ngIf="isInvalid('packageForm.packageId')">Package is required.</div>
+      </div>
+
+      <div class="form-group">
+        <input formControlName="startDate" type="date" />
+        <label>Start Date</label>
+      </div>
+      <div class="form-group">
+        <input formControlName="endDate" type="date" />
+        <label>End Date</label>
+      </div>
     </div>
   </div>
 
-  <!-- Step 3: Parent(s) -->
+  <!-- Step 3: Parents -->
   <div *ngIf="currentStep === 2" formArrayName="parents">
-    <h3>Step 3: Parent(s)</h3>
+    <h3>Parent(s) Information</h3>
     <div *ngFor="let parent of parents.controls; let i = index" [formGroupName]="i" class="parent-card">
       <div class="form-group">
         <input formControlName="name" placeholder=" " />

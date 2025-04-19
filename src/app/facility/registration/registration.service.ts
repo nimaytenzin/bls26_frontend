@@ -8,12 +8,20 @@ import { Observable, switchMap, forkJoin } from 'rxjs';
 export class RegistrationService {
   constructor(private http: HttpClient) {}
 
+  getPackages(): Observable<any[]> {
+    return this.http.get<any[]>('/api/packages');
+  }
+
   registerChild(childDto: any): Observable<any> {
     return this.http.post('/api/children', childDto);
   }
 
   registerChildNote(childNoteDto: any): Observable<any> {
     return this.http.post('/api/child-notes', childNoteDto);
+  }
+
+  registerChildPackage(packageDto: any): Observable<any> {
+    return this.http.post('/api/packages', packageDto);
   }
 
   registerParents(parents: any[], childId: number): Observable<any[]> {
@@ -27,9 +35,10 @@ export class RegistrationService {
     return this.registerChild(formData.child).pipe(
       switchMap(child => {
         const childId = child.id;
-        const notePayload = { ...formData.childNote, childId };
+
         return forkJoin([
-          this.registerChildNote(notePayload),
+          this.registerChildNote({ ...formData.childNote, childId }),
+          this.registerChildPackage({ ...formData.packageForm, childId }),
           this.registerParents(formData.parents, childId)
         ]);
       })

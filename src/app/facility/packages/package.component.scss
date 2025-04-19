@@ -1,0 +1,54 @@
+.package-container {
+  padding: 1rem;
+  max-width: 100%;
+
+  .package-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+
+      label {
+        margin-bottom: 0.5rem;
+      }
+
+      .form-control {
+        padding: 0.5rem;
+        font-size: 1rem;
+      }
+    }
+
+    .btn {
+      align-self: flex-start;
+    }
+  }
+
+  .package-table {
+    margin-top: 2rem;
+    overflow-x: auto;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th,
+      td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      th {
+        background-color: #f8f9fa;
+      }
+
+      .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+      }
+    }
+  }
+}

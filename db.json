@@ -1,0 +1,28 @@
+{
+  "facilities": [
+    {
+      "id": "1",
+      "name": "Facility A"
+    },
+    {
+      "id": "2",
+      "name": "Facility B"
+    }
+  ],
+  "packages": [
+    {
+      "id": "2",
+      "facilityId": 1,
+      "name": "Premium Package",
+      "description": "All features",
+      "price": 200
+    },
+    {
+      "id": "3",
+      "facilityId": 2,
+      "name": "Standard Package",
+      "description": "Standard features",
+      "price": 150
+    }
+  ]
+}

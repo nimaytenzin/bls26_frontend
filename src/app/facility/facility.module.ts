@@ -1,6 +1,6 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 
 import { FacilityRoutingModule } from "./facility-routing.module";
@@ -8,6 +8,7 @@ import { FacilityDashboardComponent } from "./facility-dashboard/facility-dashbo
 import { AttendanceComponent } from './facilitators/attendance/attendance.component';
 import { RegistrationComponent } from './registration/registration.component';
 import { RegistrationService } from "./registration/registration.service";
+import { PackageComponent } from './packages/package.component';
 
 
 @NgModule({
@@ -15,13 +16,14 @@ import { RegistrationService } from "./registration/registration.service";
         FacilityDashboardComponent,
         AttendanceComponent,
         RegistrationComponent,
-
+				PackageComponent,
     ],
     imports: [
         CommonModule,
         ReactiveFormsModule,
 				HttpClientModule,
         FacilityRoutingModule,
+				FormsModule
     ],
 
 		providers: [RegistrationService]

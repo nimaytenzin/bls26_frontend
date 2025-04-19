@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { RegistrationService } from './registration.service';
 
@@ -8,12 +8,16 @@ import { RegistrationService } from './registration.service';
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.scss']
 })
-
-export class RegistrationComponent {
+export class RegistrationComponent implements OnInit {
   currentStep = 0;
+  packages: any[] = [];
+
   registrationForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private registrationService: RegistrationService) {
+  constructor(
+    private fb: FormBuilder,
+    private registrationService: RegistrationService
+  ) {
     this.registrationForm = this.fb.group({
       child: this.fb.group({
         name: ['', Validators.required],
@@ -23,15 +27,24 @@ export class RegistrationComponent {
         studentCode: ['', Validators.required],
         dob: ['', Validators.required],
         gender: ['', Validators.required],
-        facilityId: [''] // Optional, backend can fill this
+        facilityId: ['']
       }),
       childNote: this.fb.group({
         medicalCondition: [''],
         specialInstruction: [''],
         notes: ['']
       }),
+      packageForm: this.fb.group({
+        packageId: ['', Validators.required],
+        startDate: ['', Validators.required],
+        endDate: ['', Validators.required]
+      }),
       parents: this.fb.array([this.createParentForm()])
     });
+  }
+
+  ngOnInit() {
+    this.registrationService.getPackages().subscribe(res => this.packages = res);
   }
 
   get parents(): FormArray {
@@ -56,9 +69,9 @@ export class RegistrationComponent {
   }
 
   nextStep() {
-    const currentGroup = this.getCurrentStepFormGroup();
-    if (currentGroup.invalid) {
-      currentGroup.markAllAsTouched();
+    const stepControls = this.getCurrentStepFormGroup();
+    if (stepControls.invalid) {
+      stepControls.markAllAsTouched();
       return;
     }
     this.currentStep++;
@@ -70,8 +83,11 @@ export class RegistrationComponent {
 
   getCurrentStepFormGroup(): FormGroup {
     if (this.currentStep === 0) return this.registrationForm.get('child') as FormGroup;
-    if (this.currentStep === 1) return this.registrationForm.get('childNote') as FormGroup;
-    return this.registrationForm; // step 3 handles form array
+    if (this.currentStep === 1) return this.fb.group({
+      childNote: this.registrationForm.get('childNote'),
+      packageForm: this.registrationForm.get('packageForm')
+    });
+    return this.registrationForm;
   }
 
   onSubmit() {
@@ -86,9 +102,8 @@ export class RegistrationComponent {
     });
   }
 
-	isInvalid(path: string): boolean {
-		const control = this.registrationForm.get(path);
-		return !!(control && control.touched && control.invalid);
-	}
-
+  isInvalid(path: string): boolean {
+    const control = this.registrationForm.get(path);
+    return !!(control && control.touched && control.invalid);
+  }
 }
