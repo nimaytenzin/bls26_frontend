@@ -1,23 +1,25 @@
 <nav class="sidebar">
     <h3>Facility Menu</h3>
     <ul>
-      <li><a routerLink="/facility/dashboard" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a></li>
+			<li><a routerLink="/dashboard" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a></li>
 
-      <li><strong>Facilitators</strong></li>
-      <li><a routerLink="/facility/facilitators/attendance" routerLinkActive="active" (click)="onNavClick()">Attendance</a></li>
+			<li><a routerLink="/facilities" routerLinkActive="active" (click)="onNavClick()">My Facilities</a></li>
 
-      <li><strong>Children</strong></li>
-      <li><a routerLink="/facility/child/attendance" routerLinkActive="active" (click)="onNavClick()">Attendance</a></li>
+			<li><strong>Facilitators</strong></li>
+			<li><a routerLink="/facilities/:id/facilitators/attendance" routerLinkActive="active" (click)="onNavClick()">Attendance</a></li>
 
-      <li><strong>Announcements</strong></li>
-      <li><a routerLink="/facility/announcements" routerLinkActive="active" (click)="onNavClick()">Post Activity</a></li>
+			<li><strong>Children</strong></li>
+			<li><a routerLink="/facilities/:id/children/attendance" routerLinkActive="active" (click)="onNavClick()">Attendance</a></li>
 
-      <li><a routerLink="/facility/registration" routerLinkActive="active" (click)="onNavClick()">Registration</a></li>
-			<li><a routerLink="/facility/packages" routerLinkActive="active" (click)="onNavClick()">Packages</a></li>
+			<li><strong>Announcements</strong></li>
+			<li><a routerLink="/facilities/:id/announcements" routerLinkActive="active" (click)="onNavClick()">Post Activity</a></li>
 
-      <li><strong>Reports & Billing</strong></li>
-      <li><a routerLink="/facility/reports" routerLinkActive="active">Invoice</a></li>
-      <li><a routerLink="/facility/billing" routerLinkActive="active">Expenses</a></li>
+			<li><a routerLink="/facilities/registration" routerLinkActive="active" (click)="onNavClick()">Registration</a></li>
+			<li><a routerLink="/facilities/packages" routerLinkActive="active" (click)="onNavClick()">Packages</a></li>
+
+			<li><strong>Reports & Billing</strong></li>
+			<li><a routerLink="/facilities/:id/reports" routerLinkActive="active">Invoice</a></li>
+			<li><a routerLink="/facilities/:id/billing" routerLinkActive="active">Expenses</a></li>
 
     </ul>
   </nav>

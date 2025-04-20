@@ -1,0 +1,25 @@
+.verify-email {
+  max-width: 480px;
+  margin: 60px auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  text-align: center;
+
+  h2 {
+    color: #2e7d32; // a softer green tone, consistent with success state
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+
+  p {
+    font-size: 1.05rem;
+    color: #444;
+    line-height: 1.6;
+  }
+
+  .btn {
+    margin-top: 2rem;
+  }
+}

@@ -4,42 +4,34 @@
   <div class="register-card">
     <h2>Create Your Account</h2>
 
-    <div class="role-toggle">
-      <button
-        [class.active]="selectedRole === 'parent'"
-        (click)="selectRole('parent')">
-        I’m a Parent
-      </button>
-      <button
-        [class.active]="selectedRole === 'eccd'"
-        (click)="selectRole('eccd')">
-        I’m an ECCD Center
-      </button>
-    </div>
-
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" formControlName="name" placeholder="Your full name" />
-      </div>
+			<div class="form-group">
+				<label>Full Name</label>
+				<input type="text" formControlName="name" placeholder="Your full name" />
+			</div>
 
-      <div class="form-group" *ngIf="selectedRole === 'eccd'">
-        <label>Organization Name</label>
-        <input type="text" formControlName="organization" placeholder="ECCD Center Name" />
-      </div>
+			<div class="form-group">
+				<label>Email</label>
+				<input type="email" formControlName="email" placeholder="Email address" />
+			</div>
 
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" formControlName="email" placeholder="Email address" />
-      </div>
+			<div class="form-group">
+				<label>CID</label>
+				<input type="text" formControlName="cid" placeholder="CID" />
+			</div>
 
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" formControlName="password" placeholder="Password" />
-      </div>
+			<div class="form-group">
+				<label>Phone</label>
+				<input type="text" formControlName="phone" placeholder="Phone number" />
+			</div>
 
-      <button class="btn primary" type="submit" [disabled]="registerForm.invalid">Register</button>
-    </form>
+			<div class="form-group">
+				<label>ECCD Centre Name</label>
+				<input type="text" formControlName="facility" placeholder="ECCD Centre Name" />
+			</div>
+
+			<button class="btn primary" type="submit" [disabled]="registerForm.invalid">Register</button>
+		</form>
 
     <div class="register-footer">
       Already have an account? <a routerLink="/auth/login">Login</a>

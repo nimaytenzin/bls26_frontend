@@ -9,6 +9,8 @@ import { AttendanceComponent } from './facilitators/attendance/attendance.compon
 import { RegistrationComponent } from './registration/registration.component';
 import { RegistrationService } from "./registration/registration.service";
 import { PackageComponent } from './packages/package.component';
+import { FacilityListComponent } from './facility-list/facility-list.component';
+import { FacilityModalComponent } from './facility-dialog/facility-modal.component';
 
 
 @NgModule({
@@ -17,6 +19,8 @@ import { PackageComponent } from './packages/package.component';
         AttendanceComponent,
         RegistrationComponent,
 				PackageComponent,
+				FacilityListComponent,
+				FacilityModalComponent,
     ],
     imports: [
         CommonModule,

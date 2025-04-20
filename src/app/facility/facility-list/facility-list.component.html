@@ -1,0 +1,25 @@
+<div class="facility-container">
+  <h2>Your Facilities</h2>
+  <button class="btn primary" (click)="openAddFacilityDialog()">Add New Facility</button>
+
+  <div class="facility-list">
+    <div class="facility-card" *ngFor="let facility of facilities">
+      <div class="facility-info">
+        <h3>{{ facility.name }}</h3>
+        <p *ngIf="facility.description">{{ facility.description }}</p>
+        <span><strong>Location:</strong> {{ facility.location }}</span>
+      </div>
+      <div class="facility-actions">
+        <button class="btn edit" (click)="openEditFacilityDialog(facility)">Edit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Modal -->
+  <app-facility-modal
+    [show]="showModal"
+    [data]="selectedFacility"
+    (save)="handleSave($event)"
+    (cancel)="showModal = false">
+  </app-facility-modal>
+</div>

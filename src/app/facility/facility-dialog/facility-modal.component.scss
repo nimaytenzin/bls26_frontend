@@ -1,0 +1,94 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+
+  .modal-content {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 550px;
+    font-family: 'Poppins', sans-serif;
+
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #007bff;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #333;
+      }
+
+      input,
+      textarea {
+				box-sizing: border-box;
+        width: 100%;
+				max-width: 100%;
+        padding: 0.75rem;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        background-color: #f8f9fa;
+
+        &:focus {
+          border-color: #007bff;
+          outline: none;
+        }
+      }
+
+      textarea {
+        min-height: 100px;
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 2rem;
+
+      .btn {
+        padding: 0.6rem 1.4rem;
+        border-radius: 6px;
+        font-weight: 500;
+        border: none;
+        font-size: 1rem;
+        cursor: pointer;
+        font-family: 'Poppins', sans-serif;
+
+        &.cancel {
+          background: #e0e0e0;
+          color: #333;
+
+          &:hover {
+            background: #d5d5d5;
+          }
+        }
+
+        &.primary {
+          background: #007bff;
+          color: #fff;
+
+          &:hover {
+            background: #005dc1;
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,48 +1,41 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
-  standalone: false,
+	standalone: false,
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
-export class RegisterComponent {
-  registerForm: FormGroup;
-  selectedRole: 'parent' | 'eccd' = 'parent';
+export class RegisterComponent implements OnInit {
+  registerForm!: FormGroup;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private router: Router) {}
+
+  ngOnInit(): void {
     this.registerForm = this.fb.group({
       name: ['', Validators.required],
-      organization: [''],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      cid: ['', Validators.required],
+      phone: ['', Validators.required],
+      facility: ['', Validators.required] // New field
     });
   }
 
-  selectRole(role: 'parent' | 'eccd') {
-    this.selectedRole = role;
-
-    const orgCtrl = this.registerForm.get('organization');
-
-    if (role === 'eccd') {
-      orgCtrl?.setValidators([Validators.required]);
-    } else {
-      orgCtrl?.clearValidators();
-    }
-
-    orgCtrl?.updateValueAndValidity();
-  }
-
-  onSubmit() {
+  onSubmit(): void {
     if (this.registerForm.valid) {
-      const formData = {
+      const newUser = {
         ...this.registerForm.value,
-        role: this.selectedRole
+        role: 'owner', // Automatically assign 'owner'
+        isVerified: false // until they verify email
       };
 
-      console.log('Register form submitted:', formData);
-      // TODO: Send to backend
+      // Simulate API call (or save to localStorage or json-server)
+      console.log('User registered:', newUser);
+      this.router.navigate(['/auth/verify-notice']);
     }
   }
 }
+
+// if I am not mistaken, there will be no details related to the facility which means the ECCD Centre Name is not required.

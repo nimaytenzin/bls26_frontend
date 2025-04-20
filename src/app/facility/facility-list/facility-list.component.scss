@@ -1,0 +1,72 @@
+.facility-container {
+  max-width: 900px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  font-family: 'Poppins', sans-serif;
+
+  h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    color: #333;
+  }
+
+  .btn.primary {
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1.2rem;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+  }
+
+  .facility-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .facility-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+
+    h3 {
+      margin: 0 0 0.3rem;
+      font-size: 1.2rem;
+      color: #333;
+    }
+
+    p {
+      margin: 0 0 0.2rem;
+      color: #555;
+    }
+
+    span {
+      font-size: 0.95rem;
+      color: #777;
+    }
+
+    .facility-actions {
+      display: flex;
+      align-items: center;
+
+      .btn.edit {
+        background: #ffc107;
+        color: #000;
+        border: none;
+        border-radius: 4px;
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        font-weight: 500;
+      }
+    }
+  }
+}

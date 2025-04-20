@@ -1,12 +1,32 @@
 {
+  "users": [
+    {
+      "id": "1",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "cid": "123456789",
+      "phone": "9800000000",
+      "facility": "Happy Tots",
+      "role": "owner",
+      "isVerified": true,
+      "verifyToken": "123",
+      "password": "abcdefgh"
+    }
+  ],
   "facilities": [
     {
       "id": "1",
-      "name": "Facility A"
+      "name": "Little Stars ECCD",
+      "description": "Located near Lake Park",
+      "location": "Perth, WA",
+      "ownerId": 1
     },
     {
-      "id": "2",
-      "name": "Facility B"
+      "id": "5e74",
+      "name": "fsdf",
+      "description": "sdf",
+      "location": "sdfs",
+      "ownerId": 1
     }
   ],
   "packages": [
