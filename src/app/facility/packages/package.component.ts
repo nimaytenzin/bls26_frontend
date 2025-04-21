@@ -1,30 +1,32 @@
 import { Component, OnInit } from '@angular/core';
-import { PackageService, Package } from './package.service';
-import { FacilityContextService } from '../../layout/facility-layout/facility-context.service';
+import { PackageService, Package } from '../../core/services/package.service';
+import { FacilityService } from '../../core/services/facility.service';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-package',
-  standalone: false,
+	standalone: false,
   templateUrl: './package.component.html',
   styleUrls: ['./package.component.scss']
 })
 export class PackageComponent implements OnInit {
   packages: Package[] = [];
-  newPackage: Partial<Package> = {};
+  showModal = false;
+  editingPackage: Package | null = null;
 
   constructor(
     private packageService: PackageService,
-    private facilityContext: FacilityContextService
+    private facilityService: FacilityService,
+		private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    const facilityId = this.facilityContext.getFacilityId();
+    const facilityId = this.facilityService.getFacilityId();
     if (facilityId) {
       this.loadPackages(facilityId);
     }
 
-    // Optionally watch for facility changes dynamically
-    this.facilityContext.selectedFacilityId$.subscribe(id => {
+    this.facilityService.selectedFacilityId$.subscribe(id => {
       if (id) {
         this.loadPackages(id);
       }
@@ -33,44 +35,62 @@ export class PackageComponent implements OnInit {
 
   loadPackages(facilityId: number): void {
     this.packageService.getPackagesByFacility(facilityId).subscribe({
-      next: data => {
-        this.packages = data;
-      },
-      error: err => {
-        console.error('Failed to load packages', err);
-      }
+      next: data => (this.packages = data),
+      error: err => console.error('Failed to load packages', err)
     });
   }
 
-  addPackage(): void {
-    const facilityId = this.facilityContext.getFacilityId();
-    const { name, description, price } = this.newPackage;
-    if (!name || !description || !price || !facilityId) return;
+  openAddModal(): void {
+    this.editingPackage = null;
+    this.showModal = true;
+  }
 
-    const newPkg: Package = {
-      id: 0,
-      facilityId,
-      name,
-      description,
-      price
-    };
+  openEditModal(pkg: Package): void {
+    this.editingPackage = { ...pkg };
+    this.showModal = true;
+  }
 
-    this.packageService.addPackage(newPkg).subscribe({
+  handleSave(pkgData: Partial<Package>): void {
+    const facilityId = this.facilityService.getFacilityId();
+    if (!facilityId || !pkgData.name || !pkgData.description || pkgData.price == null) return;
+
+		const user = this.authService.getCurrentUser(); // assuming you're injecting AuthService
+		if (!user) return;
+
+		const finalPackage: Package = {
+			id: this.editingPackage?.id || 0,
+			facilityId,
+			ownerId: user.id,
+			name: pkgData.name,
+			description: pkgData.description,
+			price: pkgData.price,
+			...(this.editingPackage?.id && { id: this.editingPackage.id })
+		};
+
+    const request = this.editingPackage
+      ? this.packageService.updatePackage(finalPackage)
+      : this.packageService.addPackage(finalPackage);
+
+    request.subscribe({
       next: () => {
-        this.newPackage = {};
+        this.showModal = false;
         this.loadPackages(facilityId);
       },
-      error: err => {
-        console.error('Failed to add package', err);
-      }
+      error: err => console.error('Save failed', err)
     });
   }
 
-  deletePackage(id: number): void {
-    const facilityId = this.facilityContext.getFacilityId();
-    this.packageService.deletePackage(id).subscribe({
-      next: () => this.loadPackages(facilityId!),
-      error: err => console.error('Failed to delete package', err)
-    });
-  }
+	deletePackage(id: number): void {
+		const facilityId = this.facilityService.getFacilityId();
+		if (!facilityId) return;
+
+		this.packageService.deletePackage(id).subscribe({
+			next: () => {
+				this.loadPackages(facilityId); // Refresh package list after deletion
+			},
+			error: err => {
+				console.error('Failed to delete package', err);
+			}
+		});
+	}
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { RegistrationService } from './registration.service';
-import { FacilityContextService } from '../../layout/facility-layout/facility-context.service'; // adjust the path accordingly
+import { FacilityService } from '../../core/services/facility.service'; // adjust the path accordingly
 
 
 @Component({
@@ -19,10 +19,10 @@ export class RegistrationComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private registrationService: RegistrationService,
-    private facilityContext: FacilityContextService
+    private facilityContext: FacilityService
   ) {
     const selectedFacilityId = this.facilityContext.getFacilityId();
-  
+
     this.registrationForm = this.fb.group({
       child: this.fb.group({
         name: ['', Validators.required],
@@ -47,7 +47,7 @@ export class RegistrationComponent implements OnInit {
       parents: this.fb.array([this.createParentForm()])
     });
   }
-  
+
 
   ngOnInit() {
     this.registrationService.getPackages().subscribe(res => this.packages = res);

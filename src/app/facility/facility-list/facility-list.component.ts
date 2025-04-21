@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { AuthService } from '../../auth/auth.service'; // Adjust path as necessary
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-facility-list',
-  standalone: false,
+	standalone: false,
   templateUrl: './facility-list.component.html',
   styleUrls: ['./facility-list.component.scss']
 })
@@ -24,10 +24,14 @@ export class FacilityListComponent implements OnInit {
 
   loadFacilities(): void {
     const user = this.authService.getCurrentUser();
-    if (!user) return;
+    if (!user) {
+      console.warn('No user found. Cannot load facilities.');
+      return;
+    }
 
-    this.http.get<any[]>(`http://localhost:3000/facilities?ownerId=${user.id}`).subscribe(data => {
-      this.facilities = data;
+    this.http.get<any[]>(`http://localhost:3000/facilities?ownerId=${user.id}`).subscribe({
+      next: data => this.facilities = data,
+      error: err => console.error('Failed to load facilities:', err)
     });
   }
 
@@ -43,20 +47,28 @@ export class FacilityListComponent implements OnInit {
 
   handleSave(facilityData: any): void {
     const user = this.authService.getCurrentUser();
-    if (!user) return;
+    if (!user) {
+      console.warn('No user found. Cannot save facility.');
+      return;
+    }
 
-    const ownerId = user.id;
+    const facilityWithOwner = { ...facilityData, ownerId: user.id };
 
     if (this.selectedFacility) {
-      this.http.patch(`http://localhost:3000/facilities/${this.selectedFacility.id}`, facilityData).subscribe(() => {
-        this.loadFacilities();
-        this.showModal = false;
+      this.http.patch(`http://localhost:3000/facilities/${this.selectedFacility.id}`, facilityWithOwner).subscribe({
+        next: () => {
+          this.loadFacilities();
+          this.showModal = false;
+        },
+        error: err => console.error('Failed to update facility:', err)
       });
     } else {
-      const facilityWithOwner = { ...facilityData, ownerId };
-      this.http.post('http://localhost:3000/facilities', facilityWithOwner).subscribe(() => {
-        this.loadFacilities();
-        this.showModal = false;
+      this.http.post('http://localhost:3000/facilities', facilityWithOwner).subscribe({
+        next: () => {
+          this.loadFacilities();
+          this.showModal = false;
+        },
+        error: err => console.error('Failed to create facility:', err)
       });
     }
   }

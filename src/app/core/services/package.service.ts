@@ -8,13 +8,14 @@ export interface Package {
   name: string;
   description: string;
   price: number;
+  ownerId: number;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class PackageService {
-  private apiUrl = '/api';
+  private apiUrl = 'http://localhost:3000';
 
   constructor(private http: HttpClient) {}
 
@@ -33,4 +34,8 @@ export class PackageService {
   deletePackage(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/packages/${id}`);
   }
+
+	updatePackage(pkg: Package): Observable<Package> {
+		return this.http.put<Package>(`${this.apiUrl}/packages/${pkg.id}`, pkg);
+	}
 }

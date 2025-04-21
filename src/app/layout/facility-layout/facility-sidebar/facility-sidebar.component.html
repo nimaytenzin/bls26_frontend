@@ -1,19 +1,23 @@
 <nav class="sidebar">
 	<div class="sidebar-header">
-	  <h3>Facility Menu</h3>
+	  <h3>FACILITY MENU</h3>
 	</div>
-  
+
 	<ul class="sidebar-links">
+		<li class="section-title">Master</li>
 	  <li>
 		<a routerLink="/dashboard" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">
 		  Dashboard
 		</a>
 	  </li>
-  
+
 	  <li>
-		<a routerLink="[user.id, /'facilities']" routerLinkActive="active" (click)="onNavClick()">My Facilities</a>
+		<a routerLink="/facilities" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">My Facilities</a>
 	  </li>
-  
+		<li>
+			<a routerLink="/facilities/packages" routerLinkActive="active" (click)="onNavClick()">Packages</a>
+		</li>
+
 	  <li class="section-title">Facilitators</li>
 	  <li>
 		<a [routerLink]="['/facilities', selectedFacilityId, 'facilitators', 'attendance']" routerLinkActive="active" (click)="onNavClick()">
@@ -25,7 +29,7 @@
 		  Profile Management
 		</a>
 	  </li>
-  
+
 	  <li class="section-title">Children</li>
 	  <li>
 		<a [routerLink]="['/facilities', selectedFacilityId, 'children', 'attendance']" routerLinkActive="active" (click)="onNavClick()">
@@ -37,18 +41,16 @@
 		  Registration
 		</a>
 	  </li>
-  
+
 	  <li class="section-title">Announcements</li>
 	  <li>
 		<a [routerLink]="['/facilities', selectedFacilityId, 'announcements']" routerLinkActive="active" (click)="onNavClick()">
 		  Post Activity
 		</a>
 	  </li>
-  
-	  <li>
-		<a routerLink="/facilities/packages" routerLinkActive="active" (click)="onNavClick()">Packages</a>
-	  </li>
-  
+
+
+
 	  <li class="section-title">Reports & Billing</li>
 	  <li>
 		<a [routerLink]="['/facilities', selectedFacilityId, 'reports']" routerLinkActive="active">Invoice</a>
@@ -58,4 +60,3 @@
 	  </li>
 	</ul>
   </nav>
-  

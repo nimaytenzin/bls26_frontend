@@ -10,7 +10,8 @@ import { RegistrationComponent } from './registration/registration.component';
 import { RegistrationService } from "./registration/registration.service";
 import { PackageComponent } from './packages/package.component';
 import { FacilityListComponent } from './facility-list/facility-list.component';
-import { FacilityModalComponent } from './facility-dialog/facility-modal.component';
+import { FacilityModalComponent } from './facility-modal/facility-modal.component';
+import { PackageModalComponent } from './package-modal/package-modal.component';
 
 
 @NgModule({
@@ -21,6 +22,7 @@ import { FacilityModalComponent } from './facility-dialog/facility-modal.compone
 				PackageComponent,
 				FacilityListComponent,
 				FacilityModalComponent,
+    PackageModalComponent,
     ],
     imports: [
         CommonModule,

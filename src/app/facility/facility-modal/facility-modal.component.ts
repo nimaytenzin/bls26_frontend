@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
@@ -7,9 +7,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
   templateUrl: './facility-modal.component.html',
   styleUrls: ['./facility-modal.component.scss']
 })
-export class FacilityModalComponent {
+export class FacilityModalComponent implements OnChanges {
+  @Input() data: any = null; // Can be facility data or null
   @Input() show = false;
-  @Input() data: any = null;
   @Output() save = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
 
@@ -26,6 +26,8 @@ export class FacilityModalComponent {
   ngOnChanges(): void {
     if (this.data) {
       this.facilityForm.patchValue(this.data);
+    } else {
+      this.facilityForm.reset();
     }
   }
 

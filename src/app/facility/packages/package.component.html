@@ -1,39 +1,13 @@
 <div class="package-container">
-  <form class="package-form">
-    <div class="form-group">
-      <label for="packageName">Package Name:</label>
-      <input
-        type="text"
-        id="packageName"
-        [(ngModel)]="newPackage.name"
-        name="packageName"
-        class="form-control"
-        placeholder="Enter package name"
-      />
-    </div>
+  <button class="btn primary" (click)="openAddModal()">Add New Package</button>
 
-    <div class="form-group">
-      <label for="packageDescription">Description:</label>
-      <textarea
-        id="packageDescription"
-        [(ngModel)]="newPackage.description"
-        name="packageDescription"
-        class="form-control"
-        placeholder="Enter package description"
-      ></textarea>
-    </div>
-
-    <button type="button" (click)="addPackage()" class="btn btn-primary">
-      Add Package
-    </button>
-  </form>
-
-  <div class="package-table">
+  <div class="package-table" *ngIf="packages.length > 0">
     <table class="table table-striped">
       <thead>
         <tr>
           <th>Package Name</th>
           <th>Description</th>
+          <th>Price</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -41,17 +15,20 @@
         <tr *ngFor="let pkg of packages">
           <td>{{ pkg.name }}</td>
           <td>{{ pkg.description }}</td>
-          <td>
-            <button
-              type="button"
-              (click)="deletePackage(pkg.id)"
-              class="btn btn-danger btn-sm"
-            >
-              Delete
-            </button>
-          </td>
+          <td>${{ pkg.price }}</td>
+					<td>
+						<button class="btn btn-outline btn-sm" (click)="openEditModal(pkg)">Edit</button>
+						<button class="btn btn-danger btn-sm" (click)="deletePackage(pkg.id)">Delete</button>
+					</td>
         </tr>
       </tbody>
     </table>
   </div>
+
+  <!-- Modal Component -->
+  <app-package-modal
+    [show]="showModal"
+    (save)="handleSave($event)"
+    (cancel)="showModal = false">
+  </app-package-modal>
 </div>

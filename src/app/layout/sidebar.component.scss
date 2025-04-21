@@ -1,5 +1,7 @@
+@import 'src/styles/variables';
 :host {
-  width: 240px;
+	box-sizing: border-box;
+  width: $sidebar-width;
   background-color: #007bff;
   color: white;
   padding: 1rem;
