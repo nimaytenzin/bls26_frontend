@@ -1,30 +1,54 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { FacilityContextService } from './facility-context.service';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
-  selector: 'facility-layout',
+  selector: 'app-facility-layout',
   standalone: false,
   templateUrl: './facility-layout.component.html',
-  styleUrls: ['../layout.component.scss']
+  styleUrls: ['../layout.component.scss'],
 })
-export class FacilityLayoutComponent {
+export class FacilityLayoutComponent implements OnInit {
   isMobile = false;
-  sidebarOpen = true;
+  sidebarOpen = false;
+  facilities: any[] = [];
+  selectedFacilityId: number | null = null;
 
-  ngOnInit() {
-    this.updateViewMode();
+  constructor(
+    private facilityContext: FacilityContextService,
+    private http: HttpClient
+  ) {}
+
+  ngOnInit(): void {
+    this.detectMobile();
+    this.loadFacilities();
   }
 
-  @HostListener('window:resize')
-  onResize() {
-    this.updateViewMode();
-  }
-
-  updateViewMode() {
-    this.isMobile = window.innerWidth < 768;
-    this.sidebarOpen = !this.isMobile; // Show sidebar on desktop, hide on mobile
-  }
-
-  toggleSidebar() {
+  toggleSidebar(): void {
     this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  loadFacilities(): void {
+    this.http.get<any[]>('http://localhost:3000/facilities').subscribe(data => {
+      this.facilities = data;
+      if (data.length > 0) {
+        const firstId = data[0].id;
+        this.selectedFacilityId = firstId;
+        this.facilityContext.setFacility(firstId);
+      }
+    });
+  }
+
+  onFacilitySelect(id: string): void {
+    const facilityId = +id;
+    this.selectedFacilityId = facilityId;
+    this.facilityContext.setFacility(facilityId);
+  }
+
+  private detectMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
+    window.addEventListener('resize', () => {
+      this.isMobile = window.innerWidth <= 768;
+    });
   }
 }

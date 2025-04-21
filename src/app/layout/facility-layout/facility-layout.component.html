@@ -4,10 +4,19 @@
     [class.open]="sidebarOpen && isMobile"
     *ngIf="!isMobile || sidebarOpen"
     (closeSidebar)="isMobile ? toggleSidebar() : null"
+    [selectedFacilityId]="selectedFacilityId!"
   ></app-facility-sidebar>
 
   <main class="main-content">
     <button class="sidebar-toggle" (click)="toggleSidebar()">☰</button>
+
+    <div class="facility-selector">
+      <label for="facilitySelect">Switch Facility:</label>
+      <select #facilitySelect id="facilitySelect" (change)="onFacilitySelect(facilitySelect.value)">
+        <option *ngFor="let f of facilities" [value]="f.id">{{ f.name }}</option>
+      </select>    
+    </div>
+
     <router-outlet></router-outlet>
   </main>
 </div>

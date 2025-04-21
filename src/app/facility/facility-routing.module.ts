@@ -11,7 +11,7 @@ import { FacilityListComponent } from "./facility-list/facility-list.component";
 const routes: Routes = [
 
 	{ path: "dashboard", component: FacilityDashboardComponent },
-  { path: "facilities", component: FacilityListComponent },
+  { path: "facilities/:id", component: FacilityListComponent },
   { path: "facilitators/attendance", component: AttendanceComponent },
   { path: "facilities/registration", component: RegistrationComponent },
 	{ path: "facilities/packages", component: PackageComponent },

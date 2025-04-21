@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../auth/auth.service'; // Adjust path as necessary
 
 @Component({
   selector: 'app-facility-list',
-	standalone: false,
+  standalone: false,
   templateUrl: './facility-list.component.html',
   styleUrls: ['./facility-list.component.scss']
 })
@@ -12,14 +13,20 @@ export class FacilityListComponent implements OnInit {
   showModal = false;
   selectedFacility: any = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.loadFacilities();
   }
 
   loadFacilities(): void {
-    this.http.get<any[]>('http://localhost:3000/facilities').subscribe(data => {
+    const user = this.authService.getCurrentUser();
+    if (!user) return;
+
+    this.http.get<any[]>(`http://localhost:3000/facilities?ownerId=${user.id}`).subscribe(data => {
       this.facilities = data;
     });
   }
@@ -35,15 +42,19 @@ export class FacilityListComponent implements OnInit {
   }
 
   handleSave(facilityData: any): void {
+    const user = this.authService.getCurrentUser();
+    if (!user) return;
+
+    const ownerId = user.id;
+
     if (this.selectedFacility) {
-      // Update
       this.http.patch(`http://localhost:3000/facilities/${this.selectedFacility.id}`, facilityData).subscribe(() => {
         this.loadFacilities();
         this.showModal = false;
       });
     } else {
-      // Create
-      this.http.post('http://localhost:3000/facilities', facilityData).subscribe(() => {
+      const facilityWithOwner = { ...facilityData, ownerId };
+      this.http.post('http://localhost:3000/facilities', facilityWithOwner).subscribe(() => {
         this.loadFacilities();
         this.showModal = false;
       });

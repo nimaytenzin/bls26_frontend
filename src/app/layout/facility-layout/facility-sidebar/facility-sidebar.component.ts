@@ -1,12 +1,14 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-facility-sidebar',
   standalone: false,
   templateUrl: './facility-sidebar.component.html',
-  styleUrl: '../../sidebar.component.scss'
+  styleUrls: ['../../sidebar.component.scss']
 })
 export class FacilitySidebarComponent {
+  @Input() facilities: any[] = []; // ✅ Add this line to fix the error
+  @Input() selectedFacilityId!: number;
   @Output() closeSidebar = new EventEmitter<void>();
 
   onNavClick() {

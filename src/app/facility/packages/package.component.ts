@@ -1,46 +1,38 @@
 import { Component, OnInit } from '@angular/core';
 import { PackageService, Package } from './package.service';
+import { FacilityContextService } from '../../layout/facility-layout/facility-context.service';
 
 @Component({
   selector: 'app-package',
-	standalone: false,
+  standalone: false,
   templateUrl: './package.component.html',
   styleUrls: ['./package.component.scss']
 })
 export class PackageComponent implements OnInit {
-  facilities: any[] = [];
-  selectedFacilityId: number = 0;
   packages: Package[] = [];
   newPackage: Partial<Package> = {};
 
-  constructor(private packageService: PackageService) {}
+  constructor(
+    private packageService: PackageService,
+    private facilityContext: FacilityContextService
+  ) {}
 
   ngOnInit(): void {
-    this.loadFacilities();
-  }
+    const facilityId = this.facilityContext.getFacilityId();
+    if (facilityId) {
+      this.loadPackages(facilityId);
+    }
 
-  loadFacilities(): void {
-    this.packageService.getFacilities().subscribe({
-      next: data => {
-        this.facilities = data;
-        if (this.facilities.length > 0) {
-          this.selectedFacilityId = this.facilities[0].id;
-          this.loadPackages();
-        }
-      },
-      error: err => {
-        console.error('Failed to load facilities', err);
+    // Optionally watch for facility changes dynamically
+    this.facilityContext.selectedFacilityId$.subscribe(id => {
+      if (id) {
+        this.loadPackages(id);
       }
     });
   }
 
-  onFacilityChange(): void {
-    this.loadPackages();
-  }
-
-  loadPackages(): void {
-    if (!this.selectedFacilityId) return;
-    this.packageService.getPackagesByFacility(this.selectedFacilityId).subscribe({
+  loadPackages(facilityId: number): void {
+    this.packageService.getPackagesByFacility(facilityId).subscribe({
       next: data => {
         this.packages = data;
       },
@@ -51,12 +43,13 @@ export class PackageComponent implements OnInit {
   }
 
   addPackage(): void {
+    const facilityId = this.facilityContext.getFacilityId();
     const { name, description, price } = this.newPackage;
-    if (!name || !description || !price || !this.selectedFacilityId) return;
+    if (!name || !description || !price || !facilityId) return;
 
     const newPkg: Package = {
       id: 0,
-      facilityId: this.selectedFacilityId,
+      facilityId,
       name,
       description,
       price
@@ -65,7 +58,7 @@ export class PackageComponent implements OnInit {
     this.packageService.addPackage(newPkg).subscribe({
       next: () => {
         this.newPackage = {};
-        this.loadPackages();
+        this.loadPackages(facilityId);
       },
       error: err => {
         console.error('Failed to add package', err);
@@ -74,8 +67,9 @@ export class PackageComponent implements OnInit {
   }
 
   deletePackage(id: number): void {
+    const facilityId = this.facilityContext.getFacilityId();
     this.packageService.deletePackage(id).subscribe({
-      next: () => this.loadPackages(),
+      next: () => this.loadPackages(facilityId!),
       error: err => console.error('Failed to delete package', err)
     });
   }

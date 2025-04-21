@@ -1,25 +1,61 @@
 <nav class="sidebar">
-    <h3>Facility Menu</h3>
-    <ul>
-			<li><a routerLink="/dashboard" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">Dashboard</a></li>
-
-			<li><a routerLink="/facilities" routerLinkActive="active" (click)="onNavClick()">My Facilities</a></li>
-
-			<li><strong>Facilitators</strong></li>
-			<li><a routerLink="/facilities/:id/facilitators/attendance" routerLinkActive="active" (click)="onNavClick()">Attendance</a></li>
-
-			<li><strong>Children</strong></li>
-			<li><a routerLink="/facilities/:id/children/attendance" routerLinkActive="active" (click)="onNavClick()">Attendance</a></li>
-
-			<li><strong>Announcements</strong></li>
-			<li><a routerLink="/facilities/:id/announcements" routerLinkActive="active" (click)="onNavClick()">Post Activity</a></li>
-
-			<li><a routerLink="/facilities/registration" routerLinkActive="active" (click)="onNavClick()">Registration</a></li>
-			<li><a routerLink="/facilities/packages" routerLinkActive="active" (click)="onNavClick()">Packages</a></li>
-
-			<li><strong>Reports & Billing</strong></li>
-			<li><a routerLink="/facilities/:id/reports" routerLinkActive="active">Invoice</a></li>
-			<li><a routerLink="/facilities/:id/billing" routerLinkActive="active">Expenses</a></li>
-
-    </ul>
+	<div class="sidebar-header">
+	  <h3>Facility Menu</h3>
+	</div>
+  
+	<ul class="sidebar-links">
+	  <li>
+		<a routerLink="/dashboard" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">
+		  Dashboard
+		</a>
+	  </li>
+  
+	  <li>
+		<a routerLink="[user.id, /'facilities']" routerLinkActive="active" (click)="onNavClick()">My Facilities</a>
+	  </li>
+  
+	  <li class="section-title">Facilitators</li>
+	  <li>
+		<a [routerLink]="['/facilities', selectedFacilityId, 'facilitators', 'attendance']" routerLinkActive="active" (click)="onNavClick()">
+		  Attendance
+		</a>
+	  </li>
+	  <li>
+		<a [routerLink]="['/facilities', selectedFacilityId, 'facilitators', 'profile-management']" routerLinkActive="active" (click)="onNavClick()">
+		  Profile Management
+		</a>
+	  </li>
+  
+	  <li class="section-title">Children</li>
+	  <li>
+		<a [routerLink]="['/facilities', selectedFacilityId, 'children', 'attendance']" routerLinkActive="active" (click)="onNavClick()">
+		  Attendance
+		</a>
+	  </li>
+	  <li>
+		<a routerLink="/facilities/registration" routerLinkActive="active" (click)="onNavClick()">
+		  Registration
+		</a>
+	  </li>
+  
+	  <li class="section-title">Announcements</li>
+	  <li>
+		<a [routerLink]="['/facilities', selectedFacilityId, 'announcements']" routerLinkActive="active" (click)="onNavClick()">
+		  Post Activity
+		</a>
+	  </li>
+  
+	  <li>
+		<a routerLink="/facilities/packages" routerLinkActive="active" (click)="onNavClick()">Packages</a>
+	  </li>
+  
+	  <li class="section-title">Reports & Billing</li>
+	  <li>
+		<a [routerLink]="['/facilities', selectedFacilityId, 'reports']" routerLinkActive="active">Invoice</a>
+	  </li>
+	  <li>
+		<a [routerLink]="['/facilities', selectedFacilityId, 'billing']" routerLinkActive="active">Expenses</a>
+	  </li>
+	</ul>
   </nav>
+  

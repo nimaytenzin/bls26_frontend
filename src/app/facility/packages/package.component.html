@@ -1,21 +1,6 @@
 <div class="package-container">
   <form class="package-form">
     <div class="form-group">
-      <label for="facilitySelect">Select Facility:</label>
-      <select
-        id="facilitySelect"
-        [(ngModel)]="selectedFacilityId"
-        (change)="onFacilityChange()"
-        name="facility"
-        class="form-control"
-      >
-        <option *ngFor="let facility of facilities" [value]="facility.id">
-          {{ facility.name }}
-        </option>
-      </select>
-    </div>
-
-    <div class="form-group">
       <label for="packageName">Package Name:</label>
       <input
         type="text"
