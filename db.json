@@ -202,5 +202,62 @@
       "phone": "1255",
       "childId": "5485"
     }
+  ],
+  "attendances": [
+    {
+      "0": {
+        "childId": "5485",
+        "facilityId": "7e07",
+        "date": "2025-04-22",
+        "session": "morning",
+        "status": "Present",
+        "note": ""
+      },
+      "id": "434f"
+    },
+    {
+      "0": {
+        "childId": "5485",
+        "facilityId": "7e07",
+        "date": "2025-04-22",
+        "session": "morning",
+        "status": "Absent",
+        "note": ""
+      },
+      "id": "5dce"
+    },
+    {
+      "0": {
+        "childId": "5485",
+        "facilityId": "7e07",
+        "date": "2025-04-23",
+        "session": "morning",
+        "status": "Absent",
+        "note": ""
+      },
+      "id": "b0e3"
+    },
+    {
+      "0": {
+        "childId": "5485",
+        "facilityId": "7e07",
+        "date": "2025-04-23",
+        "session": "full-day",
+        "status": "Present",
+        "note": ""
+      },
+      "id": "6725"
+    },
+    {
+      "0": {
+        "childId": "5485",
+        "facilityId": "7e07",
+        "date": "2025-04-23",
+        "session": "afternoon",
+        "status": "Absent",
+        "note": ""
+      },
+      "id": "b283"
+    }
   ]
 }

@@ -1,0 +1,156 @@
+.attendance-container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  font-family: 'Poppins', sans-serif;
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+    justify-content: space-between;
+
+    input[type='date'],
+    select {
+      padding: 0.5rem 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      background-color: #f9f9f9;
+      transition: border-color 0.2s ease;
+
+      &:focus {
+        outline: none;
+        border-color: #007bff;
+        background-color: #fff;
+      }
+    }
+
+    .group-toggle {
+      display: flex;
+      gap: 1rem;
+
+      label {
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+
+        input[type='radio'] {
+          transform: scale(1.1);
+        }
+      }
+    }
+  }
+
+  .attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      background-color: #f5f8fa;
+
+      th {
+        text-align: left;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        color: #333;
+        font-weight: 600;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid #eee;
+
+        td {
+          padding: 0.75rem 1rem;
+          vertical-align: middle;
+        }
+
+        .avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 2px solid #007bff;
+        }
+
+        .avatar-fallback {
+          width: 40px;
+          height: 40px;
+          background-color: #007bff;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          border-radius: 50%;
+        }
+
+        input[type='text'],
+        input[type='note'] {
+          width: 100%;
+          padding: 0.4rem 0.6rem;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          font-size: 0.9rem;
+        }
+
+        button {
+          padding: 0.4rem 0.8rem;
+          font-size: 0.85rem;
+          font-weight: 500;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+        }
+
+        .present {
+          background-color: #28a745;
+          color: white;
+
+          &:hover {
+            background-color: #218838;
+          }
+        }
+
+        .absent {
+          background-color: #dc3545;
+          color: white;
+
+          &:hover {
+            background-color: #c82333;
+          }
+        }
+      }
+    }
+  }
+
+  .save-actions {
+    margin-top: 2rem;
+    text-align: right;
+
+    button {
+      background-color: #007bff;
+      color: #fff;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: #0056b3;
+      }
+    }
+  }
+}

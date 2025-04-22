@@ -1,1 +1,57 @@
-<p>attendance works!</p>
+<div class="attendance-container">
+  <div class="controls">
+    <input type="date" [(ngModel)]="selectedDate" />
+    <select [(ngModel)]="selectedSession">
+      <option value="morning">Morning</option>
+      <option value="afternoon">Afternoon</option>
+      <option value="full-day">Full Day</option>
+    </select>
+
+    <div class="group-toggle">
+      <label>
+        <input type="radio" name="group" value="children" [(ngModel)]="selectedGroup" (change)="loadAttendanceTargets()" />
+        Children
+      </label>
+      <label>
+        <input type="radio" name="group" value="facilitators" [(ngModel)]="selectedGroup" (change)="loadAttendanceTargets()" />
+        Facilitators
+      </label>
+    </div>
+  </div>
+
+  <table class="attendance-table">
+    <thead>
+      <tr>
+        <th>Image</th>
+        <th>Name</th>
+        <th>Status</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let record of attendanceRecords">
+        <td>
+          <img *ngIf="record.avatarUrl; else fallback" [src]="record.avatarUrl" class="avatar" />
+          <ng-template #fallback>
+            <div class="avatar-fallback">{{ record.name.charAt(0) }}</div>
+          </ng-template>
+        </td>
+        <td>{{ record.name }}</td>
+        <td>
+          <button
+            [ngClass]="record.present ? 'present' : 'absent'"
+            (click)="toggleStatus(record)">
+            {{ record.present ? 'Present' : 'Absent' }}
+          </button>
+        </td>
+        <td>
+          <input [(ngModel)]="record.note" placeholder="Optional note" />
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="save-actions">
+    <button (click)="saveAttendance()">Save Attendance</button>
+  </div>
+</div>

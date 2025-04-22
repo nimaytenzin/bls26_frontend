@@ -18,17 +18,18 @@
 			<a routerLink="/facilities/packages" routerLinkActive="active" (click)="onNavClick()">Packages</a>
 		</li>
 
+		<li>
+			<a [routerLink]="['/facilities', 'attendance']" routerLinkActive="active" (click)="onNavClick()">
+				Attendance
+			</a>
+		</li>
+
 	  <li class="section-title">Facilitators</li>
 		<li>
 		<a [routerLink]="['/facilities', selectedFacilityId, 'facilitators', 'profile-management']" routerLinkActive="active" (click)="onNavClick()">
 		  Profile Management
 		</a>
 	  </li>
-		<li>
-			<a [routerLink]="['/facilities', selectedFacilityId, 'facilitators', 'attendance']" routerLinkActive="active" (click)="onNavClick()">
-				Attendance
-			</a>
-		</li>
 
 	  <li class="section-title">Children</li>
 		<li>
@@ -36,11 +37,6 @@
 				Registration
 			</a>
 		</li>
-	  <li>
-		<a [routerLink]="['/facilities', selectedFacilityId, 'children', 'attendance']" routerLinkActive="active" (click)="onNavClick()">
-		  Attendance
-		</a>
-	  </li>
 
 	  <li class="section-title">Announcements</li>
 	  <li>

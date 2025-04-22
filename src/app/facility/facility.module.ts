@@ -5,7 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { FacilityRoutingModule } from "./facility-routing.module";
 import { FacilityDashboardComponent } from "./facility-dashboard/facility-dashboard.component";
-import { AttendanceComponent } from './facilitators/attendance/attendance.component';
+import { AttendanceComponent } from './attendance/attendance.component';
 import { RegistrationComponent } from './registration/registration.component';
 import { RegistrationService } from "../core/services/registration.service";
 import { PackageComponent } from './packages/package.component';
