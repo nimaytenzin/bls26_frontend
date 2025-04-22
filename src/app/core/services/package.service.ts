@@ -4,16 +4,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Package {
-  id: number;                      // always present in server response
-  facilityId: number;
-  name: string;
-  description: string;
-  price: number;
-  ownerId: number;
-}
-
-export interface CreatePackageDto {
-  facilityId: number;
+  id?: number;                      // Optional for creation
+  facilityId: string;
   name: string;
   description: string;
   price: number;
@@ -32,7 +24,7 @@ export class PackageService {
     return this.http.get<Package[]>(`${this.apiUrl}?facilityId=${facilityId}`);
   }
 
-  addPackage(pkg: CreatePackageDto): Observable<Package> {
+  addPackage(pkg: Package): Observable<Package> {
     return this.http.post<Package>(this.apiUrl, pkg);
   }
 
@@ -40,7 +32,7 @@ export class PackageService {
     return this.http.put<Package>(`${this.apiUrl}/${pkg.id}`, pkg);
   }
 
-  deletePackage(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
-  }
+	deletePackage(id: string): Observable<void> {
+		return this.http.delete<void>(`/api/packages/${id}`);
+	}
 }

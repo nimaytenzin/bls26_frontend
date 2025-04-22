@@ -13,7 +13,7 @@
     <div class="top-controls">
 			<div class="facility-selector" *ngIf="hasMultipleFacilities">
 				<label for="facilitySelect">Switch Facility:</label>
-				<select #facilitySelect id="facilitySelect" (change)="onFacilitySelect(facilitySelect.value)">
+				<select #facilitySelect id="facilitySelect" (change)="onFacilityChange(facilitySelect.value)">
 					<option *ngFor="let f of facilities" [value]="f.id">{{ f.name }}</option>
 				</select>
 			</div>

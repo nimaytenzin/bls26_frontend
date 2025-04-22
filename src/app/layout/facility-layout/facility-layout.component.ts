@@ -41,7 +41,7 @@ export class FacilityLayoutComponent implements OnInit {
 
       if (!currentId || !isValid) {
         if (facilities.length > 0) {
-          this.facilityService.setFacility(facilities[0].id);
+          this.facilityService.setSelectedFacilityId(facilities[0].id);
         } else {
           this.router.navigate(['/facilities']);
         }
@@ -64,9 +64,9 @@ export class FacilityLayoutComponent implements OnInit {
     }
   }
 
-  onFacilitySelect(facilityId: string): void {
-    this.selectedFacilityId = facilityId; // Keep it as a string
-  }
+	onFacilityChange(newFacilityId: string): void {
+		this.facilityService.setSelectedFacilityId(newFacilityId);
+	}
 
   toggleSidebar(): void {
     this.sidebarOpen = !this.sidebarOpen;

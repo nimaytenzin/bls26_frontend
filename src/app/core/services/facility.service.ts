@@ -7,20 +7,21 @@ import { HttpClient } from '@angular/common/http';
 export class FacilityService {
   private readonly STORAGE_KEY = 'selectedFacilityId';
 
-  private facilityIdSubject = new BehaviorSubject<string | null>(null);
-  selectedFacilityId$ = this.facilityIdSubject.asObservable();
+	private selectedFacilityIdSubject = new BehaviorSubject<string | null>(null);
+	selectedFacilityId$ = this.selectedFacilityIdSubject.asObservable();
 
   private facilitiesSubject = new BehaviorSubject<any[]>([]);
   facilities$ = this.facilitiesSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
-  setFacility(id: string): void {
-    this.facilityIdSubject.next(id);
-  }
-  getFacilityId(): string | null {
-    return this.facilityIdSubject.value;
-  }
+	setSelectedFacilityId(id: string): void {
+		this.selectedFacilityIdSubject.next(id);
+	}
+
+	getFacilityId(): string | null {
+		return this.selectedFacilityIdSubject.value;
+	}
 
   private getStoredFacilityId(): number | null {
     const stored = localStorage.getItem(this.STORAGE_KEY);
@@ -41,9 +42,12 @@ export class FacilityService {
     return this.http.get<any[]>('http://localhost:3000/facilities');
   }
 
-  addFacility(data: any): Observable<any> {
-    return this.http.post('http://localhost:3000/facilities', data);
-  }
+	addFacility(data: any): Observable<any> {
+		return this.http.post('http://localhost:3000/facilities', {
+			...data,
+			ownerId: data.ownerId.toString() // Ensure ownerId is a string
+		});
+	}
 
   updateFacility(id: number, data: any): Observable<any> {
     return this.http.patch(`http://localhost:3000/facilities/${id}`, data);

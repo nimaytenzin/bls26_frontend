@@ -21,30 +21,26 @@ export class PackageComponent implements OnInit {
     private authService: AuthService
   ) {}
 
-  ngOnInit(): void {
-    this.facilityService.selectedFacilityId$
-      .pipe(
-        filter((id): id is string => typeof id === 'string' && id.trim() !== ''), // Filter valid strings
-        distinctUntilChanged()
-      )
-      .subscribe(id => {
-        if (id) {
-          this.loadPackages(id); // Convert string to number
-        } else {
-          console.warn('No facility selected');
-        }
-      });
-  }
+	ngOnInit(): void {
+		this.facilityService.selectedFacilityId$
+			.pipe(
+				filter((id): id is string => typeof id === 'string' && id.trim() !== ''), // Ensure valid strings
+				distinctUntilChanged() // Only react to changes
+			)
+			.subscribe(id => {
+				this.loadPackages(id); // Load packages for the new facility
+			});
+	}
 
-  loadPackages(facilityId: string): void {
-    this.packageService.getPackagesByFacility(facilityId).subscribe({
-      next: data => (this.packages = data),
-      error: err => {
-        console.error('Failed to load packages', err);
-        alert('Failed to load packages. Please try again later.');
-      }
-    });
-  }
+	loadPackages(facilityId: string): void {
+		this.packageService.getPackagesByFacility(facilityId).subscribe({
+			next: data => (this.packages = data),
+			error: err => {
+				console.error('Failed to load packages', err);
+				alert('Failed to load packages. Please try again later.');
+			}
+		});
+	}
 
   openAddModal(): void {
     this.editingPackage = null;
@@ -56,57 +52,57 @@ export class PackageComponent implements OnInit {
     this.showModal = true;
   }
 
-  handleSave(pkgData: Partial<Package>): void {
-    const facilityId = this.facilityService.getFacilityId();
-    const user = this.authService.getCurrentUser();
-  
-    if (!facilityId || isNaN(+facilityId) || !user || !pkgData.name || !pkgData.description || pkgData.price == null) {
-      alert('Invalid data. Please check your inputs.');
-      return;
-    }
-  
-    const request = this.editingPackage
-      ? this.packageService.updatePackage({
-          id: this.editingPackage.id!,
-          facilityId: +facilityId, // Ensure number
-          ownerId: user.id,
-          name: pkgData.name!,
-          description: pkgData.description!,
-          price: pkgData.price
-        })
-      : this.packageService.addPackage({
-          facilityId: +facilityId, // Ensure number
-          ownerId: user.id,
-          name: pkgData.name!,
-          description: pkgData.description!,
-          price: pkgData.price
-        });
-  
-    request.subscribe({
-      next: () => {
-        this.showModal = false;
-        this.loadPackages(facilityId);
-      },
-      error: err => {
-        console.error('Save failed', err);
-        alert('Failed to save package. Please try again later.');
-      }
-    });
-  }
+	handleSave(pkgData: Partial<Package>): void {
+		const facilityId = this.facilityService.getFacilityId();
+		const user = this.authService.getCurrentUser();
 
-  deletePackage(id: number | string): void {
-    const facilityId = this.facilityService.getFacilityId();
-    if (!facilityId || isNaN(+facilityId)) {
-      alert('Invalid facility ID.');
-      return;
-    }
-  
-    this.packageService.deletePackage(+id).subscribe({
-      next: () => this.loadPackages(facilityId),
-      error: err => {
-        console.error('Failed to delete package', err);
-        alert('Failed to delete package. Please try again later.');
-      }
-    });
-  }
+		if (!facilityId || !user || !pkgData.name || !pkgData.description || pkgData.price == null) {
+			alert('Invalid data. Please check your inputs.');
+			return;
+		}
+
+		const request = this.editingPackage
+			? this.packageService.updatePackage({
+					id: this.editingPackage.id!,
+					facilityId: facilityId, // Use facilityId as a string
+					ownerId: user.id,
+					name: pkgData.name!,
+					description: pkgData.description!,
+					price: pkgData.price
+				})
+			: this.packageService.addPackage({
+					facilityId: facilityId, // Use facilityId as a string
+					ownerId: user.id,
+					name: pkgData.name!,
+					description: pkgData.description!,
+					price: pkgData.price
+				});
+
+		request.subscribe({
+			next: () => {
+				this.showModal = false;
+				this.loadPackages(facilityId);
+			},
+			error: err => {
+				console.error('Save failed', err);
+				alert('Failed to save package. Please try again later.');
+			}
+		});
+	}
+
+	deletePackage(id: string): void {
+		const facilityId = this.facilityService.getFacilityId();
+		if (!facilityId || typeof facilityId !== 'string' || facilityId.trim() === '') {
+			alert('Invalid facility ID.');
+			return;
+		}
+
+		this.packageService.deletePackage(id).subscribe({
+			next: () => this.loadPackages(facilityId),
+			error: err => {
+				console.error('Failed to delete package', err);
+				alert('Failed to delete package. Please try again later.');
+			}
+		});
+	}
 }

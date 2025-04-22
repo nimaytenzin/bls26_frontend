@@ -18,12 +18,12 @@
           <td>${{ pkg.price }}</td>
 					<td>
 						<button class="btn btn-outline btn-sm" (click)="openEditModal(pkg)">Edit</button>
-            <button
-            class="btn btn-danger btn-sm"
-            *ngIf="pkg.id !== undefined"
-            (click)="deletePackage(pkg.id)">
-            Delete
-          </button>
+						<button
+						class="btn btn-danger btn-sm"
+						*ngIf="pkg.id !== undefined"
+						(click)="deletePackage(pkg.id.toString())">
+						Delete
+					</button>
 					</td>
         </tr>
       </tbody>
