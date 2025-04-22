@@ -19,26 +19,26 @@
 		</li>
 
 	  <li class="section-title">Facilitators</li>
-	  <li>
-		<a [routerLink]="['/facilities', selectedFacilityId, 'facilitators', 'attendance']" routerLinkActive="active" (click)="onNavClick()">
-		  Attendance
-		</a>
-	  </li>
-	  <li>
+		<li>
 		<a [routerLink]="['/facilities', selectedFacilityId, 'facilitators', 'profile-management']" routerLinkActive="active" (click)="onNavClick()">
 		  Profile Management
 		</a>
 	  </li>
+		<li>
+			<a [routerLink]="['/facilities', selectedFacilityId, 'facilitators', 'attendance']" routerLinkActive="active" (click)="onNavClick()">
+				Attendance
+			</a>
+		</li>
 
 	  <li class="section-title">Children</li>
+		<li>
+			<a routerLink="/facilities/registration" routerLinkActive="active" (click)="onNavClick()">
+				Registration
+			</a>
+		</li>
 	  <li>
 		<a [routerLink]="['/facilities', selectedFacilityId, 'children', 'attendance']" routerLinkActive="active" (click)="onNavClick()">
 		  Attendance
-		</a>
-	  </li>
-	  <li>
-		<a routerLink="/facilities/registration" routerLinkActive="active" (click)="onNavClick()">
-		  Registration
 		</a>
 	  </li>
 
@@ -48,8 +48,6 @@
 		  Post Activity
 		</a>
 	  </li>
-
-
 
 	  <li class="section-title">Reports & Billing</li>
 	  <li>

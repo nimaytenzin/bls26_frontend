@@ -1,36 +1,44 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, switchMap, forkJoin } from 'rxjs';
+import { Observable, forkJoin, switchMap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RegistrationService {
+  private apiUrl = 'http://localhost:3000'; // Adjust if your json-server runs elsewhere
+
   constructor(private http: HttpClient) {}
 
+  // Get available packages (e.g., for selection)
   getPackages(): Observable<any[]> {
-    return this.http.get<any[]>('/api/packages');
+    return this.http.get<any[]>(`${this.apiUrl}/packages`);
   }
 
+  // Register child (adds to "children" array)
   registerChild(childDto: any): Observable<any> {
-    return this.http.post('/api/children', childDto);
+    return this.http.post(`${this.apiUrl}/children`, childDto);
   }
 
+  // Register child note (adds to "childNotes" array)
   registerChildNote(childNoteDto: any): Observable<any> {
-    return this.http.post('/api/child-notes', childNoteDto);
+    return this.http.post(`${this.apiUrl}/childNotes`, childNoteDto);
   }
 
+  // Log selected package (e.g., log to "childPackages" or "registrations" array)
   registerChildPackage(packageDto: any): Observable<any> {
-    return this.http.post('/api/packages', packageDto);
+    return this.http.post(`${this.apiUrl}/childPackages`, packageDto);
   }
 
+  // Register each parent under "parents"
   registerParents(parents: any[], childId: number): Observable<any[]> {
     const requests = parents.map(parent =>
-      this.http.post('/api/parents', { ...parent, childId })
+      this.http.post(`${this.apiUrl}/parents`, { ...parent, childId })
     );
     return forkJoin(requests);
   }
 
+  // Orchestrates full registration
   completeRegistration(formData: any): Observable<any> {
     return this.registerChild(formData.child).pipe(
       switchMap(child => {

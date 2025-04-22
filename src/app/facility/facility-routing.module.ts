@@ -7,10 +7,10 @@ import { AttendanceComponent } from "./facilitators/attendance/attendance.compon
 import { RegistrationComponent } from "./registration/registration.component";
 import { PackageComponent } from "./packages/package.component";
 import { FacilityListComponent } from "./facility-list/facility-list.component";
+import { FacilityModalComponent } from "./facility-modal/facility-modal.component";
 
 
 const routes: Routes = [
-
 	{ path: "dashboard", component: FacilityDashboardComponent, canActivate: [AuthGuard] },
   { path: "facilities", component: FacilityListComponent },
   { path: "facilitators/attendance", component: AttendanceComponent },

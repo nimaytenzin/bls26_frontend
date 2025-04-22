@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { LandingComponent } from './landing/landing.component';
 import { FacilityLayoutComponent } from './layout/facility-layout/facility-layout.component';
-import { FacilityDashboardComponent } from './facility/facility-dashboard/facility-dashboard.component';
 
 const routes: Routes = [
   { path: '', component: LandingComponent },

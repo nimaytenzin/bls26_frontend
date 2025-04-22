@@ -35,6 +35,18 @@
       "isVerified": true,
       "verifyToken": "123",
       "password": "abcdefgh"
+    },
+    {
+      "id": "4",
+      "name": "Jigs",
+      "email": "jigs@example.com",
+      "cid": "123456789",
+      "phone": "9800000000",
+      "facility": "Jane's Daycare",
+      "role": "owner",
+      "isVerified": true,
+      "verifyToken": "123",
+      "password": "abcdefgh"
     }
   ],
   "facilities": [
@@ -107,6 +119,13 @@
       "description": "df",
       "location": "50",
       "ownerId": "1"
+    },
+    {
+      "id": "7e07",
+      "name": "fdsf",
+      "description": "fsd",
+      "location": "gdgdfg",
+      "ownerId": "4"
     }
   ],
   "packages": [
@@ -125,6 +144,63 @@
       "name": "fsd",
       "description": "fs",
       "price": 40
+    },
+    {
+      "id": "47ea",
+      "facilityId": "7e07",
+      "ownerId": "4",
+      "name": "MyPack",
+      "description": "fsdf",
+      "price": 50
+    }
+  ],
+  "children": [
+    {
+      "id": "5485",
+      "name": "Sonam",
+      "preferredName": "Namso",
+      "cid": "1235",
+      "avatarUrl": "",
+      "studentCode": "12345",
+      "dob": "2025-04-22",
+      "gender": "male",
+      "facilityId": "7e07"
+    }
+  ],
+  "childNotes": [
+    {
+      "id": "df52",
+      "medicalCondition": "fd",
+      "specialInstruction": "fs",
+      "notes": "fd",
+      "childId": "5485"
+    }
+  ],
+  "childPackages": [
+    {
+      "id": "8ee9",
+      "packageId": "47ea",
+      "startDate": "2025-04-22",
+      "endDate": "2025-04-26",
+      "childId": "5485"
+    }
+  ],
+  "parents": [
+    {
+      "id": "e5cf",
+      "name": "Sonam Apa",
+      "email": "sonam@example.com",
+      "cid": "12345",
+      "phone": "1746",
+      "childId": "5485"
+    },
+    {
+      "id": "1d22",
+      "name": "Sonam Ama",
+      "email": "sama@example.com",
+      "cid": "2323",
+      "phone": "1255",
+      "childId": "5485"
     }
   ]
 }

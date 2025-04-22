@@ -13,4 +13,5 @@ export class FacilityDashboardComponent {
     pendingApprovals: 3,
     activities: 127
   };
+
 }

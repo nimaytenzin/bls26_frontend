@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
-import { RegistrationService } from './registration.service';
+import { RegistrationService } from '../../core/services/registration.service';
 import { FacilityService } from '../../core/services/facility.service'; // adjust the path accordingly
 
 
@@ -48,10 +48,15 @@ export class RegistrationComponent implements OnInit {
     });
   }
 
+	ngOnInit() {
+		const facilityId = this.facilityContext.getFacilityId();
+		if (!facilityId) return;
 
-  ngOnInit() {
-    this.registrationService.getPackages().subscribe(res => this.packages = res);
-  }
+		this.registrationService.getPackages().subscribe(res => {
+			this.packages = res.filter(pkg => pkg.facilityId === facilityId); // Filter by selected facility
+		});
+	}
+
 
   get parents(): FormArray {
     return this.registrationForm.get('parents') as FormArray;

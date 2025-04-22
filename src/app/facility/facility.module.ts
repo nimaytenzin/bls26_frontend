@@ -7,7 +7,7 @@ import { FacilityRoutingModule } from "./facility-routing.module";
 import { FacilityDashboardComponent } from "./facility-dashboard/facility-dashboard.component";
 import { AttendanceComponent } from './facilitators/attendance/attendance.component';
 import { RegistrationComponent } from './registration/registration.component';
-import { RegistrationService } from "./registration/registration.service";
+import { RegistrationService } from "../core/services/registration.service";
 import { PackageComponent } from './packages/package.component';
 import { FacilityListComponent } from './facility-list/facility-list.component';
 import { FacilityModalComponent } from './facility-modal/facility-modal.component';
@@ -22,7 +22,7 @@ import { PackageModalComponent } from './package-modal/package-modal.component';
 				PackageComponent,
 				FacilityListComponent,
 				FacilityModalComponent,
-    PackageModalComponent,
+    		PackageModalComponent,
     ],
     imports: [
         CommonModule,

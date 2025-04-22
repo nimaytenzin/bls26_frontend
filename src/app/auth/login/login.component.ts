@@ -21,21 +21,26 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  onSubmit(): void {
-    if (this.loginForm.valid) {
-      const { email, password } = this.loginForm.value;
-      this.http.get<any[]>(`http://localhost:3000/users?email=${email}&password=${password}`).subscribe(users => {
-        const user = users[0];
-        if (user) {
-          // Store user info if needed
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          // Navigate to facility dashboard
-          this.router.navigate(['/dashboard']);
-        } else {
-          // Handle invalid credentials
-          alert('Invalid email or password.');
-        }
-      });
-    }
-  }
+	onSubmit(): void {
+		if (this.loginForm.valid) {
+			const { email, password } = this.loginForm.value;
+			this.http.get<any[]>(`http://localhost:3000/users?email=${email}&password=${password}`).subscribe(users => {
+				const user = users[0];
+				if (user) {
+					// Store user info in localStorage
+					localStorage.setItem('currentUser', JSON.stringify(user));
+
+					// Navigate based on user role
+					if (user.role === 'admin') {
+						this.router.navigate(['/admin-dashboard']); // Admin dashboard
+					} else {
+						this.router.navigate(['/dashboard']); // Regular user dashboard
+					}
+				} else {
+					// Handle invalid credentials
+					alert('Invalid email or password.');
+				}
+			});
+		}
+	}
 }

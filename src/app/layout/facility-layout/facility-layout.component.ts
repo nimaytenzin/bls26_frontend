@@ -33,20 +33,25 @@ export class FacilityLayoutComponent implements OnInit {
     this.setUserInfo();
     this.loadFacilities();
 
-    this.facilityService.facilities$.subscribe(facilities => {
-      this.facilities = facilities;
+		this.facilityService.facilities$.subscribe(facilities => {
+			this.facilities = facilities;
 
-      const currentId = this.facilityService.getFacilityId();
-      const isValid = facilities.some(f => f.id === currentId);
+			const currentId = this.facilityService.getFacilityId();
+			const isValid = facilities.some(f => f.id === currentId);
 
-      if (!currentId || !isValid) {
-        if (facilities.length > 0) {
-          this.facilityService.setSelectedFacilityId(facilities[0].id);
-        } else {
-          this.router.navigate(['/facilities']);
-        }
-      }
-    });
+			if (!currentId || !isValid) {
+				if (facilities.length > 0) {
+					// Automatically select the first facility if none is selected
+					this.facilityService.setSelectedFacilityId(facilities[0].id);
+
+					// Ensure the user stays on the dashboard
+					this.router.navigate(['/dashboard']);
+				} else {
+					// Redirect only if no facilities are available
+					this.router.navigate(['facilities']); // Redirect to a "No Facilities" page or similar
+				}
+			}
+		});
 
     this.facilityService.selectedFacilityId$.subscribe(id => {
       this.selectedFacilityId = id;
