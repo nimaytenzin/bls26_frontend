@@ -4,13 +4,13 @@ import { Package } from '../../core/services/package.service';
 
 @Component({
   selector: 'app-package-modal',
-	standalone: false,
+  standalone: false,
   templateUrl: './package-modal.component.html',
   styleUrls: ['./package-modal.component.scss']
 })
 export class PackageModalComponent implements OnChanges {
   @Input() show = false;
-  @Input() data: Package | null = null;
+  @Input() data: Partial<Package> | null = null;
   @Output() save = new EventEmitter<Partial<Package>>();
   @Output() cancel = new EventEmitter<void>();
 
@@ -27,16 +27,27 @@ export class PackageModalComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['data'] && this.data) {
       this.form.patchValue({
-        name: this.data.name,
-        description: this.data.description,
-        price: this.data.price
+        name: this.data.name || '',
+        description: this.data.description || '',
+        price: this.data.price ?? 0
       });
+    }
+
+    if (changes['show'] && !this.show) {
+      this.form.reset();
     }
   }
 
   onSave(): void {
     if (this.form.valid) {
-      this.save.emit(this.form.value);
+      const trimmedData: Partial<Package> = {
+        name: this.form.value.name.trim(),
+        description: this.form.value.description.trim(),
+        price: this.form.value.price
+      };
+      this.save.emit(trimmedData);
+    } else {
+      this.form.markAllAsTouched();
     }
   }
 

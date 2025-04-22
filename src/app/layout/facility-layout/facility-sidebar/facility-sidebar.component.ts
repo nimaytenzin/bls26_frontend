@@ -8,7 +8,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 })
 export class FacilitySidebarComponent {
   @Input() facilities: any[] = []; // ✅ Add this line to fix the error
-  @Input() selectedFacilityId!: number;
+  @Input() selectedFacilityId!: string | null;
   @Output() closeSidebar = new EventEmitter<void>();
 
   onNavClick() {

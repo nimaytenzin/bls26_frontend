@@ -1,12 +1,12 @@
+// facility-layout.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FacilityService } from '../../core/services/facility.service';
-import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-facility-layout',
-	standalone: false,
+  standalone: false,
   templateUrl: './facility-layout.component.html',
   styleUrls: ['../layout.component.scss'],
 })
@@ -14,7 +14,7 @@ export class FacilityLayoutComponent implements OnInit {
   isMobile = false;
   sidebarOpen = false;
   facilities: any[] = [];
-  selectedFacilityId: number | null = null;
+  selectedFacilityId: string | null = null;
   dropdownOpen = false;
 
   user = {
@@ -23,55 +23,53 @@ export class FacilityLayoutComponent implements OnInit {
   };
 
   constructor(
-    private facilityContext: FacilityService,
-    private http: HttpClient,
+    private facilityService: FacilityService,
     private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.detectMobile();
-    this.loadFacilities();
     this.setUserInfo();
+    this.loadFacilities();
+
+    this.facilityService.facilities$.subscribe(facilities => {
+      this.facilities = facilities;
+
+      const currentId = this.facilityService.getFacilityId();
+      const isValid = facilities.some(f => f.id === currentId);
+
+      if (!currentId || !isValid) {
+        if (facilities.length > 0) {
+          this.facilityService.setFacility(facilities[0].id);
+        } else {
+          this.router.navigate(['/facilities']);
+        }
+      }
+    });
+
+    this.facilityService.selectedFacilityId$.subscribe(id => {
+      this.selectedFacilityId = id;
+    });
+  }
+
+  get hasMultipleFacilities(): boolean {
+    return this.facilities.length > 1;
+  }
+
+  loadFacilities(): void {
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.facilityService.loadFacilitiesForOwner(user.id);
+    }
+  }
+
+  onFacilitySelect(facilityId: string): void {
+    this.selectedFacilityId = facilityId; // Keep it as a string
   }
 
   toggleSidebar(): void {
     this.sidebarOpen = !this.sidebarOpen;
-  }
-
-	get hasMultipleFacilities(): boolean {
-		return this.facilities.length > 1;
-	}
-
-	loadFacilities(): void {
-		const currentUser = this.authService.getCurrentUser();
-		if (!currentUser) return;
-
-		this.http.get<any[]>(`http://localhost:3000/facilities?ownerId=${currentUser.id}`).subscribe(data => {
-			this.facilities = data;
-
-			if (data.length > 0) {
-				const firstId = data[0].id;
-				this.selectedFacilityId = firstId;
-				this.facilityContext.setFacility(firstId);
-			} else {
-				// Redirect to Add Facility screen if no facilities found
-				this.router.navigate(['/facilities/new']);
-			}
-		});
-  }
-
-  onFacilitySelect(id: string): void {
-    const facilityId = +id;
-    this.selectedFacilityId = facilityId;
-    this.facilityContext.setFacility(facilityId);
-  }
-
-  detectMobile(): void {
-    this.isMobile = window.innerWidth <= 768;
-    window.addEventListener('resize', () => {
-      this.isMobile = window.innerWidth <= 768;
-    });
   }
 
   toggleDropdown(): void {
@@ -84,9 +82,16 @@ export class FacilityLayoutComponent implements OnInit {
   }
 
   private setUserInfo(): void {
-    const currentUser = this.authService.getCurrentUser();
-    if (currentUser) {
-      this.user.name = currentUser.name;
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.user.name = user.name;
     }
+  }
+
+  private detectMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
+    window.addEventListener('resize', () => {
+      this.isMobile = window.innerWidth <= 768;
+    });
   }
 }

@@ -1,27 +1,40 @@
 // facility.service.ts
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
 export class FacilityService {
-  private facilityIdSubject = new BehaviorSubject<number | null>(null);
+  private readonly STORAGE_KEY = 'selectedFacilityId';
+
+  private facilityIdSubject = new BehaviorSubject<string | null>(null);
   selectedFacilityId$ = this.facilityIdSubject.asObservable();
+
+  private facilitiesSubject = new BehaviorSubject<any[]>([]);
+  facilities$ = this.facilitiesSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
-  // Context Management
-  setFacility(id: number): void {
+  setFacility(id: string): void {
     this.facilityIdSubject.next(id);
   }
-
-  getFacilityId(): number | null {
+  getFacilityId(): string | null {
     return this.facilityIdSubject.value;
   }
 
-  // CRUD operations
-  getFacilitiesByOwner(ownerId: number): Observable<any[]> {
-    return this.http.get<any[]>(`http://localhost:3000/facilities?ownerId=${ownerId}`);
+  private getStoredFacilityId(): number | null {
+    const stored = localStorage.getItem(this.STORAGE_KEY);
+    return stored ? +stored : null;
+  }
+
+  loadFacilitiesForOwner(ownerId: number): void {
+    this.http.get<any[]>(`http://localhost:3000/facilities?ownerId=${ownerId}`)
+      .pipe(tap(facilities => this.facilitiesSubject.next(facilities)))
+      .subscribe();
+  }
+
+  getFacilitiesSnapshot(): any[] {
+    return this.facilitiesSubject.value;
   }
 
   getAllFacilities(): Observable<any[]> {

@@ -54,14 +54,14 @@
     },
     {
       "id": "542a",
-      "name": "gdg",
+      "name": "JaneFacility1",
       "description": "gdfgdfg",
       "location": "dfgfdgdf",
-      "ownerId": 2
+      "ownerId": "2"
     },
     {
       "id": "20f7",
-      "name": "for jane 2",
+      "name": "JaneFacility2",
       "description": "fsd",
       "location": "sfsd",
       "ownerId": "2"
@@ -72,24 +72,15 @@
       "description": "jkjjkl",
       "location": "ghjghjgj",
       "ownerId": "3"
-    }
-  ],
-  "packages": [
-    {
-      "id": "3",
-      "facilityId": 2,
-      "name": "Premium Package",
-      "description": "Premium features",
-      "price": 20,
-      "ownerId": 3
     },
     {
-      "id": 0,
-      "facilityId": "1f41",
-      "name": "dsfd",
-      "description": "fdf",
-      "price": 300,
-      "ownerId": 1
+      "id": "e8dc",
+      "name": "JaneFacility3",
+      "description": "hjhj",
+      "location": "khkj",
+      "ownerId": "2"
     }
-  ]
+  ],
+  "packages": []
+ 
 }

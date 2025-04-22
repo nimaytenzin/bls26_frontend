@@ -33,10 +33,18 @@ export class FacilityModalComponent implements OnChanges {
 
   onSave(): void {
     if (this.facilityForm.valid) {
-      this.save.emit(this.facilityForm.value);
+      const cleanedData = Object.fromEntries(
+        Object.entries(this.facilityForm.value).map(([key, value]) => [
+          key,
+          typeof value === 'string' ? value.trim() : value
+        ])
+      );
+      this.save.emit(cleanedData);
+    } else {
+      this.facilityForm.markAllAsTouched();
     }
   }
-
+ 
   onCancel(): void {
     this.cancel.emit();
   }

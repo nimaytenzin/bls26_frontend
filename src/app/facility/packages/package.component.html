@@ -18,7 +18,12 @@
           <td>${{ pkg.price }}</td>
 					<td>
 						<button class="btn btn-outline btn-sm" (click)="openEditModal(pkg)">Edit</button>
-						<button class="btn btn-danger btn-sm" (click)="deletePackage(pkg.id)">Delete</button>
+            <button
+            class="btn btn-danger btn-sm"
+            *ngIf="pkg.id !== undefined"
+            (click)="deletePackage(pkg.id)">
+            Delete
+          </button>
 					</td>
         </tr>
       </tbody>
@@ -28,6 +33,7 @@
   <!-- Modal Component -->
   <app-package-modal
     [show]="showModal"
+    [data]="editingPackage"
     (save)="handleSave($event)"
     (cancel)="showModal = false">
   </app-package-modal>

@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { FacilityService } from '../../core/services/facility.service';
 import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-facility-list',
-	standalone: false,
+  standalone: false,
   templateUrl: './facility-list.component.html',
   styleUrls: ['./facility-list.component.scss']
 })
@@ -14,27 +14,24 @@ export class FacilityListComponent implements OnInit {
   selectedFacility: any = null;
 
   constructor(
-    private http: HttpClient,
+    private facilityService: FacilityService,
     private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    this.loadFacilities();
-  }
-
-  loadFacilities(): void {
     const user = this.authService.getCurrentUser();
-    if (!user) {
-      console.warn('No user found. Cannot load facilities.');
-      return;
+    if (!user) return;
+  
+    const existing = this.facilityService.getFacilitiesSnapshot();
+    if (existing.length === 0) {
+      this.facilityService.loadFacilitiesForOwner(user.id);
     }
-
-    this.http.get<any[]>(`http://localhost:3000/facilities?ownerId=${user.id}`).subscribe({
-      next: data => this.facilities = data,
-      error: err => console.error('Failed to load facilities:', err)
+  
+    this.facilityService.facilities$.subscribe(data => {
+      this.facilities = data;
     });
   }
-
+  
   openAddFacilityDialog(): void {
     this.selectedFacility = null;
     this.showModal = true;
@@ -47,29 +44,20 @@ export class FacilityListComponent implements OnInit {
 
   handleSave(facilityData: any): void {
     const user = this.authService.getCurrentUser();
-    if (!user) {
-      console.warn('No user found. Cannot save facility.');
-      return;
-    }
+    if (!user) return;
 
     const facilityWithOwner = { ...facilityData, ownerId: user.id };
 
-    if (this.selectedFacility) {
-      this.http.patch(`http://localhost:3000/facilities/${this.selectedFacility.id}`, facilityWithOwner).subscribe({
-        next: () => {
-          this.loadFacilities();
-          this.showModal = false;
-        },
-        error: err => console.error('Failed to update facility:', err)
-      });
-    } else {
-      this.http.post('http://localhost:3000/facilities', facilityWithOwner).subscribe({
-        next: () => {
-          this.loadFacilities();
-          this.showModal = false;
-        },
-        error: err => console.error('Failed to create facility:', err)
-      });
-    }
+    const saveObservable = this.selectedFacility
+      ? this.facilityService.updateFacility(this.selectedFacility.id, facilityWithOwner)
+      : this.facilityService.addFacility(facilityWithOwner);
+
+    saveObservable.subscribe({
+      next: () => {
+        this.showModal = false;
+        this.facilityService.loadFacilitiesForOwner(user.id); // reload and propagate
+      },
+      error: err => console.error('Save failed:', err)
+    });
   }
 }

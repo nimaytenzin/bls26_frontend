@@ -1,11 +1,11 @@
 <div class="layout-container" [class.mobile]="isMobile">
-  <app-facility-sidebar
+    <app-facility-sidebar
     [class.mobile]="isMobile"
     [class.open]="sidebarOpen && isMobile"
     *ngIf="!isMobile || sidebarOpen"
     (closeSidebar)="isMobile ? toggleSidebar() : null"
-    [selectedFacilityId]="selectedFacilityId!"
-  ></app-facility-sidebar>
+    [selectedFacilityId]="selectedFacilityId"
+    ></app-facility-sidebar>
 
   <main class="main-content">
     <button class="sidebar-toggle" (click)="toggleSidebar()">☰</button>
