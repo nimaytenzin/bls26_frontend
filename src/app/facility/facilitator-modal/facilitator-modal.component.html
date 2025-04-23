@@ -1,0 +1,31 @@
+<div class="modal-backdrop" *ngIf="show">
+    <div class="modal-content">
+      <h2>{{ facilitator.id ? 'Edit Facilitator' : 'Add New Facilitator' }}</h2>
+      <form (ngSubmit)="onSave()">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" [(ngModel)]="facilitator.name" name="name" required />
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <input type="text" [(ngModel)]="facilitator.role" name="role" required />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="facilitator.email" name="email" required />
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" [(ngModel)]="facilitator.phone" name="phone" required />
+        </div>
+        <div class="form-group">
+          <label>Image URL</label>
+          <input type="text" [(ngModel)]="facilitator.imageUrl" name="imageUrl" />
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn cancel" (click)="onCancel()">Cancel</button>
+          <button type="submit" class="btn primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>

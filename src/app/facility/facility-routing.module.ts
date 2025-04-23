@@ -4,17 +4,18 @@ import { RouterModule, Routes } from "@angular/router";
 import { AuthGuard } from "../auth/auth.guard";
 import { FacilityDashboardComponent } from "./facility-dashboard/facility-dashboard.component";
 import { AttendanceComponent } from "./attendance/attendance.component";
-import { RegistrationComponent } from "./registration/registration.component";
+import { EnrollmentComponent } from "./enrollment/enrollment.component";
 import { PackageComponent } from "./packages/package.component";
 import { FacilityListComponent } from "./facility-list/facility-list.component";
-import { FacilityModalComponent } from "./facility-modal/facility-modal.component";
+import { FacilitatorComponent } from "./facilitator/facilitator.component";
 
 
 const routes: Routes = [
 	{ path: "dashboard", component: FacilityDashboardComponent, canActivate: [AuthGuard] },
   { path: "facilities", component: FacilityListComponent },
+  { path: "facilities/facilitators", component: FacilitatorComponent },
   { path: "facilities/attendance", component: AttendanceComponent },
-  { path: "facilities/registration", component: RegistrationComponent },
+  { path: "facilities/enrollment", component: EnrollmentComponent },
 	{ path: "facilities/packages", component: PackageComponent },
 ]
 

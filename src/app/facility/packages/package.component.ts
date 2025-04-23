@@ -32,15 +32,21 @@ export class PackageComponent implements OnInit {
 			});
 	}
 
-	loadPackages(facilityId: string): void {
+	loadPackages(facilityId: string | null): void {
+		if (!facilityId || facilityId.trim() === '') {
+		  console.error('Invalid facility ID:', facilityId);
+		  alert('Invalid facility ID. Please select a valid facility.');
+		  return;
+		}
+	  
 		this.packageService.getPackagesByFacility(facilityId).subscribe({
-			next: data => (this.packages = data),
-			error: err => {
-				console.error('Failed to load packages', err);
-				alert('Failed to load packages. Please try again later.');
-			}
+		  next: data => (this.packages = data),
+		  error: err => {
+			console.error('Failed to load packages', err);
+			alert('Failed to load packages. Please try again later.');
+		  }
 		});
-	}
+	  }
 
   openAddModal(): void {
     this.editingPackage = null;

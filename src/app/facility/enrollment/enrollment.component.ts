@@ -1,29 +1,29 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
-import { RegistrationService } from '../../core/services/registration.service';
+import { EnrollmentService } from '../../core/services/enrollment.service';
 import { FacilityService } from '../../core/services/facility.service'; // adjust the path accordingly
 
 
 @Component({
-  selector: 'app-registration',
+  selector: 'app-enrollment',
 	standalone: false,
-  templateUrl: './registration.component.html',
-  styleUrls: ['./registration.component.scss']
+  templateUrl: './enrollment.component.html',
+  styleUrls: ['./enrollment.component.scss']
 })
-export class RegistrationComponent implements OnInit {
+export class EnrollmentComponent implements OnInit {
   currentStep = 0;
   packages: any[] = [];
 
-  registrationForm: FormGroup;
+  enrollmentForm: FormGroup;
 
   constructor(
     private fb: FormBuilder,
-    private registrationService: RegistrationService,
+    private enrollmentService: EnrollmentService,
     private facilityContext: FacilityService
   ) {
     const selectedFacilityId = this.facilityContext.getFacilityId();
 
-    this.registrationForm = this.fb.group({
+    this.enrollmentForm = this.fb.group({
       child: this.fb.group({
         name: ['', Validators.required],
         preferredName: [''],
@@ -52,14 +52,14 @@ export class RegistrationComponent implements OnInit {
 		const facilityId = this.facilityContext.getFacilityId();
 		if (!facilityId) return;
 
-		this.registrationService.getPackages().subscribe(res => {
+		this.enrollmentService.getPackages().subscribe(res => {
 			this.packages = res.filter(pkg => pkg.facilityId === facilityId); // Filter by selected facility
 		});
 	}
 
 
   get parents(): FormArray {
-    return this.registrationForm.get('parents') as FormArray;
+    return this.enrollmentForm.get('parents') as FormArray;
   }
 
   createParentForm(): FormGroup {
@@ -93,28 +93,28 @@ export class RegistrationComponent implements OnInit {
   }
 
   getCurrentStepFormGroup(): FormGroup {
-    if (this.currentStep === 0) return this.registrationForm.get('child') as FormGroup;
+    if (this.currentStep === 0) return this.enrollmentForm.get('child') as FormGroup;
     if (this.currentStep === 1) return this.fb.group({
-      childNote: this.registrationForm.get('childNote'),
-      packageForm: this.registrationForm.get('packageForm')
+      childNote: this.enrollmentForm.get('childNote'),
+      packageForm: this.enrollmentForm.get('packageForm')
     });
-    return this.registrationForm;
+    return this.enrollmentForm;
   }
 
   onSubmit() {
-    if (this.registrationForm.invalid) {
-      this.registrationForm.markAllAsTouched();
+    if (this.enrollmentForm.invalid) {
+      this.enrollmentForm.markAllAsTouched();
       return;
     }
 
-    this.registrationService.completeRegistration(this.registrationForm.value).subscribe({
-      next: () => alert('Registration successful!'),
-      error: err => console.error('Registration failed', err)
+    this.enrollmentService.completeEnrollment(this.enrollmentForm.value).subscribe({
+      next: () => alert('Enrollment successful!'),
+      error: err => console.error('Enrollment failed', err)
     });
   }
 
   isInvalid(path: string): boolean {
-    const control = this.registrationForm.get(path);
+    const control = this.enrollmentForm.get(path);
     return !!(control && control.touched && control.invalid);
   }
 }
