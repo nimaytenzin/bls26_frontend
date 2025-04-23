@@ -3,7 +3,7 @@
   <div *ngIf="currentStep === 0" formGroupName="child">
     <h3>Child Information</h3>
 
-    <div class="form-group">
+		<div class="form-group">
       <input id="childName" name="childName" formControlName="name" placeholder=" " required />
       <label for="childName">Full Name</label>
       <div class="error" *ngIf="isInvalid('child.name')">Name is required.</div>
@@ -21,15 +21,18 @@
     </div>
 
     <!-- Child Image Upload -->
-    <div class="form-group">
+    <div class="custom-file-input">
       <input
         type="file"
         id="childImage"
         name="childImage"
         (change)="onFileChange($event, 'child')"
         accept="image/*"
+				class="file-input"
       />
-      <label for="childImage">Upload Child's Image</label>
+			<label for="childImage" class="file-label">
+				<span>Upload Child's Image</span>
+			</label>
     </div>
 
     <div class="form-group">
@@ -112,16 +115,19 @@
       </div>
 
       <!-- Parent Image Upload -->
-      <div class="form-group">
-        <input
-          type="file"
-          id="parentImage{{ i }}"
-          name="parentImage{{ i }}"
-          (change)="onFileChange($event, 'parent', i)"
-          accept="image/*"
-          />
-        <label for="parentImage{{ i }}">Upload Parent's Image</label>
-      </div>
+			<div class="custom-file-input">
+				<input
+					type="file"
+					id="parentImage{{ i }}"
+					name="parentImage{{ i }}"
+					(change)="onFileChange($event, 'parent', i)"
+					accept="image/*"
+					class="file-input"
+				/>
+				<label for="parentImage{{ i }}" class="file-label">
+					<span>Upload Parent's Image</span>
+				</label>
+			</div>
 
       <div class="form-group">
         <input id="parentPhone{{ i }}" name="parentPhone{{ i }}" formControlName="phone" placeholder=" " />
