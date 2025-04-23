@@ -4,41 +4,53 @@
     <h3>Child Information</h3>
 
     <div class="form-group">
-      <input formControlName="name" placeholder=" " required />
-      <label>Full Name</label>
+      <input id="childName" name="childName" formControlName="name" placeholder=" " required />
+      <label for="childName">Full Name</label>
       <div class="error" *ngIf="isInvalid('child.name')">Name is required.</div>
     </div>
 
     <div class="form-group">
-      <input formControlName="preferredName" placeholder=" " />
-      <label>Preferred Name</label>
+      <input id="preferredName" name="preferredName" formControlName="preferredName" placeholder=" " />
+      <label for="preferredName">Preferred Name</label>
     </div>
 
     <div class="form-group">
-      <input formControlName="cid" placeholder=" " required />
-      <label>CID</label>
+      <input id="childCID" name="childCID" formControlName="cid" placeholder=" " required />
+      <label for="childCID">CID</label>
       <div class="error" *ngIf="isInvalid('child.cid')">CID is required.</div>
     </div>
 
+    <!-- Child Image Upload -->
     <div class="form-group">
-      <input formControlName="studentCode" placeholder=" " required />
-      <label>Student Code</label>
+      <input
+        type="file"
+        id="childImage"
+        name="childImage"
+        (change)="onFileChange($event, 'child')"
+        accept="image/*"
+      />
+      <label for="childImage">Upload Child's Image</label>
+    </div>
+
+    <div class="form-group">
+      <input id="studentCode" name="studentCode" formControlName="studentCode" placeholder=" " required />
+      <label for="studentCode">Student Code</label>
       <div class="error" *ngIf="isInvalid('child.studentCode')">Student Code is required.</div>
     </div>
 
     <div class="form-group">
-      <input formControlName="dob" type="date" placeholder=" " required />
-      <label>Date of Birth</label>
+      <input id="dob" name="dob" formControlName="dob" type="date" placeholder=" " required />
+      <label for="dob">Date of Birth</label>
       <div class="error" *ngIf="isInvalid('child.dob')">Date of Birth is required.</div>
     </div>
 
     <div class="form-group">
-      <select formControlName="gender" placeholder=" ">
+      <select id="gender" name="gender" formControlName="gender" placeholder=" ">
         <option value="" disabled>Select Gender</option>
         <option value="male">Male</option>
         <option value="female">Female</option>
       </select>
-      <label>Gender</label>
+      <label for="gender">Gender</label>
     </div>
   </div>
 
@@ -47,37 +59,37 @@
     <div formGroupName="childNote">
       <h3>Child Notes</h3>
       <div class="form-group">
-        <textarea formControlName="medicalCondition" placeholder=" "></textarea>
-        <label>Medical Condition</label>
+        <textarea id="medicalCondition" name="medicalCondition" formControlName="medicalCondition" placeholder=" "></textarea>
+        <label for="medicalCondition">Medical Condition</label>
       </div>
       <div class="form-group">
-        <textarea formControlName="specialInstruction" placeholder=" "></textarea>
-        <label>Special Instructions</label>
+        <textarea id="specialInstruction" name="specialInstruction" formControlName="specialInstruction" placeholder=" "></textarea>
+        <label for="specialInstruction">Special Instructions</label>
       </div>
       <div class="form-group">
-        <textarea formControlName="notes" placeholder=" "></textarea>
-        <label>Other Notes</label>
+        <textarea id="notes" name="notes" formControlName="notes" placeholder=" "></textarea>
+        <label for="notes">Other Notes</label>
       </div>
     </div>
 
     <div formGroupName="packageForm">
       <h3>Package Information</h3>
       <div class="form-group">
-        <select formControlName="packageId">
+        <select id="packageId" name="packageId" formControlName="packageId">
           <option value="" disabled>Select a Package</option>
           <option *ngFor="let pkg of packages" [value]="pkg.id">{{ pkg.name }} ({{ pkg.price | currency }})</option>
         </select>
-        <label>Package</label>
+        <label for="packageId">Package</label>
         <div class="error" *ngIf="isInvalid('packageForm.packageId')">Package is required.</div>
       </div>
 
       <div class="form-group">
-        <input formControlName="startDate" type="date" />
-        <label>Start Date</label>
+        <input id="startDate" name="startDate" formControlName="startDate" type="date" />
+        <label for="startDate">Start Date</label>
       </div>
       <div class="form-group">
-        <input formControlName="endDate" type="date" />
-        <label>End Date</label>
+        <input id="endDate" name="endDate" formControlName="endDate" type="date" />
+        <label for="endDate">End Date</label>
       </div>
     </div>
   </div>
@@ -87,20 +99,33 @@
     <h3>Parent(s) Information</h3>
     <div *ngFor="let parent of parents.controls; let i = index" [formGroupName]="i" class="parent-card">
       <div class="form-group">
-        <input formControlName="name" placeholder=" " />
-        <label>Parent Name</label>
+        <input id="parentName{{ i }}" name="parentName{{ i }}" formControlName="name" placeholder=" " />
+        <label for="parentName{{ i }}">Parent Name</label>
       </div>
       <div class="form-group">
-        <input formControlName="email" placeholder=" " />
-        <label>Email</label>
+        <input id="parentEmail{{ i }}" name="parentEmail{{ i }}" formControlName="email" placeholder=" " />
+        <label for="parentEmail{{ i }}">Email</label>
       </div>
       <div class="form-group">
-        <input formControlName="cid" placeholder=" " />
-        <label>CID</label>
+        <input id="parentCID{{ i }}" name="parentCID{{ i }}" formControlName="cid" placeholder=" " />
+        <label for="parentCID{{ i }}">CID</label>
       </div>
+
+      <!-- Parent Image Upload -->
       <div class="form-group">
-        <input formControlName="phone" placeholder=" " />
-        <label>Phone</label>
+        <input
+          type="file"
+          id="parentImage{{ i }}"
+          name="parentImage{{ i }}"
+          (change)="onFileChange($event, 'parent', i)"
+          accept="image/*"
+          />
+        <label for="parentImage{{ i }}">Upload Parent's Image</label>
+      </div>
+
+      <div class="form-group">
+        <input id="parentPhone{{ i }}" name="parentPhone{{ i }}" formControlName="phone" placeholder=" " />
+        <label for="parentPhone{{ i }}">Phone</label>
       </div>
       <button type="button" class="remove-btn" (click)="removeParent(i)" *ngIf="parents.length > 1">Remove</button>
     </div>

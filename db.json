@@ -128,13 +128,33 @@
       "ownerId": "4"
     }
   ],
+  "facilitators": [
+    {
+      "id": "fac123",
+      "name": "John Doe",
+      "role": "Teacher",
+      "email": "john.doe@example.com",
+      "phone": "123-456-7890",
+      "imageUrl": "https://example.com/avatar.jpg",
+      "archived": true
+    },
+    {
+      "id": "d603",
+      "name": "fsdf",
+      "role": "fadf",
+      "email": "fsdfadsf",
+      "phone": "safsda",
+      "imageUrl": "fsdafsda",
+      "archived": false
+    }
+  ],
   "packages": [
     {
       "id": "172f",
       "facilityId": "1",
       "ownerId": "1",
       "name": "abced",
-      "description": "fsd",
+      "description": "gggggg",
       "price": 50
     },
     {

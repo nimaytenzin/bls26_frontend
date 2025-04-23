@@ -1,26 +1,42 @@
 <div class="dashboard-wrapper">
-    <h2>Welcome to Your ECCD Dashboard</h2>
-  
-    <div class="stat-grid">
-      <div class="stat-card">
-        <h3>{{ stats.children }}</h3>
-        <p>Total Children Enrolled</p>
-      </div>
-  
-      <div class="stat-card">
-        <h3>{{ stats.staff }}</h3>
-        <p>Active Staff Members</p>
-      </div>
-  
-      <div class="stat-card">
-        <h3>{{ stats.pendingApprovals }}</h3>
-        <p>Pending Child Approvals</p>
-      </div>
-  
-      <div class="stat-card">
-        <h3>{{ stats.activities }}</h3>
-        <p>Activities Logged</p>
-      </div>
+  <h2>Facility Dashboard</h2>
+
+  <!-- Statistics Grid -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <h3>{{ totalEnrollments }}</h3>
+      <p>Total Enrollments</p>
+    </div>
+    <div class="stat-card">
+      <h3>{{ activeFacilitators }}</h3>
+      <p>Active Facilitators</p>
+    </div>
+    <div class="stat-card">
+      <h3>{{ upcomingEvents }}</h3>
+      <p>Upcoming Events</p>
+    </div>
+    <div class="stat-card">
+      <h3>{{ pendingInvoices }}</h3>
+      <p>Pending Invoices</p>
     </div>
   </div>
-  
+
+  <!-- Recent Activities -->
+  <div class="recent-activities">
+    <h3>Recent Activities</h3>
+    <ul>
+      <li *ngFor="let activity of recentActivities">
+        {{ activity }}
+      </li>
+    </ul>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <h3>Quick Actions</h3>
+    <button class="btn primary" (click)="addFacilitator()">Add Facilitator</button>
+    <button class="btn primary" (click)="enrollChild()">Enroll Child</button>
+    <button class="btn primary" (click)="postAnnouncement()">Post Announcement</button>
+    <button class="btn primary" (click)="generateReport()">Generate Report</button>
+  </div>
+</div>

@@ -183,7 +183,8 @@
 // Main Content
 .main-content {
   flex: 1;
-  padding: 6rem 2rem 2rem; // extra top space for fixed header
+  margin-top: $dashboard-margin-top;
+  // padding: 6rem 2rem 2rem; // extra top space for fixed header
   background: #fdfdfd;
   transition: margin-left 0.3s ease;
 

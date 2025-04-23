@@ -4,18 +4,27 @@
 	</div>
 
 	<ul class="sidebar-links">
-		<li class="section-title">Master</li>
-	  <li>
-		<a routerLink="/dashboard" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">
-		  Dashboard
-		</a>
-	  </li>
+		<li class="section-title">Management</li>
+		<li>
+			<a routerLink="/dashboard" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">
+			Dashboard
+			</a>
+		</li>
 
-	  <li>
-		<a routerLink="/facilities" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">My Facilities</a>
-	  </li>
+		<li>
+			<a routerLink="/facilities" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">
+			My Facilities
+			</a>
+		</li>
+
 		<li>
 			<a routerLink="/facilities/packages" routerLinkActive="active" (click)="onNavClick()">Packages</a>
+		</li>
+	
+		<li>
+			<a [routerLink]="['/facilities', 'facilitators']" routerLinkActive="active" (click)="onNavClick()">
+			Facilitators
+			</a>
 		</li>
 
 		<li>
@@ -24,17 +33,9 @@
 			</a>
 		</li>
 
-	  <li class="section-title">Facilitators</li>
 		<li>
-		<a [routerLink]="['/facilities', selectedFacilityId, 'facilitators', 'profile-management']" routerLinkActive="active" (click)="onNavClick()">
-		  Profile Management
-		</a>
-	  </li>
-
-	  <li class="section-title">Children</li>
-		<li>
-			<a routerLink="/facilities/registration" routerLinkActive="active" (click)="onNavClick()">
-				Registration
+			<a routerLink="/facilities/enrollment" routerLinkActive="active" (click)="onNavClick()">
+				Enroll Child
 			</a>
 		</li>
 

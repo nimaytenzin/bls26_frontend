@@ -1,39 +1,142 @@
 .dashboard-wrapper {
-    padding: 3rem 2rem;
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #f5f8fc, #edf1f7);
-    min-height: 100vh;
+  padding: 1.5rem 0; 
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #f5f8fc, #edf1f7);
+  min-height: 100vh;
 
-    h2 {
-      font-size: 1.75rem;
-      color: #007bff;
-      margin-bottom: 2rem;
-    }
-  
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.5rem;
-  
-      .stat-card {
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
-        padding: 2rem;
-        text-align: center;
-  
-        h3 {
-          font-size: 2.2rem;
-          margin: 0;
-          color: #007bff;
-        }
-  
-        p {
-          margin-top: 0.75rem;
-          font-size: 0.95rem;
-          color: #555;
-        }
+  h2 {
+    font-size: 1.75rem;
+    color: #007bff;
+    margin-bottom: 2rem;
+    text-align: center; /* Center the title */
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    padding: 0 2rem; /* Add padding for the grid content */
+
+    .stat-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
+      padding: 2rem;
+      text-align: center;
+
+      h3 {
+        font-size: 2.2rem;
+        margin: 0;
+        color: #007bff;
+      }
+
+      p {
+        margin-top: 0.75rem;
+        font-size: 0.95rem;
+        color: #555;
       }
     }
   }
-  
+
+  .recent-activities {
+    margin-top: 2rem;
+    padding: 0 2rem; /* Add padding for the content */
+
+    h3 {
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+
+      li {
+        font-size: 1rem;
+        color: #555;
+        margin-bottom: 0.5rem;
+      }
+    }
+  }
+
+  .quick-actions {
+    margin-top: 2rem;
+    padding: 0 2rem; /* Add padding for the content */
+
+    h3 {
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      background-color: #007bff;
+      color: #fff;
+      font-weight: 500;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      border-radius: 6px;
+      margin-right: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+
+      &:hover {
+        background-color: #0056b3;
+      }
+    }
+  }
+
+  .footer {
+    margin-top: 3rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #777;
+
+    a {
+      color: #007bff;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  /* Media Queries for Responsiveness */
+  @media (max-width: 768px) {
+    .stat-grid {
+      padding: 0 1rem; /* Reduce padding on smaller screens */
+      gap: 1rem; /* Reduce gap between cards */
+    }
+
+    h2 {
+      font-size: 1.5rem; /* Reduce title font size */
+    }
+
+    .stat-card h3 {
+      font-size: 1.8rem; /* Reduce card title font size */
+    }
+
+    .recent-activities,
+    .quick-actions {
+      padding: 0 1rem; /* Reduce padding for content sections */
+    }
+
+    .quick-actions .btn {
+      margin-right: 0; /* Remove margin between buttons */
+      margin-bottom: 1rem; /* Add spacing below buttons */
+      width: 100%; /* Make buttons full-width */
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stat-grid {
+      grid-template-columns: 1fr; /* Stack cards vertically */
+    }
+
+    .footer {
+      font-size: 0.8rem; /* Reduce footer font size */
+    }
+  }
+}
