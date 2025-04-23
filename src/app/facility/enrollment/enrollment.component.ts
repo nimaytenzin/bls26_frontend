@@ -5,7 +5,7 @@ import { FacilityService } from '../../core/services/facility.service';
 
 @Component({
   selector: 'app-enrollment',
-  standalone: false,
+	standalone: false,
   templateUrl: './enrollment.component.html',
   styleUrls: ['./enrollment.component.scss'],
 })
@@ -79,17 +79,24 @@ export class EnrollmentComponent implements OnInit {
     if (this.parents.length > 1) this.parents.removeAt(index);
   }
 
-  onFileChange(event: Event, type: 'child' | 'parent', parentIndex?: number): void {
+  triggerFileInput(inputId: string): void {
+    const fileInput = document.getElementById(inputId) as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  handleFileSelection(event: Event, type: 'child' | 'parent', parentIndex?: number): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
       if (type === 'child') {
+        this.childImageFile = file;
         this.enrollmentForm.get('child.avatarUrl')?.setValue(file.name);
       } else if (type === 'parent' && parentIndex !== undefined) {
+        this.parentImageFiles[parentIndex] = file;
         this.parents.at(parentIndex).get('avatarUrl')?.setValue(file.name);
       }
-    } else {
-      console.log('No file selected or input is invalid.');
     }
   }
 
@@ -121,27 +128,23 @@ export class EnrollmentComponent implements OnInit {
       this.enrollmentForm.markAllAsTouched();
       return;
     }
-  
+
     const formData = new FormData();
     formData.append('child', JSON.stringify(this.enrollmentForm.get('child')?.value));
     formData.append('childNote', JSON.stringify(this.enrollmentForm.get('childNote')?.value));
     formData.append('packageForm', JSON.stringify(this.enrollmentForm.get('packageForm')?.value));
     formData.append('parents', JSON.stringify(this.enrollmentForm.get('parents')?.value));
-  
+
     if (this.childImageFile) {
       formData.append('childImage', this.childImageFile);
-      console.log('Child Image File:', this.childImageFile.name);
     }
-  
+
     this.parentImageFiles.forEach((file, index) => {
       if (file) {
         formData.append(`parentImage${index}`, file);
-        console.log(`Parent ${index} Image File:`, file.name);
       }
     });
-  
-    console.log('FormData:', formData);
-  
+
     this.enrollmentService.completeEnrollment(formData).subscribe({
       next: () => alert('Enrollment successful!'),
       error: (err) => console.error('Enrollment failed', err),
