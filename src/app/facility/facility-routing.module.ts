@@ -8,16 +8,25 @@ import { EnrollmentComponent } from "./enrollment/enrollment.component";
 import { PackageComponent } from "./packages/package.component";
 import { FacilityListComponent } from "./facility-list/facility-list.component";
 import { FacilitatorComponent } from "./facilitator/facilitator.component";
+import { PostActivityComponent } from "./post-activity/post-activity.component";
+import { FacilityLayoutComponent } from "../layout/facility-layout/facility-layout.component";
 
 
 const routes: Routes = [
-	{ path: "dashboard", component: FacilityDashboardComponent, canActivate: [AuthGuard] },
-  { path: "facilities", component: FacilityListComponent },
-  { path: "facilities/facilitators", component: FacilitatorComponent },
-  { path: "facilities/attendance", component: AttendanceComponent },
-  { path: "facilities/enrollment", component: EnrollmentComponent },
-	{ path: "facilities/packages", component: PackageComponent },
-]
+  {
+    path: '',
+    component: FacilityLayoutComponent, // <- Moved layout here
+    children: [
+      { path: "dashboard", component: FacilityDashboardComponent, canActivate: [AuthGuard] },
+      { path: "facilities", component: FacilityListComponent },
+      { path: "packages", component: PackageComponent },
+      { path: "facilitators", component: FacilitatorComponent },
+      { path: "enrollment", component: EnrollmentComponent },
+      { path: "attendance", component: AttendanceComponent },
+      { path: "post-activity", component: PostActivityComponent },
+    ]
+  }
+];
 
 @NgModule({
     imports: [RouterModule.forChild(routes)],

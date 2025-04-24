@@ -1,8 +1,10 @@
-import { NgModule } from "@angular/core";
+import { NgModule} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 
+import { FacilityLayoutComponent } from "../layout/facility-layout/facility-layout.component";
+import { FacilitySidebarComponent } from "../layout/facility-layout/facility-sidebar/facility-sidebar.component";
 import { FacilityRoutingModule } from "./facility-routing.module";
 import { FacilityDashboardComponent } from "./facility-dashboard/facility-dashboard.component";
 import { AttendanceComponent } from './attendance/attendance.component';
@@ -14,10 +16,14 @@ import { FacilityModalComponent } from './facility-modal/facility-modal.componen
 import { PackageModalComponent } from './package-modal/package-modal.component';
 import { FacilitatorComponent } from './facilitator/facilitator.component';
 import { FacilitatorModalComponent } from './facilitator-modal/facilitator-modal.component';
+import { PostActivityComponent } from './post-activity/post-activity.component';
+import { PostActivityModalComponent } from './post-activity-modal/post-activity-modal.component';
 
 
 @NgModule({
     declarations: [
+        FacilitySidebarComponent,
+        FacilityLayoutComponent,
         FacilityDashboardComponent,
         AttendanceComponent,
         EnrollmentComponent,
@@ -27,6 +33,8 @@ import { FacilitatorModalComponent } from './facilitator-modal/facilitator-modal
     		PackageModalComponent,
         FacilitatorComponent,
         FacilitatorModalComponent,
+        PostActivityComponent,
+        PostActivityModalComponent,
     ],
     imports: [
         CommonModule,
@@ -36,6 +44,8 @@ import { FacilitatorModalComponent } from './facilitator-modal/facilitator-modal
 				FormsModule
     ],
 
-		providers: [EnrollmentService]
+		providers: [
+      EnrollmentService,
+    ]
 })
 export class FacilityModule {}

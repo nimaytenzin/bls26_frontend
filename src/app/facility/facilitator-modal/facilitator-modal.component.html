@@ -19,8 +19,9 @@
           <input type="text" [(ngModel)]="facilitator.phone" name="phone" required />
         </div>
         <div class="form-group">
-          <label>Image URL</label>
-          <input type="text" [(ngModel)]="facilitator.imageUrl" name="imageUrl" />
+          <label>Upload Image</label>
+          <input type="file" (change)="onFileChange($event)" accept="image/*" />
+          <div class="file-name" *ngIf="selectedImageFile">{{ selectedImageFile.name }}</div>
         </div>
         <div class="form-actions">
           <button type="button" class="btn cancel" (click)="onCancel()">Cancel</button>

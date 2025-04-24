@@ -1,0 +1,21 @@
+<div class="post-activity-page">
+    <h1>Activities</h1>
+    <button class="btn primary" (click)="openPostActivityModal()">+ Post Activity</button>
+  
+    <div class="activity-list">
+      <div class="activity-card" *ngFor="let activity of activities">
+        <h3>{{ activity.title }}</h3>
+        <p>{{ activity.description }}</p>
+        <p><strong>Date:</strong> {{ activity.date }}</p>
+        <p><strong>Location:</strong> {{ activity.location }}</p>
+        <img *ngIf="activity.imageUrl" [src]="activity.imageUrl" alt="Activity Image" />
+      </div>
+    </div>
+  
+    <!-- Post Activity Modal -->
+    <app-post-activity-modal
+      [show]="showPostActivityModal"
+      (close)="closePostActivityModal()"
+      (post)="addActivity($event)"
+    ></app-post-activity-modal>
+  </div>
