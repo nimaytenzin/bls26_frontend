@@ -1,11 +1,12 @@
 @import 'src/styles/variables';
 :host {
 	box-sizing: border-box;
+  position: fixed;
+  top: $sidebar-margin-top;
   width: $sidebar-width;
   background-color: #007bff;
   color: white;
   padding: 1rem;
-  font-family: 'Poppins', sans-serif;
   transition: all 0.3s ease;
   min-height: 100vh;
 

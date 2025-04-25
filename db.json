@@ -150,14 +150,6 @@
   ],
   "packages": [
     {
-      "id": "172f",
-      "facilityId": "1",
-      "ownerId": "1",
-      "name": "abced",
-      "description": "gggggg",
-      "price": 50
-    },
-    {
       "id": "13d1",
       "facilityId": "1",
       "ownerId": "1",

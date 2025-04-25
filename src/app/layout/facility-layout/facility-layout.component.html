@@ -12,7 +12,10 @@
 
     <div class="top-controls">
 			<div class="facility-selector" *ngIf="hasMultipleFacilities">
-				<label for="facilitySelect">Switch Facility:</label>
+        <div *ngIf = "!isMobile">
+          <label for="facilitySelect">Switch Facility:</label>
+        </div>
+
 				<select #facilitySelect id="facilitySelect" (change)="onFacilityChange(facilitySelect.value)">
 					<option *ngFor="let f of facilities" [value]="f.id">{{ f.name }}</option>
 				</select>
@@ -20,8 +23,9 @@
 
       <div class="user-profile" (click)="toggleDropdown()" tabindex="0">
         <img [src]="user.avatarUrl" class="avatar" alt="User Avatar" />
-        <span class="username">{{ user.name }}</span>
-
+        <div *ngIf = "!isMobile">
+          <span class="username">{{ user.name }}</span>
+        </div>
         <div class="dropdown-menu" *ngIf="dropdownOpen">
           <button (click)="logout()">Logout</button>
         </div>

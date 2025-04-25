@@ -18,6 +18,7 @@ import { FacilitatorComponent } from './facilitator/facilitator.component';
 import { FacilitatorModalComponent } from './facilitator-modal/facilitator-modal.component';
 import { PostActivityComponent } from './post-activity/post-activity.component';
 import { PostActivityModalComponent } from './post-activity-modal/post-activity-modal.component';
+import { BillingComponent } from './billing/billing.component';
 
 
 @NgModule({
@@ -35,6 +36,7 @@ import { PostActivityModalComponent } from './post-activity-modal/post-activity-
         FacilitatorModalComponent,
         PostActivityComponent,
         PostActivityModalComponent,
+        BillingComponent,
     ],
     imports: [
         CommonModule,

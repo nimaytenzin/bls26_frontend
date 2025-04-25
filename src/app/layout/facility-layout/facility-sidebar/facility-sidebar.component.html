@@ -75,15 +75,17 @@
 
 	  <li class="section-title">Reports & Billing</li>
 	  <li>
-		<a [routerLink]="['/reports']" 
+		<a [routerLink]="['/billing']" 
 		routerLinkActive="active"
+		(click)="onNavClick('/billing')"
 		>
 			Invoice
 		</a>
 	  </li>
 	  <li>
-		<a [routerLink]="['/billing']" 
+		<a [routerLink]="['/expenses']" 
 		routerLinkActive="active"
+		(click)="onNavClick('/expenses')"
 		>
 			Expenses
 		</a>

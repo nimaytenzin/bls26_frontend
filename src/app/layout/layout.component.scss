@@ -3,7 +3,6 @@
 .layout-container {
   display: flex;
   min-height: 100vh;
-  font-family: 'Poppins', sans-serif;
 
   &.mobile {
     flex-direction: column;
@@ -84,9 +83,10 @@
 
 // Top Controls (Facility Selector + User Profile)
 .top-controls {
+  box-sizing: border-box;
   position: fixed;
   top: 0;
-  left: $sidebar-width;
+  left: 0;
   right: 0;
   height: 64px;
   padding: 0 2rem;
@@ -100,7 +100,6 @@
   z-index: 200;
 
   @media (max-width: 768px) {
-    left: 0;
 		width: 100%;
     padding: 0 1rem;
   }
@@ -183,9 +182,9 @@
 // Main Content
 .main-content {
   flex: 1;
-  margin-top: $dashboard-margin-top;
-  // padding: 6rem 2rem 2rem; // extra top space for fixed header
+  margin-top: $sidebar-margin-top;
   background: #fdfdfd;
+  margin-left: $sidebar-width;
   transition: margin-left 0.3s ease;
 
   @media (max-width: 768px) {
@@ -197,9 +196,9 @@
 .sidebar-toggle {
   display: none;
   position: absolute;
-  top: 1rem;
+  top: 0.5rem;
   left: 1rem;
-  z-index: 1100;
+  z-index: 1000;
   font-size: 1.5rem;
   padding: 0.5rem 1rem;
   background-color: #007bff;

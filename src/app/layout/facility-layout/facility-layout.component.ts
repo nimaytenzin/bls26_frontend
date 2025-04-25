@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FacilityService } from '../../core/services/facility.service';
 import { AuthService } from '../../auth/auth.service';
 import { Router } from '@angular/router';
@@ -130,6 +130,11 @@ export class FacilityLayoutComponent implements OnInit {
     if (user) {
       this.user.name = user.name;
     }
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.detectMobile();
   }
 
   private detectMobile(): void {

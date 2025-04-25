@@ -10,6 +10,7 @@ import { FacilityListComponent } from "./facility-list/facility-list.component";
 import { FacilitatorComponent } from "./facilitator/facilitator.component";
 import { PostActivityComponent } from "./post-activity/post-activity.component";
 import { FacilityLayoutComponent } from "../layout/facility-layout/facility-layout.component";
+import { BillingComponent } from "./billing/billing.component";
 
 
 const routes: Routes = [
@@ -24,6 +25,7 @@ const routes: Routes = [
       { path: "enrollment", component: EnrollmentComponent },
       { path: "attendance", component: AttendanceComponent },
       { path: "post-activity", component: PostActivityComponent },
+      { path: "billing", component: BillingComponent },
     ]
   }
 ];
