@@ -4,22 +4,20 @@ import { LandingComponent } from './landing/landing.component';
 import { FacilityLayoutComponent } from './layout/facility-layout/facility-layout.component';
 
 const routes: Routes = [
-  { path: '', component: LandingComponent },
+
+  {
+    path: 'landing', 
+    component: LandingComponent 
+  },
 
   { path: 'auth',
-    loadChildren: () =>
-    import('./auth/auth.module').then(m => m.AuthModule) },  // Lazy load it
+    loadChildren: () => import('./auth/auth.module').then(m => m.AuthModule)
+  },  // Lazy load it
 
   {
     path: '',
-    component: FacilityLayoutComponent, // ✅ from layout
-    children: [
-      {
-        path: '',
-        loadChildren: () => import('./facility/facility.module').then(m => m.FacilityModule)
-      }
-    ]
-  }, // Lazy load it
+    loadChildren: () => import('./facility/facility.module').then(m => m.FacilityModule)
+  },
 
   //{ path: '**', redirectTo: '' } // Redirect to the landing page for any unknown routes
 ];

@@ -1,4 +1,3 @@
-// facility-layout.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FacilityService } from '../../core/services/facility.service';
 import { AuthService } from '../../auth/auth.service';
@@ -17,6 +16,11 @@ export class FacilityLayoutComponent implements OnInit {
   selectedFacilityId: string | null = null;
   dropdownOpen = false;
 
+  facilitiesReady = false;
+  facilitiesLoading = true;
+  private facilitiesChecked = false;
+  private skipFirstEmptyEmit = true;
+
   user = {
     name: '',
     avatarUrl: '/images/default-avatar.jpg'
@@ -33,25 +37,60 @@ export class FacilityLayoutComponent implements OnInit {
     this.setUserInfo();
     this.loadFacilities();
 
-		this.facilityService.facilities$.subscribe(facilities => {
-			this.facilities = facilities;
+    this.facilityService.facilities$.subscribe(facilities => {
+      this.facilities = facilities;
 
-			const currentId = this.facilityService.getFacilityId();
-			const isValid = facilities.some(f => f.id === currentId);
+      const savedTab = localStorage.getItem('activeTab') || '';
+      const currentPath = this.router.url;
 
-			if (!currentId || !isValid) {
-				if (facilities.length > 0) {
-					// Automatically select the first facility if none is selected
-					this.facilityService.setSelectedFacilityId(facilities[0].id);
 
-					// Ensure the user stays on the dashboard
-					this.router.navigate(['/dashboard']);
-				} else {
-					// Redirect only if no facilities are available
-					this.router.navigate(['facilities']); // Redirect to a "No Facilities" page or similar
-				}
-			}
-		});
+      // ⏳ Wait for actual facilities (skip first empty emit)
+      if (this.skipFirstEmptyEmit && facilities.length === 0) {
+        console.log('⏳ Waiting for facilities to load...');
+        return;
+      }
+
+      this.skipFirstEmptyEmit = false;
+      this.facilitiesLoading = false; // ✅ Mark as data received
+
+      // 🚨 No facilities even after load
+      if (!this.facilitiesChecked && facilities.length === 0) {
+        this.facilitiesChecked = true;
+        console.log('🔁 No facilities found, redirecting to /facilities');
+        this.router.navigate(['/facilities']);
+        this.facilitiesReady = true;
+        return;
+      }
+
+      this.facilitiesChecked = true;
+
+      const currentId = this.facilityService.getFacilityId();
+      const isValid = facilities.some(f => f.id === currentId);
+
+      if (!currentId || !isValid) {
+        // Auto select first available facility
+        this.facilityService.setSelectedFacilityId(facilities[0].id);
+
+        // Handle routing only if needed
+        if (
+          !savedTab ||
+          currentPath === '/' ||
+          (savedTab === '/dashboard' && currentPath !== '/dashboard')
+        ) {
+          if (currentPath !== '/dashboard') {
+            console.log('🔁 Redirecting to /dashboard');
+            this.router.navigate(['/dashboard']);
+          } else {
+            console.log('✅ Already on /dashboard, no redirect needed');
+          }
+        } else {
+          console.log('✅ Already on saved tab:', currentPath);
+        }
+      }
+
+      // ✅ Facilities are ready and layout can render
+      this.facilitiesReady = true;
+    });
 
     this.facilityService.selectedFacilityId$.subscribe(id => {
       this.selectedFacilityId = id;
@@ -69,9 +108,9 @@ export class FacilityLayoutComponent implements OnInit {
     }
   }
 
-	onFacilityChange(newFacilityId: string): void {
-		this.facilityService.setSelectedFacilityId(newFacilityId);
-	}
+  onFacilityChange(newFacilityId: string): void {
+    this.facilityService.setSelectedFacilityId(newFacilityId);
+  }
 
   toggleSidebar(): void {
     this.sidebarOpen = !this.sidebarOpen;

@@ -110,11 +110,12 @@
           <label for="parentName{{ i }}">Parent Name</label>
         </div>
         <div class="custom-file-upload">
-          <button type="button" class="upload-btn" (click)="triggerFileInput('parentImage' + i)">
+          <button type="button" class="upload-btn" (click)="triggerFileInput('parentImage' + i, i)">
             Upload Image
           </button>
-          <div class="file-name">{{ parentImageFiles[i].name || 'No file selected' }}</div>
+          <div class="file-name">{{ parentImageFiles[i]?.name || 'No file selected' }}</div>
           <input
+            #parentFileInput
             type="file"
             id="parentImage{{ i }}"
             name="parentImage{{ i }}"

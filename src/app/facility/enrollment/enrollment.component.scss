@@ -1,3 +1,4 @@
+/* General form styles */
 form {
   max-width: 700px;
   margin: 3rem auto;
@@ -62,24 +63,24 @@ form {
 
   .form-group.row {
     display: flex;
-    align-items: flex-start; /* Align items to the top */
+    align-items: flex-start;
     gap: 1rem;
   }
 
   .name-input {
-    flex: 3; /* Name input takes 3 parts of the available space */
+    flex: 3;
     position: relative;
   }
 
   .custom-file-upload {
-    flex: 1; /* Upload button takes 1 part of the available space */
+    flex: 1;
     display: flex;
-    flex-direction: column; /* Stack the button and file name vertically */
-    align-items: flex-start; /* Align items to the left */
-    gap: 0.25rem; /* Reduce the gap between the button and the file name */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
 
     .upload-btn {
-			width: 100%;
+      width: 100%;
       padding: 0.5rem 1rem;
       background-color: #007bff;
       color: #fff;
@@ -98,27 +99,133 @@ form {
     }
 
     .file-name {
-      font-size: 0.85rem; /* Slightly smaller font size */
+      font-size: 0.85rem;
       color: #555;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-			align-self: center;
+      align-self: center;
+    }
+  }
+
+  .parent-card {
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    background-color: #f9f9f9;
+
+    .remove-btn {
+      background-color: #dc3545;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: #c82333;
+      }
+
+      &:active {
+        background-color: #a71d2a;
+      }
+    }
+  }
+
+  .add-btn {
+    background-color: #17a2b8;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: #117a8b;
+    }
+
+    &:active {
+      background-color: #0d5c6b;
+    }
+  }
+
+  .step-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+
+    button {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+
+      &:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      &:first-of-type {
+        background-color: #f5f5f5;
+        color: #333;
+        border: 1px solid #ccc;
+
+        &:hover {
+          background-color: #e0e0e0;
+        }
+      }
+
+      &:nth-of-type(2) {
+        background-color: #007bff;
+        color: #fff;
+
+        &:hover {
+          background-color: #0056b3;
+        }
+      }
+
+      &[type="submit"] {
+        background-color: #28a745;
+        color: #fff;
+
+        &:hover {
+          background-color: #218838;
+        }
+      }
     }
   }
 
   @media (max-width: 768px) {
     .form-group.row {
-      flex-direction: column; /* Stack the fields vertically on smaller screens */
+      flex-direction: column;
     }
 
     .name-input,
     .custom-file-upload {
-      width: 100%; /* Make both fields take full width */
+      width: 100%;
     }
 
     .custom-file-upload {
-      align-items: center; /* Center the button and file name on smaller screens */
+      align-items: center;
+    }
+
+    .step-nav {
+      flex-direction: column;
+      gap: 1rem;
+
+      button {
+        width: 100%;
+      }
     }
   }
 }

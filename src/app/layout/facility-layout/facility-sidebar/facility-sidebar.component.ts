@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-facility-sidebar',
@@ -11,7 +12,24 @@ export class FacilitySidebarComponent {
   @Input() selectedFacilityId!: string | null;
   @Output() closeSidebar = new EventEmitter<void>();
 
-  onNavClick() {
-    this.closeSidebar.emit();
+  constructor(private router: Router) {}
+
+  setActiveTab(route: string): void {
+    console.log('Saving active tab:', route); // Debugging log
+    localStorage.setItem('activeTab', route); // Save the active tab in localStorage
+  }
+  // If you want the active tab to persist only for the current session (and not across browser restarts)
+  // sessionStorage.setItem('activeTab', route);
+  // const savedTab = sessionStorage.getItem('activeTab');
+
+  getActiveTab(): string {
+    const activeTab = localStorage.getItem('activeTab') || '';
+    console.log('Retrieved active tab:', activeTab); // Debugging log
+    return activeTab; // Retrieve the active tab from localStorage
+  }
+
+  onNavClick(route: string): void {
+    this.setActiveTab(route); // Save to localStorage
+    this.closeSidebar.emit(); // If using mobile view or toggle
   }
 }

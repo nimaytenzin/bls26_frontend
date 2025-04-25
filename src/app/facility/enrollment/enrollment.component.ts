@@ -1,11 +1,22 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import {
+  Component,
+  OnInit,
+  ViewChildren,
+  QueryList,
+  ElementRef,
+} from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  FormArray,
+} from '@angular/forms';
 import { EnrollmentService } from '../../core/services/enrollment.service';
 import { FacilityService } from '../../core/services/facility.service';
 
 @Component({
   selector: 'app-enrollment',
-	standalone: false,
+  standalone: false,
   templateUrl: './enrollment.component.html',
   styleUrls: ['./enrollment.component.scss'],
 })
@@ -14,7 +25,9 @@ export class EnrollmentComponent implements OnInit {
   packages: any[] = [];
   enrollmentForm: FormGroup;
   childImageFile: File | null = null;
-  parentImageFiles: File[] = [];
+  parentImageFiles: (File | null)[] = [];
+
+  @ViewChildren('parentFileInput') parentFileInputs!: QueryList<ElementRef>;
 
   constructor(
     private fb: FormBuilder,
@@ -28,7 +41,7 @@ export class EnrollmentComponent implements OnInit {
         name: ['', Validators.required],
         preferredName: [''],
         cid: ['', Validators.required],
-        avatarUrl: [''], // For storing the uploaded child image URL
+        avatarUrl: [''],
         studentCode: ['', Validators.required],
         dob: ['', Validators.required],
         gender: ['', Validators.required],
@@ -46,6 +59,8 @@ export class EnrollmentComponent implements OnInit {
       }),
       parents: this.fb.array([this.createParentForm()]),
     });
+
+    this.parentImageFiles.push(null);
   }
 
   ngOnInit() {
@@ -67,26 +82,40 @@ export class EnrollmentComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       cid: ['', Validators.required],
       phone: ['', Validators.required],
-      avatarUrl: [''], // For storing the uploaded parent image URL
+      avatarUrl: [''],
     });
   }
 
   addParent() {
     this.parents.push(this.createParentForm());
+    this.parentImageFiles.push(null);
   }
 
   removeParent(index: number) {
-    if (this.parents.length > 1) this.parents.removeAt(index);
-  }
-
-  triggerFileInput(inputId: string): void {
-    const fileInput = document.getElementById(inputId) as HTMLInputElement;
-    if (fileInput) {
-      fileInput.click();
+    if (this.parents.length > 1) {
+      this.parents.removeAt(index);
+      this.parentImageFiles.splice(index, 1);
     }
   }
 
-  handleFileSelection(event: Event, type: 'child' | 'parent', parentIndex?: number): void {
+  triggerFileInput(inputId: string, index?: number): void {
+    if (inputId === 'childImage') {
+      const fileInput = document.getElementById(inputId) as HTMLInputElement;
+      fileInput?.click();
+    } else if (
+      inputId.startsWith('parentImage') &&
+      typeof index === 'number'
+    ) {
+      const input = this.parentFileInputs.get(index);
+      input?.nativeElement.click();
+    }
+  }
+
+  handleFileSelection(
+    event: Event,
+    type: 'child' | 'parent',
+    parentIndex?: number
+  ): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
@@ -114,7 +143,8 @@ export class EnrollmentComponent implements OnInit {
   }
 
   getCurrentStepFormGroup(): FormGroup {
-    if (this.currentStep === 0) return this.enrollmentForm.get('child') as FormGroup;
+    if (this.currentStep === 0)
+      return this.enrollmentForm.get('child') as FormGroup;
     if (this.currentStep === 1)
       return this.fb.group({
         childNote: this.enrollmentForm.get('childNote'),
@@ -130,10 +160,22 @@ export class EnrollmentComponent implements OnInit {
     }
 
     const formData = new FormData();
-    formData.append('child', JSON.stringify(this.enrollmentForm.get('child')?.value));
-    formData.append('childNote', JSON.stringify(this.enrollmentForm.get('childNote')?.value));
-    formData.append('packageForm', JSON.stringify(this.enrollmentForm.get('packageForm')?.value));
-    formData.append('parents', JSON.stringify(this.enrollmentForm.get('parents')?.value));
+    formData.append(
+      'child',
+      JSON.stringify(this.enrollmentForm.get('child')?.value)
+    );
+    formData.append(
+      'childNote',
+      JSON.stringify(this.enrollmentForm.get('childNote')?.value)
+    );
+    formData.append(
+      'packageForm',
+      JSON.stringify(this.enrollmentForm.get('packageForm')?.value)
+    );
+    formData.append(
+      'parents',
+      JSON.stringify(this.enrollmentForm.get('parents')?.value)
+    );
 
     if (this.childImageFile) {
       formData.append('childImage', this.childImageFile);

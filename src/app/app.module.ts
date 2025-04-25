@@ -8,7 +8,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
 import { LandingComponent } from './landing/landing.component';
 import { SharedModule } from "./shared/shared.module";
-import { FacilityLayoutModule } from './layout/facility-layout/facility-layout.module';
+
 
 
 @NgModule({
@@ -21,10 +21,11 @@ import { FacilityLayoutModule } from './layout/facility-layout/facility-layout.m
 			HttpClientModule,
       AppRoutingModule, // this must export RouterModule
       AuthRoutingModule, // this must export RouterModule
-      FacilityLayoutModule, // this must export RouterModule
       SharedModule,
     ],
-    providers: [],
+    providers: [
+
+    ],
     // If you have any services, you can provide them here
     bootstrap: [AppComponent]
   })

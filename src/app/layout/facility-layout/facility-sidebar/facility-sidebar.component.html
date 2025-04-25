@@ -6,52 +6,87 @@
 	<ul class="sidebar-links">
 		<li class="section-title">Management</li>
 		<li>
-			<a routerLink="/dashboard" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">
-			Dashboard
+			<a routerLink="/dashboard" 
+			routerLinkActive="active" 
+			(click)="onNavClick('/dashboard')" 
+			[routerLinkActiveOptions]="{ exact: true }"
+			>
+				Dashboard
 			</a>
 		</li>
 
 		<li>
-			<a routerLink="/facilities" routerLinkActive="active" (click)="onNavClick()" [routerLinkActiveOptions]="{ exact: true }">
-			My Facilities
+			<a routerLink="/facilities" 
+			routerLinkActive="active" 
+			(click)="onNavClick('/facilities')" 			
+			[routerLinkActiveOptions]="{ exact: true }"
+			>
+				My Facilities
 			</a>
 		</li>
 
 		<li>
-			<a routerLink="/facilities/packages" routerLinkActive="active" (click)="onNavClick()">Packages</a>
+			<a routerLink="/packages" 
+			routerLinkActive="active" 
+			(click)="onNavClick('/packages')"
+			>
+				Packages
+			</a>
 		</li>
 	
 		<li>
-			<a [routerLink]="['/facilities', 'facilitators']" routerLinkActive="active" (click)="onNavClick()">
-			Facilitators
+			<a [routerLink]="['/facilitators']" 
+			routerLinkActive="active" 
+			(click)="onNavClick('/facilitators')"
+			>
+				Facilitators
 			</a>
 		</li>
 
 		<li>
-			<a [routerLink]="['/facilities', 'attendance']" routerLinkActive="active" (click)="onNavClick()">
-				Attendance
-			</a>
-		</li>
-
-		<li>
-			<a routerLink="/facilities/enrollment" routerLinkActive="active" (click)="onNavClick()">
+			<a routerLink="/enrollment" 
+			routerLinkActive="active" 
+			(click)="onNavClick('/enrollment')"
+			>
 				Enroll Child
 			</a>
 		</li>
 
+		<li>
+			<a [routerLink]="['/attendance']" 
+			routerLinkActive="active" 
+			(click)="onNavClick('/attendance')"
+			>
+				Attendance
+			</a>
+		</li>
+
+
+
 	  <li class="section-title">Announcements</li>
 	  <li>
-		<a [routerLink]="['/facilities', selectedFacilityId, 'announcements']" routerLinkActive="active" (click)="onNavClick()">
+		<a [routerLink]="['/post-activity']" 
+		routerLinkActive="active" 
+		(click)="onNavClick('/post-activity')"
+		>
 		  Post Activity
 		</a>
 	  </li>
 
 	  <li class="section-title">Reports & Billing</li>
 	  <li>
-		<a [routerLink]="['/facilities', selectedFacilityId, 'reports']" routerLinkActive="active">Invoice</a>
+		<a [routerLink]="['/reports']" 
+		routerLinkActive="active"
+		>
+			Invoice
+		</a>
 	  </li>
 	  <li>
-		<a [routerLink]="['/facilities', selectedFacilityId, 'billing']" routerLinkActive="active">Expenses</a>
+		<a [routerLink]="['/billing']" 
+		routerLinkActive="active"
+		>
+			Expenses
+		</a>
 	  </li>
 	</ul>
   </nav>

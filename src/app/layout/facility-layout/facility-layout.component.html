@@ -27,7 +27,9 @@
         </div>
       </div>
     </div>
+    <ng-container *ngIf="facilitiesReady">
+      <router-outlet></router-outlet>
+    </ng-container>
 
-    <router-outlet></router-outlet>
   </main>
 </div>

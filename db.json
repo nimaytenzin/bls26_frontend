@@ -135,7 +135,7 @@
       "role": "Teacher",
       "email": "john.doe@example.com",
       "phone": "123-456-7890",
-      "imageUrl": "https://example.com/avatar.jpg",
+      "imageUrl": "/images/facilitator1.jpg",
       "archived": true
     },
     {
