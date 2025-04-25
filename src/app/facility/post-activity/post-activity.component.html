@@ -1,21 +1,64 @@
 <div class="post-activity-page">
-    <h1>Activities</h1>
-    <button class="btn primary" (click)="openPostActivityModal()">+ Post Activity</button>
-  
-    <div class="activity-list">
-      <div class="activity-card" *ngFor="let activity of activities">
-        <h3>{{ activity.title }}</h3>
-        <p>{{ activity.description }}</p>
-        <p><strong>Date:</strong> {{ activity.date }}</p>
-        <p><strong>Location:</strong> {{ activity.location }}</p>
-        <img *ngIf="activity.imageUrl" [src]="activity.imageUrl" alt="Activity Image" />
+  <h1>Activities</h1>
+  <button class="btn primary" (click)="openPostActivityModal()">+ Post Activity</button>
+
+  <div class="activity-list">
+    <div class="activity-card" *ngFor="let activity of activities; let i = index">
+      <h3>{{ activity.title }}</h3>
+      <p>{{ activity.description }}</p>
+      <p><strong>Date:</strong> {{ activity.date }}</p>
+      <p><strong>Location:</strong> {{ activity.location }}</p>
+      <div class="images-grid">
+        <img
+          *ngFor="let imageUrl of activity.imageUrls; let j = index"
+          [src]="imageUrl"
+          alt="Activity Image"
+          (click)="openImageCarousel(activity.imageUrls, j)"
+        />
+      </div>
+
+      <!-- Like and Comment Buttons -->
+      <div class="activity-actions">
+        <button class="btn like-btn" (click)="toggleLike(i)">
+          👍 {{ activity.likes }} Like{{ activity.likes === 1 ? '' : 's' }}
+        </button>
+        <button class="btn comment-btn" (click)="toggleComments(i)">
+          💬 {{ activity.comments.length }} Comment{{ activity.comments.length === 1 ? '' : 's' }}
+        </button>
+      </div>
+
+      <!-- Comments Section -->
+      <div class="comments-section" *ngIf="activity.showComments">
+        <div *ngFor="let comment of activity.comments">
+          <p><strong>{{ comment.user }}:</strong> {{ comment.text }}</p>
+        </div>
+        <div class="add-comment">
+          <input
+            type="text"
+            [(ngModel)]="newComment"
+            placeholder="Add a comment..."
+            (keyup.enter)="addComment(i)"
+          />
+          <button (click)="addComment(i)">Post</button>
+        </div>
       </div>
     </div>
-  
-    <!-- Post Activity Modal -->
-    <app-post-activity-modal
-      [show]="showPostActivityModal"
-      (close)="closePostActivityModal()"
-      (post)="addActivity($event)"
-    ></app-post-activity-modal>
   </div>
+
+  <!-- Post Activity Modal -->
+  <app-post-activity-modal
+    [show]="showPostActivityModal"
+    (close)="closePostActivityModal()"
+    (post)="addActivity($event)"
+  ></app-post-activity-modal>
+
+  <!-- Image Carousel Modal -->
+  <div class="carousel-backdrop" *ngIf="showCarousel">
+    <div class="carousel-content">
+      <button class="close-btn" (click)="closeImageCarousel()">×</button>
+      <button class="prev-btn" (click)="prevImage()">‹</button>
+      <img [src]="currentImage" alt="Carousel Image" />
+      <button class="next-btn" (click)="nextImage()">›</button>
+    </div>
+  </div>
+</div>

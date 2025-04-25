@@ -7,52 +7,42 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   styleUrls: ['./post-activity-modal.component.scss'],
 })
 export class PostActivityModalComponent {
-  @Input() show: boolean = false;
-  @Output() close = new EventEmitter<void>();
-  @Output() post = new EventEmitter<any>();
+  @Input() show: boolean = false; // Controls modal visibility
+  @Output() close = new EventEmitter<void>(); // Emits when the modal is closed
+  @Output() post = new EventEmitter<any>(); // Emits the activity data when posted
 
-  activity = {
+  activity: any = {
     title: '',
     description: '',
-    date: '',
     location: '',
+    imageUrls: [],
   };
-  selectedImageFile: File | null = null;
-  imagePreview: string | null = null;
 
-  onFileChange(event: Event): void {
+  handleFileSelection(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.selectedImageFile = input.files[0];
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.imagePreview = reader.result as string;
-      };
-      reader.readAsDataURL(this.selectedImageFile);
+    if (input.files) {
+      for (let i = 0; i < input.files.length; i++) {
+        const file = input.files[i];
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.activity.imageUrls.push(reader.result as string); // Add the image as a base64 string
+        };
+        reader.readAsDataURL(file);
+      }
     }
   }
 
-  onSubmit(): void {
-    const newActivity = {
-      ...this.activity,
-      imageUrl: this.imagePreview,
-    };
-    this.post.emit(newActivity);
-    this.resetForm();
+  postActivity(): void {
+    this.post.emit(this.activity); // Emit the activity data
+    this.resetForm(); // Reset the form after posting
   }
 
-  onCancel(): void {
-    this.close.emit();
-  }
-
-  resetForm(): void {
+  private resetForm(): void {
     this.activity = {
       title: '',
       description: '',
-      date: '',
       location: '',
+      imageUrls: [],
     };
-    this.selectedImageFile = null;
-    this.imagePreview = null;
   }
 }
