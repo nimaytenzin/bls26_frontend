@@ -1,14 +1,14 @@
 <nav class="sidebar">
-	<div class="sidebar-header">
+	<div>
 	  <h3>FACILITY MENU</h3>
 	</div>
 
 	<ul class="sidebar-links">
 		<li class="section-title">Management</li>
 		<li>
-			<a routerLink="/dashboard" 
-			routerLinkActive="active" 
-			(click)="onNavClick('/dashboard')" 
+			<a routerLink="/dashboard"
+			routerLinkActive="active"
+			(click)="onNavClick('/dashboard')"
 			[routerLinkActiveOptions]="{ exact: true }"
 			>
 				Dashboard
@@ -16,9 +16,9 @@
 		</li>
 
 		<li>
-			<a routerLink="/facilities" 
-			routerLinkActive="active" 
-			(click)="onNavClick('/facilities')" 			
+			<a routerLink="/facilities"
+			routerLinkActive="active"
+			(click)="onNavClick('/facilities')"
 			[routerLinkActiveOptions]="{ exact: true }"
 			>
 				My Facilities
@@ -26,17 +26,17 @@
 		</li>
 
 		<li>
-			<a routerLink="/packages" 
-			routerLinkActive="active" 
+			<a routerLink="/packages"
+			routerLinkActive="active"
 			(click)="onNavClick('/packages')"
 			>
 				Packages
 			</a>
 		</li>
-	
+
 		<li>
-			<a [routerLink]="['/facilitators']" 
-			routerLinkActive="active" 
+			<a [routerLink]="['/facilitators']"
+			routerLinkActive="active"
 			(click)="onNavClick('/facilitators')"
 			>
 				Facilitators
@@ -44,8 +44,8 @@
 		</li>
 
 		<li>
-			<a routerLink="/enrollment" 
-			routerLinkActive="active" 
+			<a routerLink="/enrollment"
+			routerLinkActive="active"
 			(click)="onNavClick('/enrollment')"
 			>
 				Enroll Child
@@ -53,8 +53,8 @@
 		</li>
 
 		<li>
-			<a [routerLink]="['/attendance']" 
-			routerLinkActive="active" 
+			<a [routerLink]="['/attendance']"
+			routerLinkActive="active"
 			(click)="onNavClick('/attendance')"
 			>
 				Attendance
@@ -65,8 +65,8 @@
 
 	  <li class="section-title">Announcements</li>
 	  <li>
-		<a [routerLink]="['/post-activity']" 
-		routerLinkActive="active" 
+		<a [routerLink]="['/post-activity']"
+		routerLinkActive="active"
 		(click)="onNavClick('/post-activity')"
 		>
 		  Post Activity
@@ -75,7 +75,7 @@
 
 	  <li class="section-title">Reports & Billing</li>
 	  <li>
-		<a [routerLink]="['/billing']" 
+		<a [routerLink]="['/billing']"
 		routerLinkActive="active"
 		(click)="onNavClick('/billing')"
 		>
@@ -83,7 +83,7 @@
 		</a>
 	  </li>
 	  <li>
-		<a [routerLink]="['/expenses']" 
+		<a [routerLink]="['/expenses']"
 		routerLinkActive="active"
 		(click)="onNavClick('/expenses')"
 		>

@@ -32,4 +32,5 @@ export class FacilitySidebarComponent {
     this.setActiveTab(route); // Save to localStorage
     this.closeSidebar.emit(); // If using mobile view or toggle
   }
+
 }

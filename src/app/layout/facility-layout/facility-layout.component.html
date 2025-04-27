@@ -1,39 +1,29 @@
 <div class="layout-container" [class.mobile]="isMobile">
-    <app-facility-sidebar
+  <app-facility-sidebar
     [class.mobile]="isMobile"
     [class.open]="sidebarOpen && isMobile"
     *ngIf="!isMobile || sidebarOpen"
     (closeSidebar)="isMobile ? toggleSidebar() : null"
     [selectedFacilityId]="selectedFacilityId"
-    ></app-facility-sidebar>
+  ></app-facility-sidebar>
+
+  <!-- Dark backdrop when sidebar is open on mobile -->
+  <div *ngIf="isMobile && sidebarOpen" class="backdrop" (click)="toggleSidebar()"></div>
 
   <main class="main-content">
-    <button class="sidebar-toggle" (click)="toggleSidebar()">☰</button>
 
-    <div class="top-controls">
-			<div class="facility-selector" *ngIf="hasMultipleFacilities">
-        <div *ngIf = "!isMobile">
-          <label for="facilitySelect">Switch Facility:</label>
-        </div>
+		<app-facility-navbar
+		[isMobile]="isMobile"
+		[hasMultipleFacilities]="hasMultipleFacilities"
+		[facilities]="facilities"
+		[user]="user"
+		(facilityChange)="onFacilityChange($event)"
+		(logoutClick)="logout()"
+		(toggleSidebar)="toggleSidebar()"
+	></app-facility-navbar>
 
-				<select #facilitySelect id="facilitySelect" (change)="onFacilityChange(facilitySelect.value)">
-					<option *ngFor="let f of facilities" [value]="f.id">{{ f.name }}</option>
-				</select>
-			</div>
-
-      <div class="user-profile" (click)="toggleDropdown()" tabindex="0">
-        <img [src]="user.avatarUrl" class="avatar" alt="User Avatar" />
-        <div *ngIf = "!isMobile">
-          <span class="username">{{ user.name }}</span>
-        </div>
-        <div class="dropdown-menu" *ngIf="dropdownOpen">
-          <button (click)="logout()">Logout</button>
-        </div>
-      </div>
-    </div>
     <ng-container *ngIf="facilitiesReady">
       <router-outlet></router-outlet>
     </ng-container>
-
   </main>
 </div>

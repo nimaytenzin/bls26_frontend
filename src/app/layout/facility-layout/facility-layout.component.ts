@@ -12,9 +12,9 @@ import { Router } from '@angular/router';
 export class FacilityLayoutComponent implements OnInit {
   isMobile = false;
   sidebarOpen = false;
+	dropdownOpen = false;
   facilities: any[] = [];
   selectedFacilityId: string | null = null;
-  dropdownOpen = false;
 
   facilitiesReady = false;
   facilitiesLoading = true;
