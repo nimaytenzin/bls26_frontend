@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 
 import { FacilityLayoutComponent } from "../layout/facility-layout/facility-layout.component";
+import { FacilityNavbarComponent } from "../layout/facility-layout/facility-navbar/facility-navbar.component";
 import { FacilitySidebarComponent } from "../layout/facility-layout/facility-sidebar/facility-sidebar.component";
 import { FacilityRoutingModule } from "./facility-routing.module";
 import { FacilityDashboardComponent } from "./facility-dashboard/facility-dashboard.component";
@@ -37,6 +38,7 @@ import { BillingComponent } from './billing/billing.component';
         PostActivityComponent,
         PostActivityModalComponent,
         BillingComponent,
+				FacilityNavbarComponent
     ],
     imports: [
         CommonModule,

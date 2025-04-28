@@ -1,213 +1,45 @@
 @import 'src/styles/variables';
 
 .layout-container {
+	position: relative;
   display: flex;
-  min-height: 100vh;
+	flex-direction: column;
+  height: 100vh;
+	width: 100%;
 
   &.mobile {
     flex-direction: column;
   }
 }
 
-// Sidebar
-.sidebar {
-  width: $sidebar-width;
-  min-height: 100vh;
-  background-color: #ffffff;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
-  padding: 2rem 1rem;
+.content-body {
   display: flex;
-  flex-direction: column;
-  z-index: 1000;
-
-  .sidebar-header {
-    text-align: center;
-    margin-bottom: 2rem;
-
-    h3 {
-      font-size: 1.25rem;
-      color: #007bff;
-      margin: 0;
-    }
-  }
-
-  .sidebar-links {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-
-    li {
-      margin-bottom: 1rem;
-
-      &.section-title {
-        font-weight: 600;
-        font-size: 0.95rem;
-        color: #666;
-        margin-top: 1.5rem;
-        margin-bottom: 0.5rem;
-        text-transform: uppercase;
-      }
-
-      a {
-        display: block;
-        padding: 0.6rem 1rem;
-        text-decoration: none;
-        color: #333;
-        font-weight: 500;
-        border-radius: 6px;
-        transition: background-color 0.2s;
-
-        &.active,
-        &:hover {
-          background-color: #e6f0ff;
-          color: #007bff;
-        }
-      }
-    }
-  }
-
-  @media (max-width: 768px) {
-    position: fixed;
-    left: 0;
-    top: 0;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    height: 100vh;
-    background-color: #ffffff;
-
-    &.open {
-      transform: translateX(0);
-    }
-  }
-}
-
-// Top Controls (Facility Selector + User Profile)
-.top-controls {
-  box-sizing: border-box;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 64px;
-  padding: 0 2rem;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  z-index: 200;
-
-  @media (max-width: 768px) {
-		width: 100%;
-    padding: 0 1rem;
-  }
-
-  .facility-selector {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    label {
-      font-weight: 500;
-      color: #444;
-    }
-
-    select {
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
-      background-color: #f5f5f5;
-
-      &:focus {
-        border-color: #007bff;
-        outline: none;
-        background-color: #fff;
-      }
-    }
-  }
-
-  .user-profile {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    position: relative;
-
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #007bff;
-    }
-
-    .username {
-      font-weight: 500;
-      color: #333;
-    }
-
-    .dropdown-menu {
-      position: absolute;
-      top: 48px;
-      right: 0;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      width: 160px;
-      padding: 0.5rem 0;
-      z-index: 999;
-
-      button {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        background: none;
-        border: none;
-        text-align: left;
-        font-size: 0.95rem;
-        font-family: inherit;
-        color: #333;
-        cursor: pointer;
-
-        &:hover {
-          background-color: #f0f0f0;
-        }
-      }
-    }
-  }
+  flex: 1;
+  overflow: hidden;
 }
 
 // Main Content
 .main-content {
-  flex: 1;
-  margin-top: $sidebar-margin-top;
-  background: #fdfdfd;
-  margin-left: $sidebar-width;
+	flex: 1;
+	background: #fdfdfd;
+	padding: 1rem;
+	overflow-y: auto;
   transition: margin-left 0.3s ease;
 
   @media (max-width: 768px) {
     margin-left: 0;
+    margin-top: 64px; /* Important: shift content down on mobile */
   }
 }
 
-// Hamburger toggle button
-.sidebar-toggle {
-  display: none;
-  position: absolute;
-  top: 0.5rem;
-  left: 1rem;
-  z-index: 1000;
-  font-size: 1.5rem;
-  padding: 0.5rem 1rem;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-  @media (max-width: 768px) {
-    display: block;
-  }
+// Mobile dark backdrop
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.5); /* semi-transparent black */
+  z-index: 100;
 }
+

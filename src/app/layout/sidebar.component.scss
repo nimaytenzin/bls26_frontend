@@ -1,58 +1,71 @@
 @import 'src/styles/variables';
-:host {
-	box-sizing: border-box;
-  position: fixed;
-  top: $sidebar-margin-top;
-  width: $sidebar-width;
+
+/* Sidebar Default (Desktop) */
+.sidebar {
+  position: sticky;
+  top: 64px;
+  width: 250px;
+  min-height: calc(100vh - 64px);
   background-color: #007bff;
   color: white;
-  padding: 1rem;
+  overflow-y: auto;
   transition: all 0.3s ease;
-  min-height: 100vh;
+  z-index: 500;
+
+  h3 {
+    font-size: 1.25rem;
+    margin: 1rem 1.5rem;
+  }
 
   ul {
     list-style: none;
     padding: 0;
     margin: 0;
 
-    li {
-      margin: 0.5rem 0;
+    li.section-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin: 1.5rem 0.5rem 0.5rem 1.5rem;
+      text-transform: uppercase;
+    }
 
-      a {
-        color: white;
-        text-decoration: none;
-        display: block;
-        padding: 0.5rem 0.75rem;
-        border-radius: 6px;
-        transition: background 0.2s ease;
+    a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      padding: 0.75rem 2.5rem;
+      font-size: 1rem;
+      transition: background 0.2s ease;
 
-        &.active {
-          background-color: rgba(255, 255, 255, 0.25);
-          font-weight: 600;
-        }
+      &.active {
+        background-color: rgba(255, 255, 255, 0.25);
+        font-weight: 600;
+      }
 
-        &:hover {
-          background-color: rgba(255, 255, 255, 0.2);
-        }
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
       }
     }
   }
+}
 
-  &.mobile {
-    position: absolute;
-    top: 3.5rem;
-    left: 1rem;
-    width: calc(100% - 2rem);
-    z-index: 1000;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    transform: scaleY(0);
-    transform-origin: top;
-    transition: transform 0.3s ease;
+/* Mobile Behavior */
+@media (max-width: 768px) {
+  .sidebar {
+    position: absolute; /* NOT sticky anymore */
+    top: 64px; /* Below top-nav */
+    left: 0;
+    width: 100%;
+    background-color: #007bff;
+    overflow-y: auto;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+    z-index: 2000;
   }
 
-  &.mobile.open {
-    transform: scaleY(1);
+  /* Sidebar Open (Dropdown) */
+  .sidebar.open {
+    max-height: 500px; /* Adjust based on menu length */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 }
