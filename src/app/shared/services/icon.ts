@@ -1,0 +1,62 @@
+// Importing solid icons
+import {
+	faHome, faUser, faUsers, faCog, faBell, faSignOutAlt, faEnvelope,
+  faChartBar, faShoppingCart, faTrashAlt, faEdit, faPlus, faMinus,
+  faCheck, faTimes, faArrowRight, faArrowLeft, faCalendarAlt,
+  faSearch, faUpload, faDownload, faLock, faUnlock, faEye, faEyeSlash,
+  faQuestionCircle, faInfoCircle, faDashboard, faListAlt, faShoppingBag,
+	faChild,
+	faCheckSquare,
+	faBullhorn,
+	faCreditCard,
+	faMoneyBill
+} from '@fortawesome/free-solid-svg-icons';
+
+// Importing brand icons
+import { faFacebook, faGoogle, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
+export const ICONS = {
+
+	// Solid icons
+  faHome: faHome,
+	faDashboard: faDashboard,
+	faList: faListAlt,
+	faPackage: faShoppingBag,
+  faUser: faUser,
+	faFacilitators: faUsers,
+	faChild: faChild,
+	faAttendance: faCheckSquare,
+	faAnnouncement: faBullhorn,
+	faInvoice: faCreditCard,
+	faExpenses: faMoneyBill,
+	faSettings: faCog,
+	faBell: faBell,
+	logout: faSignOutAlt,
+	mail: faEnvelope,
+	chart: faChartBar,
+	cart: faShoppingCart,
+	delete: faTrashAlt,
+	edit: faEdit,
+	add: faPlus,
+	remove: faMinus,
+	check: faCheck,
+	close: faTimes,
+	next: faArrowRight,
+	previous: faArrowLeft,
+	calendar: faCalendarAlt,
+	search: faSearch,
+	upload: faUpload,
+	download: faDownload,
+	lock: faLock,
+	unlock: faUnlock,
+	view: faEye,
+	hide: faEyeSlash,
+	help: faQuestionCircle,
+	info: faInfoCircle,
+
+	// Brand icons
+	facebook: faFacebook,
+	google: faGoogle,
+	github: faGithub,
+	linkedin: faLinkedin,
+
+};
