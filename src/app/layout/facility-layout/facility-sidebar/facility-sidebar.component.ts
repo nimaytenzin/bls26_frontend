@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
   styleUrls: ['../../sidebar.component.scss']
 })
 export class FacilitySidebarComponent {
-  @Input() facilities: any[] = []; // ✅ Add this line to fix the error
+  @Input() facilities: any[] = [];
   @Input() selectedFacilityId!: string | null;
   @Output() closeSidebar = new EventEmitter<void>();
 

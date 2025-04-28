@@ -1,9 +1,8 @@
-.top-controls {
-  box-sizing: border-box;
-  position: fixed;
+.top-nav {
+  position: sticky;
   top: 0;
   left: 0;
-  right: 0;
+  width: 100%;
   height: 64px;
   padding: 0 2rem;
   background-color: #fff;
@@ -13,11 +12,30 @@
   align-items: center;
   gap: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  z-index: 200;
+  z-index: 100;
 
   @media (max-width: 768px) {
     width: 100%;
     padding: 0 1rem;
+  }
+
+  /* 👇 move sidebar toggle button inside top-nav */
+  .sidebar-toggle {
+    display: none;
+    position: absolute; /* NOT fixed */
+    top: 0.75rem;
+    left: 1rem;
+    font-size: 1.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    @media (max-width: 768px) {
+      display: block;
+    }
   }
 
   .facility-selector {
@@ -92,25 +110,5 @@
         }
       }
     }
-  }
-}
-
-// Hamburger toggle button
-.sidebar-toggle {
-  display: none;
-  position: fixed; /* <-- Changed from absolute to fixed */
-  top: 0.75rem;
-  left: 1rem;
-  z-index: 2100; /* higher than sidebar (2000) and backdrop (1500) */
-  font-size: 1.5rem;
-  padding: 0.5rem 1rem;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-  @media (max-width: 768px) {
-    display: block;
   }
 }
