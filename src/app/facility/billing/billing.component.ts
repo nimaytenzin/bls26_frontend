@@ -1,11 +1,19 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { jsPDF } from 'jspdf';
+
 
 @Component({
   selector: 'app-billing',
-  standalone: false,
+  standalone: true,
   templateUrl: './billing.component.html',
   styleUrls: ['./billing.component.scss'],
+	imports: [
+		CommonModule,
+		FormsModule
+	],
+	providers: [],
 })
 export class BillingComponent {
   parents: any[] = [

@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { FacilityDashboardService } from '../../core/services/facility-dashboard.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-facility-dashboard',
-  standalone: false,
+  standalone: true,
   templateUrl: './facility-dashboard.component.html',
   styleUrls: ['./facility-dashboard.component.scss'],
+	imports: [
+		CommonModule
+	],
 })
 export class FacilityDashboardComponent implements OnInit {
   totalEnrollments: number = 0;

@@ -1,10 +1,16 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-post-activity-modal',
-  standalone: false,
+  standalone: true,
   templateUrl: './post-activity-modal.component.html',
   styleUrls: ['./post-activity-modal.component.scss'],
+	imports: [
+		CommonModule,
+		FormsModule,
+	]
 })
 export class PostActivityModalComponent {
   @Input() show: boolean = false; // Controls modal visibility

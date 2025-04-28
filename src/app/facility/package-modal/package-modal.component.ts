@@ -1,12 +1,17 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Package } from '../../core/services/package.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-package-modal',
-  standalone: false,
+  standalone: true,
   templateUrl: './package-modal.component.html',
-  styleUrls: ['./package-modal.component.scss']
+  styleUrls: ['./package-modal.component.scss'],
+	imports: [
+		CommonModule,
+		ReactiveFormsModule
+	],
 })
 export class PackageModalComponent implements OnChanges {
   @Input() show = false;

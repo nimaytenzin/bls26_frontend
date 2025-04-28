@@ -1,7 +1,12 @@
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { AppModule } from './app/app.module';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http'; // Import provideHttpClient
+import { AppComponent } from './app/app.component';
+import { routes } from './app/app.routes';
 
-platformBrowserDynamic().bootstrapModule(AppModule)
-  .catch(err => console.error(err));
-// This code bootstraps the Angular application by loading the AppModule.
-// The platformBrowserDynamic function is used to compile and launch the application in the browser.
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideRouter(routes), // Provide the routes
+    provideHttpClient(), // Provide HttpClient
+  ],
+}).catch(err => console.error(err));

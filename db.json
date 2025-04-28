@@ -164,6 +164,14 @@
       "name": "MyPack",
       "description": "fsdf",
       "price": 50
+    },
+    {
+      "id": "fb5d",
+      "facilityId": "1",
+      "ownerId": "1",
+      "name": "dafs",
+      "description": "fsdfs",
+      "price": 35
     }
   ],
   "children": [

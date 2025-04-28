@@ -2,12 +2,20 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import { PublicNavbarComponent } from '../../shared/components/public-navbar/public-navbar.component';
 
 @Component({
   selector: 'app-login',
-	standalone: false,
+	standalone: true,
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  styleUrls: ['./login.component.scss'],
+	imports: [
+		CommonModule,
+		ReactiveFormsModule,
+		PublicNavbarComponent
+	],
 })
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;

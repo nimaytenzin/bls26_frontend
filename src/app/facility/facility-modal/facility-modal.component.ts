@@ -1,11 +1,16 @@
+import { CommonModule } from '@angular/common';
 import { Component, Input, Output, EventEmitter, OnChanges } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-facility-modal',
-	standalone: false,
+	standalone: true,
   templateUrl: './facility-modal.component.html',
-  styleUrls: ['./facility-modal.component.scss']
+  styleUrls: ['./facility-modal.component.scss'],
+	imports: [
+		CommonModule,
+		ReactiveFormsModule,
+	],
 })
 export class FacilityModalComponent implements OnChanges {
   @Input() data: any = null; // Can be facility data or null
@@ -44,7 +49,7 @@ export class FacilityModalComponent implements OnChanges {
       this.facilityForm.markAllAsTouched();
     }
   }
- 
+
   onCancel(): void {
     this.cancel.emit();
   }

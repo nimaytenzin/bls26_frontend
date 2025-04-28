@@ -3,12 +3,18 @@ import { filter, distinctUntilChanged } from 'rxjs/operators';
 import { PackageService, Package } from '../../core/services/package.service';
 import { FacilityService } from '../../core/services/facility.service';
 import { AuthService } from '../../auth/auth.service';
+import { PackageModalComponent } from '../package-modal/package-modal.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-package',
-  standalone: false,
+  standalone: true,
   templateUrl: './package.component.html',
-  styleUrls: ['./package.component.scss']
+  styleUrls: ['./package.component.scss'],
+	imports: [
+		CommonModule,
+		PackageModalComponent,
+	]
 })
 export class PackageComponent implements OnInit {
   packages: Package[] = [];
@@ -38,7 +44,7 @@ export class PackageComponent implements OnInit {
 		  alert('Invalid facility ID. Please select a valid facility.');
 		  return;
 		}
-	  
+
 		this.packageService.getPackagesByFacility(facilityId).subscribe({
 		  next: data => (this.packages = data),
 		  error: err => {

@@ -1,10 +1,18 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { PostActivityModalComponent } from '../post-activity-modal/post-activity-modal.component';
 
 @Component({
   selector: 'app-post-activity',
-  standalone: false,  
+  standalone: true,
   templateUrl: './post-activity.component.html',
   styleUrls: ['./post-activity.component.scss'],
+	imports: [
+		CommonModule,
+		FormsModule,
+		PostActivityModalComponent,
+	],
 })
 export class PostActivityComponent {
   activities: any[] = [

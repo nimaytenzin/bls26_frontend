@@ -1,11 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { Facilitator, FacilitatorService } from '../../core/services/facilitator.service';
+import { CommonModule } from '@angular/common';
+import { FacilitatorModalComponent } from '../facilitator-modal/facilitator-modal.component';
 
 @Component({
   selector: 'app-facilitator',
-  standalone: false,
+  standalone: true,
   templateUrl: './facilitator.component.html',
   styleUrls: ['./facilitator.component.scss'],
+	imports: [
+		CommonModule,
+		FacilitatorModalComponent
+	],
+	providers: []
 })
 export class FacilitatorComponent implements OnInit {
   facilitators: Facilitator[] = [];

@@ -1,13 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
-import { Attendance, AttendanceService } from '../../core/services/attendance.service';
+import { AttendanceService } from '../../core/services/attendance.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { FacilityService } from '../../core/services/facility.service';
 
 @Component({
   selector: 'app-attendance',
-	standalone: false,
+	standalone: true,
   templateUrl: './attendance.component.html',
-  styleUrls: ['./attendance.component.scss']
+  styleUrls: ['./attendance.component.scss'],
+	imports: [
+		CommonModule,
+		FormsModule,
+	],
+	providers: [],
 })
 export class AttendanceComponent implements OnInit {
   attendanceRecords: {

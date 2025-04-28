@@ -1,5 +1,4 @@
-import { NgModule } from "@angular/core";
-import { RouterModule, Routes } from "@angular/router";
+import { Routes } from "@angular/router";
 
 import { AuthGuard } from "../auth/auth.guard";
 import { FacilityDashboardComponent } from "./facility-dashboard/facility-dashboard.component";
@@ -13,7 +12,7 @@ import { FacilityLayoutComponent } from "../layout/facility-layout/facility-layo
 import { BillingComponent } from "./billing/billing.component";
 
 
-const routes: Routes = [
+export const facilityRoutes: Routes = [
   {
     path: '',
     component: FacilityLayoutComponent, // <- Moved layout here
@@ -29,10 +28,3 @@ const routes: Routes = [
     ]
   }
 ];
-
-@NgModule({
-    imports: [RouterModule.forChild(routes)],
-    exports: [RouterModule]
-    })
-
-export class FacilityRoutingModule { }

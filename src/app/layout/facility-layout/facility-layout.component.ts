@@ -1,13 +1,23 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FacilityService } from '../../core/services/facility.service';
 import { AuthService } from '../../auth/auth.service';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { FacilitySidebarComponent } from './facility-sidebar/facility-sidebar.component';
+import { FacilityNavbarComponent } from './facility-navbar/facility-navbar.component';
+import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-facility-layout',
-  standalone: false,
+  standalone: true,
   templateUrl: './facility-layout.component.html',
   styleUrls: ['../layout.component.scss'],
+	imports: [
+		FacilitySidebarComponent,
+		FacilityNavbarComponent,
+		CommonModule,
+		RouterModule,
+	],
 })
 export class FacilityLayoutComponent implements OnInit {
   isMobile = false;

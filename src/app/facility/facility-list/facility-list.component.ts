@@ -1,12 +1,19 @@
 import { Component, OnInit } from '@angular/core';
 import { FacilityService } from '../../core/services/facility.service';
 import { AuthService } from '../../auth/auth.service';
+import { CommonModule } from '@angular/common';
+import { FacilityModalComponent } from '../facility-modal/facility-modal.component';
 
 @Component({
   selector: 'app-facility-list',
-  standalone: false,
+  standalone: true,
   templateUrl: './facility-list.component.html',
-  styleUrls: ['./facility-list.component.scss']
+  styleUrls: ['./facility-list.component.scss'],
+	imports: [
+		CommonModule,
+		FacilityModalComponent,
+	],
+	providers: []
 })
 export class FacilityListComponent implements OnInit {
   facilities: any[] = [];
@@ -21,17 +28,17 @@ export class FacilityListComponent implements OnInit {
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     if (!user) return;
-  
+
     const existing = this.facilityService.getFacilitiesSnapshot();
     if (existing.length === 0) {
       this.facilityService.loadFacilitiesForOwner(user.id);
     }
-  
+
     this.facilityService.facilities$.subscribe(data => {
       this.facilities = data;
     });
   }
-  
+
   openAddFacilityDialog(): void {
     this.selectedFacility = null;
     this.showModal = true;

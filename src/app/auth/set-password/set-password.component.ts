@@ -1,13 +1,18 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-set-password',
-	standalone: false,
+	standalone: true,
   templateUrl: './set-password.component.html',
-  styleUrls: ['./set-password.component.scss']
+  styleUrls: ['./set-password.component.scss'],
+	imports: [
+		CommonModule,
+		ReactiveFormsModule,
+	]
 })
 export class SetPasswordComponent implements OnInit {
   form!: FormGroup;

@@ -1,11 +1,17 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Facilitator } from '../../core/services/facilitator.service';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-facilitator-modal',
-  standalone: false,
+  standalone: true,
   templateUrl: './facilitator-modal.component.html',
   styleUrls: ['./facilitator-modal.component.scss'],
+	imports: [
+		CommonModule,
+		FormsModule
+	],
 })
 export class FacilitatorModalComponent {
   @Input() show: boolean = false; // Add the `show` property

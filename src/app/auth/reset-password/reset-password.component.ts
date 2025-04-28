@@ -1,11 +1,18 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { PublicNavbarComponent } from '../../shared/components/public-navbar/public-navbar.component';
 
 @Component({
   selector: 'app-reset-password',
-  standalone: false,
+  standalone: true,
   templateUrl: './reset-password.component.html',
-  styleUrl: './reset-password.component.scss'
+  styleUrls: ['./reset-password.component.scss'],
+	imports: [
+		CommonModule,
+		ReactiveFormsModule,
+		PublicNavbarComponent,
+	],
 })
 export class ResetPasswordComponent {
   resetForm: FormGroup;

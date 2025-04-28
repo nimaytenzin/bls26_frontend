@@ -1,24 +1,19 @@
-import {
-  Component,
-  OnInit,
-  ViewChildren,
-  QueryList,
-  ElementRef,
-} from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  FormArray,
-} from '@angular/forms';
+import { Component, OnInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, FormArray, ReactiveFormsModule } from '@angular/forms';
 import { EnrollmentService } from '../../core/services/enrollment.service';
 import { FacilityService } from '../../core/services/facility.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-enrollment',
-  standalone: false,
+  standalone: true,
   templateUrl: './enrollment.component.html',
   styleUrls: ['./enrollment.component.scss'],
+	imports: [
+		CommonModule,
+		ReactiveFormsModule,
+	],
+	providers: [],
 })
 export class EnrollmentComponent implements OnInit {
   currentStep = 0;

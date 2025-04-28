@@ -1,11 +1,15 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-facility-sidebar',
-  standalone: false,
+  standalone: true,
   templateUrl: './facility-sidebar.component.html',
-  styleUrls: ['../../sidebar.component.scss']
+  styleUrls: ['../../sidebar.component.scss'],
+	imports: [
+		RouterModule
+	],
 })
 export class FacilitySidebarComponent {
   @Input() facilities: any[] = [];

@@ -1,6 +1,6 @@
 <div class="facilitator-container">
     <button class="add-button" (click)="openAddModal()">Add Facilitator</button>
-  
+
     <div class="facilitator-list">
       <div class="facilitator-card" *ngFor="let facilitator of facilitators">
         <img [src]="facilitator.imageUrl" alt="{{ facilitator.name }}" class="avatar" />
@@ -16,7 +16,7 @@
         </div>
       </div>
     </div>
-  
+
     <app-facilitator-modal
       *ngIf="showModal"
       [show]="showModal"

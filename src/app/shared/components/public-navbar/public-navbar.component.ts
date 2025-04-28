@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-public-navbar',
-  standalone: false,
+  standalone: true,
   templateUrl: './public-navbar.component.html',
-  styleUrl: './public-navbar.component.scss'
+  styleUrl: './public-navbar.component.scss',
+	imports: [CommonModule],
 })
 export class PublicNavbarComponent {
   isMenuOpen = false;
