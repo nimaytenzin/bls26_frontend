@@ -1,22 +1,21 @@
+@import 'src/styles/variables.scss';
 .top-nav {
   position: sticky;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 64px;
-  padding: 0 2rem;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 15px 20px;
+	margin-left: 10px;
+	border-radius: 16px;
+  background-color: $white;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  gap: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   z-index: 100;
 
   @media (max-width: 768px) {
     width: 100%;
-    padding: 0 1rem;
+		margin: auto;
   }
 
   /* 👇 move sidebar toggle button inside top-nav */

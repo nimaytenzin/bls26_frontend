@@ -3,9 +3,10 @@
 .layout-container {
 	position: relative;
   display: flex;
-	flex-direction: column;
+	flex-direction: row;
   height: 100vh;
 	width: 100%;
+	padding: 10px;
 
   &.mobile {
     flex-direction: column;
@@ -14,6 +15,7 @@
 
 .content-body {
   display: flex;
+	flex-direction: column;
   flex: 1;
   overflow: hidden;
 }
@@ -35,8 +37,9 @@
   position: fixed;
   top: 0;
   left: 0;
-  height: 100%;
-  width: 100%;
+	padding: 0 10px;
+  //height: 100%;
+  //width: 100%;
   background: rgba(0, 0, 0, 0.5); /* semi-transparent black */
   z-index: 100;
 }

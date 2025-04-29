@@ -1,29 +1,30 @@
 <div class="layout-container" [class.mobile]="isMobile">
-		<app-facility-navbar
-			[isMobile]="isMobile"
-			[hasMultipleFacilities]="hasMultipleFacilities"
-			[facilities]="facilities"
-			[user]="user"
-			(facilityChange)="onFacilityChange($event)"
-			(logoutClick)="logout()"
-			(toggleSidebar)="toggleSidebar()"
-		></app-facility-navbar>
 
-	<div class="content-body">
 		<app-facility-sidebar
-			[class.mobile]="isMobile"
-			[class.open]="sidebarOpen && isMobile"
-			*ngIf="!isMobile || sidebarOpen"
-			(closeSidebar)="isMobile ? toggleSidebar() : null"
-			[selectedFacilityId]="selectedFacilityId"
+		[class.mobile]="isMobile"
+		[class.open]="sidebarOpen && isMobile"
+		*ngIf="!isMobile || sidebarOpen"
+		(closeSidebar)="isMobile ? toggleSidebar() : null"
+		[selectedFacilityId]="selectedFacilityId"
 		></app-facility-sidebar>
 
-		<main class="main-content">
-			<ng-container *ngIf="facilitiesReady">
-				<router-outlet></router-outlet>
-			</ng-container>
-		</main>
-	</div>
+		<div class="content-body">
+			<app-facility-navbar
+				[isMobile]="isMobile"
+				[hasMultipleFacilities]="hasMultipleFacilities"
+				[facilities]="facilities"
+				[user]="user"
+				(facilityChange)="onFacilityChange($event)"
+				(logoutClick)="logout()"
+				(toggleSidebar)="toggleSidebar()"
+			></app-facility-navbar>
+
+			<main class="main-content">
+				<ng-container *ngIf="facilitiesReady">
+					<router-outlet></router-outlet>
+				</ng-container>
+			</main>
+		</div>
 	<!-- Dark backdrop when sidebar is open on mobile -->
   <div *ngIf="isMobile && sidebarOpen" class="backdrop" (click)="toggleSidebar()"></div>
 </div>
