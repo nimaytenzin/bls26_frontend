@@ -4,24 +4,24 @@
 	</div>
 
 	<ul>
-		<li class="section-title">Management</li>
 		<li>
 			<a routerLink="/dashboard"
 			routerLinkActive="active"
 			(click)="onNavClick('/dashboard')"
 			[routerLinkActiveOptions]="{ exact: true }"
 			>
-				Dashboard
+				<fa-icon [icon]="icons.faDashboard"></fa-icon> Dashboard
 			</a>
 		</li>
 
+		<li class="section-title">Management</li>
 		<li>
 			<a routerLink="/facilities"
 			routerLinkActive="active"
 			(click)="onNavClick('/facilities')"
 			[routerLinkActiveOptions]="{ exact: true }"
 			>
-				My Facilities
+				<fa-icon [icon]="icons.faList"></fa-icon> My Facilities
 			</a>
 		</li>
 
@@ -30,7 +30,7 @@
 			routerLinkActive="active"
 			(click)="onNavClick('/packages')"
 			>
-				Packages
+				<fa-icon [icon]="icons.faPackage"></fa-icon> Packages
 			</a>
 		</li>
 
@@ -39,7 +39,7 @@
 			routerLinkActive="active"
 			(click)="onNavClick('/facilitators')"
 			>
-				Facilitators
+				<fa-icon [icon]="icons.faFacilitators"></fa-icon> Facilitators
 			</a>
 		</li>
 
@@ -48,7 +48,7 @@
 			routerLinkActive="active"
 			(click)="onNavClick('/enrollment')"
 			>
-				Enroll Child
+				<fa-icon [icon]="icons.faChild"></fa-icon> Enroll Child
 			</a>
 		</li>
 
@@ -57,11 +57,9 @@
 			routerLinkActive="active"
 			(click)="onNavClick('/attendance')"
 			>
-				Attendance
+				<fa-icon [icon]="icons.faAttendance"></fa-icon> Attendance
 			</a>
 		</li>
-
-
 
 	  <li class="section-title">Announcements</li>
 	  <li>
@@ -69,7 +67,7 @@
 		routerLinkActive="active"
 		(click)="onNavClick('/post-activity')"
 		>
-		  Post Activity
+			<fa-icon [icon]="icons.faAnnouncement"></fa-icon>Post Activity
 		</a>
 	  </li>
 
@@ -79,7 +77,7 @@
 		routerLinkActive="active"
 		(click)="onNavClick('/billing')"
 		>
-			Invoice
+			<fa-icon [icon]="icons.faInvoice"></fa-icon> Invoice
 		</a>
 	  </li>
 	  <li>
@@ -87,7 +85,7 @@
 		routerLinkActive="active"
 		(click)="onNavClick('/expenses')"
 		>
-			Expenses
+			<fa-icon [icon]="icons.faExpenses"></fa-icon> Expenses
 		</a>
 	  </li>
 	</ul>

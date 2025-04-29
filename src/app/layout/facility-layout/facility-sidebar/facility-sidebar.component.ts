@@ -1,6 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { ICONS } from '../../../shared/services/icon';
+
 
 @Component({
   selector: 'app-facility-sidebar',
@@ -8,11 +11,14 @@ import { RouterModule } from '@angular/router';
   templateUrl: './facility-sidebar.component.html',
   styleUrls: ['../../sidebar.component.scss'],
 	imports: [
-		RouterModule
+		RouterModule,
+		FontAwesomeModule,
 	],
 })
 export class FacilitySidebarComponent {
-  @Input() facilities: any[] = [];
+
+	icons = ICONS;
+	@Input() facilities: any[] = [];
   @Input() selectedFacilityId!: string | null;
   @Output() closeSidebar = new EventEmitter<void>();
 

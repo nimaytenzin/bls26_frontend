@@ -4,13 +4,13 @@
 .sidebar {
   position: sticky;
   top: 64px;
-  width: 250px;
+  width: $sidebar-width;
   min-height: calc(100vh - 64px);
-  background-color: #007bff;
-  color: white;
+  background-color: $white;
   overflow-y: auto;
-  transition: all 0.3s ease;
-  z-index: 500;
+  z-index: 100;
+	border-right: 1px solid $gray-medium;
+	box-shadow: 5px 0 20px rgba(0, 0, 0, 0.03);
 
   h3 {
     font-size: 1.25rem;
@@ -19,8 +19,10 @@
 
   ul {
     list-style: none;
-    padding: 0;
-    margin: 0;
+
+		li {
+			padding: 0 15px;
+		}
 
     li.section-title {
       font-weight: 600;
@@ -29,21 +31,34 @@
       text-transform: uppercase;
     }
 
+		fa-icon {
+			padding-right: 0.5rem;
+		}
+
     a {
-      color: white;
-      text-decoration: none;
       display: block;
-      padding: 0.75rem 2.5rem;
-      font-size: 1rem;
-      transition: background 0.2s ease;
+			align-items: center;
+			padding: 14px 20px;
+			color: $text-secondary;
+			text-decoration: none;
+			font-size: 15px;
+			font-weight: 500;
+			margin-bottom: 8px;
+			border-radius: 12px;
+      transition: all 0.3s ease;
+			border-left: 3px solid transparent;
 
       &.active {
-        background-color: rgba(255, 255, 255, 0.25);
+        background-color: $primary-light;
+				color: $primary-color;
         font-weight: 600;
+				border-left: 3px solid $primary-color;
       }
 
       &:hover {
-        background-color: rgba(255, 255, 255, 0.2);
+        background-color: $primary-light;
+				color: $primary-color;
+				transform: translateX(5px);
       }
     }
   }
@@ -56,7 +71,7 @@
     top: 64px; /* Below top-nav */
     left: 0;
     width: 100%;
-    background-color: #007bff;
+    background-color: $white;
     overflow-y: auto;
     max-height: 0;
     transition: max-height 0.3s ease;

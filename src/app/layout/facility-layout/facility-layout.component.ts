@@ -6,7 +6,6 @@ import { FacilitySidebarComponent } from './facility-sidebar/facility-sidebar.co
 import { FacilityNavbarComponent } from './facility-navbar/facility-navbar.component';
 import { CommonModule } from '@angular/common';
 
-
 @Component({
   selector: 'app-facility-layout',
   standalone: true,
@@ -17,6 +16,7 @@ import { CommonModule } from '@angular/common';
 		FacilityNavbarComponent,
 		CommonModule,
 		RouterModule,
+
 	],
 })
 export class FacilityLayoutComponent implements OnInit {
