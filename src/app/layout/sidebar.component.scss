@@ -14,8 +14,8 @@
   background-color: $white;
   z-index: 100;
 	border-right: 1px solid $gray-medium;
-	box-shadow: 5px 0 20px rgba(0, 0, 0, 0.03); // box-shadow: [offset-x] [offset-y] [blur-radius] [spread-radius] [color] [inset];
-
+	box-shadow: $sidebar-shadow;
+  
   @media (max-width: 768px) {
     border-radius: 0;
   }

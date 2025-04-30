@@ -1,12 +1,14 @@
+@import 'src/styles/variables';
+
 .dashboard-wrapper {
   padding: 2rem;
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #f5f8fc, #edf1f7);
-  min-height: 100vh;
+  background: $white;
+  min-height: 100%;
+  border-radius: $border-radius;
 
   h2 {
     font-size: 1.75rem;
-    color: #007bff;
+    color: $primary-color;
     margin-bottom: 2rem;
     text-align: center; /* Center the title */
   }
@@ -27,13 +29,13 @@
       h3 {
         font-size: 2.2rem;
         margin: 0;
-        color: #007bff;
+        color: $primary-color;
       }
 
       p {
         margin-top: 0.75rem;
         font-size: 0.95rem;
-        color: #555;
+        color: $text-secondary;
       }
     }
   }
@@ -44,7 +46,7 @@
 
     h3 {
       font-size: 1.5rem;
-      color: #333;
+      color: $text-primary;
       margin-bottom: 1rem;
     }
 
@@ -54,7 +56,7 @@
 
       li {
         font-size: 1rem;
-        color: #555;
+        color: $text-secondary;
         margin-bottom: 0.5rem;
       }
     }
@@ -66,12 +68,12 @@
 
     h3 {
       font-size: 1.5rem;
-      color: #333;
+      color: $text-primary;
       margin-bottom: 1rem;
     }
 
     .btn {
-      background-color: #007bff;
+      background-color: $primary-color;
       color: #fff;
       font-weight: 500;
       border: none;
@@ -82,7 +84,7 @@
       transition: background-color 0.2s ease-in-out;
 
       &:hover {
-        background-color: #0056b3;
+        background-color: $primary-dark;
       }
     }
   }
