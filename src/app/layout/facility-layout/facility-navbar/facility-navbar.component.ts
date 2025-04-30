@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { ICONS } from '../../../shared/services/icon';
 
 @Component({
   selector: 'app-facility-navbar',
@@ -7,7 +9,8 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   templateUrl: './facility-navbar.component.html',
   styleUrls: ['./facility-navbar.component.scss'],
 	imports: [
-		CommonModule
+		CommonModule,
+    FontAwesomeModule
 	]
 })
 export class FacilityNavbarComponent {
@@ -19,7 +22,7 @@ export class FacilityNavbarComponent {
   @Output() logoutClick = new EventEmitter<void>();
 	@Output() toggleSidebar = new EventEmitter<void>();
 
-
+  icons = ICONS;
   dropdownOpen = false;
 
   toggleDropdown() {

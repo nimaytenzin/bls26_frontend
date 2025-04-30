@@ -1,5 +1,6 @@
 <div class="top-nav">
-	<button class="sidebar-toggle" (click)="toggleSidebar.emit()">☰</button>
+	<button class="sidebar-toggle" (click)="toggleSidebar.emit()"><fa-icon [icon]="icons.faHamburger"></fa-icon></button>
+  
   <div class="facility-selector" *ngIf="hasMultipleFacilities">
     <div *ngIf="!isMobile">
       <label for="facilitySelect">Switch Facility:</label>

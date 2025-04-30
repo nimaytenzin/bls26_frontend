@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ICONS } from '../../../shared/services/icon';
+import { CommonModule } from '@angular/common';
 
 
 @Component({
@@ -11,6 +12,7 @@ import { ICONS } from '../../../shared/services/icon';
   templateUrl: './facility-sidebar.component.html',
   styleUrls: ['../../sidebar.component.scss'],
 	imports: [
+    CommonModule,
 		RouterModule,
 		FontAwesomeModule,
 	],
@@ -18,6 +20,7 @@ import { ICONS } from '../../../shared/services/icon';
 export class FacilitySidebarComponent {
 
 	icons = ICONS;
+  @Input() isMobile = false;
 	@Input() facilities: any[] = [];
   @Input() selectedFacilityId!: string | null;
   @Output() closeSidebar = new EventEmitter<void>();

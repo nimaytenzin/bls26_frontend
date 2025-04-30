@@ -1,15 +1,17 @@
 // Importing solid icons
 import {
 	faHome, faUser, faUsers, faCog, faBell, faSignOutAlt, faEnvelope,
-  faChartBar, faShoppingCart, faTrashAlt, faEdit, faPlus, faMinus,
-  faCheck, faTimes, faArrowRight, faArrowLeft, faCalendarAlt,
-  faSearch, faUpload, faDownload, faLock, faUnlock, faEye, faEyeSlash,
-  faQuestionCircle, faInfoCircle, faDashboard, faListAlt, faShoppingBag,
+  	faChartBar, faShoppingCart, faTrashAlt, faEdit, faPlus, faMinus,
+  	faCheck, faTimes, faArrowRight, faArrowLeft, faCalendarAlt,
+  	faSearch, faUpload, faDownload, faLock, faUnlock, faEye, faEyeSlash,
+  	faQuestionCircle, faInfoCircle, faDashboard, faListAlt, faShoppingBag,
 	faChild,
 	faCheckSquare,
 	faBullhorn,
 	faCreditCard,
-	faMoneyBill
+	faMoneyBill,
+	faHamburger,
+	faBars
 } from '@fortawesome/free-solid-svg-icons';
 
 // Importing brand icons
@@ -17,17 +19,18 @@ import { faFacebook, faGoogle, faGithub, faLinkedin } from '@fortawesome/free-br
 export const ICONS = {
 
 	// Solid icons
-  faHome: faHome,
+  	faHome: faHome,
 	faDashboard: faDashboard,
 	faList: faListAlt,
 	faPackage: faShoppingBag,
-  faUser: faUser,
+  	faUser: faUser,
 	faFacilitators: faUsers,
 	faChild: faChild,
 	faAttendance: faCheckSquare,
 	faAnnouncement: faBullhorn,
 	faInvoice: faCreditCard,
 	faExpenses: faMoneyBill,
+	faHamburger: faBars,
 	faSettings: faCog,
 	faBell: faBell,
 	logout: faSignOutAlt,

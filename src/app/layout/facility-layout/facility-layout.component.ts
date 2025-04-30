@@ -16,7 +16,6 @@ import { CommonModule } from '@angular/common';
 		FacilityNavbarComponent,
 		CommonModule,
 		RouterModule,
-
 	],
 })
 export class FacilityLayoutComponent implements OnInit {
@@ -126,6 +125,12 @@ export class FacilityLayoutComponent implements OnInit {
     this.sidebarOpen = !this.sidebarOpen;
   }
 
+  onSidebarClose() {
+    if (this.isMobile) {
+      this.toggleSidebar();
+    }
+  }
+  
   toggleDropdown(): void {
     this.dropdownOpen = !this.dropdownOpen;
   }
@@ -142,15 +147,12 @@ export class FacilityLayoutComponent implements OnInit {
     }
   }
 
+  private detectMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
+  }
+
   @HostListener('window:resize')
   onResize() {
     this.detectMobile();
-  }
-
-  private detectMobile(): void {
-    this.isMobile = window.innerWidth <= 768;
-    window.addEventListener('resize', () => {
-      this.isMobile = window.innerWidth <= 768;
-    });
   }
 }

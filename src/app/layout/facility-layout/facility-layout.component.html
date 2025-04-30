@@ -1,11 +1,12 @@
 <div class="layout-container" [class.mobile]="isMobile">
 
 		<app-facility-sidebar
-		[class.mobile]="isMobile"
-		[class.open]="sidebarOpen && isMobile"
-		*ngIf="!isMobile || sidebarOpen"
-		(closeSidebar)="isMobile ? toggleSidebar() : null"
-		[selectedFacilityId]="selectedFacilityId"
+			*ngIf="!isMobile || sidebarOpen"
+			[isMobile]="isMobile"
+			[selectedFacilityId]="selectedFacilityId"
+			[class.mobile]="isMobile"
+			[class.open]="sidebarOpen && isMobile"
+			(closeSidebar)="onSidebarClose()"
 		></app-facility-sidebar>
 
 		<div class="content-body">

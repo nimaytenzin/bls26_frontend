@@ -1,8 +1,9 @@
 <nav class="sidebar">
+	<div *ngIf="!isMobile">
 	<div class="brand-container">
 	  <img src="/images/logo.png" class="logo"/><span class="logo-txt">FACILITY</span>
 	</div>
-
+</div>
 	<ul>
 		<li>
 			<a routerLink="/dashboard"
@@ -89,4 +90,5 @@
 		</a>
 	  </li>
 	</ul>
-  </nav>
+</nav>
+
