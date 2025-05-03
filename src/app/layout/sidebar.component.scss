@@ -15,10 +15,6 @@
   z-index: 100;
 	border-right: 1px solid $gray-medium;
 	box-shadow: $sidebar-shadow;
-  
-  @media (max-width: 768px) {
-    border-radius: 0;
-  }
 
 	.brand-container {
 		display: flex;
@@ -88,25 +84,20 @@
 /* Mobile Behavior */
 @media (max-width: 768px) {
 
-  .sidebar {
-    position: fixed; /* NOT sticky anymore */
-    top: $top-nav-height; /* Below top-nav */
-  	width: 100%;
-    justify-content: center;
-		min-height: fit-content;
-    background-color: $white;
-    overflow-y: auto;
-    max-height: 100vh;
-    transition: 0.3s ease;
-    z-index: 500;
-  }
-
-  /* Sidebar Open (Dropdown) */
-  .sidebar.open {
-    max-height: 500px; /* Adjust based on menu length */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-
+	.sidebar {
+		position: fixed;
+		top: $top-nav-height;
+		width: 100%;
+		border-radius: 0;
+		display: flex;
+		flex-direction: column;
+		overflow-y: auto;
+		min-height: calc(100% - $top-nav-height);
+		max-height: calc(100% - $top-nav-height);
+		background-color: $white;
+		transition: 0.3s ease;
+		z-index: 500;
+	}
 }
 
 
