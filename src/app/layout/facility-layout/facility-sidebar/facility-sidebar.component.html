@@ -62,6 +62,15 @@
 			</a>
 		</li>
 
+		<li>
+			<a [routerLink]="['/observations']"
+			routerLinkActive="active"
+			(click)="onNavClick('/observations')"
+			>
+				<fa-icon [icon]="icons.faAttendance"></fa-icon> Observations
+			</a>
+		</li>
+
 	  <li class="section-title">Announcements</li>
 	  <li>
 		<a [routerLink]="['/post-activity']"

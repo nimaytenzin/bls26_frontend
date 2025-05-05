@@ -1,30 +1,30 @@
-@import 'src/styles/variables';
+@import 'src/styles/theme';
 
 .dashboard-wrapper {
-  padding: 2rem;
-  background: $white;
+  padding: $spacing-xl;
+  background: $background-card;
   min-height: 100%;
   border-radius: $border-radius;
-	box-shadow: $content-wrapper-shadow;
+  box-shadow: $content-wrapper-shadow;
 
   h2 {
-    font-size: 1.75rem;
+    font-size: $font-size-xl;
     color: $primary-color;
-    margin-bottom: 2rem;
-    text-align: center; /* Center the title */
+    margin-bottom: $spacing-xl;
+    text-align: center;
   }
 
   .stat-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.5rem;
-    padding: 0 2rem; /* Add padding for the grid content */
+    gap: $spacing-lg;
+    padding: 0 $spacing-xl;
 
     .stat-card {
-      background: $white;
-      border-radius: 10px;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
-      padding: 2rem;
+      background: $background-card;
+      border-radius: $card-radius;
+      box-shadow: $card-shadow;
+      padding: $spacing-xl;
       text-align: center;
 
       h3 {
@@ -34,21 +34,21 @@
       }
 
       p {
-        margin-top: 0.75rem;
-        font-size: 0.95rem;
+        margin-top: $spacing-sm;
+        font-size: $font-size-sm;
         color: $text-secondary;
       }
     }
   }
 
   .recent-activities {
-    margin-top: 2rem;
-    padding: 0 2rem; /* Add padding for the content */
+    margin-top: $spacing-xl;
+    padding: 0 $spacing-xl;
 
     h3 {
-      font-size: 1.5rem;
+      font-size: $font-size-lg;
       color: $text-primary;
-      margin-bottom: 1rem;
+      margin-bottom: $spacing-md;
     }
 
     ul {
@@ -56,36 +56,36 @@
       padding: 0;
 
       li {
-        font-size: 1rem;
+        font-size: $font-size-md;
         color: $text-secondary;
-        margin-bottom: 0.5rem;
+        margin-bottom: $spacing-xs;
       }
     }
   }
 
   .quick-actions {
-    margin-top: 2rem;
-    padding: 0 2rem; /* Add padding for the content */
+    margin-top: $spacing-xl;
+    padding: 0 $spacing-xl;
 
     h3 {
-      font-size: 1.5rem;
+      font-size: $font-size-lg;
       color: $text-primary;
-      margin-bottom: 1rem;
+      margin-bottom: $spacing-md;
     }
 
     .btn {
-      background-color: $primary-color;
-      color: $white;
-      font-weight: 500;
+      background-color: $button-primary-bg;
+      color: $button-primary-text;
+      font-weight: $font-weight-medium;
       border: none;
       padding: 0.6rem 1.4rem;
-      border-radius: 6px;
-      margin-right: 1rem;
+      border-radius: $button-radius;
+      margin-right: $spacing-sm;
       cursor: pointer;
-      transition: background-color 0.2s ease-in-out;
+      transition: background-color $transition-fast $transition-ease;
 
       &:hover {
-        background-color: $primary-dark;
+        background-color: $button-primary-hover-bg;
       }
     }
   }
@@ -93,11 +93,11 @@
   .footer {
     margin-top: 3rem;
     text-align: center;
-    font-size: 0.9rem;
-    color: #777;
+    font-size: $font-size-sm;
+    color: $text-muted;
 
     a {
-      color: #007bff;
+      color: $text-link;
       text-decoration: none;
 
       &:hover {
@@ -106,40 +106,39 @@
     }
   }
 
-  /* Media Queries for Responsiveness */
   @media (max-width: 768px) {
     .stat-grid {
-      padding: 0 1rem; /* Reduce padding on smaller screens */
-      gap: 1rem; /* Reduce gap between cards */
+      padding: 0 $spacing-md;
+      gap: $spacing-md;
     }
 
     h2 {
-      font-size: 1.5rem; /* Reduce title font size */
+      font-size: $font-size-lg;
     }
 
     .stat-card h3 {
-      font-size: 1.8rem; /* Reduce card title font size */
+      font-size: 1.8rem;
     }
 
     .recent-activities,
     .quick-actions {
-      padding: 0 1rem; /* Reduce padding for content sections */
+      padding: 0 $spacing-md;
     }
 
     .quick-actions .btn {
-      margin-right: 0; /* Remove margin between buttons */
-      margin-bottom: 1rem; /* Add spacing below buttons */
-      width: 100%; /* Make buttons full-width */
+      margin-right: 0;
+      margin-bottom: $spacing-sm;
+      width: 100%;
     }
   }
 
   @media (max-width: 480px) {
     .stat-grid {
-      grid-template-columns: 1fr; /* Stack cards vertically */
+      grid-template-columns: 1fr;
     }
 
     .footer {
-      font-size: 0.8rem; /* Reduce footer font size */
+      font-size: $font-size-xs;
     }
   }
 }

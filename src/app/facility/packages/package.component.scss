@@ -1,65 +1,66 @@
+@import 'src/styles/theme';
+
 .package-container {
   max-width: 900px;
-  margin-left: auto;
-	margin-right: auto;
-  background: #ffffff;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-  font-family: 'Poppins', sans-serif;
+  margin: 0 auto;
+  background: $white;
+  padding: $spacing-xl;
+  border-radius: $border-radius;
+  box-shadow: $content-wrapper-shadow;
+  font-family: $font-primary;
 
   .btn.primary {
-    background-color: #007bff;
-    color: #fff;
-    font-weight: 500;
+    background-color: $primary-color;
+    color: $white;
+    font-weight: $font-weight-medium;
     border: none;
     padding: 0.6rem 1.4rem;
-    border-radius: 6px;
-    margin-bottom: 1.5rem;
+    border-radius: $button-radius;
+    margin-bottom: $spacing-lg;
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
+    transition: background-color $transition-fast $transition-ease;
 
     &:hover {
-      background-color: #0056b3;
+      background-color: $primary-dark;
     }
   }
 
   .btn-outline {
     background-color: transparent;
-    border: 1px solid #007bff;
-    color: #007bff;
+    border: 1px solid $primary-color;
+    color: $primary-color;
     padding: 0.4rem 0.8rem;
-    font-size: 0.85rem;
-    border-radius: 4px;
-    margin-right: 0.5rem;
+    font-size: $font-size-sm;
+    border-radius: $button-radius;
+    margin-right: $spacing-sm;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: all $transition-fast $transition-ease;
 
     &:hover {
-      background-color: #e6f0ff;
-      color: #0056b3;
-      border-color: #0056b3;
+      background-color: $primary-light;
+      color: $primary-dark;
+      border-color: $primary-dark;
     }
 
     &:disabled {
-      background-color: #f0f0f0;
-      border-color: #ccc;
-      color: #999;
+      background-color: $disabled-bg;
+      border-color: $border-color;
+      color: $disabled-color;
       cursor: not-allowed;
     }
   }
 
   .btn-danger {
-    background-color: #dc3545;
-    color: #fff;
+    background-color: $danger;
+    color: $white;
     border: none;
     padding: 0.4rem 0.8rem;
-    font-size: 0.85rem;
-    border-radius: 4px;
+    font-size: $font-size-sm;
+    border-radius: $button-radius;
     cursor: pointer;
 
     &:hover {
-      background-color: #b02a37;
+      background-color: $danger-dark;
     }
   }
 
@@ -69,25 +70,25 @@
       border-collapse: collapse;
 
       thead {
-        background-color: #f4f6f8;
+        background-color: $background-muted;
 
         th {
-          padding: 0.75rem 1rem;
+          padding: $spacing-sm $spacing-md;
           text-align: left;
-          font-weight: 600;
-          font-size: 0.95rem;
-          color: #333;
+          font-weight: $font-weight-semibold;
+          font-size: $font-size-sm;
+          color: $text-primary;
         }
       }
 
       tbody {
         tr {
-          border-bottom: 1px solid #eee;
+          border-bottom: 1px solid $divider-color;
 
           td {
-            padding: 0.75rem 1rem;
-            font-size: 0.95rem;
-            color: #444;
+            padding: $spacing-sm $spacing-md;
+            font-size: $font-size-sm;
+            color: $text-secondary;
           }
 
           td:last-child {

@@ -1,45 +1,43 @@
-/* Modal Backdrop */
+@import 'src/styles/theme';
+
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* Ensure it appears above other elements */
-  overflow: hidden; /* Prevent scrolling outside the modal */
+  z-index: $z-index-modal;
+  overflow: hidden;
 }
 
-/* Modal Content */
 .modal-content {
-  background: #ffffff;
-  padding: 2rem;
-  border-radius: 8px;
+  background: $white;
+  padding: $spacing-xl;
+  border-radius: $card-radius;
   width: 500px;
   max-width: 90%;
-  max-height: 90%; /* Ensure the modal doesn't exceed the screen height */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  max-height: 90%;
+  box-shadow: $modal-shadow;
   animation: fadeIn 0.3s ease-in-out;
-  overflow-y: auto; /* Add vertical scrolling if content overflows */
+  overflow-y: auto;
+  font-family: $font-primary;
 
   h2 {
-    margin-bottom: 1.5rem;
-    color: #007bff;
-    font-size: 1.5rem;
+    margin-bottom: $spacing-lg;
+    color: $primary-color;
+    font-size: $font-size-xl;
     text-align: center;
   }
 
   .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: $spacing-lg;
 
     label {
       display: block;
-      margin-bottom: 0.5rem;
-      font-weight: bold;
-      color: #333;
+      margin-bottom: $spacing-xs;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
     }
 
     input,
@@ -47,45 +45,30 @@
       box-sizing: border-box;
       width: 100%;
       padding: 0.75rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-      background-color: #f8f9fa;
+      border: 1px solid $gray;
+      border-radius: $button-radius;
+      font-size: $font-size-md;
+      background-color: $gray-light;
 
       &:focus {
-        border-color: #007bff;
+        border-color: $primary-color;
         outline: none;
-        background-color: #ffffff;
-      }
-    }
-
-    .file-name {
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      color: #555;
-
-      .image-preview {
-        margin-top: 1rem;
-        width: 100px;
-        height: 100px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        object-fit: cover;
+        background-color: $white;
       }
     }
 
     .image-preview-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Flow left-to-right, top-to-bottom */
-      gap: 0.5rem;
-      margin-top: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: $spacing-sm;
+      margin-top: $spacing-sm;
 
       img {
         width: 100%;
         height: 100px;
         object-fit: cover;
-        border-radius: 6px;
-        border: 1px solid #ccc;
+        border-radius: $card-radius;
+        border: 1px solid $gray;
       }
     }
   }
@@ -93,42 +76,42 @@
   .form-actions {
     display: flex;
     justify-content: space-between;
-    margin-top: 1.5rem;
+    margin-top: $spacing-lg;
 
     .btn {
       padding: 0.75rem 1.5rem;
       border: none;
-      border-radius: 6px;
-      font-size: 1rem;
+      border-radius: $button-radius;
+      font-size: $font-size-md;
       cursor: pointer;
-      transition: background-color 0.2s ease-in-out;
+      font-weight: $font-weight-medium;
 
       &.cancel {
-        background-color: #ccc;
-        color: #333;
+        background-color: $gray;
+        color: $text-on-light;
 
         &:hover {
-          background-color: #bbb;
+          background-color: darken($gray, 10%);
         }
       }
 
       &.primary {
-        background-color: #007bff;
-        color: #fff;
+        background-color: $primary-color;
+        color: $white;
 
         &:hover {
-          background-color: #0056b3;
+          background-color: $primary-dark;
         }
       }
     }
   }
 }
 
-/* Animation for Modal Fade-In */
+/* Modal Fade-In Animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
@@ -136,16 +119,16 @@
   }
 }
 
-/* Responsive Design */
+/* Responsive Behavior */
 @media (max-width: 768px) {
   .modal-content {
     width: 90%;
-    padding: 1.5rem;
+    padding: $spacing-lg;
   }
 
   .form-actions {
     flex-direction: column;
-    gap: 1rem;
+    gap: $spacing-sm;
 
     .btn {
       width: 100%;

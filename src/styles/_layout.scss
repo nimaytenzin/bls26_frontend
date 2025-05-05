@@ -1,0 +1,38 @@
+// ==============================
+// 🧱 LAYOUT DIMENSIONS
+// ==============================
+
+$sidebar-width: 280px;
+$top-nav-height: 80px;
+$footer-height: 60px;
+$container-padding: 1.5rem;
+$border-radius: 16px;
+$card-radius: 12px;
+$button-radius: 8px;
+
+// ==============================
+// 📏 SPACING SCALE (Margins & Padding)
+// ==============================
+
+$spacing-xs: 0.25rem;
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+
+// ==============================
+// 🧱 Z-INDEX SCALE (Layering Order)
+// ==============================
+
+$z-index-nav: 100;
+$z-index-sidebar: 200;
+$z-index-modal: 1000;
+$z-index-tooltip: 1100;
+
+// ==============================
+// 🪟 ELEVATIONS / DEPTH LEVELS
+// ==============================
+
+$elevation-1: 0 1px 3px rgba(0, 0, 0, 0.1);
+$elevation-2: 0 4px 6px rgba(0, 0, 0, 0.1);
+$elevation-3: 0 10px 20px rgba(0, 0, 0, 0.15);

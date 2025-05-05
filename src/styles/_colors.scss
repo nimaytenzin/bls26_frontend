@@ -1,0 +1,58 @@
+// ==============================
+// 🎨 COLORS
+// ==============================
+
+// Primary Palette
+$primary-color: #4270f4;
+$primary-light: #edf0fb;
+$primary-dark: #0f2a65;
+
+// Secondary Palette
+$secondary-color: #3b3f5c;
+$secondary-light: #dbe1ed;
+$secondary-dark: #2c2f3d;
+
+// Accent
+$accent-color: #ff9800;
+$accent-light: #ffe0b2;
+$accent-dark: #ef6c00;
+
+// Status Colors
+$danger: #f36c6c;
+$danger-dark: #d32f2f;
+$danger-light: #fdecea;
+$warning: #ffb74d;
+$warning-light: #fff8e1;
+$info: #42a5f5;
+$success: #2dbf78;
+$success-dark: #1a9e5e;
+$success-light: #e6f7f1;
+
+// Grays
+$gray-xlight: #f9f9fc;
+$gray-light: #f5f7ff;
+$gray-medium: #e6e9f4;
+$gray: #d0d3e0;
+$gray-dark: #828795;
+$gray-xdark: #555b6e;
+
+// Disabled Colors
+$disabled-color: #c1c7d0;         // for text/icons
+$disabled-bg: #f3f3f3;            // for backgrounds
+
+// Base Colors
+$white: #ffffff;
+$black: #000000;
+
+// ==============================
+// ✍️ TEXT COLORS
+// ==============================
+
+$text-primary: #262a39;
+$text-secondary: #6c7380;
+$text-muted: #9ca3af;
+$text-on-primary: $white;
+$text-on-secondary: $white;
+$text-on-light: #1a1a1a;
+$text-on-dark: #ffffff;
+$text-link: $primary-color;

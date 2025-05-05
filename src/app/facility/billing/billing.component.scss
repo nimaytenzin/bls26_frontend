@@ -1,143 +1,158 @@
+@import 'src/styles/theme';
+
 .billing-page {
-    max-width: 900px;
-    margin-left: auto;
-		margin-right: auto;
-    padding: 2rem;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: $spacing-lg;
 
-    h1 {
-      text-align: center;
-      color: #007bff;
-    }
+  h1 {
+    text-align: center;
+    color: $primary-color;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+  }
 
-    .billing-table {
-      margin-top: 2rem;
+  .billing-table {
+    margin-top: $spacing-xl;
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-
-        th,
-        td {
-          padding: 0.75rem;
-          text-align: left;
-          border: 1px solid #ddd;
-        }
-
-        th {
-          background-color: #f8f9fa;
-          font-weight: bold;
-        }
-
-        td.paid {
-          color: #28a745;
-          font-weight: bold;
-        }
-
-        td.due {
-          color: #dc3545;
-          font-weight: bold;
-        }
-
-        .btn {
-          padding: 0.5rem 1rem;
-          border: none;
-          border-radius: 6px;
-          font-size: 0.9rem;
-          cursor: pointer;
-          transition: background-color 0.2s ease-in-out;
-
-          &.invoice-btn {
-            background-color: #ffc107;
-            color: #333;
-
-            &:hover {
-              background-color: #e0a800;
-            }
-          }
-
-          &.report-btn {
-            background-color: #007bff;
-            color: #fff;
-
-            &:hover {
-              background-color: #0056b3;
-            }
-          }
-        }
-      }
-    }
-
-    .modal-backdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
+    table {
       width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
+      border-collapse: collapse;
+      font-family: $font-primary;
 
-    .modal-content {
-      background: #ffffff;
-      padding: 2rem;
-      border-radius: 8px;
-      width: 400px;
-      max-width: 90%;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-
-      h2 {
-        margin-bottom: 1.5rem;
-        color: #007bff;
-        text-align: center;
+      th,
+      td {
+        padding: $spacing-sm;
+        text-align: left;
+        border: 1px solid $divider-color;
+        font-size: $font-size-sm;
       }
 
-      .form-group {
-        margin-bottom: 1.5rem;
+      th {
+        background-color: $background-muted;
+        font-weight: $font-weight-bold;
+        color: $text-primary;
+      }
 
-        label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: bold;
-          color: #333;
-        }
+      td.paid {
+        color: $success;
+        font-weight: $font-weight-semibold;
+      }
 
-        input,
-        select {
-          width: 100%;
-          padding: 0.5rem;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-          font-size: 1rem;
-        }
+      td.due {
+        color: $danger;
+        font-weight: $font-weight-semibold;
       }
 
       .btn {
-        padding: 0.75rem 1.5rem;
+        padding: 0.5rem 1rem;
         border: none;
-        border-radius: 6px;
-        font-size: 1rem;
+        border-radius: $button-radius;
+        font-size: $font-size-sm;
         cursor: pointer;
+        transition: background-color $transition-fast $transition-ease;
+        font-weight: $font-weight-medium;
 
-        &.primary {
-          background-color: #007bff;
-          color: #fff;
+        &.invoice-btn {
+          background-color: $accent-color;
+          color: $text-on-light;
 
           &:hover {
-            background-color: #0056b3;
+            background-color: $accent-dark;
           }
         }
 
-        &.cancel {
-          background-color: #ccc;
-          color: #333;
+        &.report-btn {
+          background-color: $button-primary-bg;
+          color: $button-primary-text;
 
           &:hover {
-            background-color: #bbb;
+            background-color: $button-primary-hover-bg;
           }
         }
       }
     }
   }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: $z-index-modal;
+  }
+
+  .modal-content {
+    background: $background-card;
+    padding: $spacing-lg;
+    border-radius: $card-radius;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: $modal-shadow;
+
+    h2 {
+      margin-bottom: $spacing-lg;
+      color: $primary-color;
+      text-align: center;
+      font-size: $font-size-lg;
+    }
+
+    .form-group {
+      margin-bottom: $spacing-lg;
+
+      label {
+        display: block;
+        margin-bottom: $spacing-xs;
+        font-weight: $font-weight-semibold;
+        color: $text-primary;
+        font-size: $label-font-size;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: $input-padding;
+        border: 1px solid $input-border;
+        border-radius: $input-border-radius;
+        font-size: $font-size-md;
+        background-color: $input-bg;
+        color: $input-text;
+
+        &:focus {
+          border-color: $input-focus-border;
+          outline: none;
+        }
+      }
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: $button-radius;
+      font-size: $font-size-md;
+      cursor: pointer;
+      font-weight: $font-weight-medium;
+
+      &.primary {
+        background-color: $button-primary-bg;
+        color: $button-primary-text;
+
+        &:hover {
+          background-color: $button-primary-hover-bg;
+        }
+      }
+
+      &.cancel {
+        background-color: $button-disabled-bg;
+        color: $button-disabled-text;
+
+        &:hover {
+          background-color: darken($button-disabled-bg, 5%);
+        }
+      }
+    }
+  }
+}

@@ -1,3 +1,5 @@
+@import 'src/styles/theme';
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -5,87 +7,99 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: $z-index-modal;
 
   .modal-content {
-    background: #fff;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    background: $background-card;
+    padding: $spacing-xl;
+    border-radius: $card-radius;
+    box-shadow: $modal-shadow;
     width: 100%;
     max-width: 500px;
-    font-family: 'Poppins', sans-serif;
+    font-family: $font-primary;
 
     h2 {
-      font-size: 1.6rem;
-      font-weight: 600;
-      color: #007bff;
-      margin-bottom: 1.5rem;
+      font-size: $font-size-xl;
+      font-weight: $font-weight-semibold;
+      color: $primary-color;
+      margin-bottom: $spacing-lg;
       text-align: center;
     }
 
     .form-group {
-      margin-bottom: 1.5rem;
+      margin-bottom: $spacing-lg;
 
       label {
         display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-        color: #333;
+        margin-bottom: $spacing-xs;
+        font-weight: $font-weight-medium;
+        color: $text-primary;
+        font-size: $font-size-sm;
       }
 
       input,
       textarea {
-				box-sizing: border-box;
         width: 100%;
-				max-width: 100%;
-        padding: 0.75rem;
-        font-size: 1rem;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        background-color: #f8f9fa;
+        padding: $input-padding;
+        font-size: $font-size-md;
+        border: 1px solid $input-border;
+        border-radius: $input-border-radius;
+        background-color: $input-bg;
+        color: $input-text;
 
         &:focus {
-          border-color: #007bff;
           outline: none;
+          border-color: $input-focus-border;
+        }
+
+        &::placeholder {
+          color: $input-placeholder;
         }
       }
 
       textarea {
         min-height: 100px;
+        resize: vertical;
       }
     }
 
     .form-actions {
       display: flex;
       justify-content: flex-end;
-      gap: 1rem;
-      margin-top: 2rem;
+      gap: $spacing-md;
+      margin-top: $spacing-xl;
 
       .btn {
         padding: 0.6rem 1.4rem;
-        border-radius: 6px;
-        font-weight: 500;
+        border-radius: $button-radius;
+        font-weight: $font-weight-medium;
+        font-size: $font-size-md;
         border: none;
-        font-size: 1rem;
         cursor: pointer;
-        font-family: 'Poppins', sans-serif;
+        font-family: $font-primary;
+        transition: background-color $transition-fast $transition-ease;
 
         &.cancel {
-          background: #e0e0e0;
-          color: #333;
+          background-color: $button-disabled-bg;
+          color: $button-disabled-text;
 
           &:hover {
-            background: #d5d5d5;
+            background-color: darken($button-disabled-bg, 5%);
           }
         }
 
         &.primary {
-          background: #007bff;
-          color: #fff;
+          background-color: $button-primary-bg;
+          color: $button-primary-text;
 
           &:hover {
-            background: #005dc1;
+            background-color: $button-primary-hover-bg;
+          }
+
+          &:disabled {
+            background-color: $disabled-bg;
+            color: $disabled-color;
+            cursor: not-allowed;
           }
         }
       }

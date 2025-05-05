@@ -1,0 +1,11 @@
+@import './colors';
+// ==============================
+// 💬 STATE COLORS (Hover, Focus, Disabled)
+// ==============================
+
+$hover-background: rgba($primary-color, 0.08);
+$focus-ring: 0 0 0 3px rgba($primary-color, 0.2);
+$disabled-color: #c1c7d0;
+$disabled-bg: #f3f3f3;
+$focus-color: $primary-color;
+$hover-color: darken($primary-color, 8%);

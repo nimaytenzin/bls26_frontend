@@ -25,6 +25,7 @@ export const facilityRoutes: Routes = [
       { path: "attendance", component: AttendanceComponent },
       { path: "post-activity", component: PostActivityComponent },
       { path: "billing", component: BillingComponent },
+			{ path: "observations", loadComponent: () => import('./observations/observations.component').then(m => m.ObservationsComponent) },
     ]
   }
 ];

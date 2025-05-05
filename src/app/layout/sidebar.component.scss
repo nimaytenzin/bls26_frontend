@@ -1,103 +1,101 @@
-@import 'src/styles/variables';
+@import 'src/styles/theme';
 
-/* Sidebar Default (Desktop) */
+/* Sidebar Styles */
 .sidebar {
   position: sticky;
   top: 0;
   width: $sidebar-width;
-	border-radius: $border-radius;
-	display: flex;
-	flex-direction: column;
-	overflow-y: auto;
-  min-height: 100%;
-	max-height: 100%;
   background-color: $white;
+  border-radius: $border-radius;
+  border-right: 1px solid $gray-medium;
+  box-shadow: $sidebar-shadow;
   z-index: 100;
-	border-right: 1px solid $gray-medium;
-	box-shadow: $sidebar-shadow;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-height: 100%;
+  max-height: 100%;
+  padding-bottom: 2rem;
 
-	.brand-container {
-		display: flex;
-		align-items: center;
-		padding: 20px 30px 30px 30px;
+  .brand-container {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 2rem 2rem;
 
     .logo {
       height: 40px;
       width: auto;
-      margin-right: 12px;
+      margin-right: 0.75rem;
     }
 
     .logo-txt {
-      font-size: 20px;
-      font-weight: bold;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: $primary-color;
     }
-	}
-
+  }
 
   ul {
     list-style: none;
+    padding: 0;
+    margin: 0;
 
-		li {
-			padding: 0 15px;
-		}
+    li {
+      padding: 0 1rem;
 
-    li.section-title {
-      font-weight: 600;
-      font-size: 0.95rem;
-      margin: 1.5rem 0.5rem 0.5rem 1.5rem;
-      text-transform: uppercase;
-    }
-
-		fa-icon {
-			padding-right: 0.5rem;
-		}
-
-    a {
-      display: block;
-			align-items: center;
-			padding: 14px 20px;
-			color: $text-secondary;
-			text-decoration: none;
-			font-size: 15px;
-			font-weight: 500;
-			margin-bottom: 8px;
-			border-radius: 12px;
-      transition: all 0.3s ease;
-			border-left: 3px solid transparent;
-
-      &.active {
-        background-color: $primary-light;
-				color: $primary-color;
+      &.section-title {
+        font-size: 0.8rem;
         font-weight: 600;
-				border-left: 3px solid $primary-color;
+        color: $text-muted;
+        text-transform: uppercase;
+        margin: 1.5rem 0 0.5rem 1.25rem;
       }
 
-      &:hover {
-        background-color: $primary-light;
-				color: $primary-color;
-				transform: translateX(5px);
+      fa-icon {
+        margin-right: 0.5rem;
+      }
+
+      a {
+        display: flex;
+        align-items: center;
+        padding: 0.85rem 1.25rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: $text-secondary;
+        text-decoration: none;
+        border-radius: 10px;
+        margin-bottom: 0.5rem;
+        transition: background-color 0.25s ease, transform 0.25s ease;
+
+        &.active {
+          background-color: $primary-light;
+          color: $primary-color;
+          font-weight: 600;
+          border-left: 3px solid $primary-color;
+        }
+
+        &:hover {
+          background-color: $primary-light;
+          color: $primary-color;
+          transform: translateX(4px);
+        }
       }
     }
   }
 }
 
-/* Mobile Behavior */
+/* Mobile Sidebar */
 @media (max-width: 768px) {
-
-	.sidebar {
-		position: fixed;
-		top: $top-nav-height;
-		width: 100%;
-		border-radius: 0;
-		display: flex;
-		flex-direction: column;
-		overflow-y: auto;
-		min-height: calc(100% - $top-nav-height);
-		max-height: calc(100% - $top-nav-height);
-		background-color: $white;
-		transition: 0.3s ease;
-		z-index: 500;
-	}
+  .sidebar {
+    position: fixed;
+    top: $top-nav-height;
+    left: 0;
+    width: 100%;
+    height: calc(100% - $top-nav-height);
+    border-radius: 0;
+    border-right: none;
+    box-shadow: $modal-shadow;
+    z-index: 500;
+    transition: transform 0.3s ease;
+  }
 }
-
-

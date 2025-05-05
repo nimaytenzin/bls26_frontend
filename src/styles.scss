@@ -1,18 +1,17 @@
 /* You can add global styles to this file, and also import other style files */
-@import './styles/variables';
-// @import './styles/theme';
+@import './styles/theme';
 
 * {
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
-	font-family: 'Poppins', 'Roboto', sans-serif;
 }
 
 body {
-  	font-size: 16px;
-	background-color: $gray-light;
-  	color: $text-primary;
+	font-family: $font-primary, $font-secondary, sans-serif;
+  font-size: $font-size-md;
+  color: $text-primary;
+	background-color: $background-page;
 }
 
 

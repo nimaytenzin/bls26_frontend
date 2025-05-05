@@ -1,31 +1,38 @@
-@import 'src/styles/variables';
+@import 'src/styles/theme';
 
 .facility-container {
   max-width: 900px;
   margin-left: auto;
   margin-right: auto;
-  background: #fff;
-  border-radius: 12px;
+  background: $background-card;
+  border-radius: $card-radius;
   box-shadow: $content-wrapper-shadow;
-  padding: 2rem;
+  padding: $spacing-xl;
 
   .facility-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: $spacing-lg;
 
     h2 {
-      font-size: 1.5rem;
-      color: #333;
+      font-size: $font-size-xl;
+      color: $text-primary;
     }
 
     .btn.primary {
-      background-color: #007bff;
-      color: #fff;
+      background-color: $button-primary-bg;
+      color: $button-primary-text;
       padding: 0.6rem 1.2rem;
-      border-radius: 6px;
+      border-radius: $button-radius;
       border: none;
+      font-weight: $font-weight-medium;
+      cursor: pointer;
+      transition: background-color $transition-fast $transition-ease;
+
+      &:hover {
+        background-color: $button-primary-hover-bg;
+      }
     }
   }
 
@@ -37,40 +44,47 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #f9f9f9;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 8px;
-      border: 1px solid #e0e0e0;
+      background: $gray-light;
+      padding: $spacing-md;
+      margin-bottom: $spacing-md;
+      border-radius: $card-radius;
+      border: 1px solid $divider-color;
 
       .facility-info {
         h3 {
           margin: 0;
-          color: #007bff;
+          color: $primary-color;
+          font-size: $font-size-lg;
         }
 
         .description {
-          margin: 0.25rem 0;
-          color: #555;
+          margin: $spacing-xs 0;
+          color: $text-secondary;
+          font-size: $font-size-sm;
         }
 
         .location {
-          font-size: 0.9rem;
-          color: #777;
+          font-size: $font-size-sm;
+          color: $text-muted;
         }
       }
 
-      .actions .btn.outline {
-        background: transparent;
-        border: 1px solid #007bff;
-        color: #007bff;
-        padding: 0.4rem 0.8rem;
-        border-radius: 4px;
-        cursor: pointer;
+      .actions {
+        .btn.outline {
+          background: transparent;
+          border: 1px solid $primary-color;
+          color: $primary-color;
+          padding: 0.4rem 0.8rem;
+          border-radius: $button-radius;
+          font-size: $font-size-sm;
+          font-weight: $font-weight-medium;
+          cursor: pointer;
+          transition: background-color $transition-fast $transition-ease;
 
-        &:hover {
-          background: #007bff;
-          color: #fff;
+          &:hover {
+            background-color: $primary-color;
+            color: $white;
+          }
         }
       }
     }
@@ -78,8 +92,8 @@
 
   .empty-message {
     text-align: center;
-    color: #777;
-    margin-top: 2rem;
-    font-size: 1.1rem;
+    color: $text-muted;
+    margin-top: $spacing-xl;
+    font-size: $font-size-md;
   }
 }

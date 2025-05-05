@@ -1,0 +1,100 @@
+@import 'src/styles/theme';
+
+.observations-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: $white;
+  border-radius: 12px;
+  box-shadow: $content-wrapper-shadow;
+  padding: 2rem;
+
+  .observations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h2 {
+      font-size: 1.5rem;
+      color: $text-primary;
+    }
+
+    .btn.primary {
+      background-color: $primary-color;
+      color: $white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+
+      &:hover {
+        background-color: $primary-dark;
+      }
+    }
+  }
+
+  .empty-message {
+    text-align: center;
+    color: $text-secondary;
+    font-size: 1.1rem;
+    margin-top: 2rem;
+  }
+
+  .observation-list {
+    list-style: none;
+    padding: 0;
+
+    .observation-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: $gray-light;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      border: 1px solid $gray-medium;
+
+      .observation-info {
+        h3 {
+          margin: 0 0 0.25rem 0;
+          color: $primary-color;
+        }
+
+        p {
+          margin: 0.25rem 0;
+          color: $text-secondary;
+        }
+
+				.tag {
+					display: inline-block;
+					margin-top: $spacing-sm;
+					padding: $spacing-xs $spacing-sm;
+					font-size: $font-size-sm;
+					background: $primary-light;
+					color: $primary-dark;
+					border-radius: $button-radius;
+					font-weight: $font-weight-medium;
+				}
+      }
+
+      .actions {
+				.btn.outline {
+					background: transparent;
+					border: 1px solid $primary-color;
+					color: $primary-color;
+					padding: $spacing-xs $spacing-md;
+					border-radius: $button-radius;
+					cursor: pointer;
+					font-weight: $font-weight-medium;
+					transition: background-color $transition-fast $transition-ease, color $transition-fast $transition-ease;
+
+					&:hover {
+						background-color: $primary-color;
+						color: $white;
+					}
+				}
+      }
+    }
+  }
+}

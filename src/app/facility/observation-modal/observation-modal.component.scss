@@ -1,0 +1,113 @@
+@import 'src/styles/theme';
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: $z-index-modal;
+
+  .modal-content {
+    background: $background-card;
+    padding: $spacing-xl;
+    border-radius: $card-radius;
+    box-shadow: $modal-shadow;
+    width: 100%;
+    max-width: 500px;
+    font-family: $font-primary;
+
+    h2 {
+      font-size: $font-size-xl;
+      font-weight: $font-weight-semibold;
+      color: $primary-color;
+      margin-bottom: $spacing-lg;
+      text-align: center;
+    }
+
+    .observation-form {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-md;
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+
+        label {
+          font-weight: $label-font-weight;
+          margin-bottom: $spacing-xs;
+          font-size: $label-font-size;
+          color: $label-color;
+        }
+
+        input,
+        select,
+        textarea {
+          padding: $input-padding;
+          font-size: $font-size-md;
+          border: 1px solid $input-border;
+          border-radius: $input-border-radius;
+          background-color: $input-bg;
+          color: $input-text;
+
+          &:focus {
+            border-color: $input-focus-border;
+            outline: none;
+          }
+
+          &::placeholder {
+            color: $input-placeholder;
+          }
+        }
+
+        select[multiple] {
+          height: 6rem;
+        }
+      }
+
+      .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: $spacing-md;
+        margin-top: $spacing-lg;
+
+        .btn {
+          padding: 0.6rem 1.4rem;
+          font-size: $font-size-md;
+          font-family: $font-primary;
+          font-weight: $font-weight-medium;
+          border: none;
+          border-radius: $button-radius;
+          cursor: pointer;
+          transition: background-color $transition-fast $transition-ease;
+
+          &.cancel {
+            background-color: $button-disabled-bg;
+            color: $button-disabled-text;
+
+            &:hover {
+              background-color: darken($button-disabled-bg, 5%);
+            }
+          }
+
+          &.primary {
+            background-color: $button-primary-bg;
+            color: $button-primary-text;
+
+            &:hover {
+              background-color: $button-primary-hover-bg;
+            }
+
+            &:disabled {
+              background-color: $disabled-bg;
+              color: $disabled-color;
+              cursor: not-allowed;
+            }
+          }
+        }
+      }
+    }
+  }
+}

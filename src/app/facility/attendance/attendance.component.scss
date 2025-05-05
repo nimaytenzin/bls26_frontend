@@ -1,45 +1,47 @@
+@import 'src/styles/theme';
+
 .attendance-container {
   max-width: 900px;
   margin-left: auto;
-	margin-right: auto;
-  padding: 2rem;
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  margin-right: auto;
+  padding: $spacing-lg;
+  background-color: $background-card;
+  border-radius: $card-radius;
+  box-shadow: $content-wrapper-shadow;
 
   .controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: $spacing-md;
+    margin-bottom: $spacing-lg;
     align-items: center;
     justify-content: space-between;
 
     input[type='date'],
     select {
-      padding: 0.5rem 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-      background-color: #f9f9f9;
-      transition: border-color 0.2s ease;
+      padding: $input-padding;
+      border: 1px solid $input-border;
+      border-radius: $input-border-radius;
+      font-size: $font-size-md;
+      background-color: $input-bg;
+      transition: border-color $transition-fast $transition-ease;
 
       &:focus {
         outline: none;
-        border-color: #007bff;
-        background-color: #fff;
+        border-color: $input-focus-border;
+        background-color: $white;
       }
     }
 
     .group-toggle {
       display: flex;
-      gap: 1rem;
+      gap: $spacing-md;
 
       label {
-        font-weight: 500;
+        font-weight: $font-weight-medium;
         display: flex;
         align-items: center;
-        gap: 0.3rem;
+        gap: $spacing-xs;
 
         input[type='radio'] {
           transform: scale(1.1);
@@ -53,23 +55,23 @@
     border-collapse: collapse;
 
     thead {
-      background-color: #f5f8fa;
+      background-color: $gray-light;
 
       th {
         text-align: left;
-        padding: 0.75rem 1rem;
-        font-size: 0.95rem;
-        color: #333;
-        font-weight: 600;
+        padding: $spacing-sm $spacing-md;
+        font-size: $font-size-sm;
+        color: $text-primary;
+        font-weight: $font-weight-semibold;
       }
     }
 
     tbody {
       tr {
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid $divider-color;
 
         td {
-          padding: 0.75rem 1rem;
+          padding: $spacing-sm $spacing-md;
           vertical-align: middle;
         }
 
@@ -78,55 +80,55 @@
           height: 40px;
           border-radius: 50%;
           object-fit: cover;
-          border: 2px solid #007bff;
+          border: 2px solid $primary-color;
         }
 
         .avatar-fallback {
           width: 40px;
           height: 40px;
-          background-color: #007bff;
-          color: #fff;
+          background-color: $primary-color;
+          color: $white;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: bold;
+          font-weight: $font-weight-bold;
           border-radius: 50%;
         }
 
-        input[type='text'],
-        input[type='note'] {
+        input[type='text'] {
           width: 100%;
           padding: 0.4rem 0.6rem;
-          border: 1px solid #ccc;
+          border: 1px solid $input-border;
           border-radius: 4px;
-          font-size: 0.9rem;
+          font-size: $font-size-sm;
+          background-color: $input-bg;
         }
 
         button {
           padding: 0.4rem 0.8rem;
-          font-size: 0.85rem;
-          font-weight: 500;
+          font-size: $font-size-sm;
+          font-weight: $font-weight-medium;
           border: none;
-          border-radius: 6px;
+          border-radius: $button-radius;
           cursor: pointer;
-          transition: background-color 0.2s ease;
+          transition: background-color $transition-fast $transition-ease;
         }
 
         .present {
-          background-color: #28a745;
-          color: white;
+          background-color: $success;
+          color: $white;
 
           &:hover {
-            background-color: #218838;
+            background-color: $success-dark;
           }
         }
 
         .absent {
-          background-color: #dc3545;
-          color: white;
+          background-color: $danger;
+          color: $white;
 
           &:hover {
-            background-color: #c82333;
+            background-color: $danger-dark;
           }
         }
       }
@@ -134,22 +136,22 @@
   }
 
   .save-actions {
-    margin-top: 2rem;
+    margin-top: $spacing-xl;
     text-align: right;
 
     button {
-      background-color: #007bff;
-      color: #fff;
+      background-color: $button-primary-bg;
+      color: $button-primary-text;
       padding: 0.6rem 1.2rem;
       border: none;
-      border-radius: 6px;
-      font-weight: 500;
-      font-size: 1rem;
+      border-radius: $button-radius;
+      font-weight: $font-weight-medium;
+      font-size: $font-size-md;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: background-color $transition-duration;
 
       &:hover {
-        background-color: #0056b3;
+        background-color: $button-primary-hover-bg;
       }
     }
   }

@@ -279,5 +279,37 @@
       },
       "id": "b283"
     }
+  ],
+	"observations": [
+    {
+      "id": 1,
+      "childId": 101,
+      "childName": "Tashi Dorji",
+      "outcomes": ["Identity", "Learning"],
+      "description": "Tashi engaged in group storytelling and demonstrated verbal communication.",
+      "visibility": "internal",
+      "mediaUrls": [],
+      "createdAt": "2025-05-01T10:30:00Z"
+    },
+    {
+      "id": 2,
+      "childId": 102,
+      "childName": "Sonam Wangmo",
+      "outcomes": ["Wellbeing", "Communication"],
+      "description": "Sonam participated actively in morning yoga and expressed herself confidently.",
+      "visibility": "family",
+      "mediaUrls": [],
+      "createdAt": "2025-05-02T09:15:00Z"
+    },
+    {
+      "id": 3,
+      "childId": 103,
+      "childName": "Pema Thinley",
+      "outcomes": ["Learning"],
+      "description": "Pema identified basic shapes during a puzzle activity and showed focus.",
+      "visibility": "internal",
+      "mediaUrls": [],
+      "createdAt": "2025-05-03T11:00:00Z"
+    }
   ]
 }
