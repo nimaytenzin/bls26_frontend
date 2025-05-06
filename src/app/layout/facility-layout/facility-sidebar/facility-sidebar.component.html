@@ -67,7 +67,7 @@
 			routerLinkActive="active"
 			(click)="onNavClick('/observations')"
 			>
-				<fa-icon [icon]="icons.faAttendance"></fa-icon> Observations
+				<fa-icon [icon]="icons.faView"></fa-icon> Observations
 			</a>
 		</li>
 
@@ -78,6 +78,15 @@
 		(click)="onNavClick('/post-activity')"
 		>
 			<fa-icon [icon]="icons.faAnnouncement"></fa-icon>Post Activity
+		</a>
+	  </li>
+
+	  <li>
+		<a [routerLink]="['/announcement-events']"
+		routerLinkActive="active"
+		(click)="onNavClick('/announcement-events')"
+		>
+			<fa-icon [icon]="icons.faAnnouncement"></fa-icon>Announcments
 		</a>
 	  </li>
 

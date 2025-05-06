@@ -51,7 +51,7 @@ export const ICONS = {
 	download: faDownload,
 	lock: faLock,
 	unlock: faUnlock,
-	view: faEye,
+	faView: faEye,
 	hide: faEyeSlash,
 	help: faQuestionCircle,
 	info: faInfoCircle,

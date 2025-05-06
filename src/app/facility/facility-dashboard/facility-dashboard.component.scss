@@ -6,6 +6,7 @@
   min-height: 100%;
   border-radius: $border-radius;
   box-shadow: $content-wrapper-shadow;
+  font-family: $font-primary;
 
   h2 {
     font-size: $font-size-xl;
@@ -21,16 +22,17 @@
     padding: 0 $spacing-xl;
 
     .stat-card {
-      background: $background-card;
+      background: $white;
       border-radius: $card-radius;
       box-shadow: $card-shadow;
-      padding: $spacing-xl;
+      padding: $spacing-lg;
       text-align: center;
 
       h3 {
         font-size: 2.2rem;
         margin: 0;
         color: $primary-color;
+        font-weight: $font-weight-bold;
       }
 
       p {
@@ -81,6 +83,7 @@
       padding: 0.6rem 1.4rem;
       border-radius: $button-radius;
       margin-right: $spacing-sm;
+      margin-bottom: $spacing-sm;
       cursor: pointer;
       transition: background-color $transition-fast $transition-ease;
 
@@ -107,13 +110,15 @@
   }
 
   @media (max-width: 768px) {
-    .stat-grid {
-      padding: 0 $spacing-md;
-      gap: $spacing-md;
-    }
+    padding: $spacing-lg;
 
     h2 {
       font-size: $font-size-lg;
+    }
+
+    .stat-grid {
+      padding: 0;
+      gap: $spacing-md;
     }
 
     .stat-card h3 {
@@ -122,13 +127,17 @@
 
     .recent-activities,
     .quick-actions {
-      padding: 0 $spacing-md;
+      padding: 0;
     }
 
-    .quick-actions .btn {
-      margin-right: 0;
-      margin-bottom: $spacing-sm;
-      width: 100%;
+    .quick-actions {
+      display: flex;
+      flex-direction: column;
+
+      .btn {
+        width: 100%;
+        margin-right: 0;
+      }
     }
   }
 

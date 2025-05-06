@@ -4,7 +4,7 @@ form {
   max-width: 900px;
   margin: 0 auto;
   padding: $spacing-xl;
-  background: $white;
+  background: $background-card;
   border-radius: $card-radius;
   box-shadow: $content-wrapper-shadow;
   font-family: $font-primary;
@@ -29,10 +29,12 @@ form {
       border-radius: $input-border-radius;
       background-color: $input-bg;
       color: $input-text;
+      transition: border-color $transition-fast $transition-ease;
 
       &:focus {
         border-color: $input-focus-border;
         outline: none;
+        background-color: $white;
       }
 
       &:focus + label,
@@ -51,7 +53,7 @@ form {
       font-size: $font-size-sm;
       color: $text-muted;
       pointer-events: none;
-      transition: $transition-fast $transition-ease;
+      transition: all $transition-fast $transition-ease;
     }
 
     .error {
@@ -86,6 +88,7 @@ form {
       border-radius: $button-radius;
       font-weight: $font-weight-medium;
       cursor: pointer;
+      transition: background-color $transition-fast $transition-ease;
 
       &:hover {
         background-color: $button-primary-hover-bg;
@@ -129,6 +132,8 @@ form {
     padding: 0.5rem 1rem;
     border-radius: $button-radius;
     cursor: pointer;
+    font-weight: $font-weight-medium;
+    transition: background-color $transition-fast $transition-ease;
 
     &:hover {
       background-color: darken($info, 10%);
@@ -147,6 +152,7 @@ form {
       border: none;
       border-radius: $button-radius;
       cursor: pointer;
+      font-weight: $font-weight-medium;
       transition: background-color $transition-duration, transform $transition-fast;
 
       &:hover {

@@ -12,49 +12,61 @@
 }
 
 .modal-content {
-  background: $white;
+  background: $background-card;
   padding: $spacing-xl;
   border-radius: $card-radius;
-  width: 500px;
-  max-width: 90%;
-  max-height: 90%;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: $modal-shadow;
   animation: fadeIn 0.3s ease-in-out;
-  overflow-y: auto;
   font-family: $font-primary;
 
   h2 {
-    margin-bottom: $spacing-lg;
     color: $primary-color;
     font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
     text-align: center;
+    margin-bottom: $spacing-lg;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
   }
 
   .form-group {
-    margin-bottom: $spacing-lg;
+    display: flex;
+    flex-direction: column;
 
     label {
-      display: block;
       margin-bottom: $spacing-xs;
       font-weight: $font-weight-semibold;
+      font-size: $label-font-size;
       color: $text-primary;
     }
 
     input,
     textarea {
-      box-sizing: border-box;
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid $gray;
-      border-radius: $button-radius;
+      padding: $input-padding;
       font-size: $font-size-md;
-      background-color: $gray-light;
+      border: 1px solid $input-border;
+      border-radius: $input-border-radius;
+      background-color: $input-bg;
+      color: $input-text;
 
       &:focus {
-        border-color: $primary-color;
-        outline: none;
+        border-color: $input-focus-border;
         background-color: $white;
+        outline: none;
       }
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
     }
 
     .image-preview-grid {
@@ -68,46 +80,48 @@
         height: 100px;
         object-fit: cover;
         border-radius: $card-radius;
-        border: 1px solid $gray;
+        border: 1px solid $divider-color;
       }
     }
   }
 
   .form-actions {
     display: flex;
-    justify-content: space-between;
-    margin-top: $spacing-lg;
+    justify-content: flex-end;
+    gap: $spacing-md;
+    margin-top: $spacing-md;
 
     .btn {
-      padding: 0.75rem 1.5rem;
+      padding: 0.6rem 1.4rem;
+      font-size: $font-size-md;
+      font-weight: $font-weight-medium;
       border: none;
       border-radius: $button-radius;
-      font-size: $font-size-md;
       cursor: pointer;
-      font-weight: $font-weight-medium;
+      transition: background-color $transition-fast;
 
-      &.cancel {
-        background-color: $gray;
-        color: $text-on-light;
+      &.primary {
+        background-color: $button-primary-bg;
+        color: $button-primary-text;
 
         &:hover {
-          background-color: darken($gray, 10%);
+          background-color: $button-primary-hover-bg;
         }
       }
 
-      &.primary {
-        background-color: $primary-color;
-        color: $white;
+      &.cancel {
+        background-color: $button-disabled-bg;
+        color: $button-disabled-text;
 
         &:hover {
-          background-color: $primary-dark;
+          background-color: darken($button-disabled-bg, 5%);
         }
       }
     }
   }
 }
 
-/* Modal Fade-In Animation */
+/* Modal animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -119,16 +133,15 @@
   }
 }
 
-/* Responsive Behavior */
+/* Mobile adjustments */
 @media (max-width: 768px) {
   .modal-content {
-    width: 90%;
     padding: $spacing-lg;
+    width: 90%;
   }
 
   .form-actions {
     flex-direction: column;
-    gap: $spacing-sm;
 
     .btn {
       width: 100%;

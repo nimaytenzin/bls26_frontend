@@ -2,57 +2,72 @@
 
 .billing-page {
   max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: $spacing-lg;
+  margin: 0 auto;
+  padding: $spacing-xl;
+  background-color: $background-card;
+  border-radius: $border-radius;
+  box-shadow: $content-wrapper-shadow;
+  font-family: $font-primary;
 
   h1 {
     text-align: center;
     color: $primary-color;
     font-size: $font-size-xl;
     font-weight: $font-weight-semibold;
+    margin-bottom: $spacing-xl;
   }
 
   .billing-table {
-    margin-top: $spacing-xl;
-
     table {
       width: 100%;
       border-collapse: collapse;
-      font-family: $font-primary;
+      font-size: $font-size-sm;
 
-      th,
-      td {
-        padding: $spacing-sm;
-        text-align: left;
-        border: 1px solid $divider-color;
-        font-size: $font-size-sm;
-      }
-
-      th {
+      thead {
         background-color: $background-muted;
-        font-weight: $font-weight-bold;
-        color: $text-primary;
+
+        th {
+          padding: $spacing-sm $spacing-md;
+          text-align: left;
+          font-weight: $font-weight-semibold;
+          color: $text-primary;
+        }
       }
 
-      td.paid {
-        color: $success;
-        font-weight: $font-weight-semibold;
-      }
+      tbody {
+        tr {
+          border-bottom: 1px solid $divider-color;
 
-      td.due {
-        color: $danger;
-        font-weight: $font-weight-semibold;
+          td {
+            padding: $spacing-sm $spacing-md;
+            color: $text-secondary;
+            vertical-align: middle;
+          }
+
+          td.paid {
+            color: $success;
+            font-weight: $font-weight-semibold;
+          }
+
+          td.due {
+            color: $danger;
+            font-weight: $font-weight-semibold;
+          }
+
+          td:last-child {
+            white-space: nowrap;
+          }
+        }
       }
 
       .btn {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: $button-radius;
+        padding: 0.4rem 0.8rem;
         font-size: $font-size-sm;
+        font-weight: $font-weight-medium;
+        border-radius: $button-radius;
+        border: none;
         cursor: pointer;
         transition: background-color $transition-fast $transition-ease;
-        font-weight: $font-weight-medium;
 
         &.invoice-btn {
           background-color: $accent-color;
@@ -70,87 +85,6 @@
           &:hover {
             background-color: $button-primary-hover-bg;
           }
-        }
-      }
-    }
-  }
-
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: $z-index-modal;
-  }
-
-  .modal-content {
-    background: $background-card;
-    padding: $spacing-lg;
-    border-radius: $card-radius;
-    width: 400px;
-    max-width: 90%;
-    box-shadow: $modal-shadow;
-
-    h2 {
-      margin-bottom: $spacing-lg;
-      color: $primary-color;
-      text-align: center;
-      font-size: $font-size-lg;
-    }
-
-    .form-group {
-      margin-bottom: $spacing-lg;
-
-      label {
-        display: block;
-        margin-bottom: $spacing-xs;
-        font-weight: $font-weight-semibold;
-        color: $text-primary;
-        font-size: $label-font-size;
-      }
-
-      input,
-      select {
-        width: 100%;
-        padding: $input-padding;
-        border: 1px solid $input-border;
-        border-radius: $input-border-radius;
-        font-size: $font-size-md;
-        background-color: $input-bg;
-        color: $input-text;
-
-        &:focus {
-          border-color: $input-focus-border;
-          outline: none;
-        }
-      }
-    }
-
-    .btn {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: $button-radius;
-      font-size: $font-size-md;
-      cursor: pointer;
-      font-weight: $font-weight-medium;
-
-      &.primary {
-        background-color: $button-primary-bg;
-        color: $button-primary-text;
-
-        &:hover {
-          background-color: $button-primary-hover-bg;
-        }
-      }
-
-      &.cancel {
-        background-color: $button-disabled-bg;
-        color: $button-disabled-text;
-
-        &:hover {
-          background-color: darken($button-disabled-bg, 5%);
         }
       }
     }

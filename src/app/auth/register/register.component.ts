@@ -38,7 +38,7 @@ export class RegisterComponent implements OnInit {
 
       // Simulate API call (or save to localStorage or json-server)
       console.log('User registered:', newUser);
-      this.router.navigate(['/auth/verify-notice']);
+      this.router.navigate(['/verify-notice']);
     }
   }
 }

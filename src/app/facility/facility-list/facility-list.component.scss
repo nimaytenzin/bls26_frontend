@@ -2,12 +2,12 @@
 
 .facility-container {
   max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto;
   background: $background-card;
   border-radius: $card-radius;
   box-shadow: $content-wrapper-shadow;
   padding: $spacing-xl;
+  font-family: $font-primary;
 
   .facility-header {
     display: flex;
@@ -17,15 +17,17 @@
 
     h2 {
       font-size: $font-size-xl;
-      color: $text-primary;
+      color: $primary-color;
+      margin: 0;
     }
 
     .btn.primary {
       background-color: $button-primary-bg;
       color: $button-primary-text;
-      padding: 0.6rem 1.2rem;
-      border-radius: $button-radius;
+      padding: 0.6rem 1.4rem;
+      font-size: $font-size-md;
       border: none;
+      border-radius: $button-radius;
       font-weight: $font-weight-medium;
       cursor: pointer;
       transition: background-color $transition-fast $transition-ease;
@@ -36,31 +38,47 @@
     }
   }
 
+  .empty-message {
+    text-align: center;
+    color: $text-muted;
+    margin-top: $spacing-xl;
+    font-size: $font-size-md;
+  }
+
   .facility-list {
     list-style: none;
     padding: 0;
+    margin: 0;
 
     .facility-card {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      background: $gray-light;
+      align-items: flex-start;
+      gap: $spacing-md;
       padding: $spacing-md;
       margin-bottom: $spacing-md;
-      border-radius: $card-radius;
       border: 1px solid $divider-color;
+      border-radius: $card-radius;
+      background-color: $gray-light;
+      transition: box-shadow $transition-fast;
+
+      &:hover {
+        box-shadow: $elevation-2;
+      }
 
       .facility-info {
+        flex: 1;
+
         h3 {
-          margin: 0;
-          color: $primary-color;
           font-size: $font-size-lg;
+          color: $text-primary;
+          margin: 0 0 $spacing-xs;
         }
 
         .description {
-          margin: $spacing-xs 0;
-          color: $text-secondary;
           font-size: $font-size-sm;
+          color: $text-secondary;
+          margin-bottom: $spacing-xs;
         }
 
         .location {
@@ -71,13 +89,13 @@
 
       .actions {
         .btn.outline {
-          background: transparent;
+          background-color: transparent;
           border: 1px solid $primary-color;
           color: $primary-color;
-          padding: 0.4rem 0.8rem;
-          border-radius: $button-radius;
           font-size: $font-size-sm;
           font-weight: $font-weight-medium;
+          padding: 0.4rem 0.8rem;
+          border-radius: $button-radius;
           cursor: pointer;
           transition: background-color $transition-fast $transition-ease;
 
@@ -90,10 +108,29 @@
     }
   }
 
-  .empty-message {
-    text-align: center;
-    color: $text-muted;
-    margin-top: $spacing-xl;
-    font-size: $font-size-md;
+  @media (max-width: 768px) {
+    .facility-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $spacing-sm;
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    .facility-card {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+
+      .btn {
+        width: 100%;
+      }
+    }
   }
 }

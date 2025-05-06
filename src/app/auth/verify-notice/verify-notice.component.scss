@@ -1,25 +1,29 @@
+@import 'src/styles/theme';
+
 .verify-notice {
   max-width: 500px;
-  margin: 80px auto;
+  margin: $spacing-xxl auto;
   text-align: center;
-  padding: 2rem;
-  background: #f9f9f9; // matches the soft background of form cards
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  padding: $spacing-xl;
+  background: $background-muted;
+  border-radius: $card-radius;
+  box-shadow: $card-shadow;
+  font-family: $font-primary;
 
   h2 {
-    color: #333;
-    font-weight: 600;
-    margin-bottom: 1rem;
+    color: $text-primary;
+    font-weight: $font-weight-semibold;
+    margin-bottom: $spacing-md;
+    font-size: $font-size-xl;
   }
 
   p {
-    font-size: 1rem;
-    color: #666;
+    font-size: $font-size-md;
+    color: $text-secondary;
     line-height: 1.5;
   }
 
   .btn {
-    margin-top: 1.5rem;
+    margin-top: $spacing-lg;
   }
 }

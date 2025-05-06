@@ -5,109 +5,187 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   z-index: $z-index-modal;
+}
 
-  .modal-content {
-    background: $background-card;
-    padding: $spacing-xl;
-    border-radius: $card-radius;
-    box-shadow: $modal-shadow;
-    width: 100%;
-    max-width: 500px;
-    font-family: $font-primary;
+.modal-content {
+  background: $background-card;
+  padding: $spacing-xl;
+  border-radius: $card-radius;
+  width: 100%;
+  max-width: 600px;
+  font-family: $font-primary;
+  box-shadow: $modal-shadow;
 
-    h2 {
-      font-size: $font-size-xl;
-      font-weight: $font-weight-semibold;
-      color: $primary-color;
-      margin-bottom: $spacing-lg;
-      text-align: center;
+  h2 {
+    text-align: center;
+    color: $primary-color;
+    font-size: $font-size-xl;
+    margin-bottom: $spacing-lg;
+  }
+
+  .form-group {
+    margin-bottom: $spacing-lg;
+
+    label {
+      display: block;
+      font-weight: $font-weight-medium;
+      margin-bottom: $spacing-xs;
+      color: $text-primary;
     }
 
-    .observation-form {
-      display: flex;
-      flex-direction: column;
-      gap: $spacing-md;
+    input,
+    select {
+      width: 100%;
+      padding: $input-padding;
+      border-radius: $input-border-radius;
+      border: 1px solid $input-border;
+      font-size: $font-size-md;
+      background: $input-bg;
+    }
 
-      .form-group {
-        display: flex;
-        flex-direction: column;
+    quill-editor {
+      .ql-container {
+        height: 150px;
+        border-radius: $input-border-radius;
+        font-size: $font-size-md;
+      }
+    }
+  }
 
-        label {
-          font-weight: $label-font-weight;
-          margin-bottom: $spacing-xs;
-          font-size: $label-font-size;
-          color: $label-color;
-        }
+  .chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
 
-        input,
-        select,
-        textarea {
-          padding: $input-padding;
-          font-size: $font-size-md;
-          border: 1px solid $input-border;
-          border-radius: $input-border-radius;
-          background-color: $input-bg;
-          color: $input-text;
+    .chip {
+      padding: 0.4rem 1rem;
+      background: $gray-light;
+      border-radius: $button-radius;
+      cursor: pointer;
+      border: 1px solid $gray-medium;
 
-          &:focus {
-            border-color: $input-focus-border;
-            outline: none;
-          }
+      &.selected {
+        background: $primary-light;
+        color: $primary-dark;
+        border-color: $primary-color;
+      }
+    }
+  }
 
-          &::placeholder {
-            color: $input-placeholder;
-          }
-        }
+  .avatar-group {
+    display: flex;
+    gap: $spacing-sm;
+    flex-wrap: wrap;
 
-        select[multiple] {
-          height: 6rem;
-        }
+    .avatar-option {
+      text-align: center;
+      cursor: pointer;
+      border: 2px solid transparent;
+      padding: $spacing-xs;
+      border-radius: 8px;
+
+      &.selected {
+        border-color: $primary-color;
       }
 
-      .form-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: $spacing-md;
-        margin-top: $spacing-lg;
+      img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin-bottom: 0.25rem;
+      }
 
-        .btn {
-          padding: 0.6rem 1.4rem;
-          font-size: $font-size-md;
-          font-family: $font-primary;
-          font-weight: $font-weight-medium;
-          border: none;
-          border-radius: $button-radius;
-          cursor: pointer;
-          transition: background-color $transition-fast $transition-ease;
+      span {
+        display: block;
+        font-size: 0.9rem;
+      }
+    }
+  }
 
-          &.cancel {
-            background-color: $button-disabled-bg;
-            color: $button-disabled-text;
+  .media-preview {
+    display: flex;
+    gap: $spacing-sm;
+    flex-wrap: wrap;
+    margin-top: $spacing-sm;
 
-            &:hover {
-              background-color: darken($button-disabled-bg, 5%);
-            }
-          }
+    .media-thumb {
+      position: relative;
 
-          &.primary {
-            background-color: $button-primary-bg;
-            color: $button-primary-text;
+      img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 6px;
+      }
 
-            &:hover {
-              background-color: $button-primary-hover-bg;
-            }
+      button {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: $danger;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        font-size: 0.8rem;
+      }
+    }
+  }
 
-            &:disabled {
-              background-color: $disabled-bg;
-              color: $disabled-color;
-              cursor: not-allowed;
-            }
-          }
-        }
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-md;
+
+    .btn {
+      padding: 0.6rem 1.2rem;
+      font-weight: $font-weight-medium;
+      border-radius: $button-radius;
+
+      &.cancel {
+        background: $button-disabled-bg;
+        color: $button-disabled-text;
+      }
+
+      &.primary {
+        background: $button-primary-bg;
+        color: $button-primary-text;
       }
     }
   }
 }
+
+
+quill-editor {
+  width: 100%;
+
+  .ql-container {
+    width: 100%;
+    min-height: 160px;
+    background-color: $white;
+    border-radius: $input-border-radius;
+    border: 1px solid $input-border;
+    font-size: $font-size-md;
+  }
+
+  .ql-editor {
+    padding: $spacing-sm;
+    font-family: $font-primary;
+    color: $input-text;
+    min-height: 120px;
+  }
+
+  .ql-toolbar {
+    border: 1px solid $input-border;
+    border-radius: $input-border-radius $input-border-radius 0 0;
+    background-color: $gray-light;
+  }
+}  
+
+/* The classes like .ql-container, .ql-editor, and .ql-toolbar are internally rendered by ngx-quill and not something you write directly in your HTML */

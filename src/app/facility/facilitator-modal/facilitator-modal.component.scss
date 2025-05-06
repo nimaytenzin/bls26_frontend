@@ -2,10 +2,7 @@
 
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: rgba($black, 0.4);
   display: flex;
   justify-content: center;
@@ -25,81 +22,87 @@
   h2 {
     font-size: $font-size-xl;
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: $primary-color;
     margin-bottom: $spacing-lg;
     text-align: center;
   }
 
-  .form-group {
-    margin-bottom: $spacing-md;
+  form {
+    .form-group {
+      margin-bottom: $spacing-lg;
 
-    label {
-      display: block;
-      margin-bottom: $spacing-xs;
-      font-weight: $font-weight-medium;
-      color: $text-secondary;
-      font-size: $font-size-sm;
-    }
-
-    input[type='text'],
-    input[type='email'],
-    input[type='file'] {
-      width: 100%;
-      padding: $input-padding;
-      font-size: $font-size-md;
-      border: 1px solid $input-border;
-      border-radius: $input-border-radius;
-      background-color: $input-bg;
-      color: $input-text;
-
-      &::placeholder {
-        color: $input-placeholder;
+      label {
+        display: block;
+        margin-bottom: $spacing-xs;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-medium;
+        color: $text-primary;
       }
 
-      &:focus {
-        border-color: $input-focus-border;
-        outline: none;
-        background-color: $white;
-      }
-    }
+      input[type='text'],
+      input[type='email'],
+      input[type='file'] {
+        width: 100%;
+        padding: $input-padding;
+        font-size: $font-size-md;
+        border: 1px solid $input-border;
+        border-radius: $input-border-radius;
+        background-color: $input-bg;
+        color: $input-text;
+        transition: border-color $transition-fast $transition-ease;
 
-    .file-name {
-      font-size: $font-size-sm;
-      color: $text-muted;
-      margin-top: $spacing-xs;
-    }
-  }
+        &::placeholder {
+          color: $input-placeholder;
+        }
 
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: $spacing-sm;
-
-    .btn {
-      padding: 0.6rem 1.2rem;
-      font-size: $font-size-md;
-      font-weight: $font-weight-medium;
-      border-radius: $button-radius;
-      cursor: pointer;
-      transition: background-color $transition-fast $transition-ease;
-
-      &.primary {
-        background-color: $button-primary-bg;
-        color: $button-primary-text;
-        border: none;
-
-        &:hover {
-          background-color: $button-primary-hover-bg;
+        &:focus {
+          border-color: $input-focus-border;
+          outline: none;
+          background-color: $white;
         }
       }
 
-      &.cancel {
-        background-color: $button-disabled-bg;
-        color: $button-disabled-text;
-        border: none;
+      .file-name {
+        margin-top: $spacing-xs;
+        font-size: $font-size-sm;
+        color: $text-muted;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
 
-        &:hover {
-          background-color: darken($button-disabled-bg, 5%);
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: $spacing-md;
+      margin-top: $spacing-md;
+
+      .btn {
+        padding: 0.6rem 1.2rem;
+        font-size: $font-size-md;
+        font-weight: $font-weight-medium;
+        border-radius: $button-radius;
+        cursor: pointer;
+        border: none;
+        transition: background-color $transition-fast $transition-ease;
+
+        &.primary {
+          background-color: $button-primary-bg;
+          color: $button-primary-text;
+
+          &:hover {
+            background-color: $button-primary-hover-bg;
+          }
+        }
+
+        &.cancel {
+          background-color: $button-disabled-bg;
+          color: $button-disabled-text;
+
+          &:hover {
+            background-color: darken($button-disabled-bg, 5%);
+          }
         }
       }
     }

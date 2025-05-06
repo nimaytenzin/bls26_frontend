@@ -1,25 +1,29 @@
+@import 'src/styles/theme';
+
 .verify-email {
   max-width: 480px;
-  margin: 60px auto;
-  padding: 2rem;
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin: $spacing-xxl auto;
+  padding: $spacing-xl;
+  background-color: $white;
+  border-radius: $card-radius;
+  box-shadow: $card-shadow;
   text-align: center;
+  font-family: $font-primary;
 
   h2 {
-    color: #2e7d32; // a softer green tone, consistent with success state
-    margin-bottom: 1rem;
-    font-weight: 600;
+    color: $success;
+    margin-bottom: $spacing-md;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
   }
 
   p {
-    font-size: 1.05rem;
-    color: #444;
+    font-size: $font-size-md;
+    color: $text-secondary;
     line-height: 1.6;
   }
 
   .btn {
-    margin-top: 2rem;
+    margin-top: $spacing-xl;
   }
 }

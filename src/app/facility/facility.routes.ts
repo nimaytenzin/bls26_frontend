@@ -10,6 +10,7 @@ import { FacilitatorComponent } from "./facilitator/facilitator.component";
 import { PostActivityComponent } from "./post-activity/post-activity.component";
 import { FacilityLayoutComponent } from "../layout/facility-layout/facility-layout.component";
 import { BillingComponent } from "./billing/billing.component";
+import { AnnouncementEventsComponent } from "./announcement-events/announcement-events.component";
 
 
 export const facilityRoutes: Routes = [
@@ -24,6 +25,7 @@ export const facilityRoutes: Routes = [
       { path: "enrollment", component: EnrollmentComponent },
       { path: "attendance", component: AttendanceComponent },
       { path: "post-activity", component: PostActivityComponent },
+      { path: "announcement-events", component: AnnouncementEventsComponent },
       { path: "billing", component: BillingComponent },
 			{ path: "observations", loadComponent: () => import('./observations/observations.component').then(m => m.ObservationsComponent) },
     ]

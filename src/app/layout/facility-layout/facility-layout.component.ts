@@ -136,8 +136,10 @@ export class FacilityLayoutComponent implements OnInit {
   }
 
   logout(): void {
+    localStorage.clear(); // Or selectively remove app keys
+    sessionStorage.clear(); // Optional if you store things there
     this.authService.logout();
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/login']);
   }
 
   private setUserInfo(): void {

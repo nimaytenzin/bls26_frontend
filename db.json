@@ -47,6 +47,17 @@
       "isVerified": true,
       "verifyToken": "123",
       "password": "abcdefgh"
+    },
+    {
+      "id": "5",
+      "name": "abc",
+      "email": "abc@example.com",
+      "cid": "123456789",
+      "phone": "9800000000",
+      "role": "owner",
+      "isVerified": false,
+      "verifyToken": "1234",
+      "password": "abcdefgh"
     }
   ],
   "facilities": [
@@ -135,7 +146,7 @@
       "role": "Teacher",
       "email": "john.doe@example.com",
       "phone": "123-456-7890",
-      "imageUrl": "/images/facilitator1.jpg",
+      "imageUrl": "/images/default-avatar.jpg",
       "archived": true
     },
     {
@@ -180,7 +191,7 @@
       "name": "Sonam",
       "preferredName": "Namso",
       "cid": "1235",
-      "avatarUrl": "",
+      "avatarUrl": "/images/default-avatar.jpg",
       "studentCode": "12345",
       "dob": "2025-04-22",
       "gender": "male",
@@ -280,12 +291,15 @@
       "id": "b283"
     }
   ],
-	"observations": [
+  "observations": [
     {
       "id": 1,
       "childId": 101,
       "childName": "Tashi Dorji",
-      "outcomes": ["Identity", "Learning"],
+      "outcomes": [
+        "Identity",
+        "Learning"
+      ],
       "description": "Tashi engaged in group storytelling and demonstrated verbal communication.",
       "visibility": "internal",
       "mediaUrls": [],
@@ -295,7 +309,10 @@
       "id": 2,
       "childId": 102,
       "childName": "Sonam Wangmo",
-      "outcomes": ["Wellbeing", "Communication"],
+      "outcomes": [
+        "Wellbeing",
+        "Communication"
+      ],
       "description": "Sonam participated actively in morning yoga and expressed herself confidently.",
       "visibility": "family",
       "mediaUrls": [],
@@ -305,11 +322,72 @@
       "id": 3,
       "childId": 103,
       "childName": "Pema Thinley",
-      "outcomes": ["Learning"],
+      "outcomes": [
+        "Learning"
+      ],
       "description": "Pema identified basic shapes during a puzzle activity and showed focus.",
       "visibility": "internal",
       "mediaUrls": [],
       "createdAt": "2025-05-03T11:00:00Z"
+    },
+    {
+      "id": "8b0e",
+      "childId": 123,
+      "outcomes": [
+        "Wellbeing",
+        "Learning",
+        "Communication"
+      ],
+      "description": "<p>fsdfsafdfsdfsda</p>",
+      "visibility": "internal"
+    }
+  ],
+  "announcements": [
+    {
+      "id": 1,
+      "title": "Parent-Teacher Meeting",
+      "message": "Join us on May 10th for a PTM at the ECCD hall.",
+      "date": "2025-05-10",
+      "type": "event"
+    },
+    {
+      "id": 2,
+      "title": "Center Closed",
+      "message": "The center will be closed on May 12th for a public holiday.",
+      "date": "2025-05-12",
+      "type": "announcement"
+    },
+    {
+      "id": "2d8e",
+      "title": "fdsf",
+      "message": "fsdf",
+      "date": "2025-05-06",
+      "type": "event",
+      "imageUrl": ""
+    },
+    {
+      "id": "5786",
+      "title": "fasdf",
+      "message": "sdfsd",
+      "date": "2025-05-07",
+      "type": "event",
+      "imageUrl": ""
+    },
+    {
+      "id": "b11a",
+      "title": "fsd",
+      "message": "fsdfsd",
+      "date": "2025-04-30",
+      "type": "event",
+      "imageUrl": ""
+    },
+    {
+      "id": "8308",
+      "title": "fsd",
+      "message": "fsdf",
+      "date": "2025-05-08",
+      "type": "announcement",
+      "imageUrl": ""
     }
   ]
 }

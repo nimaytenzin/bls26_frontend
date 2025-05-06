@@ -2,12 +2,12 @@
 
 .attendance-container {
   max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto;
   padding: $spacing-lg;
   background-color: $background-card;
   border-radius: $card-radius;
   box-shadow: $content-wrapper-shadow;
+  font-family: $font-primary;
 
   .controls {
     display: flex;
@@ -24,11 +24,12 @@
       border-radius: $input-border-radius;
       font-size: $font-size-md;
       background-color: $input-bg;
+      color: $input-text;
       transition: border-color $transition-fast $transition-ease;
 
       &:focus {
-        outline: none;
         border-color: $input-focus-border;
+        outline: none;
         background-color: $white;
       }
     }
@@ -38,13 +39,15 @@
       gap: $spacing-md;
 
       label {
-        font-weight: $font-weight-medium;
         display: flex;
         align-items: center;
         gap: $spacing-xs;
+        font-weight: $font-weight-medium;
+        font-size: $font-size-sm;
+        color: $text-primary;
 
         input[type='radio'] {
-          transform: scale(1.1);
+          transform: scale(1.15);
         }
       }
     }
@@ -61,8 +64,9 @@
         text-align: left;
         padding: $spacing-sm $spacing-md;
         font-size: $font-size-sm;
-        color: $text-primary;
         font-weight: $font-weight-semibold;
+        color: $text-primary;
+        border-bottom: 1px solid $divider-color;
       }
     }
 
@@ -73,6 +77,10 @@
         td {
           padding: $spacing-sm $spacing-md;
           vertical-align: middle;
+
+          &:first-child {
+            width: 50px;
+          }
         }
 
         .avatar {
@@ -86,26 +94,33 @@
         .avatar-fallback {
           width: 40px;
           height: 40px;
+          border-radius: 50%;
           background-color: $primary-color;
           color: $white;
+          font-weight: $font-weight-bold;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: $font-weight-bold;
-          border-radius: 50%;
+          font-size: $font-size-md;
         }
 
         input[type='text'] {
           width: 100%;
           padding: 0.4rem 0.6rem;
-          border: 1px solid $input-border;
-          border-radius: 4px;
           font-size: $font-size-sm;
+          border: 1px solid $input-border;
+          border-radius: $input-border-radius;
           background-color: $input-bg;
+          color: $input-text;
+
+          &:focus {
+            border-color: $input-focus-border;
+            outline: none;
+          }
         }
 
         button {
-          padding: 0.4rem 0.8rem;
+          padding: 0.4rem 0.9rem;
           font-size: $font-size-sm;
           font-weight: $font-weight-medium;
           border: none;
@@ -142,11 +157,11 @@
     button {
       background-color: $button-primary-bg;
       color: $button-primary-text;
-      padding: 0.6rem 1.2rem;
+      padding: 0.6rem 1.4rem;
+      font-size: $font-size-md;
+      font-weight: $font-weight-medium;
       border: none;
       border-radius: $button-radius;
-      font-weight: $font-weight-medium;
-      font-size: $font-size-md;
       cursor: pointer;
       transition: background-color $transition-duration;
 

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { PublicNavbarComponent } from '../shared/components/public-navbar/public-navbar.component';
 
 @Component({
@@ -7,7 +8,8 @@ import { PublicNavbarComponent } from '../shared/components/public-navbar/public
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
 	imports: [
-		PublicNavbarComponent
+		PublicNavbarComponent,
+    RouterModule, // Required for routerLink to work
 	],
 })
 export class LandingComponent {

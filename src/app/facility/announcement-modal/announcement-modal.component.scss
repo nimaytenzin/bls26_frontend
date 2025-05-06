@@ -1,0 +1,98 @@
+@import 'src/styles/theme';
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: $z-index-modal;
+}
+
+.modal-content {
+  background-color: $white;
+  padding: $spacing-xl;
+  border-radius: $card-radius;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: $modal-shadow;
+  font-family: $font-primary;
+
+  h3 {
+    margin-bottom: $spacing-lg;
+    font-size: $font-size-lg;
+    color: $primary-color;
+    text-align: center;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: $input-padding;
+      border-radius: $input-border-radius;
+      border: 1px solid $input-border;
+      background-color: $input-bg;
+      color: $input-text;
+      font-size: $font-size-md;
+
+      &:focus {
+        border-color: $input-focus-border;
+        background-color: $white;
+        outline: none;
+      }
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: $spacing-sm;
+      margin-top: $spacing-lg;
+
+      .btn {
+        padding: 0.6rem 1.2rem;
+        font-size: $font-size-md;
+        font-weight: $font-weight-medium;
+        border-radius: $button-radius;
+        cursor: pointer;
+        border: none;
+
+        &.primary {
+          background-color: $button-primary-bg;
+          color: $button-primary-text;
+
+          &:hover {
+            background-color: $button-primary-hover-bg;
+          }
+        }
+
+        &.cancel {
+          background-color: $button-disabled-bg;
+          color: $button-disabled-text;
+
+          &:hover {
+            background-color: darken($button-disabled-bg, 8%);
+          }
+        }
+      }
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: $card-radius;
+      margin-top: $spacing-sm;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+  }
+}

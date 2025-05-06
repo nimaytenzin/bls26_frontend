@@ -1,82 +1,100 @@
+@import 'src/styles/theme';
+
 .login-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 4rem 1rem;
+  padding: $spacing-xl;
+  min-height: calc(100vh - 80px); // adjust based on navbar height
+  background-color: $background-muted;
+  font-family: $font-primary;
 
   .login-card {
     width: 100%;
     max-width: 500px;
-    background: #ffffff;
-    padding: 2rem 2.5rem;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
-    font-family: 'Poppins', sans-serif;
+    background: $white;
+    padding: $spacing-xl;
+    border-radius: $card-radius;
+    box-shadow: $content-wrapper-shadow;
 
     h2 {
       text-align: center;
-      color: #1976d2;
-      margin-bottom: 0.5rem;
+      color: $primary-color;
+      margin-bottom: $spacing-xs;
+      font-size: $font-size-xl;
+      font-weight: $font-weight-semibold;
     }
 
     p {
       text-align: center;
-      color: #555;
-      margin-bottom: 2rem;
-      font-size: 1rem;
+      color: $text-secondary;
+      margin-bottom: $spacing-lg;
+      font-size: $font-size-md;
     }
 
     form {
       .form-group {
-        margin-bottom: 1.5rem;
+        margin-bottom: $spacing-lg;
+
+        label {
+          display: block;
+          margin-bottom: $spacing-xs;
+          font-size: $font-size-sm;
+          color: $text-primary;
+          font-weight: $font-weight-medium;
+        }
 
         input {
-					box-sizing: border-box;
           width: 100%;
-          padding: 1rem;
-          font-size: 1rem;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-          background-color: #f8f9fa;
-          transition: border 0.3s ease;
+          padding: $input-padding;
+          font-size: $font-size-md;
+          border: 1px solid $input-border;
+          border-radius: $input-border-radius;
+          background-color: $input-bg;
+          color: $input-text;
 
           &:focus {
-            border-color: #1976d2;
+            border-color: $input-focus-border;
+            background-color: $white;
             outline: none;
-            background-color: #fff;
+          }
+
+          &::placeholder {
+            color: $input-placeholder;
           }
         }
       }
 
       .btn.primary {
         width: 100%;
-        padding: 0.75rem;
-        font-size: 1rem;
-        font-weight: 500;
+        padding: $spacing-md;
+        font-size: $font-size-md;
+        font-weight: $font-weight-semibold;
+        background-color: $button-primary-bg;
+        color: $button-primary-text;
         border: none;
-        border-radius: 6px;
-        background-color: #1976d2;
-        color: #fff;
+        border-radius: $button-radius;
         cursor: pointer;
-        transition: background 0.2s ease-in-out;
+        transition: background-color $transition-fast $transition-ease;
 
         &:hover {
-          background-color: #155fa0;
+          background-color: $button-primary-hover-bg;
         }
 
         &:disabled {
-          background-color: #ccc;
+          background-color: $disabled-bg;
+          color: $disabled-color;
           cursor: not-allowed;
         }
       }
 
       .login-footer {
-        margin-top: 1.5rem;
+        margin-top: $spacing-lg;
         text-align: center;
-        font-size: 0.95rem;
+        font-size: $font-size-sm;
 
         a {
-          color: #1976d2;
+          color: $primary-color;
           text-decoration: none;
 
           &:hover {

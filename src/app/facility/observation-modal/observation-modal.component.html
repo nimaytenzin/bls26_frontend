@@ -2,40 +2,75 @@
   <div class="modal-content">
     <h2>{{ data ? 'Edit Observation' : 'Add Observation' }}</h2>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="observation-form">
-      <div class="form-group">
-        <label>Child ID:</label>
-        <input type="number" formControlName="childId" />
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <!-- Child Selector -->
+      <div class="form-group child-selector">
+        <label>Select Child</label>
+        <div class="avatar-group">
+          <div
+            *ngFor="let child of children"
+            class="avatar-option"
+            [class.selected]="form.value.childId === child.id"
+            (click)="form.patchValue({ childId: child.id })"
+          >
+            <img [src]="child.avatarUrl || '/images/default-avatar.jpg'" />
+            <span>{{ child.name }}</span>
+          </div>
+        </div>
       </div>
 
+      <!-- Outcomes -->
       <div class="form-group">
-        <label>Outcomes:</label>
-        <select formControlName="outcomes" multiple>
-          <option *ngFor="let outcome of availableOutcomes" [value]="outcome">{{ outcome }}</option>
-        </select>
+        <label>Outcomes</label>
+        <div class="chip-group">
+          <span
+            class="chip"
+            *ngFor="let outcome of availableOutcomes"
+            [class.selected]="form.value.outcomes.includes(outcome)"
+            (click)="toggleOutcome(outcome)"
+          >
+            {{ outcome }}
+          </span>
+        </div>
       </div>
 
+      <!-- Date -->
       <div class="form-group">
-        <label>Description:</label>
-        <textarea formControlName="description"></textarea>
+        <label>Date</label>
+        <input type="date" formControlName="date" />
       </div>
 
+      <!-- Description -->
       <div class="form-group">
-        <label>Visibility:</label>
+        <label>Description</label>
+        <quill-editor formControlName="description" [modules]="quillModules"></quill-editor>
+      </div>
+
+      <!-- Visibility -->
+      <div class="form-group">
+        <label>Visibility</label>
         <select formControlName="visibility">
           <option value="internal">Internal</option>
           <option value="family">Family</option>
         </select>
       </div>
 
+      <!-- Media Upload -->
       <div class="form-group">
-        <label>Upload Media:</label>
-        <input type="file" (change)="onFileChange($event)" />
+        <label>Upload Media</label>
+        <input type="file" (change)="onFileChange($event)" multiple />
+        <div class="media-preview">
+          <div *ngFor="let url of mediaPreview; let i = index" class="media-thumb">
+            <img [src]="url" />
+            <button (click)="removeMedia(i)">×</button>
+          </div>
+        </div>
       </div>
 
+      <!-- Buttons -->
       <div class="form-actions">
         <button type="button" class="btn cancel" (click)="onCancel()">Cancel</button>
-        <button type="submit" class="btn primary" [disabled]="form.invalid">Submit</button>
+        <button type="submit" class="btn primary" [disabled]="form.invalid">Save</button>
       </div>
     </form>
   </div>

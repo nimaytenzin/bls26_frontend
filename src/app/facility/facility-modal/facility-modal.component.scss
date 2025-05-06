@@ -3,38 +3,40 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba($black, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: $z-index-modal;
+}
 
-  .modal-content {
-    background: $background-card;
-    padding: $spacing-xl;
-    border-radius: $card-radius;
-    box-shadow: $modal-shadow;
-    width: 100%;
-    max-width: 500px;
-    font-family: $font-primary;
+.modal-content {
+  background-color: $background-card;
+  padding: $spacing-xl;
+  border-radius: $card-radius;
+  box-shadow: $modal-shadow;
+  width: 100%;
+  max-width: 500px;
+  font-family: $font-primary;
 
-    h2 {
-      font-size: $font-size-xl;
-      font-weight: $font-weight-semibold;
-      color: $primary-color;
-      margin-bottom: $spacing-lg;
-      text-align: center;
-    }
+  h2 {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $primary-color;
+    margin-bottom: $spacing-lg;
+    text-align: center;
+  }
 
+  form {
     .form-group {
       margin-bottom: $spacing-lg;
 
       label {
         display: block;
         margin-bottom: $spacing-xs;
-        font-weight: $font-weight-medium;
-        color: $text-primary;
         font-size: $font-size-sm;
+        color: $text-primary;
+        font-weight: $font-weight-medium;
       }
 
       input,
@@ -50,6 +52,7 @@
         &:focus {
           outline: none;
           border-color: $input-focus-border;
+          background-color: $white;
         }
 
         &::placeholder {
@@ -66,18 +69,17 @@
     .form-actions {
       display: flex;
       justify-content: flex-end;
-      gap: $spacing-md;
-      margin-top: $spacing-xl;
+      gap: $spacing-sm;
+      margin-top: $spacing-lg;
 
       .btn {
-        padding: 0.6rem 1.4rem;
-        border-radius: $button-radius;
-        font-weight: $font-weight-medium;
+        padding: 0.6rem 1.2rem;
         font-size: $font-size-md;
-        border: none;
+        font-weight: $font-weight-medium;
+        border-radius: $button-radius;
         cursor: pointer;
-        font-family: $font-primary;
         transition: background-color $transition-fast $transition-ease;
+        border: none;
 
         &.cancel {
           background-color: $button-disabled-bg;

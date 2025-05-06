@@ -3,54 +3,61 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: $z-index-modal;
+  padding: $spacing-md;
 }
 
 .modal-content {
-  background: $white;
-  padding: 2rem;
-  border-radius: $border-radius;
+  background: $background-card;
   width: 100%;
   max-width: 500px;
+  padding: $spacing-xl;
+  border-radius: $card-radius;
   box-shadow: $modal-shadow;
   font-family: $font-primary;
+  animation: fadeIn $transition-duration $transition-ease;
 
   h2 {
+    text-align: center;
     font-size: $font-size-xl;
     font-weight: $font-weight-semibold;
     color: $primary-color;
-    margin-bottom: 1.5rem;
-    text-align: center;
+    margin-bottom: $spacing-lg;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
   }
 
   .form-group {
-    margin-bottom: 1.2rem;
+    margin-bottom: $spacing-lg;
 
     label {
       display: block;
-      margin-bottom: 0.5rem;
+      margin-bottom: $spacing-xs;
       font-weight: $font-weight-medium;
       color: $text-primary;
     }
 
     input,
     textarea {
-      box-sizing: border-box;
       width: 100%;
-      padding: $spacing-sm;
+      padding: $input-padding;
       font-size: $font-size-md;
-      border: 1px solid $border-color;
-      border-radius: $button-radius;
-      background: $background-muted;
+      background-color: $input-bg;
+      color: $input-text;
+      border: 1px solid $input-border;
+      border-radius: $input-border-radius;
 
       &:focus {
         outline: none;
-        border-color: $primary-color;
-        background: $white;
+        border-color: $input-focus-border;
+        background-color: $white;
       }
     }
 
@@ -64,34 +71,46 @@
     display: flex;
     justify-content: flex-end;
     gap: $spacing-md;
-    margin-top: $spacing-md;
+    margin-top: $spacing-lg;
 
     .btn {
       padding: $spacing-sm $spacing-lg;
-      font-weight: $font-weight-medium;
       font-size: $font-size-md;
+      font-weight: $font-weight-medium;
       border-radius: $button-radius;
-      border: none;
       cursor: pointer;
+      border: none;
       transition: background-color $transition-fast $transition-ease;
 
       &.primary {
-        background: $primary-color;
-        color: $white;
+        background-color: $button-primary-bg;
+        color: $button-primary-text;
 
         &:hover {
-          background: $primary-dark;
+          background-color: $button-primary-hover-bg;
         }
       }
 
       &.cancel {
-        background: $disabled-bg;
-        color: $text-secondary;
+        background-color: $button-disabled-bg;
+        color: $button-disabled-text;
 
         &:hover {
-          background: darken($disabled-bg, 5%);
+          background-color: darken($button-disabled-bg, 5%);
         }
       }
     }
+  }
+}
+
+// Optional: animation for modal appearance
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }

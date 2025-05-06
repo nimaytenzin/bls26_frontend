@@ -25,6 +25,7 @@
   <app-observation-modal
     [show]="showModal"
     [data]="selectedObservation"
+    [children]="children"
     (save)="handleSave($event)"
     (cancel)="showModal = false">
   </app-observation-modal>

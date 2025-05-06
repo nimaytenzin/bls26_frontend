@@ -3,97 +3,112 @@
 .observations-container {
   max-width: 900px;
   margin: 0 auto;
-  background: $white;
-  border-radius: 12px;
+  background: $background-card;
+  border-radius: $card-radius;
   box-shadow: $content-wrapper-shadow;
-  padding: 2rem;
+  padding: $spacing-xl;
+  font-family: $font-primary;
 
   .observations-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: $spacing-lg;
 
     h2 {
-      font-size: 1.5rem;
+      font-size: $font-size-xl;
       color: $text-primary;
+      margin: 0;
     }
 
     .btn.primary {
-      background-color: $primary-color;
-      color: $white;
+      background-color: $button-primary-bg;
+      color: $button-primary-text;
       padding: 0.6rem 1.2rem;
-      border-radius: 6px;
+      border-radius: $button-radius;
+      font-weight: $font-weight-medium;
       border: none;
-      font-weight: 500;
       cursor: pointer;
+      transition: background-color $transition-fast $transition-ease;
 
       &:hover {
-        background-color: $primary-dark;
+        background-color: $button-primary-hover-bg;
       }
     }
   }
 
   .empty-message {
     text-align: center;
-    color: $text-secondary;
-    font-size: 1.1rem;
-    margin-top: 2rem;
+    color: $text-muted;
+    font-size: $font-size-md;
+    margin-top: $spacing-xl;
   }
 
   .observation-list {
     list-style: none;
     padding: 0;
+    margin: 0;
 
     .observation-card {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      background: $gray-light;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 8px;
-      border: 1px solid $gray-medium;
+      align-items: flex-start;
+      background-color: $gray-light;
+      border-radius: $card-radius;
+      padding: $spacing-md;
+      margin-bottom: $spacing-md;
+      border: 1px solid $divider-color;
+      box-shadow: $card-shadow;
+      transition: box-shadow $transition-fast;
+
+      &:hover {
+        box-shadow: $elevation-2;
+      }
 
       .observation-info {
+        flex: 1;
+
         h3 {
-          margin: 0 0 0.25rem 0;
+          font-size: $font-size-lg;
           color: $primary-color;
+          margin: 0 0 $spacing-xs 0;
         }
 
         p {
-          margin: 0.25rem 0;
+          margin: 0 0 $spacing-xs 0;
+          font-size: $font-size-sm;
           color: $text-secondary;
         }
 
-				.tag {
-					display: inline-block;
-					margin-top: $spacing-sm;
-					padding: $spacing-xs $spacing-sm;
-					font-size: $font-size-sm;
-					background: $primary-light;
-					color: $primary-dark;
-					border-radius: $button-radius;
-					font-weight: $font-weight-medium;
-				}
+        .tag {
+          display: inline-block;
+          margin-top: $spacing-sm;
+          padding: $spacing-xs $spacing-sm;
+          font-size: $font-size-sm;
+          background-color: $primary-light;
+          color: $primary-dark;
+          border-radius: $button-radius;
+          font-weight: $font-weight-medium;
+        }
       }
 
       .actions {
-				.btn.outline {
-					background: transparent;
-					border: 1px solid $primary-color;
-					color: $primary-color;
-					padding: $spacing-xs $spacing-md;
-					border-radius: $button-radius;
-					cursor: pointer;
-					font-weight: $font-weight-medium;
-					transition: background-color $transition-fast $transition-ease, color $transition-fast $transition-ease;
+        .btn.outline {
+          background: transparent;
+          border: 1px solid $primary-color;
+          color: $primary-color;
+          padding: $spacing-xs $spacing-md;
+          border-radius: $button-radius;
+          font-size: $font-size-sm;
+          font-weight: $font-weight-medium;
+          cursor: pointer;
+          transition: background-color $transition-fast $transition-ease, color $transition-fast $transition-ease;
 
-					&:hover {
-						background-color: $primary-color;
-						color: $white;
-					}
-				}
+          &:hover {
+            background-color: $primary-color;
+            color: $white;
+          }
+        }
       }
     }
   }

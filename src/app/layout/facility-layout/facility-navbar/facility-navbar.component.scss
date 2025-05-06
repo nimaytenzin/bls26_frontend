@@ -4,16 +4,17 @@
   position: sticky;
   top: 0;
   height: $top-nav-height;
-  padding: 0 1.25rem;
-  background-color: $white;
-  border-bottom: 1px solid $gray-medium;
+  padding: 0 $spacing-lg;
+  margin-left: $spacing-sm;
+  background-color: $background-topnav;
+  border-bottom: 1px solid $divider-color;
   border-radius: $border-radius;
   box-shadow: $top-nav-shadow;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 2rem;
-  z-index: 100;
+  gap: $spacing-xl;
+  z-index: $z-index-nav;
 
   @media (max-width: 768px) {
     width: 100%;
@@ -24,11 +25,11 @@
 
   .sidebar-toggle {
     display: none;
-    font-size: 1.5rem;
-    padding: 0.5rem 1rem;
+    font-size: $font-size-lg;
+    padding: $spacing-sm $spacing-md;
     background-color: $white;
     color: $primary-color;
-    border: 2px solid $gray-medium;
+    border: 2px solid $divider-color;
     border-radius: $border-radius;
     cursor: pointer;
 
@@ -42,22 +43,22 @@
   .facility-selector {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: $spacing-sm;
 
     label {
-      font-weight: 500;
+      font-weight: $font-weight-medium;
       color: $text-primary;
     }
 
     select {
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      border: 1px solid $gray-medium;
-      font-size: 1rem;
-      background-color: #f9f9f9;
+      padding: $spacing-sm $spacing-md;
+      border-radius: $button-radius;
+      border: 1px solid $divider-color;
+      font-size: $font-size-md;
+      background-color: $background-muted;
 
       &:focus {
-        border-color: $primary-color;
+        border-color: $focus-color;
         background-color: $white;
         outline: none;
       }
@@ -67,7 +68,7 @@
   .user-profile {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: $spacing-sm;
     cursor: pointer;
     position: relative;
 
@@ -80,7 +81,7 @@
     }
 
     .username {
-      font-weight: 500;
+      font-weight: $font-weight-medium;
       color: $text-primary;
     }
 
@@ -89,25 +90,25 @@
       top: 48px;
       right: 0;
       width: 160px;
-      background: $white;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      padding: 0.5rem 0;
-      z-index: 999;
+      background: $background-card;
+      border-radius: $card-radius;
+      box-shadow: $elevation-2;
+      padding: $spacing-sm 0;
+      z-index: $z-index-modal;
 
       button {
         width: 100%;
-        padding: 0.75rem 1rem;
+        padding: $spacing-md $spacing-lg;
         background: none;
         border: none;
         text-align: left;
-        font-size: 0.95rem;
+        font-size: $font-size-sm;
         color: $text-primary;
         cursor: pointer;
-        font-family: inherit;
+        font-family: $font-primary;
 
         &:hover {
-          background-color: $gray-light;
+          background-color: $background-muted;
         }
       }
     }

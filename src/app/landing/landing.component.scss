@@ -1,57 +1,59 @@
+@import 'src/styles/theme';
+
 .landing-wrapper {
   background-image: url('/images/landing-background.png');
-  background-position: center center;
   background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
-  min-height: calc(100vh - 280px); // adjust if your navbar is taller/shorter
+  min-height: calc(100vh - 280px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4rem 1.5rem 2rem;
-  font-family: 'Poppins', sans-serif;
-  color: #fff;
+  padding: $spacing-xl $spacing-md $spacing-lg;
+  font-family: $font-primary;
+  color: $white;
   text-align: center;
 
   @media (min-width: 768px) {
+    padding: $spacing-xxl 8%;
     text-align: left;
-    padding: 6rem 8%;
   }
 }
 
 .overlay {
-  background: rgba(0, 0, 0, 0.5); // 🔄 was 0.5 — lightened for better image visibility
-  padding: 2.5rem;
-  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.45);
+  padding: $spacing-xl;
+  border-radius: $card-radius;
   width: 100%;
   max-width: 1100px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: $elevation-3;
 }
 
 .content {
   max-width: 650px;
-  margin: auto;
+  margin: 0 auto;
 
   h1 {
     font-size: 2.5rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
+    font-weight: $font-weight-semibold;
+    margin-bottom: $spacing-md;
 
     span {
-      color: #ffc107;
+      color: $accent-color;
     }
   }
 
   p {
-    font-size: 1.15rem;
-    margin-bottom: 2rem;
-    color: #f5f5f5;
+    font-size: $font-size-md;
+    margin-bottom: $spacing-xl;
+    color: $white;
     text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
   }
 
   .actions {
     display: flex;
-    gap: 1rem;
     flex-wrap: wrap;
+    gap: $spacing-md;
     justify-content: center;
 
     @media (min-width: 768px) {
@@ -60,30 +62,30 @@
 
     .btn {
       padding: 0.75rem 2rem;
-      font-size: 1rem;
-      font-weight: 500;
-      border-radius: 5px;
+      font-size: $font-size-md;
+      font-weight: $font-weight-medium;
+      border-radius: $button-radius;
       border: none;
       cursor: pointer;
       transition: all 0.2s ease-in-out;
 
       &.primary {
-        background-color: #007bff;
-        color: #fff;
+        background-color: $primary-color;
+        color: $white;
 
         &:hover {
-          background-color: #0056b3;
+          background-color: $primary-dark;
         }
       }
 
       &.outline {
         background-color: transparent;
-        border: 2px solid #fff;
-        color: #fff;
+        border: 2px solid $white;
+        color: $white;
 
         &:hover {
-          background-color: #fff;
-          color: #000;
+          background-color: $white;
+          color: $text-primary;
         }
       }
     }
@@ -91,22 +93,22 @@
 }
 
 .benefits-section {
-  padding: 4rem 2rem;
-  background-color: #f7f9fc;
+  background-color: $background-muted;
+  padding: $spacing-xxl $spacing-md;
   text-align: center;
-  color: #333;
+  color: $text-primary;
 
   h2 {
-    font-size: 2rem;
-    margin-bottom: 2.5rem;
-    font-weight: 600;
-    color: #007bff;
+    font-size: $font-size-xl;
+    margin-bottom: $spacing-xl;
+    font-weight: $font-weight-semibold;
+    color: $primary-color;
   }
 
   .benefits-grid {
     display: grid;
-    gap: 2rem;
     grid-template-columns: 1fr;
+    gap: $spacing-lg;
 
     @media (min-width: 768px) {
       grid-template-columns: repeat(2, 1fr);
@@ -117,10 +119,10 @@
     }
 
     .benefit {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      background: $white;
+      padding: $spacing-lg;
+      border-radius: $card-radius;
+      box-shadow: $card-shadow;
       transition: transform 0.2s ease;
 
       &:hover {
@@ -128,15 +130,15 @@
       }
 
       h3 {
-        font-size: 1.2rem;
-        margin-bottom: 0.8rem;
-        color: #333;
+        font-size: $font-size-md;
+        margin-bottom: $spacing-sm;
+        color: $text-primary;
       }
 
       p {
-        font-size: 0.95rem;
+        font-size: $font-size-sm;
         line-height: 1.5;
-        color: #555;
+        color: $text-secondary;
       }
     }
   }

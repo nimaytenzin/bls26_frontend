@@ -1,0 +1,22 @@
+<div class="modal-backdrop" *ngIf="show">
+  <div class="modal-content">
+    <h3>Add Announcement/Event</h3>
+    <form (ngSubmit)="submit()">
+      <input type="text" [(ngModel)]="newAnnouncement.title" name="title" placeholder="Title" required />
+      <textarea [(ngModel)]="newAnnouncement.message" name="message" placeholder="Message" required></textarea>
+      <input type="date" [(ngModel)]="newAnnouncement.date" name="date" required />
+      <select [(ngModel)]="newAnnouncement.type" name="type">
+        <option value="announcement">Announcement</option>
+        <option value="event">Event</option>
+      </select>
+      <input type="file" (change)="onFileChange($event)" />
+      <div *ngIf="imagePreview">
+        <img [src]="imagePreview" alt="Image Preview" />
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">Post</button>
+        <button type="button" class="btn cancel" (click)="onCancel()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -3,18 +3,18 @@
 .facilitator-container {
   max-width: 900px;
   margin: 0 auto;
-  background: $background-card;
   padding: $spacing-xl;
+  background: $background-card;
   border-radius: $card-radius;
-  box-shadow: $card-shadow;
+  box-shadow: $content-wrapper-shadow;
   font-family: $font-primary;
 
   .add-button {
     background-color: $button-primary-bg;
     color: $button-primary-text;
     font-weight: $font-weight-medium;
-    border: none;
     padding: 0.6rem 1.4rem;
+    border: none;
     border-radius: $button-radius;
     margin-bottom: $spacing-lg;
     cursor: pointer;
@@ -33,23 +33,23 @@
     .facilitator-card {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: $spacing-lg;
       padding: $spacing-md;
       background: $white;
       border-radius: $card-radius;
       box-shadow: $elevation-2;
       transition: box-shadow $transition-fast;
+      position: relative;
 
       &:hover {
         box-shadow: $elevation-3;
       }
 
       .avatar {
-        width: 50px;
-        height: 50px;
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
         object-fit: cover;
-        margin-right: $spacing-md;
         border: 2px solid $primary-color;
       }
 
@@ -61,14 +61,15 @@
 
         h3 {
           font-size: $font-size-lg;
-          color: $text-primary;
+          font-weight: $font-weight-semibold;
           margin: 0;
+          color: $text-primary;
         }
 
         p {
           font-size: $font-size-sm;
-          color: $text-secondary;
           margin: 0;
+          color: $text-secondary;
         }
       }
 
@@ -77,17 +78,17 @@
         gap: $spacing-sm;
 
         .btn {
-          padding: 0.4rem 0.8rem;
+          padding: 0.45rem 1rem;
           font-size: $font-size-sm;
+          font-weight: $font-weight-medium;
+          border: none;
           border-radius: $button-radius;
           cursor: pointer;
-          font-weight: $font-weight-medium;
-          transition: background-color $transition-fast;
+          transition: background-color $transition-fast $transition-ease;
 
           &.edit {
             background-color: $button-primary-bg;
             color: $button-primary-text;
-            border: none;
 
             &:hover {
               background-color: $button-primary-hover-bg;
@@ -97,13 +98,28 @@
           &.archive {
             background-color: $danger;
             color: $white;
-            border: none;
 
             &:hover {
               background-color: $danger-dark;
             }
           }
         }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .facilitator-card {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .details {
+        width: 100%;
+      }
+
+      .actions {
+        width: 100%;
+        justify-content: flex-start;
       }
     }
   }

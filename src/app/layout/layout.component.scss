@@ -1,12 +1,13 @@
 @import 'src/styles/theme';
 
 .layout-container {
-	position: relative;
+  position: relative;
   display: flex;
-	flex-direction: row;
+  flex-direction: row;
   height: 100vh;
-	width: 100%;
-	padding: 10px;
+  width: 100%;
+  padding: $spacing-sm;
+  background-color: $background-page;
 
   &.mobile {
     flex-direction: column;
@@ -16,32 +17,32 @@
 
 .content-body {
   display: flex;
-	flex-direction: column;
+  flex-direction: column;
   flex: 1;
   overflow: hidden;
+  //background-color: $background-card;
+  //border-radius: $border-radius;
+  //box-shadow: $content-wrapper-shadow;
 }
 
-// Main Content
 .main-content {
-	flex: 1;
-	padding: 40px;
-	overflow-y: auto;
-  transition: margin-left 0.3s ease;
+  flex: 1;
+  padding: $spacing-xl;
+  overflow-y: auto;
+  transition: margin-left $transition-duration $transition-ease;
 
   @media (max-width: 768px) {
+    padding: $spacing-md;
     margin-left: 0;
   }
 }
 
-// Mobile dark backdrop
 .backdrop {
   position: fixed;
   top: 0;
   left: 0;
-	padding: 0 10px;
   height: 100%;
   width: 100%;
-  background: rgba(0, 0, 0, 0.5); /* semi-transparent black */
-  z-index: 100;
+  background: rgba($black, 0.5);
+  z-index: $z-index-sidebar - 1;
 }
-
