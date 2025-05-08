@@ -108,6 +108,30 @@
       }
     }
   }
+	.stat-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: $spacing-lg;
+		padding: 0 $spacing-xl;
+		flex-wrap: wrap;
+	}
+
+	.invoice-chart {
+		margin: $spacing-xl auto;
+		max-width: 400px;
+		text-align: center;
+
+		h3 {
+			margin-bottom: $spacing-md;
+			color: $text-primary;
+		}
+
+		canvas {
+			width: 100% !important;
+			height: auto !important;
+		}
+	}
+
 
   @media (max-width: 768px) {
     padding: $spacing-lg;

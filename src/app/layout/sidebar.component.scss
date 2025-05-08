@@ -17,6 +17,13 @@
   z-index: $z-index-sidebar;
   padding-bottom: $spacing-xl;
 
+	// Hide scrollbars globally if necessary
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	&::-webkit-scrollbar {
+		display: none;
+	}
+
   .brand-container {
     display: flex;
     align-items: center;

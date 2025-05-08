@@ -1,0 +1,75 @@
+<div class="invoice-list-wrapper">
+  <div class="filter-bar">
+    <input
+      type="text"
+      placeholder="Search by child name..."
+      [(ngModel)]="searchTerm"
+      (input)="onSearchChange()"
+    />
+
+    <select [(ngModel)]="statusFilter" (change)="onStatusChange(statusFilter)">
+      <option value="all">All</option>
+      <option value="paid">Paid</option>
+      <option value="unpaid">Unpaid</option>
+      <option value="overdue">Overdue</option>
+			<option value="voided">Voided</option>
+    </select>
+
+    <button class="btn btn-create" (click)="openCreateModal()">+ Create Invoice</button>
+  </div>
+
+  <div class="invoice-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Child Name</th>
+          <th>Amount</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let invoice of filteredInvoices">
+          <td>{{ invoice.childName }}</td>
+          <td>${{ invoice.amount.toFixed(2) }}</td>
+          <td>{{ invoice.dueDate | date: 'mediumDate' }}</td>
+          <td>
+            <span class="badge" [ngClass]="invoice.status">{{ invoice.status | titlecase }}</span>
+          </td>
+          <td>
+						<div class="action-wrapper">
+							<button class="btn btn-view" (click)="viewInvoice(invoice)">View</button>
+							<button class="btn btn-edit" *ngIf="invoice.status !== 'voided'" (click)="openVoidModal(invoice)">Void</button>
+						</div>
+					</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Removed modal-overlay/container -->
+  <app-create-invoice
+    *ngIf="showCreateModal"
+    (invoiceCreated)="onInvoiceCreated()"
+    (cancelled)="closeCreateModal()"
+	/>
+
+	<app-invoice-detail
+		*ngIf="selectedInvoice"
+		[invoice]="selectedInvoice"
+		[onClose]="closeInvoiceDetail.bind(this)"
+	/>
+
+	<!-- ✅ Corrected Confirmation Modal -->
+	<div class="modal-backdrop" *ngIf="showVoidModal">
+		<div class="modal-content confirm-modal">
+			<p>Are you sure you want to void invoice #{{ invoiceToVoid?.id }}?</p>
+			<div class="modal-actions">
+				<button class="btn cancel" (click)="showVoidModal = false">Cancel</button>
+				<button class="btn danger" (click)="confirmVoid()">Yes, Void</button>
+			</div>
+		</div>
+	</div>
+
+</div>

@@ -1,7 +1,7 @@
 @import 'src/styles/theme';
 
 .announcement-page {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
   padding: $spacing-xl;
   font-family: $font-primary;
@@ -31,43 +31,332 @@
     }
   }
 
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-md;
+    margin-bottom: $spacing-md;
+
+    .tab-button {
+      padding: 0.5rem 1rem;
+      font-size: $font-size-md;
+      font-weight: $font-weight-medium;
+      border-radius: $button-radius;
+      background-color: $gray-light;
+      color: $text-primary;
+      border: 1px solid $divider-color;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: $transition-fast $transition-ease;
+
+      &.active {
+        background-color: $primary-color;
+        color: $white;
+        border-color: $primary-color;
+      }
+
+      &:hover:not(.active) {
+        background-color: lighten($gray-light, 5%);
+      }
+    }
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-lg;
+
+    label {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+
+    select,
+    input[type='text'] {
+      padding: 0.4rem 0.8rem;
+      border-radius: $button-radius;
+      border: 1px solid $divider-color;
+      font-size: $font-size-sm;
+      background-color: $input-bg;
+      color: $text-primary;
+    }
+
+    input[type='text'] {
+      flex: 1;
+      min-width: 200px;
+    }
+  }
+
   .group-title {
-    margin-top: $spacing-lg;
+    margin: $spacing-lg 0 $spacing-md;
     font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
     color: $text-primary;
     border-bottom: 2px solid $divider-color;
-    padding-bottom: 0.25rem;
-    margin-bottom: $spacing-md;
+    padding-bottom: $spacing-xs;
   }
 
   .card {
     background-color: $white;
-    border-radius: $card-radius;
-    padding: $spacing-md;
-    box-shadow: $card-shadow;
-    margin-bottom: $spacing-md;
     border: 1px solid $divider-color;
+    border-radius: $card-radius;
+    box-shadow: $card-shadow;
+    padding: $spacing-md;
+    margin-bottom: $spacing-md;
+    position: relative;
 
-    h4 {
-      font-size: $font-size-md;
-      color: $text-primary;
-      margin-bottom: $spacing-xs;
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+
+      h4 {
+        font-size: $font-size-md;
+        color: $text-primary;
+        margin-bottom: $spacing-xs;
+      }
+
+      .meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: $spacing-xs;
+
+        .date {
+          font-size: $font-size-sm;
+          color: $text-muted;
+        }
+
+        .actions {
+          display: flex;
+          gap: $spacing-xs;
+
+          button {
+            background: none;
+            border: none;
+            color: $text-muted;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: $spacing-xs;
+
+            &:hover {
+              color: $danger-dark;
+            }
+          }
+        }
+      }
     }
 
-    .date {
-      font-size: $font-size-sm;
-      color: $text-muted;
-      margin-bottom: $spacing-xs;
-    }
-
-    p {
+    .message {
       color: $text-secondary;
+      font-size: $font-size-md;
+      margin-bottom: $spacing-sm;
     }
 
-    img {
-      width: 100%;
+    .announcement-images {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: $spacing-sm;
       margin-top: $spacing-sm;
-      border-radius: $card-radius;
+
+      img {
+        width: 100%;
+        height: auto;
+        border-radius: $card-radius;
+        object-fit: cover;
+        cursor: pointer;
+        box-shadow: $card-shadow;
+      }
+    }
+
+    .interactions {
+      margin-top: $spacing-sm;
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+
+      button {
+        background: none;
+        border: none;
+        color: $text-secondary;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: $font-size-sm;
+        cursor: pointer;
+
+        &:hover {
+          color: $primary-color;
+        }
+      }
+    }
+
+    .comments-section {
+      margin-top: $spacing-sm;
+
+      .comment {
+        font-size: $font-size-sm;
+        color: $text-secondary;
+        margin-bottom: $spacing-xs;
+
+        strong {
+          color: $text-primary;
+        }
+      }
+
+      form {
+        display: flex;
+        align-items: center;
+        gap: $spacing-xs;
+        margin-top: $spacing-xs;
+
+        input {
+          flex: 1;
+          padding: 0.4rem 0.75rem;
+          font-size: $font-size-sm;
+          border: 1px solid $divider-color;
+          border-radius: $button-radius;
+          color: $text-primary;
+          background: $input-bg;
+
+          &:focus {
+            border-color: $primary-color;
+            outline: none;
+          }
+        }
+
+        button {
+          background: none;
+          border: none;
+          color: $primary-color;
+          font-size: 1.2rem;
+          cursor: pointer;
+
+          &:hover {
+            color: darken($primary-color, 10%);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Lightbox Styles
+.lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: $z-index-modal + 200;
+  padding: $spacing-lg;
+}
+
+.lightbox-content {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 100%;
+  max-height: 100%;
+
+  img,
+  video {
+    max-width: 90vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: $card-radius;
+    background-color: $white;
+    box-shadow: $card-shadow;
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .close-btn,
+  .prev-btn,
+  .next-btn {
+    width: 48px;
+    height: 48px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: $white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: absolute;
+    z-index: 1000;
+    transition: background-color 0.2s ease;
+
+    fa-icon {
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.85);
+    }
+  }
+
+  .close-btn {
+    top: $spacing-md;
+    right: $spacing-md;
+  }
+
+  .prev-btn {
+    top: 50%;
+    left: $spacing-md;
+    transform: translateY(-50%);
+  }
+
+  .next-btn {
+    top: 50%;
+    right: $spacing-md;
+    transform: translateY(-50%);
+  }
+}
+
+// Responsive Adjustments
+@media (max-width: 768px) {
+  .announcement-page {
+    padding: $spacing-md;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tabs {
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  .card .announcement-images {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+
+  .lightbox-content img,
+  .lightbox-content video {
+    max-width: 95vw;
+    max-height: 80vh;
+  }
+
+  .close-btn,
+  .prev-btn,
+  .next-btn {
+    width: 36px;
+    height: 36px;
+
+    fa-icon {
+      font-size: 1rem;
     }
   }
 }

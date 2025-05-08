@@ -1,0 +1,165 @@
+@import 'src/styles/theme';
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba($black, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: $z-index-modal;
+  padding: $spacing-md; // Prevent content from hitting edges on small screens
+  overflow: auto;
+}
+
+.modal-content.invoice-modal {
+  background: $background-card;
+  padding: $spacing-xl;
+  border-radius: $card-radius;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: $modal-shadow;
+  font-family: $font-primary;
+  box-sizing: border-box;
+
+  h2 {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $primary-color;
+    margin-bottom: $spacing-lg;
+    text-align: center;
+  }
+
+  .form-group {
+    margin-bottom: $spacing-lg;
+
+    label {
+      display: block;
+      margin-bottom: $spacing-xs;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+      color: $text-primary;
+    }
+
+    input,
+    select,
+    input[type='date'] {
+      width: 100%;
+      padding: $input-padding;
+      font-size: $font-size-md;
+      border: 1px solid $input-border;
+      border-radius: $input-border-radius;
+      background-color: $input-bg;
+      color: $input-text;
+      transition: border-color $transition-fast $transition-ease;
+      box-sizing: border-box;
+
+      &::placeholder {
+        color: $input-placeholder;
+      }
+
+      &:focus {
+        border-color: $input-focus-border;
+        outline: none;
+        background-color: $white;
+      }
+    }
+  }
+
+  .item-list {
+    .item-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr auto;
+      gap: $spacing-sm;
+      margin-bottom: $spacing-sm;
+
+      input {
+        padding: $input-padding;
+        font-size: $font-size-sm;
+        border: 1px solid $input-border;
+        border-radius: $input-border-radius;
+        background-color: $input-bg;
+        color: $input-text;
+        width: 100%;
+        box-sizing: border-box;
+
+        &:focus {
+          border-color: $input-focus-border;
+          background-color: $white;
+        }
+      }
+
+      button {
+        background: none;
+        border: none;
+        color: $danger;
+        font-size: $font-size-sm;
+        cursor: pointer;
+        white-space: nowrap;
+
+        &:hover {
+          color: $danger-dark;
+        }
+      }
+    }
+
+    .add-item-btn {
+      margin-top: $spacing-sm;
+      background-color: $button-accent-bg;
+      color: $button-accent-text;
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: $button-radius;
+      font-size: $font-size-sm;
+      cursor: pointer;
+
+      &:hover {
+        background-color: $button-accent-hover-bg;
+      }
+    }
+  }
+
+  .total {
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-md;
+    margin-top: $spacing-md;
+    margin-bottom: $spacing-lg;
+    color: $text-secondary;
+    text-align: right;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+
+    .btn {
+      padding: 0.6rem 1.2rem;
+      font-size: $font-size-md;
+      font-weight: $font-weight-medium;
+      border-radius: $button-radius;
+      cursor: pointer;
+      border: none;
+      transition: background-color $transition-fast $transition-ease;
+
+      &.primary {
+        background-color: $button-primary-bg;
+        color: $button-primary-text;
+
+        &:hover {
+          background-color: $button-primary-hover-bg;
+        }
+      }
+
+      &.cancel {
+        background-color: $button-disabled-bg;
+        color: $button-disabled-text;
+
+        &:hover {
+          background-color: darken($button-disabled-bg, 5%);
+        }
+      }
+    }
+  }
+}

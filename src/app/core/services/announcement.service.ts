@@ -1,15 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-
-export interface Announcement {
-  id?: number;
-  title: string;
-  message: string;
-  date: string;
-  type: 'announcement' | 'event';
-  imageUrl?: string;
-}
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { Announcement } from '../models/announcement.model';
 
 @Injectable({ providedIn: 'root' })
 export class AnnouncementService {
@@ -20,7 +12,9 @@ export class AnnouncementService {
   constructor(private http: HttpClient) {}
 
   fetchAnnouncements(): Observable<Announcement[]> {
-    return this.http.get<Announcement[]>(this.apiUrl);
+    return this.http.get<Announcement[]>(this.apiUrl).pipe(
+      tap(data => this.announcementsSubject.next(data))
+    );
   }
 
   addAnnouncement(data: Announcement): Observable<Announcement> {
@@ -31,7 +25,23 @@ export class AnnouncementService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  updateAnnouncement(id: number, data: Announcement): Observable<Announcement> {
-    return this.http.put<Announcement>(`${this.apiUrl}/${id}`, data);
+  updateAnnouncement(id: number, data: Partial<Announcement>): Observable<Announcement> {
+    return this.http.patch<Announcement>(`${this.apiUrl}/${id}`, data);
+  }
+
+  likeAnnouncement(id: number, userId: string): Observable<Announcement> {
+    return this.http.post<Announcement>(`${this.apiUrl}/${id}/like`, { userId });
+  }
+
+  addComment(id: number, comment: { user: string; text: string }): Observable<Announcement> {
+    return this.http.post<Announcement>(`${this.apiUrl}/${id}/comment`, comment);
+  }
+
+  filterAnnouncements(type?: string, dateRange?: { from: string; to: string }): Observable<Announcement[]> {
+    let params = new HttpParams();
+    if (type) params = params.set('type', type);
+    if (dateRange?.from) params = params.set('from', dateRange.from);
+    if (dateRange?.to) params = params.set('to', dateRange.to);
+    return this.http.get<Announcement[]>(this.apiUrl, { params });
   }
 }

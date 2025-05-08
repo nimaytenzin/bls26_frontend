@@ -91,14 +91,14 @@
 	  </li>
 
 	  <li class="section-title">Reports & Billing</li>
-	  <li>
-		<a [routerLink]="['/billing']"
-		routerLinkActive="active"
-		(click)="onNavClick('/billing')"
-		>
-			<fa-icon [icon]="icons.faInvoice"></fa-icon> Invoice
-		</a>
-	  </li>
+		<li>
+			<a [routerLink]="['/invoices']"
+			routerLinkActive="active"
+			(click)="onNavClick('/invoices')"
+			>
+				<fa-icon [icon]="icons.faInvoice"></fa-icon> Invoices
+			</a>
+			</li>
 	  <li>
 		<a [routerLink]="['/expenses']"
 		routerLinkActive="active"

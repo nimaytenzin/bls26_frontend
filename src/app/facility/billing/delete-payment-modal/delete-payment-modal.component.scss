@@ -1,0 +1,68 @@
+@import 'src/styles/theme';
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba($black, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: $z-index-modal;
+}
+
+.modal-content.confirm-delete-modal {
+  background: $background-card;
+  padding: $spacing-xl;
+  border-radius: $card-radius;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: $modal-shadow;
+  font-family: $font-primary;
+  text-align: center;
+
+  h2 {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $danger;
+    margin-bottom: $spacing-md;
+  }
+
+  p {
+    font-size: $font-size-md;
+    color: $text-primary;
+    margin-bottom: $spacing-lg;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: center;
+    gap: $spacing-md;
+
+    .btn {
+      padding: 0.5rem 1.2rem;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+      border-radius: $button-radius;
+      border: none;
+      cursor: pointer;
+
+      &.danger {
+        background-color: $danger;
+        color: $white;
+
+        &:hover {
+          background-color: $danger-dark;
+        }
+      }
+
+      &.cancel {
+        background-color: $button-disabled-bg;
+        color: $button-disabled-text;
+
+        &:hover {
+          background-color: darken($button-disabled-bg, 5%);
+        }
+      }
+    }
+  }
+}

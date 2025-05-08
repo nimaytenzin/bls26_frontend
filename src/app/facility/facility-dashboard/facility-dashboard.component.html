@@ -19,15 +19,30 @@
       <h3>{{ pendingInvoices }}</h3>
       <p>Pending Invoices</p>
     </div>
+    <div class="stat-card">
+      <h3>{{ dueSoonInvoices }}</h3>
+      <p>Due Soon Invoices</p>
+    </div>
+    <div class="stat-card">
+      <h3>${{ totalRevenue | number: '1.2-2' }}</h3>
+      <p>Total Revenue</p>
+    </div>
   </div>
-
+	<!-- 📊 Invoice Summary Chart -->
+	<div class="invoice-chart">
+		<h3>Invoice Status Overview</h3>
+		<canvas
+			baseChart
+			[data]="invoiceChartData"
+			[options]="invoiceChartOptions"
+			[type]="'doughnut'">
+		</canvas>
+	</div>
   <!-- Recent Activities -->
   <div class="recent-activities">
     <h3>Recent Activities</h3>
     <ul>
-      <li *ngFor="let activity of recentActivities">
-        {{ activity }}
-      </li>
+      <li *ngFor="let activity of recentActivities">{{ activity }}</li>
     </ul>
   </div>
 

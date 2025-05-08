@@ -1,22 +1,48 @@
 import { Component, OnInit } from '@angular/core';
 import { FacilityDashboardService } from '../../core/services/facility-dashboard.service';
 import { CommonModule } from '@angular/common';
+import { NgChartsModule } from 'ng2-charts';
+import { ChartOptions } from 'chart.js';
 
 @Component({
   selector: 'app-facility-dashboard',
   standalone: true,
   templateUrl: './facility-dashboard.component.html',
   styleUrls: ['./facility-dashboard.component.scss'],
-	imports: [
-		CommonModule
+  imports: [
+		CommonModule,
+		NgChartsModule,
 	],
 })
 export class FacilityDashboardComponent implements OnInit {
-  totalEnrollments: number = 0;
-  activeFacilitators: number = 0;
-  upcomingEvents: number = 0;
-  pendingInvoices: number = 0;
+  totalEnrollments = 0;
+  activeFacilitators = 0;
+  upcomingEvents = 0;
+  pendingInvoices = 0;
+  dueSoonInvoices = 0;
+  totalRevenue = 0;
   recentActivities: string[] = [];
+
+	invoiceChartData = {
+		labels: ['Paid', 'Pending', 'Overdue'],
+		datasets: [
+			{
+				data: [15, 8, 3],
+				backgroundColor: ['#4caf50', '#ff9800', '#f44336'],
+				hoverOffset: 4,
+			},
+		],
+	};
+
+	public invoiceChartOptions: ChartOptions<'doughnut'> = {
+		responsive: true,
+		plugins: {
+			legend: {
+				position: 'top' // ✅ Use only allowed values
+			}
+		}
+	};
+
 
   constructor(private facilityDashboardService: FacilityDashboardService) {}
 
@@ -30,6 +56,8 @@ export class FacilityDashboardComponent implements OnInit {
       this.activeFacilitators = stats.activeFacilitators;
       this.upcomingEvents = stats.upcomingEvents;
       this.pendingInvoices = stats.pendingInvoices;
+      this.dueSoonInvoices = stats.dueSoonInvoices;
+      this.totalRevenue = stats.totalRevenue;
     });
 
     this.facilityDashboardService.getRecentActivities().subscribe((activities) => {

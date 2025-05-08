@@ -1,0 +1,35 @@
+<div class="announcement-page">
+  <div class="header">
+    <h2>Announcements & Events</h2>
+    <button class="btn primary" (click)="openModal()">+ Add</button>
+  </div>
+
+  <!-- ANNOUNCEMENTS -->
+  <section *ngIf="groupedAnnouncements['announcement']">
+    <h3 class="group-title">📢 Announcements</h3>
+    <div class="card" *ngFor="let ann of groupedAnnouncements['announcement']">
+      <h4>{{ ann.title }}</h4>
+      <p class="date">{{ ann.date | date }}</p>
+      <p>{{ ann.message }}</p>
+      <img *ngIf="ann.imageUrl" [src]="ann.imageUrl" alt="announcement image" />
+    </div>
+  </section>
+
+  <!-- EVENTS -->
+  <section *ngIf="groupedAnnouncements['event']">
+    <h3 class="group-title">🎉 Events</h3>
+    <div class="card" *ngFor="let evt of groupedAnnouncements['event']">
+      <h4>{{ evt.title }}</h4>
+      <p class="date">{{ evt.date | date }}</p>
+      <p>{{ evt.message }}</p>
+      <img *ngIf="evt.imageUrl" [src]="evt.imageUrl" alt="event image" />
+    </div>
+  </section>
+
+  <!-- Modal -->
+  <app-announcement-modal
+    [show]="showModal"
+    (close)="closeModal()"
+    (post)="handlePost($event)"
+  ></app-announcement-modal>
+</div>

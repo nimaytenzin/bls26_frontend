@@ -7,20 +7,23 @@ import { Observable, of } from 'rxjs';
 export class FacilityDashboardService {
   constructor() {}
 
-  getDashboardStats(): Observable<{
-    totalEnrollments: number;
-    activeFacilitators: number;
-    upcomingEvents: number;
-    pendingInvoices: number;
-  }> {
-    // Mock data; replace with API call if needed
-    return of({
-      totalEnrollments: 120,
-      activeFacilitators: 15,
-      upcomingEvents: 5,
-      pendingInvoices: 8,
-    });
-  }
+	getDashboardStats(): Observable<{
+		totalEnrollments: number;
+		activeFacilitators: number;
+		upcomingEvents: number;
+		pendingInvoices: number;
+		dueSoonInvoices: number;
+		totalRevenue: number;
+	}> {
+		return of({
+			totalEnrollments: 120,
+			activeFacilitators: 15,
+			upcomingEvents: 5,
+			pendingInvoices: 8,
+			dueSoonInvoices: 3,
+			totalRevenue: 32850.75,
+		});
+	}
 
   getRecentActivities(): Observable<string[]> {
     // Mock data; replace with API call if needed

@@ -10,5 +10,5 @@ export const routes: Routes = [
   { path: 'landing', component: LandingComponent },
   ...authRoutes,
 	...facilityRoutes,
-  { path: '**', redirectTo: '' },
+  //{ path: '**', redirectTo: '' },
 ];

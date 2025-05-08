@@ -1,0 +1,34 @@
+<div class="modal-backdrop">
+  <div class="modal-content record-payment-modal">
+    <h2>Record Payment</h2>
+
+    <form [formGroup]="paymentForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label>Amount</label>
+        <input type="number" formControlName="amount" step="0.01" placeholder="Enter amount" />
+      </div>
+
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" formControlName="date" />
+      </div>
+
+      <div class="form-group">
+        <label>Method</label>
+        <select formControlName="method">
+          <option *ngFor="let m of methods" [value]="m">{{ m | titlecase }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Reference <span class="optional">(optional)</span></label>
+        <input type="text" formControlName="reference" placeholder="Transaction ID, Receipt No..." />
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn primary" [disabled]="paymentForm.invalid">Record Payment</button>
+        <button type="button" class="btn cancel" (click)="onCancel()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

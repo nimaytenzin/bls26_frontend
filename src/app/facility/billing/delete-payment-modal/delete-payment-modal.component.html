@@ -1,0 +1,15 @@
+<div class="modal-backdrop">
+  <div class="modal-content confirm-delete-modal">
+    <h2>Confirm Deletion</h2>
+    <p>
+      Are you sure you want to <strong>delete this payment</strong> of
+      <strong>${{ payment.amount.toFixed(2) }}</strong> made on
+      <strong>{{ payment.date | date: 'mediumDate' }}</strong>?
+    </p>
+
+    <div class="form-actions">
+      <button class="btn danger" (click)="confirmDelete()">Delete</button>
+      <button class="btn cancel" (click)="cancel()">Cancel</button>
+    </div>
+  </div>
+</div>

@@ -34,9 +34,11 @@
             ],
             "styles": [
               "node_modules/quill/dist/quill.snow.css",
-              "src/styles.scss"
+							"src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+
+						]
           },
           "configurations": {
             "production": {
