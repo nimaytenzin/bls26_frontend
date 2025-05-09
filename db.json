@@ -196,6 +196,18 @@
       "dob": "2025-04-22",
       "gender": "male",
       "facilityId": "7e07"
+    },
+
+		{
+      "id": "545",
+      "name": "Tshewang",
+      "preferredName": "Tshe",
+      "cid": "1235",
+      "avatarUrl": "/images/default-avatar.jpg",
+      "studentCode": "12345",
+      "dob": "2025-04-22",
+      "gender": "male",
+      "facilityId": "7e07"
     }
   ],
   "childNotes": [
@@ -444,6 +456,20 @@
           "unitPrice": 450
         }
       ]
+    },
+    {
+      "id": "d6bb",
+      "childName": "Sonam",
+      "dueDate": "2025-05-31",
+      "amount": 300,
+      "status": "unpaid",
+      "items": [
+        {
+          "description": "Fee",
+          "quantity": 1,
+          "unitPrice": 300
+        }
+      ]
     }
   ],
   "payments": [
@@ -475,7 +501,7 @@
       "deleted": true
     },
     {
-      "id": 0,
+      "id": "0",
       "invoiceId": "1",
       "amount": 200,
       "date": "2025-05-08",
@@ -484,7 +510,7 @@
       "deleted": false
     },
     {
-      "id": 0,
+      "id": "0",
       "invoiceId": "1",
       "amount": 200,
       "date": "2025-05-08",
@@ -493,7 +519,7 @@
       "deleted": false
     },
     {
-      "id": 0,
+      "id": "0",
       "invoiceId": "1",
       "amount": 5000,
       "date": "2025-05-08",
@@ -502,7 +528,7 @@
       "deleted": false
     },
     {
-      "id": 0,
+      "id": "0",
       "invoiceId": "2",
       "amount": 200,
       "date": "2025-05-08",
@@ -511,7 +537,7 @@
       "deleted": false
     },
     {
-      "id": 0,
+      "id": "0",
       "invoiceId": "2",
       "amount": 100,
       "date": "2025-05-08",
@@ -520,7 +546,7 @@
       "deleted": false
     },
     {
-      "id": 0,
+      "id": "0",
       "invoiceId": "1",
       "amount": 50,
       "date": "2025-05-08",

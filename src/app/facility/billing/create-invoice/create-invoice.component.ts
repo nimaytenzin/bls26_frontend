@@ -1,8 +1,17 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  FormArray,
+  Validators
+} from '@angular/forms';
 import { BillingService } from '../../../core/services/billing.service';
 import { Invoice } from '../../../core/models/invoice.model';
+import { ChildService } from '../../../core/services/child.service';
+import { Child } from '../../../core/models/child.model';
 
 @Component({
   selector: 'app-create-invoice',
@@ -11,22 +20,28 @@ import { Invoice } from '../../../core/models/invoice.model';
   templateUrl: './create-invoice.component.html',
   styleUrls: ['./create-invoice.component.scss']
 })
-export class CreateInvoiceComponent {
+export class CreateInvoiceComponent implements OnInit {
   @Output() invoiceCreated = new EventEmitter<void>();
-	@Output() cancelled = new EventEmitter<void>();
-  invoiceForm: FormGroup;
+  @Output() cancelled = new EventEmitter<void>();
 
-  constructor(private fb: FormBuilder, private billingService: BillingService) {
+  invoiceForm: FormGroup;
+  children: Child[] = [];
+
+  constructor(
+    private fb: FormBuilder,
+    private billingService: BillingService,
+    private childService: ChildService
+  ) {
     this.invoiceForm = this.fb.group({
-      childName: ['', Validators.required],
+      childId: [null, Validators.required],
       dueDate: ['', Validators.required],
-      items: this.fb.array([
-        this.fb.group({
-          description: ['', Validators.required],
-          quantity: [1, [Validators.required, Validators.min(1)]],
-          unitPrice: [0, [Validators.required, Validators.min(0)]]
-        })
-      ])
+      items: this.fb.array([this.createItemGroup()])
+    });
+  }
+
+  ngOnInit(): void {
+    this.childService.getChildren().subscribe(data => {
+      this.children = data;
     });
   }
 
@@ -34,29 +49,39 @@ export class CreateInvoiceComponent {
     return this.invoiceForm.get('items') as FormArray;
   }
 
-  addItem(): void {
-    this.items.push(this.fb.group({
+  createItemGroup(): FormGroup {
+    return this.fb.group({
       description: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(1)]],
       unitPrice: [0, [Validators.required, Validators.min(0)]]
-    }));
+    });
+  }
+
+  addItem(): void {
+    this.items.push(this.createItemGroup());
   }
 
   removeItem(index: number): void {
-    if (this.items.length > 1) this.items.removeAt(index);
+    if (this.items.length > 1) {
+      this.items.removeAt(index);
+    }
   }
 
   getTotal(): number {
-    return this.items.value.reduce((acc: number, item: any) => {
-      return acc + item.quantity * item.unitPrice;
-    }, 0);
+    return this.items.value.reduce(
+      (acc: number, item: any) => acc + item.quantity * item.unitPrice,
+      0
+    );
   }
 
   onSubmit(): void {
     if (this.invoiceForm.valid) {
       const formValue = this.invoiceForm.value;
+      const selectedChild = this.children.find(c => c.id === formValue.childId);
+
       const newInvoice: Partial<Invoice> = {
-        childName: formValue.childName,
+        childId: formValue.childId,
+        childName: selectedChild?.name || '',
         dueDate: formValue.dueDate,
         amount: this.getTotal(),
         status: 'unpaid',
@@ -72,7 +97,7 @@ export class CreateInvoiceComponent {
     }
   }
 
-	onCancel(): void {
-		this.cancelled.emit(); // Notifies parent to close the modal
-	}
+  onCancel(): void {
+    this.cancelled.emit();
+  }
 }

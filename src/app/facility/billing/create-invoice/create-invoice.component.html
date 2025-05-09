@@ -3,8 +3,12 @@
     <h2>Create New Invoice</h2>
     <form [formGroup]="invoiceForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
-        <label>Child Name</label>
-        <input formControlName="childName" type="text" placeholder="Enter child name" />
+				<label>Child</label>
+				<select formControlName="childId">
+					<option *ngFor="let child of children" [value]="child.id">
+						{{ child.name }}
+					</option>
+  			</select>
       </div>
 
       <div class="form-group">
