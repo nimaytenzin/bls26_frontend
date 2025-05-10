@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { Facilitator, FacilitatorService } from '../../core/services/facilitator.service';
 import { CommonModule } from '@angular/common';
+import { Facilitator } from '../../core/models/facilitator.model';
+import { FacilitatorService } from '../../core/services/facilitator.service';
 import { FacilitatorModalComponent } from '../facilitator-modal/facilitator-modal.component';
 
 @Component({

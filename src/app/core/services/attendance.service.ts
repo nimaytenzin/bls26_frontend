@@ -2,16 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-export interface Attendance {
-  id?: number;
-  childId: number;
-  facilityId: string;
-  date: string;
-  session: string;
-  status: 'Present' | 'Absent';
-  note?: string;
-}
+import { Attendance } from '../models/attendance.model';
 
 @Injectable({ providedIn: 'root' })
 export class AttendanceService {

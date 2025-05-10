@@ -100,10 +100,11 @@
     </div>
   </div>
 
-  <app-record-payment-modal
-    *ngIf="showPaymentModal"
-    [invoiceId]="invoice.id"
-    (paymentRecorded)="onPaymentRecorded($event)"
-    (cancelled)="showPaymentModal = false"
-  />
+	<app-record-payment-modal
+		*ngIf="showPaymentModal"
+		[invoiceId]="invoice.id"
+		[remainingBalance]="remainingBalance"
+		(paymentRecorded)="onPaymentRecorded($event)"
+		(cancelled)="showPaymentModal = false"
+	/>
 </div>

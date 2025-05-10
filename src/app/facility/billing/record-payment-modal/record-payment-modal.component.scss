@@ -96,3 +96,18 @@
     }
   }
 }
+
+.balance-info {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $text-secondary;
+  margin-top: $spacing-sm;
+  text-align: right;
+}
+
+.warning-text {
+  color: $danger;
+  font-size: $font-size-xs;
+  margin-top: 0.25rem;
+}
+

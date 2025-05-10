@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
-import { PackageService, Package } from '../../core/services/package.service';
+import { Package } from '../../core/models/package.model';
+import { PackageService } from '../../core/services/package.service';
 import { FacilityService } from '../../core/services/facility.service';
 import { AuthService } from '../../auth/auth.service';
 import { PackageModalComponent } from '../package-modal/package-modal.component';

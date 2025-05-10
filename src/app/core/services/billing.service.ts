@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Invoice, Payment, Package } from '../models/invoice.model';
-
+import { Invoice } from '../models/invoice.model';
+import { Payment } from '../models/payment.model';
+import { map } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class BillingService {
@@ -46,4 +47,44 @@ export class BillingService {
 		return this.http.put<Payment>(`${this.baseUrl}/payments/${payment.id}`, payment);
 	}
 
+	getOverdueInvoices(): Observable<Invoice[]> {
+		return this.http.get<Invoice[]>(`${this.baseUrl}/invoices`).pipe(
+			map(invoices =>
+				invoices.filter(inv =>
+					inv.status === 'unpaid' && new Date(inv.dueDate) < new Date()
+				).map(inv => ({ ...inv, status: 'overdue' }))
+			)
+		);
+	}
+
+	private getNextDate(pattern: 'weekly' | 'monthly', fromDate: string): string {
+		const date = new Date(fromDate);
+		if (pattern === 'weekly') date.setDate(date.getDate() + 7);
+		else if (pattern === 'monthly') date.setMonth(date.getMonth() + 1);
+		return date.toISOString().split('T')[0];
+	}
+
+	autoGenerateRecurringInvoices(): void {
+		this.fetchInvoices().subscribe(invoices => {
+			const today = new Date().toISOString().split('T')[0];
+
+			invoices
+				.filter(inv => inv.isRecurring && inv.nextDueDate === today)
+				.forEach(inv => {
+					const newInvoice: Partial<Invoice> = {
+						childId: inv.childId,
+						childName: inv.childName,
+						dueDate: today,
+						amount: inv.amount,
+						status: 'unpaid' as 'unpaid',
+						items: inv.items,
+						isRecurring: true,
+						recurrencePattern: (inv.recurrencePattern ?? 'monthly') as 'weekly' | 'monthly',
+						nextDueDate: this.getNextDate(inv.recurrencePattern ?? 'monthly', today)
+					};
+
+					this.createInvoice(newInvoice).subscribe();
+				});
+		});
+	}
 }

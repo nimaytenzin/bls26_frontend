@@ -30,41 +30,50 @@
     text-align: center;
   }
 
-  .form-group {
-    margin-bottom: $spacing-lg;
+	.form-group {
+		margin-bottom: $spacing-md;
+		margin-top: $spacing-md;
 
-    label {
-      display: block;
-      margin-bottom: $spacing-xs;
-      font-size: $font-size-sm;
-      font-weight: $font-weight-medium;
-      color: $text-primary;
-    }
+		label {
+			display: inline-flex;
+			align-items: center;
+			gap: $spacing-xs;
+			font-size: $font-size-sm;
+			font-weight: $font-weight-medium;
+			color: $text-primary;
+		}
 
-    input,
-    select,
-    input[type='date'] {
-      width: 100%;
-      padding: $input-padding;
-      font-size: $font-size-md;
-      border: 1px solid $input-border;
-      border-radius: $input-border-radius;
-      background-color: $input-bg;
-      color: $input-text;
-      transition: border-color $transition-fast $transition-ease;
-      box-sizing: border-box;
+		input[type='text'],
+		input[type='number'],
+		input[type='date'],
+		select {
+			width: 100%;
+			padding: $input-padding;
+			font-size: $font-size-md;
+			border: 1px solid $input-border;
+			border-radius: $input-border-radius;
+			background-color: $input-bg;
+			color: $input-text;
+			transition: border-color $transition-fast $transition-ease;
 
-      &::placeholder {
-        color: $input-placeholder;
-      }
+			&::placeholder {
+				color: $input-placeholder;
+			}
 
-      &:focus {
-        border-color: $input-focus-border;
-        outline: none;
-        background-color: $white;
-      }
-    }
-  }
+			&:focus {
+				margin-top: $spacing-md;
+				border-color: $input-focus-border;
+				outline: none;
+				background-color: $white;
+			}
+		}
+
+		input[type='checkbox'] {
+			accent-color: $primary-color;
+			transform: scale(1.2);
+			cursor: pointer;
+		}
+	}
 
   .item-list {
     .item-row {

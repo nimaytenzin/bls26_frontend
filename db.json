@@ -161,14 +161,6 @@
   ],
   "packages": [
     {
-      "id": "13d1",
-      "facilityId": "1",
-      "ownerId": "1",
-      "name": "fsd",
-      "description": "fs",
-      "price": 40
-    },
-    {
       "id": "47ea",
       "facilityId": "7e07",
       "ownerId": "4",
@@ -197,8 +189,7 @@
       "gender": "male",
       "facilityId": "7e07"
     },
-
-		{
+    {
       "id": "545",
       "name": "Tshewang",
       "preferredName": "Tshe",
@@ -433,43 +424,49 @@
       "childName": "Tashi Dorji",
       "amount": 300,
       "dueDate": "2025-05-20",
-      "status": "voided",
+      "status": "paid",
       "items": [
         {
           "description": "Tuition Fee - May",
           "quantity": 1,
           "unitPrice": 300
         }
-      ]
+      ],
+      "isRecurring": false
     },
     {
       "id": "2",
       "childId": 102,
       "childName": "Sonam Wangmo",
       "amount": 450,
-      "dueDate": "2025-05-25",
-      "status": "unpaid",
+      "dueDate": "2025-05-04",
+      "status": "paid",
       "items": [
         {
           "description": "Tuition Fee - May",
           "quantity": 1,
           "unitPrice": 450
         }
-      ]
+      ],
+      "isRecurring": false
     },
     {
-      "id": "d6bb",
+      "id": "d4d1",
+      "childId": "5485",
       "childName": "Sonam",
-      "dueDate": "2025-05-31",
-      "amount": 300,
+      "dueDate": "2025-05-01",
+      "amount": 500,
       "status": "unpaid",
       "items": [
         {
-          "description": "Fee",
+          "description": "Recurring",
           "quantity": 1,
-          "unitPrice": 300
+          "unitPrice": 500
         }
-      ]
+      ],
+      "isRecurring": true,
+      "recurrencePattern": "monthly",
+      "nextDueDate": "2025-05-01"
     }
   ],
   "payments": [
@@ -502,33 +499,6 @@
     },
     {
       "id": "0",
-      "invoiceId": "1",
-      "amount": 200,
-      "date": "2025-05-08",
-      "method": "cash",
-      "reference": "125",
-      "deleted": false
-    },
-    {
-      "id": "0",
-      "invoiceId": "1",
-      "amount": 200,
-      "date": "2025-05-08",
-      "method": "online",
-      "reference": "12345",
-      "deleted": false
-    },
-    {
-      "id": "0",
-      "invoiceId": "1",
-      "amount": 5000,
-      "date": "2025-05-08",
-      "method": "card",
-      "reference": "5633",
-      "deleted": false
-    },
-    {
-      "id": "0",
       "invoiceId": "2",
       "amount": 200,
       "date": "2025-05-08",
@@ -546,12 +516,20 @@
       "deleted": false
     },
     {
-      "id": "0",
+      "id": 0,
       "invoiceId": "1",
-      "amount": 50,
-      "date": "2025-05-08",
+      "amount": 300,
+      "date": "2025-05-10",
       "method": "cash",
-      "reference": "122"
+      "reference": ""
+    },
+    {
+      "id": 0,
+      "invoiceId": "2",
+      "amount": 150,
+      "date": "2025-05-10",
+      "method": "cash",
+      "reference": ""
     }
   ]
 }

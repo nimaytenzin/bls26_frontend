@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Payment } from '../../../core/models/invoice.model';
+import { Payment } from '../../../core/models/payment.model';
 
 @Component({
   selector: 'app-delete-payment-modal',

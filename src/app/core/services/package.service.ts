@@ -2,15 +2,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Package } from '../models/package.model';
 
-export interface Package {
-  id?: number;                      // Optional for creation
-  facilityId: string;
-  name: string;
-  description: string;
-  price: number;
-  ownerId: number;
-}
 
 @Injectable({
   providedIn: 'root'

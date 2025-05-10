@@ -36,12 +36,18 @@ export class InvoiceListComponent implements OnInit {
     this.loadInvoices();
   }
 
-  loadInvoices(): void {
-    this.billingService.fetchInvoices().subscribe(data => {
-      this.invoices = data;
-      this.applyFilters();
-    });
-  }
+	loadInvoices(): void {
+		this.billingService.fetchInvoices().subscribe(data => {
+			const today = new Date();
+			this.invoices = data.map(inv => {
+				if (inv.status === 'unpaid' && new Date(inv.dueDate) < today) {
+					return { ...inv, status: 'overdue' };
+				}
+				return inv;
+			});
+			this.applyFilters();
+		});
+	}
 
 	applyFilters(): void {
 		this.filteredInvoices = this.invoices.filter(inv => {

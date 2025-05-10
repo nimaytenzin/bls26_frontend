@@ -26,9 +26,23 @@
         <button type="button" class="add-item-btn" (click)="addItem()">Add Item</button>
       </div>
 
-      <div class="total">
+			<div class="total">
         Total: <strong>${{ getTotal().toFixed(2) }}</strong>
       </div>
+
+			<div class="form-group">
+				<label>
+					<input type="checkbox" formControlName="isRecurring" /> Recurring Invoice
+				</label>
+			</div>
+
+			<div class="form-group" *ngIf="invoiceForm.get('isRecurring')?.value">
+				<label>Recurrence Pattern</label>
+				<select formControlName="recurrencePattern">
+					<option value="monthly">Monthly</option>
+					<option value="weekly">Weekly</option>
+				</select>
+			</div>
 
       <div class="form-actions">
         <button type="submit" class="btn primary" [disabled]="invoiceForm.invalid">

@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Payment } from '../../../core/models/invoice.model';
+import { Payment } from '../../../core/models/payment.model';
 import { BillingService } from '../../../core/services/billing.service';
 import { ICONS } from '../../../shared/services/icon';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';

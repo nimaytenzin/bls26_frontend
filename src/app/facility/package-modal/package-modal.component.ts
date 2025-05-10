@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Package } from '../../core/services/package.service';
+import { Package } from '../../core/models/package.model';
 import { CommonModule } from '@angular/common';
 
 @Component({

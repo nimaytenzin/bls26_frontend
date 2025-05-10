@@ -9,7 +9,7 @@ import { ICONS } from '../../../shared/services/icon';
 import { ViewChild } from '@angular/core';
 import { PaymentHistoryComponent } from '../payment-history/payment-history.component';
 import { RecordPaymentModalComponent } from '../record-payment-modal/record-payment-modal.component';
-import { Payment } from '../../../core/models/invoice.model';
+import { Payment } from '../../../core/models/payment.model';
 import { BillingService } from '../../../core/services/billing.service';
 
 @Component({
@@ -164,16 +164,34 @@ export class InvoiceDetailComponent implements OnInit {
 			if (this.paymentHistoryComponent) {
 				this.paymentHistoryComponent.loadPayments();
 			}
+
+			// Recalculate totals
+    	this.loadPayments(); // this updates totalPaid and remainingBalance
+
+    	// Optional: delay status update until totals are refreshed
+			setTimeout(() => {
+				const totalPaid = this.payments.reduce((sum, p) => sum + p.amount, 0);
+				const isFullyPaid = totalPaid >= this.invoice.amount;
+
+				if (isFullyPaid && this.invoice.status !== 'paid') {
+					this.invoice.status = 'paid';
+					this.billingService.updateInvoice(this.invoice).subscribe();
+				}
+			}, 300);
 		});
 	}
 
 	loadPayments(): void {
 		this.billingService.fetchPayments(this.invoice.id).subscribe(data => {
-			// ✅ Only include non-deleted payments
 			this.payments = data.filter(p => !p.deleted);
-
 			this.totalPaid = this.payments.reduce((sum, p) => sum + p.amount, 0);
 			this.remainingBalance = this.invoice.amount - this.totalPaid;
+
+			// 👇 Automatically mark as 'paid' if fully settled
+			if (this.remainingBalance <= 0 && this.invoice.status !== 'paid') {
+				this.invoice.status = 'paid';
+				this.billingService.updateInvoice(this.invoice).subscribe(); // persist
+			}
 		});
 	}
 
