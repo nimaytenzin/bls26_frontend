@@ -8,7 +8,7 @@ import { PackageComponent } from "./packages/package.component";
 import { FacilityListComponent } from "./facility-list/facility-list.component";
 import { FacilitatorComponent } from "./facilitator/facilitator.component";
 import { PostActivityComponent } from "./post-activity/post-activity.component";
-import { FacilityLayoutComponent } from "../layout/facility-layout/facility-layout.component";
+import { FacilityLayoutComponent } from "../layout/facility/facility-layout/facility-layout.component";
 import { AnnouncementEventsComponent } from "./announcement-events/announcement-events.component";
 import { InvoiceListComponent } from "./billing/invoice-list/invoice-list.component";
 

@@ -9,43 +9,80 @@
   max-height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
   background-color: $background-sidebar;
   border-radius: $border-radius;
   border-right: 1px solid $divider-color;
   box-shadow: $sidebar-shadow;
   z-index: $z-index-sidebar;
-  padding-bottom: $spacing-xl;
 
-	// Hide scrollbars globally if necessary
-	scrollbar-width: none;
-	-ms-overflow-style: none;
-	&::-webkit-scrollbar {
-		display: none;
-	}
+  .custom-select-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: $z-index-sidebar + 1;
+    background-color: $background-sidebar;
+    padding: $spacing-md $spacing-lg;
+    border-top-left-radius: $border-radius;
+    border-top-right-radius: $border-radius;
+    border-bottom: 1px solid $divider-color;
+		height: $top-nav-height;
 
-  .brand-container {
     display: flex;
     align-items: center;
-    padding: $spacing-lg $spacing-xl $spacing-xl $spacing-xl;
 
-    .logo {
-      height: 40px;
-      width: auto;
-      margin-right: $spacing-sm;
+    select {
+      width: 100%;
+      appearance: none;
+      padding: $spacing-sm $spacing-xxl $spacing-sm $spacing-md;
+      border-radius: $button-radius;
+      border: 1px solid $divider-color;
+      font-size: $font-size-md;
+      font-weight: $font-weight-semibold;
+      background-color: $background-muted;
+      color: $text-primary;
+      cursor: pointer;
+      transition: border-color $transition-duration $transition-ease,
+                  background-color $transition-duration $transition-ease;
+
+      &:hover {
+        border-color: $primary-color;
+        background-color: lighten($background-muted, 3%);
+      }
+
+      &:focus {
+        border-color: $primary-color;
+        background-color: $white;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba($primary-color, 0.1);
+      }
     }
 
-    .logo-txt {
-      font-size: $font-size-lg;
-      font-weight: $font-weight-bold;
-      color: $primary-color;
+    .dropdown-icon {
+      position: absolute;
+      right: $spacing-xl;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: $text-muted;
+      font-size: 0.85rem;
     }
   }
 
   ul {
+    flex: 1;
+    overflow-y: auto;
     list-style: none;
     padding: 0;
     margin: 0;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+		li:first-child {
+			margin-top: $spacing-lg;
+		}
 
     li {
       padding: 0 $spacing-md;

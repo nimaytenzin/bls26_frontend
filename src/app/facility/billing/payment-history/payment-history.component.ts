@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Payment } from '../../../core/models/payment.model';
 import { BillingService } from '../../../core/services/billing.service';
-import { ICONS } from '../../../shared/services/icon';
+import { ICONS } from '../../../shared/constants/icon.constants';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { EditPaymentModalComponent } from '../edit-payment-modal/edit-payment-modal.component';
 import { DeletePaymentModalComponent } from '../delete-payment-modal/delete-payment-modal.component';

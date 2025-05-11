@@ -1,55 +1,57 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin, switchMap } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
+import { Child, ChildNote } from '../models/child.model';
+import { Parent } from '../models/parent.model';
+import { Guardian } from '../models/guardian.model';
+import { EnrollmentDto } from '../models/enrollment.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EnrollmentService {
-  private apiUrl = 'http://localhost:3000'; // Adjust if your json-server runs elsewhere
+  private apiUrl = 'http://localhost:3000';
 
   constructor(private http: HttpClient) {}
 
-  // Get available packages (e.g., for selection during enrollment)
+  // Get available packages
   getPackages(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/packages`);
   }
 
-  // Enroll a child (adds to "children" array)
-  enrollChild(childDto: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/children`, childDto);
+  // Enroll child
+  enrollChild(child: Child): Observable<Child> {
+    return this.http.post<Child>(`${this.apiUrl}/children`, child);
   }
 
-  // Add a note for the enrolled child (adds to "childNotes" array)
-  enrollChildNote(childNoteDto: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/childNotes`, childNoteDto);
+  // Enroll child note
+  enrollChildNote(note: ChildNote): Observable<ChildNote> {
+    return this.http.post<ChildNote>(`${this.apiUrl}/childNotes`, note);
   }
 
-  // Log selected package for the enrolled child
-  enrollChildPackage(packageDto: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/childPackages`, packageDto);
-  }
-
-  // Enroll parents for the child
-  enrollParents(parents: any[], childId: number): Observable<any[]> {
+  // Enroll parents
+  enrollParents(parents: Parent[], childId: string): Observable<Parent[]> {
     const requests = parents.map(parent =>
-      this.http.post(`${this.apiUrl}/parents`, { ...parent, childId })
+      this.http.post<Parent>(`${this.apiUrl}/parents`, { ...parent, childId })
     );
     return forkJoin(requests);
   }
 
-  // Orchestrates full enrollment process
-  completeEnrollment(formData: any): Observable<any> {
-    return this.enrollChild(formData.child).pipe(
-      switchMap(child => {
-        const childId = child.id;
-
-        return forkJoin([
-          this.enrollChildNote({ ...formData.childNote, childId }),
-          this.enrollChildPackage({ ...formData.packageForm, childId }),
-          this.enrollParents(formData.parents, childId)
-        ]);
-      })
+  // Enroll guardians
+  enrollGuardians(guardians: Guardian[], childId: string): Observable<Guardian[]> {
+    const requests = guardians.map(guardian =>
+      this.http.post<Guardian>(`${this.apiUrl}/guardians`, { ...guardian, childId })
     );
+    return forkJoin(requests);
   }
-}
+
+  // Create final enrollment
+  createEnrollment(enrollment: EnrollmentDto): Observable<EnrollmentDto> {
+    return this.http.post<EnrollmentDto>(`${this.apiUrl}/enrollments`, enrollment);
+  }
+
+  // Update enrollment
+  updateEnrollment(id: string, enrollment: EnrollmentDto): Observable<EnrollmentDto> {
+    return this.http.put<EnrollmentDto>(`${this.apiUrl}/enrollments/${id}`, enrollment);
+  }
+ }

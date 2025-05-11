@@ -9,3 +9,11 @@ export interface Child {
   gender: 'male' | 'female';
   facilityId: string;
 }
+
+export interface ChildNote {
+  childId: string; // 🔗 Foreign key to Child
+  medicalCondition?: string;
+  specialInstruction?: string;
+  notes?: string;
+}
+

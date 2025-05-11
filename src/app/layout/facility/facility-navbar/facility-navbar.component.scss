@@ -40,31 +40,6 @@
     }
   }
 
-  .facility-selector {
-    display: flex;
-    align-items: center;
-    gap: $spacing-sm;
-
-    label {
-      font-weight: $font-weight-medium;
-      color: $text-primary;
-    }
-
-    select {
-      padding: $spacing-sm $spacing-md;
-      border-radius: $button-radius;
-      border: 1px solid $divider-color;
-      font-size: $font-size-md;
-      background-color: $background-muted;
-
-      &:focus {
-        border-color: $focus-color;
-        background-color: $white;
-        outline: none;
-      }
-    }
-  }
-
   .user-profile {
     display: flex;
     align-items: center;

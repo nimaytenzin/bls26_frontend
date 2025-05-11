@@ -7,7 +7,7 @@ import {
   faQuestionCircle, faInfoCircle, faDashboard, faListAlt, faShoppingBag,
 	faChild, faCheckSquare, faBullhorn, faCreditCard,	faMoneyBill,
 	faHamburger, faBars,	faHeart, faComment, faPen, faTrash, faChevronLeft,
-	faChevronRight,
+	faChevronRight, faChevronDown
 } from '@fortawesome/free-solid-svg-icons';
 
 // Importing brand icons
@@ -35,6 +35,7 @@ export const ICONS = {
 	faTrash: faTrash,
 	faChevronLeft: faChevronLeft,
 	faChevronRight: faChevronRight,
+	faChevronDown: faChevronDown,
 	faTimes: faTimes,
 	faDownload: faDownload,
 	faEye: faEye,

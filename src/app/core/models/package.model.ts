@@ -6,3 +6,10 @@ export interface Package {
   price: number;
   ownerId: number;
 }
+
+export interface PackageForm {
+  packageId: string;
+  startDate: Date;
+  endDate: Date;
+}
+

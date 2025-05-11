@@ -1,16 +1,16 @@
 import { Component, HostListener, OnInit } from '@angular/core';
-import { FacilityService } from '../../core/services/facility.service';
-import { AuthService } from '../../auth/auth.service';
+import { FacilityService } from '../../../core/services/facility.service';
+import { AuthService } from '../../../auth/auth.service';
 import { Router, RouterModule } from '@angular/router';
-import { FacilitySidebarComponent } from './facility-sidebar/facility-sidebar.component';
-import { FacilityNavbarComponent } from './facility-navbar/facility-navbar.component';
+import { FacilitySidebarComponent } from '../facility-sidebar/facility-sidebar.component';
+import { FacilityNavbarComponent } from '../facility-navbar/facility-navbar.component';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-facility-layout',
   standalone: true,
   templateUrl: './facility-layout.component.html',
-  styleUrls: ['../layout.component.scss'],
+  styleUrls: ['../../layout.component.scss'],
 	imports: [
 		FacilitySidebarComponent,
 		FacilityNavbarComponent,
@@ -130,7 +130,7 @@ export class FacilityLayoutComponent implements OnInit {
       this.toggleSidebar();
     }
   }
-  
+
   toggleDropdown(): void {
     this.dropdownOpen = !this.dropdownOpen;
   }

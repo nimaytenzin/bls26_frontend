@@ -5,7 +5,7 @@ import { debounceTime } from 'rxjs/operators';
 import { Announcement } from '../../core/models/announcement.model';
 import { AnnouncementService } from '../../core/services/announcement.service';
 import { AuthService } from '../../auth/auth.service';
-import { ICONS } from '../../shared/services/icon';
+import { ICONS } from '../../shared/constants/icon.constants';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { AnnouncementModalComponent } from '../announcement-modal/announcement-modal.component';
 

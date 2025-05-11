@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { FacilityLayoutComponent } from './facility-layout.component';
+import { SuccessToastComponent } from './success-toast.component';
 
-describe('FacilityLayoutComponent', () => {
-  let component: FacilityLayoutComponent;
-  let fixture: ComponentFixture<FacilityLayoutComponent>;
+describe('SuccessToastComponent', () => {
+  let component: SuccessToastComponent;
+  let fixture: ComponentFixture<SuccessToastComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [FacilityLayoutComponent]
+      imports: [SuccessToastComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(FacilityLayoutComponent);
+    fixture = TestBed.createComponent(SuccessToastComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

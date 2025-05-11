@@ -7,36 +7,36 @@ import { map } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class BillingService {
-  private baseUrl = 'http://localhost:3000'; // if using json-server
+  private apiUrl = 'http://localhost:3000'; // if using json-server
 
   constructor(private http: HttpClient) {}
 
   fetchInvoices() {
-    return this.http.get<Invoice[]>(`${this.baseUrl}/invoices`);
+    return this.http.get<Invoice[]>(`${this.apiUrl}/invoices`);
   }
 
   createInvoice(data: Partial<Invoice>) {
-    return this.http.post(`${this.baseUrl}/invoices`, data);
+    return this.http.post(`${this.apiUrl}/invoices`, data);
   }
 
   getInvoiceDetails(id: number) {
-    return this.http.get<Invoice>(`${this.baseUrl}/invoices/${id}`);
+    return this.http.get<Invoice>(`${this.apiUrl}/invoices/${id}`);
   }
 
 	fetchPayments(invoiceId: number): Observable<Payment[]> {
-		return this.http.get<Payment[]>(`${this.baseUrl}/payments?invoiceId=${invoiceId}`);
+		return this.http.get<Payment[]>(`${this.apiUrl}/payments?invoiceId=${invoiceId}`);
 	}
 
   recordPayment(payment: Payment) {
-    return this.http.post(`${this.baseUrl}/payments`, payment);
+    return this.http.post(`${this.apiUrl}/payments`, payment);
   }
 
   fetchBillingSummary() {
-    return this.http.get(`${this.baseUrl}/summary`);
+    return this.http.get(`${this.apiUrl}/summary`);
   }
 
 	updateInvoice(invoice: Invoice) {
-		return this.http.put<Invoice>(`${this.baseUrl}/invoices/${invoice.id}`, invoice);
+		return this.http.put<Invoice>(`${this.apiUrl}/invoices/${invoice.id}`, invoice);
 	}
 
 	voidInvoice(id: number) {
@@ -44,11 +44,11 @@ export class BillingService {
 	}
 
 	updatePayment(payment: Payment) {
-		return this.http.put<Payment>(`${this.baseUrl}/payments/${payment.id}`, payment);
+		return this.http.put<Payment>(`${this.apiUrl}/payments/${payment.id}`, payment);
 	}
 
 	getOverdueInvoices(): Observable<Invoice[]> {
-		return this.http.get<Invoice[]>(`${this.baseUrl}/invoices`).pipe(
+		return this.http.get<Invoice[]>(`${this.apiUrl}/invoices`).pipe(
 			map(invoices =>
 				invoices.filter(inv =>
 					inv.status === 'unpaid' && new Date(inv.dueDate) < new Date()

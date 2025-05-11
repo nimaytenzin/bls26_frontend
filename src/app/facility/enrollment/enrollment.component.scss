@@ -125,6 +125,10 @@ form {
     }
   }
 
+	.guardian-card {
+  	@extend .parent-card;
+	}
+
   .add-btn {
     background-color: $info;
     color: $white;
@@ -215,3 +219,23 @@ form {
     }
   }
 }
+
+.success-banner {
+  background-color: $success-light;
+  color: $success-dark;
+  border: 1px solid $success;
+  padding: $spacing-md;
+  border-radius: $card-radius;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  text-align: center;
+  margin-bottom: $spacing-lg;
+  box-shadow: $elevation-1;
+  transition: opacity $transition-fast $transition-ease;
+
+  &.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+

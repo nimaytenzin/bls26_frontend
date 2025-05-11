@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { ICONS } from '../../../shared/services/icon';
+import { ICONS } from '../../../shared/constants/icon.constants';
 import { ViewChild } from '@angular/core';
 import { PaymentHistoryComponent } from '../payment-history/payment-history.component';
 import { RecordPaymentModalComponent } from '../record-payment-modal/record-payment-modal.component';

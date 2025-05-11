@@ -7,24 +7,27 @@
 			[class.mobile]="isMobile"
 			[class.open]="sidebarOpen && isMobile"
 			(closeSidebar)="onSidebarClose()"
+			[hasMultipleFacilities]="hasMultipleFacilities"
+			[facilities]="facilities"
+			(facilityChange)="onFacilityChange($event)"
 		></app-facility-sidebar>
 
 		<div class="content-body">
 			<app-facility-navbar
 				[isMobile]="isMobile"
-				[hasMultipleFacilities]="hasMultipleFacilities"
-				[facilities]="facilities"
 				[user]="user"
-				(facilityChange)="onFacilityChange($event)"
 				(logoutClick)="logout()"
 				(toggleSidebar)="toggleSidebar()"
 			></app-facility-navbar>
 
 			<main class="main-content">
-				<ng-container *ngIf="facilitiesReady">
-					<router-outlet></router-outlet>
-				</ng-container>
+				<div class="scroll-container">
+					<ng-container *ngIf="facilitiesReady">
+						<router-outlet></router-outlet>
+					</ng-container>
+				</div>
 			</main>
+
 		</div>
 	<!-- Dark backdrop when sidebar is open on mobile -->
   <div *ngIf="isMobile && sidebarOpen" class="backdrop" (click)="toggleSidebar()"></div>

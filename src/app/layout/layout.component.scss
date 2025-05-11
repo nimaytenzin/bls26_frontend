@@ -27,14 +27,48 @@
 
 .main-content {
   flex: 1;
-  padding: $spacing-xl;
-  overflow-y: auto;
+  height: 100%;
+  width: auto;
+  margin-left: $spacing-sm;
+  margin-top: $spacing-sm;
+  background-color: $background-content;
+  border-radius: $border-radius;
+  box-shadow: $main-content-shadow;
   transition: margin-left $transition-duration $transition-ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; // Prevent scrollbars here
 
   @media (max-width: 768px) {
-    padding: $spacing-md;
     margin-left: 0;
+    padding: 0;
   }
+}
+
+.scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-lg;
+	margin-right: $spacing-xs;
+  scrollbar-gutter: stable;
+  border-radius: inherit;
+
+  // Fix WebKit scrollbar eating into radius
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: $primary-color;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  scrollbar-width: thin; // Firefox
+  -ms-overflow-style: thin; // IE
 }
 
 .backdrop {

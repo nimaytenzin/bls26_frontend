@@ -1,9 +1,15 @@
 <nav class="sidebar">
-	<div *ngIf="!isMobile">
-	<div class="brand-container">
-	  <img src="/images/logo.png" class="logo"/><span class="logo-txt">FACILITY</span>
+	<div class="custom-select-wrapper">
+		<select
+			#facilitySelect
+			id="facilitySelect"
+			(change)="onFacilityChange(facilitySelect.value)"
+		>
+			<option *ngFor="let f of facilities" [value]="f.id">{{ f.name }}</option>
+		</select>
+		<fa-icon [icon]="icons.faChevronDown" class="dropdown-icon"></fa-icon>
 	</div>
-</div>
+
 	<ul>
 		<li>
 			<a routerLink="/dashboard"

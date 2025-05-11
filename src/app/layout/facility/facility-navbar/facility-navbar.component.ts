@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { ICONS } from '../../../shared/services/icon';
+import { ICONS } from '../../../shared/constants/icon.constants';
 
 @Component({
   selector: 'app-facility-navbar',
@@ -15,10 +15,10 @@ import { ICONS } from '../../../shared/services/icon';
 })
 export class FacilityNavbarComponent {
   @Input() isMobile = false;
-  @Input() hasMultipleFacilities = false;
-	@Input() facilities: any[] = [];
+  //@Input() hasMultipleFacilities = false;
+	//@Input() facilities: any[] = [];
   @Input() user: { name: string; avatarUrl: string } = { name: '', avatarUrl: '/images/default-avatar.jpg' };
-  @Output() facilityChange = new EventEmitter<string>();
+  //@Output() facilityChange = new EventEmitter<string>();
   @Output() logoutClick = new EventEmitter<void>();
 	@Output() toggleSidebar = new EventEmitter<void>();
 
@@ -29,9 +29,9 @@ export class FacilityNavbarComponent {
     this.dropdownOpen = !this.dropdownOpen;
   }
 
-  onFacilityChange(newFacilityId: string) {
+  /*onFacilityChange(newFacilityId: string) {
     this.facilityChange.emit(newFacilityId);
-  }
+  }*/
 
   logout() {
     this.logoutClick.emit();

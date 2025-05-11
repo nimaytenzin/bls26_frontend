@@ -1,0 +1,26 @@
+@import 'src/styles/theme';
+
+.toast {
+  position: fixed;
+  top: $spacing-xl;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: $success-light;
+  color: $success-dark;
+  border: 1px solid $success;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $card-radius;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  box-shadow: $elevation-2;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  z-index: $z-index-modal;
+  opacity: 0.95;
+  transition: all $transition-fast $transition-ease;
+
+  .icon {
+    font-size: $font-size-lg;
+  }
+}
