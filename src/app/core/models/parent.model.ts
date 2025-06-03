@@ -1,5 +1,5 @@
 export interface Parent {
-  id?: string;
+  id?: number;
   name: string;
   email: string;
   cid: string;

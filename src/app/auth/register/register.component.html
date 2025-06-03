@@ -2,39 +2,47 @@
 
 <div class="register-wrapper">
   <div class="register-card">
-    <h2>Create Your Account</h2>
+    <p-card class="register-card">
+      <ng-template pTemplate="title">
+        <h2 class="register-title">Create Your Account</h2>
+      </ng-template>
 
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-			<div class="form-group">
-				<label>Full Name</label>
-				<input type="text" formControlName="name" placeholder="Your full name" />
-			</div>
+      <ng-template pTemplate="content">
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form p-fluid">
+          <div class="form-field">
+            <label for="name">Full Name</label>
+            <input id="name" type="text" pInputText formControlName="name" placeholder="Your full name" />
+          </div>
 
-			<div class="form-group">
-				<label>Email</label>
-				<input type="email" formControlName="email" placeholder="Email address" />
-			</div>
+          <div class="form-field">
+            <label for="email">Email</label>
+            <input id="email" type="email" pInputText formControlName="email" placeholder="Email address" />
+          </div>
 
-			<div class="form-group">
-				<label>CID</label>
-				<input type="text" formControlName="cid" placeholder="CID" />
-			</div>
+          <div class="form-field">
+            <label for="cid">CID</label>
+            <input id="cid" type="text" pInputText formControlName="cid" placeholder="CID" />
+          </div>
 
-			<div class="form-group">
-				<label>Phone</label>
-				<input type="text" formControlName="phone" placeholder="Phone number" />
-			</div>
+          <div class="form-field">
+            <label for="phone">Phone</label>
+            <input id="phone" type="text" pInputText formControlName="phone" placeholder="Phone number" />
+          </div>
 
-			<div class="form-group">
-				<label>ECCD Centre Name</label>
-				<input type="text" formControlName="facility" placeholder="ECCD Centre Name" />
-			</div>
+          <p-button
+            type="submit"
+            label="Register"
+            icon="pi pi-user-plus"
+            class="register-btn"
+            [disabled]="registerForm.invalid"
+          ></p-button>
 
-			<button class="btn primary" type="submit" [disabled]="registerForm.invalid">Register</button>
-		</form>
-
-    <div class="register-footer">
-      Already have an account? <a routerLink="/auth/login">Login</a>
-    </div>
+          <div class="register-footer">
+            Already have an account?
+            <a routerLink="/login">Login</a>
+          </div>
+        </form>
+      </ng-template>
+    </p-card>
   </div>
 </div>

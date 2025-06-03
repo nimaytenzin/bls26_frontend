@@ -11,7 +11,7 @@ $card-radius: 12px;
 $button-radius: 8px;
 
 // ==============================
-// 📏 SPACING SCALE (Margins & Padding)
+// 📏 SPACING SCALE
 // ==============================
 
 $spacing-xs: 0.25rem;
@@ -22,18 +22,10 @@ $spacing-xl: 2rem;
 $spacing-xxl: 4rem;
 
 // ==============================
-// 🧱 Z-INDEX SCALE (Layering Order)
+// 🧱 Z-INDEX
 // ==============================
 
 $z-index-nav: 100;
 $z-index-sidebar: 200;
 $z-index-modal: 1000;
 $z-index-tooltip: 1100;
-
-// ==============================
-// 🪟 ELEVATIONS / DEPTH LEVELS
-// ==============================
-
-$elevation-1: 0 1px 3px rgba(0, 0, 0, 0.1);
-$elevation-2: 0 4px 6px rgba(0, 0, 0, 0.1);
-$elevation-3: 0 10px 20px rgba(0, 0, 0, 0.15);

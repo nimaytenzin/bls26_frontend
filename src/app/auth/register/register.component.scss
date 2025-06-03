@@ -4,85 +4,64 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: $background-muted;
+  min-height: calc(100vh - $top-nav-height);
+  background-color: $background-muted;
+  padding: $spacing-xl;
   font-family: $font-primary;
 }
 
 .register-card {
-  background: $white;
-  padding: $spacing-xl;
-  border-radius: $card-radius;
-  box-shadow: $content-wrapper-shadow;
   width: 100%;
   max-width: 480px;
-  text-align: center;
 
-  h2 {
-    margin-bottom: $spacing-lg;
-    font-size: $font-size-xl;
-    color: $primary-color;
-    font-weight: $font-weight-semibold;
+  ::ng-deep .p-card-body {
+    padding: $spacing-xl;
   }
 
-  .form-group {
-    margin-bottom: $spacing-lg;
-    text-align: left;
+  .register-title {
+    margin-bottom: $spacing-sm;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    text-align: center;
+  }
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
 
     label {
-      display: block;
       margin-bottom: $spacing-xs;
-      color: $text-primary;
-      font-size: $font-size-sm;
-      font-weight: $font-weight-medium;
+      font-size: $label-font-size;
+      font-weight: $label-font-weight;
+      color: $label-color;
     }
 
     input {
       width: 100%;
-      padding: $input-padding;
-      font-size: $font-size-md;
-      border: 1px solid $input-border;
-      border-radius: $input-border-radius;
-      background: $input-bg;
-      color: $input-text;
-
-      &:focus {
-        outline: none;
-        border-color: $input-focus-border;
-        background: $white;
-      }
-
-      &::placeholder {
-        color: $input-placeholder;
-      }
     }
   }
 
-  .btn.primary {
+  .register-btn {
+    margin-top: $spacing-md;
     width: 100%;
-    padding: $spacing-md;
-    font-size: $font-size-md;
-    font-weight: $font-weight-semibold;
-    background: $button-primary-bg;
-    color: $button-primary-text;
-    border: none;
+    font-weight: $font-weight-medium;
     border-radius: $button-radius;
-    transition: background-color $transition-fast $transition-ease;
-    cursor: pointer;
 
-    &:hover:not(:disabled) {
-      background-color: $button-primary-hover-bg;
-    }
-
-    &:disabled {
-      background: $disabled-bg;
-      color: $disabled-color;
-      cursor: not-allowed;
+    ::ng-deep .p-button {
+      width: 100%;
     }
   }
 
   .register-footer {
     margin-top: $spacing-md;
+    text-align: center;
     font-size: $font-size-sm;
     color: $text-secondary;
 

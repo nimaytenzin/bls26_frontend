@@ -1,9 +1,8 @@
 @import './colors';
 // ==============================
-// 🔘 BUTTON & INPUT STYLES
+// 🔘 BUTTONS & INPUTS
 // ==============================
 
-// 👉 Button Tokens
 $button-primary-bg: $primary-color;
 $button-primary-text: $white;
 $button-primary-hover-bg: $primary-dark;
@@ -19,24 +18,22 @@ $button-accent-hover-bg: $accent-dark;
 $button-disabled-bg: $disabled-bg;
 $button-disabled-text: $disabled-color;
 
-// 👉 Input Tokens
 $input-bg: $white;
-$input-border: $gray;
 $input-text: $text-primary;
 $input-placeholder: $text-muted;
+$input-border: $gray;
 $input-focus-border: $primary-color;
 $input-disabled-bg: $disabled-bg;
 $input-disabled-text: $disabled-color;
-$input-border-radius: $button-radius;
+$input-border-radius: 8px;
 $input-padding: 0.5rem 0.75rem;
 
-// 👉 Label Styling
 $label-color: $text-secondary;
 $label-font-weight: 600;
-$label-font-size: $font-size-sm;
+$label-font-size: 0.875rem;
 
 // ==============================
-// 🧩 COMPONENT UTILITY COLORS
+// 🧩 COMPONENT BACKGROUNDS
 // ==============================
 
 $background-page: $gray-xlight;

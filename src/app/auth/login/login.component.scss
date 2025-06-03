@@ -4,103 +4,87 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: $spacing-xl;
-  min-height: calc(100vh - 80px); // adjust based on navbar height
+  min-height: calc(100vh - $top-nav-height);
   background-color: $background-muted;
+  padding: $spacing-xl;
   font-family: $font-primary;
+}
 
-  .login-card {
-    width: 100%;
-    max-width: 500px;
-    background: $white;
+.login-card {
+  width: 100%;
+  max-width: 480px;
+
+  ::ng-deep .p-card-body {
     padding: $spacing-xl;
-    border-radius: $card-radius;
-    box-shadow: $content-wrapper-shadow;
+  }
 
-    h2 {
-      text-align: center;
-      color: $primary-color;
+  .login-title {
+    margin-bottom: $spacing-sm;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    text-align: center;
+  }
+
+  .login-subtitle {
+    text-align: center;
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+
+    label {
       margin-bottom: $spacing-xs;
-      font-size: $font-size-xl;
-      font-weight: $font-weight-semibold;
+      font-size: $label-font-size;
+      font-weight: $label-font-weight;
+      color: $label-color;
     }
+  }
 
-    p {
-      text-align: center;
-      color: $text-secondary;
-      margin-bottom: $spacing-lg;
-      font-size: $font-size-md;
+  // ✅ Password full-width fix inside fluid layout
+  ::ng-deep .p-password {
+    display: block;
+    width: 100% !important;
+  }
+
+  ::ng-deep .p-password-input {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .login-btn {
+    margin-top: $spacing-md;
+    font-weight: $font-weight-medium;
+    border-radius: $button-radius;
+
+    ::ng-deep .p-button {
+      width: 100%;
     }
+  }
 
-    form {
-      .form-group {
-        margin-bottom: $spacing-lg;
+  .login-footer {
+    margin-top: $spacing-md;
+    text-align: center;
+    font-size: $font-size-sm;
+    color: $text-secondary;
 
-        label {
-          display: block;
-          margin-bottom: $spacing-xs;
-          font-size: $font-size-sm;
-          color: $text-primary;
-          font-weight: $font-weight-medium;
-        }
+    a {
+      color: $primary-color;
+      text-decoration: none;
+      margin: 0 $spacing-xs;
 
-        input {
-          width: 100%;
-          padding: $input-padding;
-          font-size: $font-size-md;
-          border: 1px solid $input-border;
-          border-radius: $input-border-radius;
-          background-color: $input-bg;
-          color: $input-text;
-
-          &:focus {
-            border-color: $input-focus-border;
-            background-color: $white;
-            outline: none;
-          }
-
-          &::placeholder {
-            color: $input-placeholder;
-          }
-        }
-      }
-
-      .btn.primary {
-        width: 100%;
-        padding: $spacing-md;
-        font-size: $font-size-md;
-        font-weight: $font-weight-semibold;
-        background-color: $button-primary-bg;
-        color: $button-primary-text;
-        border: none;
-        border-radius: $button-radius;
-        cursor: pointer;
-        transition: background-color $transition-fast $transition-ease;
-
-        &:hover {
-          background-color: $button-primary-hover-bg;
-        }
-
-        &:disabled {
-          background-color: $disabled-bg;
-          color: $disabled-color;
-          cursor: not-allowed;
-        }
-      }
-
-      .login-footer {
-        margin-top: $spacing-lg;
-        text-align: center;
-        font-size: $font-size-sm;
-
-        a {
-          color: $primary-color;
-          text-decoration: none;
-
-          &:hover {
-            text-decoration: underline;
-          }
-        }
+      &:hover {
+        text-decoration: underline;
       }
     }
   }

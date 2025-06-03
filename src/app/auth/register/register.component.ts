@@ -1,22 +1,34 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { PublicNavbarComponent } from '../../shared/components/public-navbar/public-navbar.component';
+import { Owner } from '../../core/models/owner.model';
+import { OwnerService } from '../../core/services/owner.service';
+import { CommonModule } from '@angular/common';
+
+import { PrimeNgModules } from '../../shared/primeng/primeng.modules';
 
 @Component({
   selector: 'app-register',
-	standalone: true,
+  standalone: true,
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss'],
-	imports: [
-		PublicNavbarComponent,
-		ReactiveFormsModule
-	],
+  imports: [
+    PublicNavbarComponent,
+    ReactiveFormsModule,
+    CommonModule,
+		RouterModule,
+    PrimeNgModules
+  ],
 })
 export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
 
-  constructor(private fb: FormBuilder, private router: Router) {}
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private ownerService: OwnerService
+  ) {}
 
   ngOnInit(): void {
     this.registerForm = this.fb.group({
@@ -24,23 +36,22 @@ export class RegisterComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       cid: ['', Validators.required],
       phone: ['', Validators.required],
-      facility: ['', Validators.required] // New field
+      facility: ['', Validators.required]
     });
   }
 
   onSubmit(): void {
     if (this.registerForm.valid) {
-      const newUser = {
+      const newOwner: Owner = {
         ...this.registerForm.value,
-        role: 'owner', // Automatically assign 'owner'
-        isVerified: false // until they verify email
+        role: 'owner',
+        isVerified: false
       };
 
-      // Simulate API call (or save to localStorage or json-server)
-      console.log('User registered:', newUser);
-      this.router.navigate(['/verify-notice']);
+      this.ownerService.registerOwner(newOwner).subscribe({
+        next: () => this.router.navigate(['/verify-notice']),
+        error: (err) => console.error('Registration failed:', err)
+      });
     }
   }
 }
-
-// if I am not mistaken, there will be no details related to the facility which means the ECCD Centre Name is not required.

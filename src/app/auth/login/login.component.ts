@@ -1,26 +1,37 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+
 import { PublicNavbarComponent } from '../../shared/components/public-navbar/public-navbar.component';
+import { AuthService } from '../auth.service';
+import { User } from '../../core/models/user.model';
+
+import { PrimeNgModules } from '../../shared/primeng/primeng.modules';
 
 @Component({
   selector: 'app-login',
-	standalone: true,
+  standalone: true,
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
-	imports: [
-		CommonModule,
-		ReactiveFormsModule,
-		PublicNavbarComponent
-	],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    PublicNavbarComponent,
+		PrimeNgModules
+  ],
 })
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
 
-  constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {}
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private http: HttpClient,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
@@ -29,26 +40,27 @@ export class LoginComponent implements OnInit {
     });
   }
 
-	onSubmit(): void {
-		if (this.loginForm.valid) {
-			const { email, password } = this.loginForm.value;
-			this.http.get<any[]>(`http://localhost:3000/users?email=${email}&password=${password}`).subscribe(users => {
-				const user = users[0];
-				if (user) {
-					// Store user info in localStorage
-					localStorage.setItem('currentUser', JSON.stringify(user));
+  onSubmit(): void {
+    if (this.loginForm.valid) {
+      const { email, password } = this.loginForm.value;
 
-					// Navigate based on user role
-					if (user.role === 'admin') {
-						this.router.navigate(['/admin-dashboard']); // Admin dashboard
-					} else {
-						this.router.navigate(['/dashboard']); // Regular user dashboard
-					}
-				} else {
-					// Handle invalid credentials
-					alert('Invalid email or password.');
-				}
-			});
-		}
-	}
+      this.http.get<User[]>(`http://localhost:3000/owners?email=${email}&password=${password}`)
+        .subscribe((users) => {
+          const user = users[0];
+          if (user) {
+            this.authService.login(user);
+
+            if (user.role === 'admin') {
+              this.router.navigate(['/admin-dashboard']);
+            } else {
+              this.router.navigate(['/dashboard']);
+            }
+          } else {
+            alert('Invalid email or password.');
+          }
+        });
+    } else {
+      this.loginForm.markAllAsTouched(); // force display of validation errors
+    }
+  }
 }

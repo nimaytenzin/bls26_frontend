@@ -1,12 +1,11 @@
 {
-  "users": [
+  "owners": [
     {
       "id": "1",
       "name": "John Doe",
       "email": "john@example.com",
       "cid": "123456789",
       "phone": "9800000000",
-      "facility": "Happy Tots",
       "role": "owner",
       "isVerified": true,
       "verifyToken": "123",
@@ -18,7 +17,6 @@
       "email": "jane@example.com",
       "cid": "123456789",
       "phone": "9800000000",
-      "facility": "Jane's Daycare",
       "role": "owner",
       "isVerified": true,
       "verifyToken": "123",
@@ -30,7 +28,6 @@
       "email": "josh@example.com",
       "cid": "123456789",
       "phone": "9800000000",
-      "facility": "Jane's Daycare",
       "role": "owner",
       "isVerified": true,
       "verifyToken": "123",
@@ -239,6 +236,17 @@
       "dob": "2025-05-30",
       "gender": "male",
       "facilityId": "1"
+    },
+    {
+      "id": "1e62",
+      "name": "fdasfds",
+      "preferredName": "fsdaf",
+      "cid": "1000",
+      "avatarUrl": "",
+      "studentCode": "122",
+      "dob": "2025-06-03",
+      "gender": "male",
+      "facilityId": "1"
     }
   ],
   "childNotes": [
@@ -297,6 +305,13 @@
       "specialInstruction": "fdf",
       "notes": "fsd",
       "childId": "7a27"
+    },
+    {
+      "id": "fcba",
+      "medicalCondition": "fdsafsd",
+      "specialInstruction": "fsdfsfsdf",
+      "notes": "fsdfsda",
+      "childId": "1e62"
     }
   ],
   "childPackages": [
@@ -378,6 +393,24 @@
       "phone": "fsdf",
       "avatarUrl": "",
       "childId": "7a27"
+    },
+    {
+      "id": "b2cf",
+      "name": "fsdfsd",
+      "email": "fsdf@gmail.com",
+      "cid": "100",
+      "phone": "1475",
+      "avatarUrl": "1000078078.jpg",
+      "childId": "1e62"
+    },
+    {
+      "id": "4b6b",
+      "name": "fsdfsdfsd",
+      "email": "fdf@gmail.com",
+      "cid": "23",
+      "phone": "23",
+      "avatarUrl": "",
+      "childId": "1e62"
     }
   ],
   "guardians": [
@@ -416,6 +449,15 @@
       "email": "",
       "avatarUrl": "",
       "childId": "7a27"
+    },
+    {
+      "id": "44c3",
+      "name": "fsdfasdf",
+      "relationship": "Uncle",
+      "phone": "14755",
+      "email": "fdsf@gmail.com",
+      "avatarUrl": "",
+      "childId": "1e62"
     }
   ],
   "enrollments": [
@@ -477,6 +519,22 @@
       "packageId": "fb5d",
       "start_date": "2025-05-11",
       "end_date": "2025-05-31",
+      "status": "active"
+    },
+    {
+      "id": "0ea1",
+      "childId": "1e62",
+      "parentIds": [
+        "b2cf",
+        "4b6b"
+      ],
+      "guardianIds": [
+        "44c3"
+      ],
+      "facilityId": "1",
+      "packageId": "fb5d",
+      "start_date": "2025-06-03",
+      "end_date": "2025-07-31",
       "status": "active"
     }
   ],

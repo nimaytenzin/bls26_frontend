@@ -1,0 +1,192 @@
+// ==============================
+// 🎨 COLORS
+// ==============================
+
+$primary-color: #4270f4;
+$primary-light: #edf0fb;
+$primary-dark: #0f2a65;
+
+$secondary-color: #3b3f5c;
+$secondary-light: #dbe1ed;
+$secondary-dark: #2c2f3d;
+
+$accent-color: #ff9800;
+$accent-light: #ffe0b2;
+$accent-dark: #ef6c00;
+
+$danger: #f36c6c;
+$danger-light: #fdecea;
+$danger-dark: #d32f2f;
+
+$warning: #ffb74d;
+$warning-light: #fff8e1;
+
+$info: #42a5f5;
+
+$success: #2dbf78;
+$success-light: #e6f7f1;
+$success-dark: #1a9e5e;
+
+$gray-xlight: #f9f9fc;
+$gray-light: #f5f7ff;
+$gray-medium: #e6e9f4;
+$gray: #d0d3e0;
+$gray-dark: #828795;
+$gray-xdark: #555b6e;
+
+$white: #ffffff;
+$black: #000000;
+
+$disabled-color: #c1c7d0;
+$disabled-bg: #f3f3f3;
+
+// ==============================
+// ✍️ TEXT COLORS
+// ==============================
+
+$text-primary: #262a39;
+$text-secondary: #6c7380;
+$text-muted: #9ca3af;
+$text-link: $primary-color;
+$text-on-primary: $white;
+$text-on-secondary: $white;
+$text-on-light: #1a1a1a;
+$text-on-dark: #ffffff;
+
+// ==============================
+// 🔘 BUTTONS & INPUTS
+// ==============================
+
+$button-primary-bg: $primary-color;
+$button-primary-text: $white;
+$button-primary-hover-bg: $primary-dark;
+
+$button-secondary-bg: $secondary-color;
+$button-secondary-text: $white;
+$button-secondary-hover-bg: $secondary-dark;
+
+$button-accent-bg: $accent-color;
+$button-accent-text: $black;
+$button-accent-hover-bg: $accent-dark;
+
+$button-disabled-bg: $disabled-bg;
+$button-disabled-text: $disabled-color;
+
+$input-bg: $white;
+$input-text: $text-primary;
+$input-placeholder: $text-muted;
+$input-border: $gray;
+$input-focus-border: $primary-color;
+$input-disabled-bg: $disabled-bg;
+$input-disabled-text: $disabled-color;
+$input-border-radius: 8px;
+$input-padding: 0.5rem 0.75rem;
+
+$label-color: $text-secondary;
+$label-font-weight: 600;
+$label-font-size: 0.875rem;
+
+// ==============================
+// 🧩 COMPONENT BACKGROUNDS
+// ==============================
+
+$background-page: $gray-xlight;
+$background-sidebar: $white;
+$background-topnav: $white;
+$background-content: $white;
+$background-card: $white;
+$background-muted: $gray-light;
+
+$border-color: $gray;
+$divider-color: $gray-medium;
+$highlight-color: #f0f4ff;
+
+// ==============================
+// 🧱 LAYOUT DIMENSIONS
+// ==============================
+
+$sidebar-width: 280px;
+$top-nav-height: 80px;
+$footer-height: 60px;
+$container-padding: 1.5rem;
+$border-radius: 16px;
+$card-radius: 12px;
+$button-radius: 8px;
+
+// ==============================
+// 📏 SPACING SCALE
+// ==============================
+
+$spacing-xs: 0.25rem;
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-xxl: 4rem;
+
+// ==============================
+// 🧱 Z-INDEX
+// ==============================
+
+$z-index-nav: 100;
+$z-index-sidebar: 200;
+$z-index-modal: 1000;
+$z-index-tooltip: 1100;
+
+// ==============================
+// 🌫️ SHADOWS
+// ==============================
+
+$elevation-1: 0 1px 3px rgba(0, 0, 0, 0.1);
+$elevation-2: 0 4px 6px rgba(0, 0, 0, 0.1);
+$elevation-3: 0 10px 20px rgba(0, 0, 0, 0.15);
+
+$card-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+$sidebar-shadow: 5px 0 20px rgba(0, 0, 0, 0.03);
+$top-nav-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
+$content-wrapper-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+$main-content-shadow: 6px 6px 16px rgba(0, 0, 0, 0.1);
+$modal-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+
+// ==============================
+// 💬 STATE COLORS
+// ==============================
+
+$hover-background: rgba($primary-color, 0.08);
+$hover-color: darken($primary-color, 8%);
+$focus-color: $primary-color;
+$focus-ring: 0 0 0 3px rgba($primary-color, 0.2);
+$disabled-color: #c1c7d0;
+$disabled-bg: #f3f3f3;
+
+// ==============================
+// ⚡ TRANSITIONS
+// ==============================
+
+$transition-duration: 0.3s;
+$transition-fast: 0.15s;
+$transition-ease: ease-in-out;
+
+// ==============================
+// 🅰️ TYPOGRAPHY
+// ==============================
+
+$font-primary: 'Poppins', sans-serif;
+$font-secondary: 'Roboto', sans-serif;
+$font-monospace: 'Courier New', monospace;
+
+$font-size-xs: 0.75rem;
+$font-size-sm: 0.875rem;
+$font-size-md: 1rem;
+$font-size-lg: 1.25rem;
+$font-size-xl: 1.5rem;
+
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+$line-height-tight: 1.2;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;

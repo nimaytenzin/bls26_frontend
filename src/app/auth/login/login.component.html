@@ -1,27 +1,53 @@
 <app-public-navbar></app-public-navbar>
 
 <div class="login-wrapper">
-  <div class="login-card">
-    <h2>Welcome Back 👋</h2>
-    <p>Please login to access your dashboard</p>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-				<label>Email</label>
-        <input type="email" formControlName="email" placeholder=" " />
-      </div>
+	<p-card class="login-card">
+		<ng-template pTemplate="title">
+			<h2 class="login-title">Welcome Back 👋</h2>
+		</ng-template>
 
-      <div class="form-group">
-				<label>Password</label>
-        <input type="password" formControlName="password" placeholder=" " />
-      </div>
+		<ng-template pTemplate="content">
+			<p class="login-subtitle">Please login to access your dashboard</p>
 
-      <button type="submit" [disabled]="loginForm.invalid" class="btn primary">Login</button>
+			<form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form p-fluid">
+				<div class="form-field">
+					<label for="email">Email</label>
+					<input
+						id="email"
+						type="email"
+						pInputText
+						formControlName="email"
+						placeholder="Enter your email"
+					/>
+				</div>
 
-      <div class="login-footer">
-        <a routerLink="/auth/reset-password">Forgot password?</a> |
-        <a routerLink="/auth/register">Create an account</a>
-      </div>
-    </form>
-  </div>
+				<div class="form-field">
+					<label for="password">Password</label>
+					<p-password
+						id="password"
+						formControlName="password"
+						toggleMask
+						[feedback]="false"
+						placeholder="Enter your password"
+					></p-password>
+				</div>
+
+				<p-button
+					type="submit"
+					label="Login"
+					icon="pi pi-sign-in"
+					class="login-btn"
+					[disabled]="loginForm.invalid"
+				></p-button>
+
+				<div class="login-footer">
+					<a routerLink="/reset-password">Forgot password?</a>
+					<span>|</span>
+					<a routerLink="/register">Create an account</a>
+				</div>
+			</form>
+		</ng-template>
+	</p-card>
+
 </div>
