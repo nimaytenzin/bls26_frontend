@@ -8,7 +8,7 @@ import { PackageComponent } from "./packages/package.component";
 import { FacilityListComponent } from "./facility-list/facility-list.component";
 import { FacilitatorComponent } from "./facilitator/facilitator.component";
 import { PostActivityComponent } from "./post-activity/post-activity.component";
-import { FacilityLayoutComponent } from "../layout/facility/facility-layout/facility-layout.component";
+import { LayoutComponent } from "../layout/layout.component";
 import { AnnouncementEventsComponent } from "./announcement-events/announcement-events.component";
 import { InvoiceListComponent } from "./billing/invoice-list/invoice-list.component";
 
@@ -16,7 +16,7 @@ import { InvoiceListComponent } from "./billing/invoice-list/invoice-list.compon
 export const facilityRoutes: Routes = [
   {
     path: '',
-    component: FacilityLayoutComponent, // <- Moved layout here
+    component: LayoutComponent, // <- Moved layout here
     children: [
       { path: "dashboard", component: FacilityDashboardComponent, canActivate: [AuthGuard] },
       { path: "facilities", component: FacilityListComponent },

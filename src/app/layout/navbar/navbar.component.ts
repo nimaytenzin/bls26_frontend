@@ -1,19 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { ICONS } from '../../../shared/constants/icon.constants';
+import { ICONS } from '../../shared/constants/icon.constants';
 
 @Component({
-  selector: 'app-facility-navbar',
+  selector: 'app-navbar',
 	standalone: true,
-  templateUrl: './facility-navbar.component.html',
-  styleUrls: ['./facility-navbar.component.scss'],
+  templateUrl: './navbar.component.html',
+  styleUrls: ['./navbar.component.scss'],
 	imports: [
 		CommonModule,
     FontAwesomeModule
 	]
 })
-export class FacilityNavbarComponent {
+export class NavbarComponent {
   @Input() isMobile = false;
   //@Input() hasMultipleFacilities = false;
 	//@Input() facilities: any[] = [];

@@ -1,5 +1,5 @@
 export interface Child {
-  id: string;
+  id: number;
   name: string;
   preferredName: string;
   cid: string;
@@ -7,11 +7,11 @@ export interface Child {
   studentCode: string;
   dob: string; // or Date if parsed
   gender: 'male' | 'female';
-  facilityId: string;
+  facilityId: number;
 }
 
 export interface ChildNote {
-  childId: string; // 🔗 Foreign key to Child
+  childId: number; // 🔗 Foreign key to Child
   medicalCondition?: string;
   specialInstruction?: string;
   notes?: string;

@@ -7,7 +7,7 @@ import { HttpClient } from '@angular/common/http';
 export class FacilityService {
   private readonly STORAGE_KEY = 'selectedFacilityId';
 
-	private selectedFacilityIdSubject = new BehaviorSubject<string | null>(null);
+	private selectedFacilityIdSubject = new BehaviorSubject<number | null>(null);
 	selectedFacilityId$ = this.selectedFacilityIdSubject.asObservable();
 
   private facilitiesSubject = new BehaviorSubject<any[]>([]);
@@ -15,11 +15,11 @@ export class FacilityService {
 
   constructor(private http: HttpClient) {}
 
-	setSelectedFacilityId(id: string): void {
-		this.selectedFacilityIdSubject.next(id);
+	setSelectedFacilityId(id: number): void {
+    this.selectedFacilityIdSubject.next(id);
 	}
 
-	getFacilityId(): string | null {
+	getFacilityId(): number | null {
 		return this.selectedFacilityIdSubject.value;
 	}
 
@@ -45,7 +45,7 @@ export class FacilityService {
 	addFacility(data: any): Observable<any> {
 		return this.http.post('http://localhost:3000/facilities', {
 			...data,
-			ownerId: data.ownerId.toString() // Ensure ownerId is a string
+			ownerId: Number(data.ownerId) // Ensure ownerId is a number
 		});
 	}
 

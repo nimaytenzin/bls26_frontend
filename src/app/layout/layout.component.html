@@ -1,6 +1,6 @@
 <div class="layout-container" [class.mobile]="isMobile">
 
-		<app-facility-sidebar
+		<app-sidebar
 			*ngIf="!isMobile || sidebarOpen"
 			[isMobile]="isMobile"
 			[selectedFacilityId]="selectedFacilityId"
@@ -10,15 +10,15 @@
 			[hasMultipleFacilities]="hasMultipleFacilities"
 			[facilities]="facilities"
 			(facilityChange)="onFacilityChange($event)"
-		></app-facility-sidebar>
+		></app-sidebar>
 
 		<div class="content-body">
-			<app-facility-navbar
+			<app-navbar
 				[isMobile]="isMobile"
 				[user]="user"
 				(logoutClick)="logout()"
 				(toggleSidebar)="toggleSidebar()"
-			></app-facility-navbar>
+			></app-navbar>
 
 			<main class="main-content">
 				<div class="scroll-container">

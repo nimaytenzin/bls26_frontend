@@ -73,7 +73,7 @@ export class CreateInvoiceComponent implements OnInit {
   }
 
 	getChildName(childId: number): string {
-		const child = this.children.find(c => c.id === String(childId));
+		const child = this.children.find(c => c.id === childId);
 		return child ? child.name : '';
 	}
 

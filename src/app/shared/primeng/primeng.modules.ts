@@ -9,6 +9,7 @@ import { DialogModule } from 'primeng/dialog'; // optional
 import { TableModule } from 'primeng/table'; // optional
 import { TooltipModule } from 'primeng/tooltip'; // optional
 import { ConfirmDialogModule } from 'primeng/confirmdialog'; // optional
+import { PanelMenuModule } from 'primeng/panelmenu'; // optional
 
 const PRIME_NG_MODULES = [
   CardModule,
@@ -20,7 +21,8 @@ const PRIME_NG_MODULES = [
   DialogModule,
   TableModule,
   TooltipModule,
-  ConfirmDialogModule
+  ConfirmDialogModule,
+	PanelMenuModule,
 ];
 
 @NgModule({

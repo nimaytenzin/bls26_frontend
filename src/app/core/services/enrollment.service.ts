@@ -30,7 +30,7 @@ export class EnrollmentService {
   }
 
   // Enroll parents
-  enrollParents(parents: Parent[], childId: string): Observable<Parent[]> {
+  enrollParents(parents: Parent[], childId: number): Observable<Parent[]> {
     const requests = parents.map(parent =>
       this.http.post<Parent>(`${this.apiUrl}/parents`, { ...parent, childId })
     );
@@ -38,7 +38,7 @@ export class EnrollmentService {
   }
 
   // Enroll guardians
-  enrollGuardians(guardians: Guardian[], childId: string): Observable<Guardian[]> {
+  enrollGuardians(guardians: Guardian[], childId: number): Observable<Guardian[]> {
     const requests = guardians.map(guardian =>
       this.http.post<Guardian>(`${this.apiUrl}/guardians`, { ...guardian, childId })
     );
@@ -46,8 +46,8 @@ export class EnrollmentService {
   }
 
   // Create final enrollment
-  createEnrollment(enrollment: EnrollmentDto): Observable<EnrollmentDto> {
-    return this.http.post<EnrollmentDto>(`${this.apiUrl}/enrollments`, enrollment);
+  createEnrollment(enrollment: EnrollmentDto): Observable<any> {
+    return this.http.post(`${this.apiUrl}/enrollments`, enrollment);
   }
 
   // Update enrollment

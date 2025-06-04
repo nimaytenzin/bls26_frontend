@@ -10,15 +10,15 @@ export class AttendanceService {
 
   constructor(private http: HttpClient) {}
 
-  getAttendanceByFacility(facilityId: string): Observable<Attendance[]> {
+  getAttendanceByFacility(facilityId: number): Observable<Attendance[]> {
     return this.http.get<Attendance[]>(`${this.apiUrl}/attendances?facilityId=${facilityId}`);
   }
 
-  getChildrenByFacility(facilityId: string): Observable<any[]> {
+  getChildrenByFacility(facilityId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/children?facilityId=${facilityId}`);
   }
 
-	getFacilitatorsByFacility(facilityId: string): Observable<any[]> {
+	getFacilitatorsByFacility(facilityId: number): Observable<any[]> {
 		return this.http.get<any[]>(`${this.apiUrl}/facilitators?facilityId=${facilityId}`);
 	}
 

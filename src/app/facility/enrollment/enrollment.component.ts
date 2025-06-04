@@ -52,7 +52,7 @@ export class EnrollmentComponent implements OnInit {
         studentCode: ['', Validators.required],
         dob: ['', Validators.required],
         gender: ['', Validators.required],
-        facilityId: [selectedFacilityId, Validators.required],
+        facilityId: [selectedFacilityId as number, Validators.required], // ensure number
       }),
       childNote: this.fb.group({
         medicalCondition: [''],
@@ -60,7 +60,7 @@ export class EnrollmentComponent implements OnInit {
         notes: [''],
       }),
       packageForm: this.fb.group({
-        packageId: ['', Validators.required],
+        packageId: [null, Validators.required],
         startDate: ['', Validators.required],
         endDate: ['', Validators.required],
       }),
@@ -230,26 +230,26 @@ export class EnrollmentComponent implements OnInit {
     this.enrollmentService.enrollChild(child).pipe(
       switchMap((savedChild) => {
         const childId = savedChild.id;
-        const childNoteRequest = this.enrollmentService.enrollChildNote({ ...childNote, childId });
-        const parentRequests = this.enrollmentService.enrollParents(parents, childId);
-				const guardianRequests = this.enrollmentService.enrollGuardians(guardians, childId);
+        const childNoteRequest = this.enrollmentService.enrollChildNote({ ...childNote, childId: childId });
+        const parentRequests = this.enrollmentService.enrollParents(parents, Number(childId));
+        const guardianRequests = this.enrollmentService.enrollGuardians(guardians, Number(childId));
 
 				return forkJoin({ childNoteRequest, parentRequests, guardianRequests }).pipe(
 					switchMap(({ parentRequests, guardianRequests }) => {
-						const parentIds: string[] = parentRequests
-							.map(p => p.id?.toString())
-							.filter((id): id is string => !!id);
+						const parentIds: number[] = parentRequests
+							.map(p => Number(p.id))
+							.filter((id): id is number => !isNaN(id));
 
-						const guardianIds: string[] = guardianRequests
-							.map(g => g.id?.toString())
-							.filter((id): id is string => !!id);
+						const guardianIds: number[] = guardianRequests
+							.map(g => Number(g.id))
+							.filter((id): id is number => !isNaN(id));
 
 						const enrollmentDto: EnrollmentDto = {
-							childId: savedChild.id,
+							childId: Number(savedChild.id),
 							parentIds,
 							guardianIds,
-							facilityId: child.facilityId,
-							packageId: packageForm.packageId,
+							facilityId: Number(child.facilityId),
+							packageId: Number(packageForm.packageId),
 							start_date: packageForm.startDate,
 							end_date: packageForm.endDate,
 							status: 'active'

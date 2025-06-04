@@ -1,7 +1,7 @@
 export interface Attendance {
   id?: number;
   childId: number;
-  facilityId: string;
+  facilityId: number;
   date: string;
   session: string;
   status: 'Present' | 'Absent';

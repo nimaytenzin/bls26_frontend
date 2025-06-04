@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { PublicNavbarComponent } from '../../shared/components/public-navbar/public-navbar.component';
-import { Owner } from '../../core/models/owner.model';
-import { OwnerService } from '../../core/services/owner.service';
 import { CommonModule } from '@angular/common';
 
 import { PrimeNgModules } from '../../shared/primeng/primeng.modules';
+import { PublicNavbarComponent } from '../../shared/components/public-navbar/public-navbar.component';
+import { Parent } from '../../core/models/parent.model';
+import { ParentService } from '../../core/services/parent.service';
 
 @Component({
   selector: 'app-register',
@@ -17,7 +17,7 @@ import { PrimeNgModules } from '../../shared/primeng/primeng.modules';
     PublicNavbarComponent,
     ReactiveFormsModule,
     CommonModule,
-		RouterModule,
+    RouterModule,
     PrimeNgModules
   ],
 })
@@ -27,7 +27,7 @@ export class RegisterComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private ownerService: OwnerService
+    private parentService: ParentService
   ) {}
 
   ngOnInit(): void {
@@ -36,19 +36,17 @@ export class RegisterComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       cid: ['', Validators.required],
       phone: ['', Validators.required],
-      facility: ['', Validators.required]
     });
   }
 
   onSubmit(): void {
     if (this.registerForm.valid) {
-      const newOwner: Owner = {
+      const newParent: Partial<Parent> = {
         ...this.registerForm.value,
-        role: 'owner',
-        isVerified: false
+        avatarUrl: '' // Optional or to be updated after file upload
       };
 
-      this.ownerService.registerOwner(newOwner).subscribe({
+      this.parentService.registerParent(newParent).subscribe({
         next: () => this.router.navigate(['/verify-notice']),
         error: (err) => console.error('Registration failed:', err)
       });

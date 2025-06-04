@@ -40,27 +40,25 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  onSubmit(): void {
-    if (this.loginForm.valid) {
-      const { email, password } = this.loginForm.value;
+	onSubmit(): void {
+		if (this.loginForm.valid) {
+			const { email, password } = this.loginForm.value;
 
-      this.http.get<User[]>(`http://localhost:3000/owners?email=${email}&password=${password}`)
-        .subscribe((users) => {
-          const user = users[0];
-          if (user) {
-            this.authService.login(user);
+			this.http.post<User>('http://localhost:3000/api/auth/login', { email, password })
+				.subscribe({
+					next: (user) => {
+						this.authService.login(user);
+						const redirectPath = this.authService.getRedirectPathByRole(user.role);
+						this.router.navigate([redirectPath]);
+					},
+					error: (err) => {
+						console.error('Login failed:', err);
+						alert('Invalid email or password.');
+					}
+				});
+		} else {
+			this.loginForm.markAllAsTouched();
+		}
+	}
 
-            if (user.role === 'admin') {
-              this.router.navigate(['/admin-dashboard']);
-            } else {
-              this.router.navigate(['/dashboard']);
-            }
-          } else {
-            alert('Invalid email or password.');
-          }
-        });
-    } else {
-      this.loginForm.markAllAsTouched(); // force display of validation errors
-    }
-  }
 }

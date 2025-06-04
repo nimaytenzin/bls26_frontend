@@ -1,6 +1,6 @@
 export interface Package {
   id?: number;                      // Optional for creation
-  facilityId: string;
+  facilityId: number;
   name: string;
   description: string;
   price: number;
@@ -8,7 +8,7 @@ export interface Package {
 }
 
 export interface PackageForm {
-  packageId: string;
+  packageId: number;
   startDate: Date;
   endDate: Date;
 }

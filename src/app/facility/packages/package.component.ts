@@ -31,7 +31,7 @@ export class PackageComponent implements OnInit {
 	ngOnInit(): void {
 		this.facilityService.selectedFacilityId$
 			.pipe(
-				filter((id): id is string => typeof id === 'string' && id.trim() !== ''), // Ensure valid strings
+				filter((id): id is number => typeof id === 'number' && !isNaN(id)), // Ensure valid numbers
 				distinctUntilChanged() // Only react to changes
 			)
 			.subscribe(id => {
@@ -39,8 +39,8 @@ export class PackageComponent implements OnInit {
 			});
 	}
 
-	loadPackages(facilityId: string | null): void {
-		if (!facilityId || facilityId.trim() === '') {
+	loadPackages(facilityId: number | null): void {
+		if (!facilityId || isNaN(facilityId)) {
 		  console.error('Invalid facility ID:', facilityId);
 		  alert('Invalid facility ID. Please select a valid facility.');
 		  return;
@@ -77,14 +77,14 @@ export class PackageComponent implements OnInit {
 		const request = this.editingPackage
 			? this.packageService.updatePackage({
 					id: this.editingPackage.id!,
-					facilityId: facilityId, // Use facilityId as a string
+					facilityId: facilityId, // Use facilityId as a number
 					ownerId: user.id,
 					name: pkgData.name!,
 					description: pkgData.description!,
 					price: pkgData.price
 				})
 			: this.packageService.addPackage({
-					facilityId: facilityId, // Use facilityId as a string
+					facilityId: facilityId, // Use facilityId as a number
 					ownerId: user.id,
 					name: pkgData.name!,
 					description: pkgData.description!,
@@ -103,9 +103,9 @@ export class PackageComponent implements OnInit {
 		});
 	}
 
-	deletePackage(id: string): void {
+	deletePackage(id: number): void {
 		const facilityId = this.facilityService.getFacilityId();
-		if (!facilityId || typeof facilityId !== 'string' || facilityId.trim() === '') {
+		if (!facilityId || isNaN(facilityId)) {
 			alert('Invalid facility ID.');
 			return;
 		}

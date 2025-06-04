@@ -13,7 +13,7 @@ export class PackageService {
 
   constructor(private http: HttpClient) {}
 
-  getPackagesByFacility(facilityId: string): Observable<Package[]> {
+  getPackagesByFacility(facilityId: number): Observable<Package[]> {
     return this.http.get<Package[]>(`${this.apiUrl}?facilityId=${facilityId}`);
   }
 
@@ -25,7 +25,7 @@ export class PackageService {
     return this.http.put<Package>(`${this.apiUrl}/${pkg.id}`, pkg);
   }
 
-	deletePackage(id: string): Observable<void> {
-		return this.http.delete<void>(`/api/packages/${id}`);
-	}
+  deletePackage(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/packages/${id}`);
+  }
 }

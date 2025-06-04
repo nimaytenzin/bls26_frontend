@@ -1,29 +1,29 @@
 import { Component, HostListener, OnInit } from '@angular/core';
-import { FacilityService } from '../../../core/services/facility.service';
-import { AuthService } from '../../../auth/auth.service';
+import { FacilityService } from '../core/services/facility.service';
+import { AuthService } from '../auth/auth.service';
 import { Router, RouterModule } from '@angular/router';
-import { FacilitySidebarComponent } from '../facility-sidebar/facility-sidebar.component';
-import { FacilityNavbarComponent } from '../facility-navbar/facility-navbar.component';
+import { SidebarComponent } from './sidebar/sidebar.component';
+import { NavbarComponent } from './navbar/navbar.component';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-facility-layout',
+  selector: 'app-layout',
   standalone: true,
-  templateUrl: './facility-layout.component.html',
-  styleUrls: ['../../layout.component.scss'],
+  templateUrl: './layout.component.html',
+  styleUrls: ['./layout.component.scss'],
 	imports: [
-		FacilitySidebarComponent,
-		FacilityNavbarComponent,
+		SidebarComponent,
+		NavbarComponent,
 		CommonModule,
 		RouterModule,
 	],
 })
-export class FacilityLayoutComponent implements OnInit {
+export class LayoutComponent implements OnInit {
   isMobile = false;
   sidebarOpen = false;
 	dropdownOpen = false;
-  facilities: any[] = [];
-  selectedFacilityId: string | null = null;
+  facilities: { id: number; name: string; [key: string]: any }[] = [];
+  selectedFacilityId: number | null = null;
 
   facilitiesReady = false;
   facilitiesLoading = true;
@@ -47,7 +47,7 @@ export class FacilityLayoutComponent implements OnInit {
     this.loadFacilities();
 
     this.facilityService.facilities$.subscribe(facilities => {
-      this.facilities = facilities;
+      this.facilities = facilities.map(f => ({ ...f, id: Number(f.id) }));
 
       const savedTab = localStorage.getItem('activeTab') || '';
       const currentPath = this.router.url;
@@ -74,7 +74,7 @@ export class FacilityLayoutComponent implements OnInit {
       this.facilitiesChecked = true;
 
       const currentId = this.facilityService.getFacilityId();
-      const isValid = facilities.some(f => f.id === currentId);
+      const isValid = facilities.some(f => Number(f.id) === Number(currentId));
 
       if (!currentId || !isValid) {
         // Auto select first available facility
@@ -102,7 +102,7 @@ export class FacilityLayoutComponent implements OnInit {
     });
 
     this.facilityService.selectedFacilityId$.subscribe(id => {
-      this.selectedFacilityId = id;
+      this.selectedFacilityId = typeof id === 'string' ? Number(id) : id;
     });
   }
 
@@ -117,7 +117,7 @@ export class FacilityLayoutComponent implements OnInit {
     }
   }
 
-  onFacilityChange(newFacilityId: string): void {
+  onFacilityChange(newFacilityId: number): void {
     this.facilityService.setSelectedFacilityId(newFacilityId);
   }
 

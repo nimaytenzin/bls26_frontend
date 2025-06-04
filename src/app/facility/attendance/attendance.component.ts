@@ -27,7 +27,7 @@ export class AttendanceComponent implements OnInit {
   selectedDate: string = new Date().toISOString().split('T')[0];
   selectedSession: string = 'morning';
   selectedGroup: 'children' | 'facilitators' = 'children';
-  facilityId: string = '';
+  facilityId: number = 0;
 
   constructor(
     private attendanceService: AttendanceService,
@@ -37,7 +37,7 @@ export class AttendanceComponent implements OnInit {
   ngOnInit(): void {
     this.facilityService.selectedFacilityId$
       .pipe(
-        filter((id): id is string => id !== null),
+        filter((id): id is number => id !== null && typeof id === 'number'),
         distinctUntilChanged()
       )
       .subscribe(id => {
@@ -46,7 +46,7 @@ export class AttendanceComponent implements OnInit {
       });
 
     const initialId = this.facilityService.getFacilityId();
-    if (initialId !== null) {
+    if (initialId !== null && typeof initialId === 'number') {
       this.facilityId = initialId;
       this.loadAttendanceTargets();
     }
