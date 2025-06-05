@@ -1,7 +1,4 @@
-<app-public-navbar></app-public-navbar>
-
 <div class="login-wrapper">
-
 	<p-card class="login-card">
 		<ng-template pTemplate="title">
 			<h2 class="login-title">Welcome Back 👋</h2>
@@ -10,7 +7,11 @@
 		<ng-template pTemplate="content">
 			<p class="login-subtitle">Please login to access your dashboard</p>
 
-			<form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form p-fluid">
+			<form
+				[formGroup]="loginForm"
+				(ngSubmit)="onSubmit()"
+				class="login-form p-fluid"
+			>
 				<div class="form-field">
 					<label for="email">Email</label>
 					<input
@@ -49,5 +50,4 @@
 			</form>
 		</ng-template>
 	</p-card>
-
 </div>
