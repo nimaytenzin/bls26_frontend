@@ -1,0 +1,422 @@
+<!-- Admin Dashboard -->
+<div class="min-h-screen bg-gray-50 p-6">
+	<!-- Header Section -->
+	<div class="mb-8">
+		<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+			<div>
+				<h1 class="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+				<p class="text-gray-600">
+					Welcome back! Here's what's happening with your cinema today.
+				</p>
+			</div>
+			<div class="mt-4 lg:mt-0 flex space-x-3">
+				<p-button
+					label="Export Report"
+					icon="pi pi-download"
+					styleClass="p-button-outlined"
+					size="small"
+				>
+				</p-button>
+				<p-button label="Add Movie" icon="pi pi-plus" size="small"> </p-button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Stats Overview Cards -->
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+		<!-- Total Revenue Card -->
+		<p-card
+			styleClass="shadow-lg border-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+		>
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-blue-100 text-sm font-medium">Total Revenue</p>
+					<p class="text-2xl font-bold mt-1">
+						{{ formatCurrency(stats.totalRevenue) }}
+					</p>
+					<p class="text-blue-100 text-xs mt-1">
+						<i class="pi pi-arrow-up text-green-300"></i> +12.5% from last month
+					</p>
+				</div>
+				<div class="bg-blue-400 bg-opacity-30 p-3 rounded-full">
+					<i class="pi pi-dollar text-2xl"></i>
+				</div>
+			</div>
+		</p-card>
+
+		<!-- Total Bookings Card -->
+		<p-card
+			styleClass="shadow-lg border-0 bg-gradient-to-r from-green-500 to-green-600 text-white"
+		>
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-green-100 text-sm font-medium">Total Bookings</p>
+					<p class="text-2xl font-bold mt-1">
+						{{ stats.totalBookings.toLocaleString() }}
+					</p>
+					<p class="text-green-100 text-xs mt-1">
+						<i class="pi pi-arrow-up text-green-300"></i> +8.2% from last month
+					</p>
+				</div>
+				<div class="bg-green-400 bg-opacity-30 p-3 rounded-full">
+					<i class="pi pi-ticket text-2xl"></i>
+				</div>
+			</div>
+		</p-card>
+
+		<!-- Active Movies Card -->
+		<p-card
+			styleClass="shadow-lg border-0 bg-gradient-to-r from-purple-500 to-purple-600 text-white"
+		>
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-purple-100 text-sm font-medium">Active Movies</p>
+					<p class="text-2xl font-bold mt-1">{{ stats.totalMovies }}</p>
+					<p class="text-purple-100 text-xs mt-1">
+						<i class="pi pi-plus text-purple-300"></i> 3 new this week
+					</p>
+				</div>
+				<div class="bg-purple-400 bg-opacity-30 p-3 rounded-full">
+					<i class="pi pi-video text-2xl"></i>
+				</div>
+			</div>
+		</p-card>
+
+		<!-- Occupancy Rate Card -->
+		<p-card
+			styleClass="shadow-lg border-0 bg-gradient-to-r from-orange-500 to-orange-600 text-white"
+		>
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-orange-100 text-sm font-medium">Occupancy Rate</p>
+					<p class="text-2xl font-bold mt-1">{{ stats.occupancyRate }}%</p>
+					<p class="text-orange-100 text-xs mt-1">
+						<i class="pi pi-arrow-up text-orange-300"></i> +5.3% from last week
+					</p>
+				</div>
+				<div class="bg-orange-400 bg-opacity-30 p-3 rounded-full">
+					<i class="pi pi-users text-2xl"></i>
+				</div>
+			</div>
+		</p-card>
+	</div>
+
+	<!-- Main Content Grid -->
+	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+		<!-- Revenue Chart -->
+		<div class="lg:col-span-2">
+			<p-card styleClass="shadow-lg border-0 h-full">
+				<ng-template pTemplate="header">
+					<div class="p-4 border-b">
+						<h3 class="text-lg font-semibold text-gray-900">Revenue Trend</h3>
+						<p class="text-gray-600 text-sm">
+							Monthly revenue for the last 6 months
+						</p>
+					</div>
+				</ng-template>
+
+				<div class="p-4">
+					<p-chart
+						type="line"
+						[data]="revenueData"
+						[options]="revenueChartOptions"
+						class="h-[10rem]"
+					>
+					</p-chart>
+				</div>
+			</p-card>
+		</div>
+
+		<!-- Today's Stats -->
+		<div>
+			<p-card styleClass="shadow-lg border-0 h-full">
+				<ng-template pTemplate="header">
+					<div class="p-4 border-b">
+						<h3 class="text-lg font-semibold text-gray-900">
+							Today's Overview
+						</h3>
+						<p class="text-gray-600 text-sm">Real-time statistics</p>
+					</div>
+				</ng-template>
+
+				<div class="p-4 space-y-6">
+					<!-- Today's Bookings -->
+					<div class="text-center">
+						<p-knob
+							[(ngModel)]="stats.todayBookings"
+							[max]="100"
+							[size]="120"
+							strokeWidth="8"
+							fill="#f3f4f6"
+							textColor="#374151"
+							colorRange="#10b981,#f59e0b,#ef4444"
+							[readonly]="true"
+						>
+						</p-knob>
+						<p class="text-sm text-gray-600 mt-2">Today's Bookings</p>
+					</div>
+
+					<!-- Quick Stats -->
+					<div class="space-y-4">
+						<div class="flex justify-between items-center">
+							<span class="text-sm text-gray-600">Active Theaters</span>
+							<p-tag
+								[value]="stats.totalTheaters.toString()"
+								severity="success"
+							></p-tag>
+						</div>
+						<div class="flex justify-between items-center">
+							<span class="text-sm text-gray-600">Pending Bookings</span>
+							<p-tag value="12" severity="warning"></p-tag>
+						</div>
+						<div class="flex justify-between items-center">
+							<span class="text-sm text-gray-600">Cancelled Today</span>
+							<p-tag value="3" severity="danger"></p-tag>
+						</div>
+					</div>
+				</div>
+			</p-card>
+		</div>
+	</div>
+
+	<!-- Movies and Theaters Section -->
+	<div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+		<!-- Popular Movies -->
+		<p-card styleClass="shadow-lg border-0">
+			<ng-template pTemplate="header">
+				<div class="p-4 border-b flex justify-between items-center">
+					<div>
+						<h3 class="text-lg font-semibold text-gray-900">Popular Movies</h3>
+						<p class="text-gray-600 text-sm">
+							Top performing movies this month
+						</p>
+					</div>
+					<p-button
+						icon="pi pi-external-link"
+						styleClass="p-button-text p-button-sm"
+						pTooltip="View All Movies"
+					>
+					</p-button>
+				</div>
+			</ng-template>
+
+			<div class="p-4">
+				<div class="space-y-4">
+					<div
+						*ngFor="let movie of movies.slice(0, 4)"
+						class="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+					>
+						<img
+							[src]="movie.image"
+							[alt]="movie.title"
+							class="w-16 h-20 object-cover rounded-md shadow-sm"
+						/>
+						<div class="flex-1 min-w-0">
+							<h4 class="font-medium text-gray-900 truncate">
+								{{ movie.title }}
+							</h4>
+							<div class="flex flex-wrap gap-1 mt-1">
+								<p-chip
+									*ngFor="let genre of movie.genre.slice(0, 2)"
+									[label]="genre"
+									styleClass="text-xs p-1"
+								>
+								</p-chip>
+							</div>
+							<p class="text-sm text-gray-600 mt-1">
+								{{ movie.duration }} • {{ movie.rating }}
+							</p>
+						</div>
+						<div class="text-right">
+							<p class="font-semibold text-gray-900">
+								{{ movie.totalBookings }}
+							</p>
+							<p class="text-xs text-gray-600">bookings</p>
+							<p-tag
+								[value]="movie.status"
+								[severity]="getStatusSeverity(movie.status)"
+								styleClass="mt-1"
+							>
+							</p-tag>
+						</div>
+					</div>
+				</div>
+			</div>
+		</p-card>
+
+		<!-- Theater Status -->
+		<p-card styleClass="shadow-lg border-0">
+			<ng-template pTemplate="header">
+				<div class="p-4 border-b flex justify-between items-center">
+					<div>
+						<h3 class="text-lg font-semibold text-gray-900">Theater Status</h3>
+						<p class="text-gray-600 text-sm">Current occupancy and status</p>
+					</div>
+					<p-button
+						icon="pi pi-cog"
+						styleClass="p-button-text p-button-sm"
+						pTooltip="Manage Theaters"
+					>
+					</p-button>
+				</div>
+			</ng-template>
+
+			<div class="p-4">
+				<div class="space-y-4">
+					<div
+						*ngFor="let theater of theaters"
+						class="p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
+					>
+						<div class="flex justify-between items-start mb-3">
+							<div>
+								<h4 class="font-medium text-gray-900">{{ theater.name }}</h4>
+								<p class="text-sm text-gray-600">{{ theater.location }}</p>
+							</div>
+							<p-tag
+								[value]="theater.status"
+								[severity]="getStatusSeverity(theater.status)"
+							>
+							</p-tag>
+						</div>
+						<div class="flex justify-between items-center text-sm">
+							<span class="text-gray-600"
+								>Capacity: {{ theater.capacity }}</span
+							>
+							<span class="font-medium">{{ theater.occupancy }}% occupied</span>
+						</div>
+						<p-progressBar
+							[value]="theater.occupancy"
+							styleClass="mt-2"
+							[showValue]="false"
+						>
+						</p-progressBar>
+					</div>
+				</div>
+			</div>
+		</p-card>
+	</div>
+
+	<!-- Recent Bookings Table -->
+	<p-card styleClass="shadow-lg border-0">
+		<ng-template pTemplate="header">
+			<div class="p-4 border-b flex justify-between items-center">
+				<div>
+					<h3 class="text-lg font-semibold text-gray-900">Recent Bookings</h3>
+					<p class="text-gray-600 text-sm">
+						Latest customer bookings and transactions
+					</p>
+				</div>
+				<div class="flex space-x-2">
+					<p-button
+						icon="pi pi-refresh"
+						styleClass="p-button-text p-button-sm"
+						pTooltip="Refresh"
+					>
+					</p-button>
+					<p-button
+						icon="pi pi-external-link"
+						styleClass="p-button-text p-button-sm"
+						pTooltip="View All Bookings"
+					>
+					</p-button>
+				</div>
+			</div>
+		</ng-template>
+
+		<div class="p-4">
+			<p-table
+				[value]="recentBookings"
+				[paginator]="true"
+				[rows]="10"
+				[responsive]="true"
+				styleClass="p-datatable-sm"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th>Booking ID</th>
+						<th>Customer</th>
+						<th>Movie</th>
+						<th>Show Time</th>
+						<th>Seats</th>
+						<th>Amount</th>
+						<th>Status</th>
+						<th>Actions</th>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="body" let-booking>
+					<tr>
+						<td>
+							<span class="font-mono text-sm">#{{ booking.id }}</span>
+						</td>
+						<td>
+							<div class="flex items-center space-x-2">
+								<p-avatar
+									[label]="booking.customerName.charAt(0)"
+									styleClass="bg-blue-100 text-blue-800"
+								>
+								</p-avatar>
+								<span class="font-medium">{{ booking.customerName }}</span>
+							</div>
+						</td>
+						<td>
+							<span class="font-medium">{{ booking.movieTitle }}</span>
+						</td>
+						<td>
+							<span class="text-sm">{{ booking.showTime }}</span>
+						</td>
+						<td>
+							<div class="flex flex-wrap gap-1">
+								<p-chip
+									*ngFor="let seat of booking.seats"
+									[label]="seat"
+									styleClass="text-xs"
+								>
+								</p-chip>
+							</div>
+						</td>
+						<td>
+							<span class="font-semibold">{{
+								formatCurrency(booking.amount)
+							}}</span>
+						</td>
+						<td>
+							<p-tag
+								[value]="booking.status"
+								[severity]="getStatusSeverity(booking.status)"
+							>
+							</p-tag>
+						</td>
+						<td>
+							<div class="flex space-x-1">
+								<p-button
+									icon="pi pi-eye"
+									styleClass="p-button-text p-button-sm"
+									pTooltip="View Details"
+								>
+								</p-button>
+								<p-button
+									icon="pi pi-pencil"
+									styleClass="p-button-text p-button-sm"
+									pTooltip="Edit Booking"
+								>
+								</p-button>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="8" class="text-center py-8">
+							<div class="text-gray-500">
+								<i class="pi pi-inbox text-3xl mb-2 block"></i>
+								<p>No bookings found</p>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</div>
+	</p-card>
+</div>

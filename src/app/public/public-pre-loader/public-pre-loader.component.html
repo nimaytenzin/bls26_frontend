@@ -10,6 +10,7 @@
 		overflow: hidden;
 	"
 >
+	<!-- Content -->
 	<div
 		style="
 			display: flex;
@@ -23,37 +24,40 @@
 		<p style="font-size: xx-large; color: antiquewhite">Druk Cinema</p>
 	</div>
 
-	<!-- Top left circle with gradient -->
+	<!-- Background circles -->
 	<div
+		[ngStyle]="getTopCircleStyle()"
 		style="
-			height: 1200px;
-			width: 1200px;
+			height: 1400px;
+			width: 1400px;
 			border-radius: 50%;
 			background: radial-gradient(
 				circle at center,
-				#6f1c76 0%,
+				#6f1c76bc 0%,
 				transparent 70%
 			);
 			position: absolute;
 			top: -30%;
 			left: -30%;
+			filter: blur(2px);
 		"
 	></div>
 
-	<!-- Bottom right circle with gradient -->
 	<div
+		[ngStyle]="getBottomCircleStyle()"
 		style="
-			height: 1200px;
-			width: 1200px;
+			height: 1400px;
+			width: 1400px;
 			border-radius: 50%;
 			background: radial-gradient(
 				circle at center,
-				#471ca8 0%,
+				#461ca8c4 0%,
 				transparent 70%
 			);
 			position: absolute;
 			bottom: -30%;
 			right: -30%;
+			filter: blur(2px);
 		"
 	></div>
 </div>

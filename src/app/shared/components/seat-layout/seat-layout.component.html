@@ -1,0 +1,176 @@
+<div class="text-white">
+	<h2 class="text-4xl font-semibold text-center my-2">
+		Seat Layout for {{ hallLayout.name }}
+	</h2>
+	<div class="flex flex-col gap-2 w-full">
+		<div class="w-full overflow-scroll">
+			<div
+				class="hall-grid bg my-12"
+				[style.grid-template-columns]="'repeat(' + hallLayout.columns + ')'"
+				style="display: grid"
+			>
+				<div
+					class="tv-screen h-10 overflow-visible mb-12"
+					[style.grid-column]="
+						tvScreen.colStart + ' / span ' + tvScreen.colSpan
+					"
+					role="banner"
+				>
+					<div class="screen-arc"></div>
+				</div>
+
+				<div [style.grid-column]="hallLayout.columns" class="h-"></div>
+				<ng-container *ngFor="let row of hallLayout.rows">
+					<ng-container
+						*ngFor="let colIndex of columnRange(hallLayout.columns)"
+					>
+						<div
+							*ngIf="row.cells[colIndex]"
+							[ngClass]="{
+								'border border-white': row.cells[colIndex].category === 'BASIC',
+								'border-2 border-amber-400':
+									row.cells[colIndex].category === 'PREMIUM',
+								'bg-red-500 text-white cursor-not-allowed':
+									row.cells[colIndex].state === 'BOOKED',
+								'bg-yellow-400 cursor-not-allowed':
+									row.cells[colIndex].state === 'PROCESSING',
+								'bg-green-500 text-black':
+									isSeatSelected(row.cells[colIndex], row.label) &&
+									row.cells[colIndex].state === 'AVAILABLE',
+								'hover:bg-gray-500': row.cells[colIndex].state === 'AVAILABLE'
+							}"
+							class="cell flex justify-center items-center cursor-pointer rounded-t-xl m-1 transition-colors"
+							style="width: 40px; height: 40px"
+							(click)="toggleSeat(row.cells[colIndex], row.label)"
+						>
+							<span *ngIf="row.cells[colIndex]?.number">
+								{{ row.label }}{{ row.cells[colIndex].number }}
+							</span>
+							<span
+								*ngIf="row.cells[colIndex]?.annotation"
+								class="annotation-text text-white flex items-center justify-center"
+							>
+								{{ row.cells[colIndex].annotation }}
+							</span>
+						</div>
+
+						<div
+							*ngIf="!row.cells[colIndex]"
+							class="w-12 h-12"
+							style="width: 50px; height: 50px"
+						></div>
+					</ng-container>
+				</ng-container>
+			</div>
+			<div class="flex justify-center gap-6 my-10 text-sm">
+				<div class="flex items-center gap-2">
+					<div class="w-8 h-8 border border-white rounded-t-xl"></div>
+					<span>Basic</span>
+				</div>
+				<div class="flex items-center gap-2">
+					<div class="w-8 h-8 border-2 border-amber-400 rounded-t-xl"></div>
+					<span>Premium</span>
+				</div>
+				<div class="flex items-center gap-2">
+					<div class="w-8 h-8 bg-red-500 rounded-t-xl"></div>
+					<span>Booked</span>
+				</div>
+				<div class="flex items-center gap-2">
+					<div class="w-8 h-8 bg-yellow-400 rounded-t-xl"></div>
+					<span>Processing</span>
+				</div>
+				<div class="flex items-center gap-2">
+					<div class="w-8 h-8 bg-green-500 rounded-t-xl"></div>
+					<span>Your Seats</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="-full">
+			<div class="mt-8">
+				<p class="text-2xl mb-4">Selected Seats</p>
+				<div class="flex gap-2 flex-wrap">
+					<div
+						*ngFor="let seat of selectedSeats"
+						class="text-center bg-gray-800 px-2 py-1 rounded-sm"
+					>
+						<p class="font-medium">{{ seat.rowLabel }}-{{ seat.number }}</p>
+						<p class="text-xs">
+							{{ seat.category | lowercase }}
+						</p>
+					</div>
+				</div>
+
+				<div
+					class="flex justify-between items-center mt-4 border-t border-gray-600 pt-3"
+				>
+					<span class="text-lg font-bold">Grand Total</span>
+					<span class="text-lg font-bold">
+						{{ getTotalPrice() | currency : "" : "" : "1.0-0" }} BTN
+					</span>
+				</div>
+
+				<div class="flex justify-between mt-10 w-full gap-4">
+					<div class="w-1/2">
+						<p-button text="true" label="Cancel" styleClass="w-full">
+						</p-button>
+					</div>
+					<div class="w-1/2">
+						<p-button
+							label="Confirm "
+							styleClass="w-full"
+							(click)="openConfirmBooking()"
+						></p-button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<p-dialog
+		header="Privacy Policy & Terms"
+		[(visible)]="displayTermsDialog"
+		[modal]="true"
+		[closable]="false"
+		[style]="{ width: '400px' }"
+	>
+		<div class="p-fluid">
+			<p-scrollPanel>
+				<p>
+					By confirming your booking, you agree to our Privacy Policy and Terms
+					of Service. Your personal data will be used for reservation purposes
+					only. Please read carefully before proceeding.
+				</p>
+				<p>
+					1. We collect your name and contact information for ticket issuance.
+				</p>
+				<p>
+					2. Payment details are processed securely and not stored on our
+					servers.
+				</p>
+				<p>
+					3. No refunds allowed unless cancelled 24 hours prior to showtime.
+				</p>
+				<p>4. By clicking "Accept", you consent to these terms.</p>
+			</p-scrollPanel>
+			<div class="p-dialog-footer flex justify-end gap-2">
+				<button
+					pButton
+					type="button"
+					label="Decline"
+					icon="pi pi-times"
+					class="p-button-text"
+					(click)="declineTerms()"
+				></button>
+				<button
+					pButton
+					type="button"
+					label="Accept"
+					icon="pi pi-check"
+					class="p-button-primary"
+					(click)="acceptTerms()"
+				></button>
+			</div>
+		</div>
+	</p-dialog>
+</div>

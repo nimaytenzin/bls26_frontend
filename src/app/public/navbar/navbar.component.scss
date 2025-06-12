@@ -1,0 +1,47 @@
+:host ::ng-deep {
+    .p-menubar {
+        padding: 0.5rem 1rem;
+        background: transparent;
+        border: none;
+
+        .p-menubar-root-list {
+            gap: 1rem;
+
+            .p-menuitem {
+                .p-menuitem-link {
+                    padding: 0.5rem 1rem;
+
+                    .p-menuitem-icon {
+                        color: #d1d5db; /* text-gray-300 */
+                    }
+
+                    .p-menuitem-text {
+                        color: #d1d5db; /* text-gray-300 */
+                    }
+
+                    &:hover {
+                        background: transparent;
+
+                        .p-menuitem-icon,
+                        .p-menuitem-text {
+                            color: #3b82f6; /* text-blue-500 */
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .p-menubar-button {
+        color: #d1d5db; /* text-gray-300 */
+
+        &:hover {
+            color: #3b82f6; /* text-blue-500 */
+            background: transparent;
+        }
+    }
+
+    .p-button {
+        transition: all 0.2s;
+    }
+}

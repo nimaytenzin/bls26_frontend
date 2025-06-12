@@ -1,0 +1,795 @@
+<!-- Movie Listing Component -->
+<div class="space-y-6 max-w-7xl mx-auto">
+	<!-- Search and Filter Bar -->
+	<div
+		class="flex justify-between items-center gap-4 flex-wrap"
+		*ngIf="showFilters"
+	>
+		<div class="flex-1 max-w-md">
+			<p-inputGroup>
+				<p-inputGroupAddon>
+					<i class="pi pi-search"></i>
+				</p-inputGroupAddon>
+				<input
+					type="text"
+					pInputText
+					placeholder="Search movies..."
+					[(ngModel)]="searchQuery"
+					(input)="onSearchChange()"
+					class="w-full"
+				/>
+				<p-inputGroupAddon *ngIf="searchQuery">
+					<i class="pi pi-times cursor-pointer" (click)="clearSearch()"></i>
+				</p-inputGroupAddon>
+			</p-inputGroup>
+		</div>
+
+		<div class="flex items-center gap-4">
+			<!-- Status Filter -->
+			<p-dropdown
+				[options]="statusOptions"
+				[(ngModel)]="filters.status"
+				(onChange)="applyFilters()"
+				placeholder="All Status"
+				[showClear]="true"
+				optionLabel="label"
+				optionValue="value"
+				styleClass="min-w-[130px]"
+			></p-dropdown>
+
+			<!-- Genre Filter -->
+			<p-dropdown
+				[options]="genreOptions"
+				[(ngModel)]="filters.genre"
+				(onChange)="applyFilters()"
+				placeholder="All Genres"
+				[showClear]="true"
+				optionLabel="label"
+				optionValue="value"
+				styleClass="min-w-[130px]"
+			></p-dropdown>
+
+			<!-- Language Filter -->
+			<p-dropdown
+				[options]="languageOptions"
+				[(ngModel)]="filters.language"
+				(onChange)="applyFilters()"
+				placeholder="All Languages"
+				[showClear]="true"
+				optionLabel="label"
+				optionValue="value"
+				styleClass="min-w-[130px]"
+			></p-dropdown>
+
+			<!-- Format Filter -->
+			<p-dropdown
+				[options]="formatOptions"
+				[(ngModel)]="filters.format"
+				(onChange)="applyFilters()"
+				placeholder="All Formats"
+				[showClear]="true"
+				optionLabel="label"
+				optionValue="value"
+				styleClass="min-w-[120px]"
+			></p-dropdown>
+
+			<!-- View Toggle -->
+			<p-selectButton
+				*ngIf="showViewModeToggle"
+				[options]="viewModeOptions"
+				[(ngModel)]="viewMode"
+				(onChange)="onViewModeChange()"
+				optionLabel="label"
+				optionValue="value"
+			>
+				<ng-template pTemplate="item" let-item>
+					<i [class]="item.icon"></i>
+				</ng-template>
+			</p-selectButton>
+
+			<!-- Add Button -->
+			<p-button
+				*ngIf="showAddButton"
+				label="Add Movie"
+				icon="pi pi-plus"
+				(onClick)="addMovie()"
+				severity="primary"
+			></p-button>
+		</div>
+	</div>
+
+	<!-- Loading State -->
+	<div class="flex justify-center items-center py-16" *ngIf="loading">
+		<div class="text-center">
+			<p-progressBar mode="indeterminate" styleClass="mb-4"></p-progressBar>
+			<p class="text-slate-600">Loading movies...</p>
+		</div>
+	</div>
+
+	<!-- Empty State -->
+	<div
+		class="text-center py-16 px-8"
+		*ngIf="!loading && filteredMovies.length === 0"
+	>
+		<div class="text-4xl text-slate-400 mb-6">
+			<i class="pi pi-video"></i>
+		</div>
+		<h3 class="text-xl font-semibold text-slate-900 mb-2">No movies found</h3>
+		<p class="text-slate-600 mb-8 max-w-md mx-auto">
+			{{
+				searchQuery
+					? "Try adjusting your search criteria"
+					: "Get started by adding a new movie"
+			}}
+		</p>
+		<p-button
+			*ngIf="showAddButton"
+			label="Add Movie"
+			icon="pi pi-plus"
+			(onClick)="addMovie()"
+			severity="primary"
+		></p-button>
+	</div>
+
+	<!-- Bulk Actions Bar -->
+	<div
+		class="flex justify-between items-center gap-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg"
+		*ngIf="selectedMovies.length > 0"
+	>
+		<div class="flex items-center gap-3">
+			<span class="text-sm font-medium text-blue-700 dark:text-blue-300">
+				{{ selectedMovies.length }} movie(s) selected
+			</span>
+			<p-button
+				label="Clear Selection"
+				icon="pi pi-times"
+				size="small"
+				[text]="true"
+				(onClick)="clearSelection()"
+			></p-button>
+		</div>
+
+		<div class="flex items-center gap-2">
+			<p-dropdown
+				[options]="statusOptions"
+				placeholder="Update Status"
+				optionLabel="label"
+				optionValue="value"
+				(onChange)="bulkUpdateStatus($event.value)"
+				styleClass="min-w-[140px]"
+			></p-dropdown>
+
+			<p-button
+				label="Delete Selected"
+				icon="pi pi-trash"
+				severity="danger"
+				[outlined]="true"
+				size="small"
+				(onClick)="bulkDeleteMovies()"
+			></p-button>
+		</div>
+	</div>
+
+	<!-- Content Area -->
+	<div *ngIf="!loading && filteredMovies.length > 0">
+		<!-- Grid View -->
+		<div
+			class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+			*ngIf="viewMode === 'grid'"
+		>
+			<p-card
+				*ngFor="let movie of filteredMovies; trackBy: trackByMovieId"
+				styleClass="h-full hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+				[class.ring-2]="isSelected(movie.id)"
+				[class.ring-blue-600]="isSelected(movie.id)"
+				[class.ring-opacity-30]="isSelected(movie.id)"
+				(click)="toggleSelection(movie.id)"
+			>
+				<ng-template pTemplate="header">
+					<div class="relative">
+						<img
+							[src]="
+								movie.poster_path
+									? getPosterUrl(movie.poster_path)
+									: '/assets/images/movie-placeholder.jpg'
+							"
+							[alt]="movie.title"
+							class="w-full h-80 object-cover"
+							loading="lazy"
+						/>
+
+						<!-- Selection Checkbox -->
+						<div class="absolute top-3 left-3">
+							<p-checkbox
+								[ngModel]="isSelected(movie.id)"
+								(ngModelChange)="toggleSelection(movie.id)"
+								binary="true"
+								class="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+							></p-checkbox>
+						</div>
+
+						<!-- Status Badge -->
+						<div class="absolute top-3 right-3">
+							<p-tag
+								[value]="getMovieStatus(movie)"
+								[severity]="getStatusSeverity(getMovieStatus(movie))"
+								[icon]="
+									getMovieStatus(movie).toLowerCase() === 'active'
+										? 'pi pi-check-circle'
+										: getMovieStatus(movie).toLowerCase() === 'inactive'
+										? 'pi pi-times-circle'
+										: 'pi pi-exclamation-triangle'
+								"
+							></p-tag>
+						</div>
+
+						<!-- Rating Badge -->
+						<div class="absolute bottom-3 left-3">
+							<p-tag
+								[value]="movie.vote_average.toString() || 'N/A'"
+								[severity]="getRatingSeverity(movie.vote_average)"
+								icon="pi pi-star"
+								class="text-xs"
+							></p-tag>
+						</div>
+
+						<!-- Action Buttons -->
+						<div
+							class="absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+						>
+							<p-button
+								icon="pi pi-eye"
+								severity="secondary"
+								size="small"
+								[text]="true"
+								(onClick)="onMovieView(movie); $event.stopPropagation()"
+								pTooltip="View Details"
+							></p-button>
+							<p-button
+								icon="pi pi-pencil"
+								severity="secondary"
+								size="small"
+								[text]="true"
+								(onClick)="onMovieEdit(movie); $event.stopPropagation()"
+								pTooltip="Edit Movie"
+							></p-button>
+							<p-button
+								icon="pi pi-trash"
+								severity="danger"
+								size="small"
+								[text]="true"
+								(onClick)="onMovieDelete(movie); $event.stopPropagation()"
+								pTooltip="Delete Movie"
+							></p-button>
+						</div>
+					</div>
+				</ng-template>
+
+				<div class="space-y-4">
+					<div>
+						<h3 class="text-lg font-semibold text-slate-900 mb-2 line-clamp-2">
+							{{ movie.title }}
+						</h3>
+						<p class="text-slate-600 text-sm">
+							{{ movie.release_date | date : "MMM dd, yyyy" }}
+						</p>
+					</div>
+
+					<div class="flex justify-between items-center text-sm text-slate-600">
+						<div class="flex items-center gap-1">
+							<i class="pi pi-star"></i>
+							<span>{{
+								movie.vote_average
+									? (movie.vote_average | number : "1.1-1")
+									: "N/A"
+							}}</span>
+						</div>
+						<div class="flex items-center gap-1">
+							<i class="pi pi-clock"></i>
+							<span>{{ movie.runtime || "N/A" }} min</span>
+						</div>
+					</div>
+
+					<p-divider></p-divider>
+
+					<div class="space-y-2" *ngIf="movie.genre_ids?.length">
+						<div class="flex flex-wrap gap-1">
+							<p-tag
+								*ngFor="let genre of getGenreNames(movie.genre_ids).slice(0, 2)"
+								[value]="genre"
+								severity="secondary"
+								class="text-xs"
+							></p-tag>
+							<span
+								*ngIf="getGenreNames(movie.genre_ids).length > 2"
+								class="text-xs text-slate-500"
+							>
+								+{{ getGenreNames(movie.genre_ids).length - 2 }}
+							</span>
+						</div>
+					</div>
+
+					<div
+						class="flex gap-1"
+						*ngIf="movie.format2D || movie.format3D || movie.formatIMAX"
+					>
+						<p-tag
+							*ngIf="movie.format2D"
+							value="2D"
+							severity="secondary"
+							class="text-xs"
+						></p-tag>
+						<p-tag
+							*ngIf="movie.format3D"
+							value="3D"
+							severity="info"
+							class="text-xs"
+						></p-tag>
+						<p-tag
+							*ngIf="movie.formatIMAX"
+							value="IMAX"
+							severity="warning"
+							class="text-xs"
+						></p-tag>
+					</div>
+				</div>
+			</p-card>
+		</div>
+		<!-- List View -->
+		<div class="space-y-4" *ngIf="viewMode === 'list'">
+			<p-card
+				*ngFor="let movie of filteredMovies; trackBy: trackByMovieId"
+				styleClass="hover:shadow-md transition-shadow duration-200 cursor-pointer"
+				[class.ring-2]="isSelected(movie.id)"
+				[class.ring-blue-600]="isSelected(movie.id)"
+				[class.ring-opacity-30]="isSelected(movie.id)"
+				(click)="toggleSelection(movie.id)"
+			>
+				<div class="flex items-center gap-4">
+					<div>
+						<p-checkbox
+							[ngModel]="isSelected(movie.id)"
+							(ngModelChange)="toggleSelection(movie.id)"
+							binary="true"
+						></p-checkbox>
+					</div>
+
+					<!-- Movie Poster Thumbnail -->
+					<div class="flex-shrink-0">
+						<img
+							[src]="
+								movie.poster_path
+									? getPosterUrl(movie.poster_path)
+									: '/assets/images/movie-placeholder.jpg'
+							"
+							[alt]="movie.title"
+							class="w-16 h-24 object-cover rounded"
+							loading="lazy"
+						/>
+					</div>
+
+					<div class="flex-1">
+						<div class="mb-2">
+							<h4 class="text-lg font-medium text-slate-900">
+								{{ movie.title }}
+							</h4>
+							<p class="text-slate-600">
+								{{ movie.release_date | date : "MMM dd, yyyy" }}
+							</p>
+						</div>
+
+						<div class="flex flex-wrap gap-6 text-sm">
+							<div class="flex items-center gap-2">
+								<span class="text-slate-500">Rating:</span>
+								<p-tag
+									[value]="movie.vote_average.toString() || 'N/A'"
+									[severity]="getRatingSeverity(movie.vote_average)"
+									icon="pi pi-star"
+								></p-tag>
+							</div>
+							<div class="flex items-center gap-2">
+								<span class="text-slate-500">Status:</span>
+								<p-tag
+									[value]="getMovieStatus(movie)"
+									[severity]="getStatusSeverity(getMovieStatus(movie))"
+								></p-tag>
+							</div>
+							<div
+								class="flex items-center gap-2"
+								*ngIf="movie.genre_ids?.length"
+							>
+								<span class="text-slate-500">Genres:</span>
+								<span class="text-slate-900">{{
+									getGenreNames(movie.genre_ids).slice(0, 2).join(", ")
+								}}</span>
+							</div>
+							<div class="flex items-center gap-2">
+								<span class="text-slate-500">Runtime:</span>
+								<span class="text-slate-900"
+									>{{ movie.runtime || "N/A" }} min</span
+								>
+							</div>
+							<div class="flex items-center gap-2">
+								<span class="text-slate-500">Formats:</span>
+								<div class="flex gap-1">
+									<p-tag
+										*ngIf="movie.format2D"
+										value="2D"
+										severity="secondary"
+										class="text-xs"
+									></p-tag>
+									<p-tag
+										*ngIf="movie.format3D"
+										value="3D"
+										severity="info"
+										class="text-xs"
+									></p-tag>
+									<p-tag
+										*ngIf="movie.formatIMAX"
+										value="IMAX"
+										severity="warning"
+										class="text-xs"
+									></p-tag>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="flex gap-2">
+						<p-button
+							icon="pi pi-eye"
+							severity="secondary"
+							size="small"
+							[text]="true"
+							(onClick)="onMovieView(movie); $event.stopPropagation()"
+							pTooltip="View Details"
+						></p-button>
+						<p-button
+							icon="pi pi-pencil"
+							severity="secondary"
+							size="small"
+							[text]="true"
+							(onClick)="onMovieEdit(movie); $event.stopPropagation()"
+							pTooltip="Edit Movie"
+						></p-button>
+						<p-button
+							icon="pi pi-trash"
+							severity="danger"
+							size="small"
+							[text]="true"
+							(onClick)="onMovieDelete(movie); $event.stopPropagation()"
+							pTooltip="Delete Movie"
+						></p-button>
+					</div>
+				</div>
+			</p-card>
+		</div>
+
+		<!-- Table View -->
+		<p-table
+			*ngIf="viewMode === 'table'"
+			[value]="filteredMovies"
+			[(selection)]="selectedMovies"
+			dataKey="id"
+			[rowHover]="true"
+			styleClass="p-datatable-sm"
+			[sortField]="filters.sortBy"
+			[sortOrder]="filters.sortOrder === 'asc' ? 1 : -1"
+		>
+			<ng-template pTemplate="header">
+				<tr>
+					<th style="width: 3rem">
+						<p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+					</th>
+					<th style="width: 4rem">Poster</th>
+					<th pSortableColumn="title">
+						Title <p-sortIcon field="title"></p-sortIcon>
+					</th>
+					<th pSortableColumn="release_date">
+						Release Date <p-sortIcon field="release_date"></p-sortIcon>
+					</th>
+					<th pSortableColumn="vote_average" class="text-center">
+						Rating <p-sortIcon field="vote_average"></p-sortIcon>
+					</th>
+					<th>Genres</th>
+					<th>Status</th>
+					<th>Formats</th>
+					<th class="text-center">Actions</th>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="body" let-movie let-rowIndex="rowIndex">
+				<tr [pSelectableRow]="movie" [pSelectableRowIndex]="rowIndex">
+					<td>
+						<p-tableCheckbox [value]="movie"></p-tableCheckbox>
+					</td>
+					<td>
+						<img
+							[src]="
+								movie.poster_path
+									? getPosterUrl(movie.poster_path)
+									: '/assets/images/movie-placeholder.jpg'
+							"
+							[alt]="movie.title"
+							class="w-12 h-16 object-cover rounded"
+							loading="lazy"
+						/>
+					</td>
+					<td>
+						<div>
+							<div class="font-medium text-slate-900">{{ movie.title }}</div>
+							<div class="text-sm text-slate-500">
+								{{ movie.original_title }}
+							</div>
+						</div>
+					</td>
+					<td class="text-slate-700">
+						{{ movie.release_date | date : "MMM dd, yyyy" }}
+					</td>
+					<td class="text-center">
+						<p-tag
+							[value]="movie.vote_average.toString() || 'N/A'"
+							[severity]="getRatingSeverity(movie.vote_average)"
+							icon="pi pi-star"
+						></p-tag>
+					</td>
+					<td>
+						<div class="flex flex-wrap gap-1" *ngIf="movie.genre_ids?.length">
+							<p-tag
+								*ngFor="let genre of getGenreNames(movie.genre_ids).slice(0, 2)"
+								[value]="genre"
+								severity="secondary"
+								class="text-xs"
+							></p-tag>
+							<span
+								*ngIf="getGenreNames(movie.genre_ids).length > 2"
+								class="text-xs text-slate-500"
+							>
+								+{{ getGenreNames(movie.genre_ids).length - 2 }} more
+							</span>
+						</div>
+					</td>
+					<td>
+						<p-tag
+							[value]="getMovieStatus(movie)"
+							[severity]="getStatusSeverity(getMovieStatus(movie))"
+						></p-tag>
+					</td>
+					<td>
+						<div class="flex gap-1">
+							<p-tag
+								*ngIf="movie.format2D"
+								value="2D"
+								severity="secondary"
+								class="text-xs"
+							></p-tag>
+							<p-tag
+								*ngIf="movie.format3D"
+								value="3D"
+								severity="info"
+								class="text-xs"
+							></p-tag>
+							<p-tag
+								*ngIf="movie.formatIMAX"
+								value="IMAX"
+								severity="warning"
+								class="text-xs"
+							></p-tag>
+						</div>
+					</td>
+					<td class="text-center">
+						<div class="flex justify-center gap-1">
+							<p-button
+								icon="pi pi-eye"
+								severity="secondary"
+								size="small"
+								[text]="true"
+								(onClick)="viewMovie(movie)"
+								pTooltip="View Details"
+							></p-button>
+							<p-button
+								icon="pi pi-pencil"
+								severity="secondary"
+								size="small"
+								[text]="true"
+								(onClick)="editMovie(movie)"
+								pTooltip="Edit Movie"
+							></p-button>
+							<p-button
+								icon="pi pi-trash"
+								severity="danger"
+								size="small"
+								[text]="true"
+								(onClick)="deleteMovie(movie)"
+								pTooltip="Delete Movie"
+							></p-button>
+						</div>
+					</td>
+				</tr>
+			</ng-template>
+		</p-table>
+
+		<div
+			*ngIf="viewMode !== 'table' && filteredMovies.length === 0 && !loading"
+			class="text-center py-16 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+		>
+			<div class="flex flex-col items-center gap-4">
+				<i class="pi pi-video text-6xl text-gray-400"></i>
+				<div class="text-gray-500 dark:text-gray-400">
+					<h3 class="text-xl font-medium mb-2">No movies found</h3>
+					<p class="text-sm max-w-md mx-auto">
+						{{
+							searchQuery
+								? "No movies match your search criteria. Try different keywords or clear the search."
+								: "Get started by adding your first movie to the system."
+						}}
+					</p>
+				</div>
+				<div class="flex gap-3">
+					<p-button
+						*ngIf="searchQuery"
+						label="Clear Search"
+						icon="pi pi-filter-slash"
+						severity="secondary"
+						outlined="true"
+						(onClick)="clearSearch()"
+					>
+					</p-button>
+					<p-button label="Add Movie" icon="pi pi-plus" (onClick)="addMovie()">
+					</p-button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Context Menu -->
+<!-- <p-contextMenu #cm [model]="contextMenuItems"></p-contextMenu> -->
+
+<!-- Movie Detail Dialog -->
+<p-dialog
+	[(visible)]="showMovieDetail"
+	[header]="selectedMovie?.title || 'Movie Details'"
+	[modal]="true"
+	[style]="{ width: '90vw', maxWidth: '1200px' }"
+	[draggable]="false"
+	[resizable]="false"
+>
+	<div *ngIf="selectedMovie" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+		<!-- Movie Poster and Basic Info -->
+		<div class="lg:col-span-1">
+			<img
+				[src]="
+					selectedMovie.poster_path
+						? getPosterUrl(selectedMovie.poster_path)
+						: '/assets/images/movie-placeholder.jpg'
+				"
+				[alt]="selectedMovie.title"
+				class="w-full rounded-lg shadow-lg mb-4"
+			/>
+
+			<div class="space-y-3">
+				<div class="flex items-center justify-between">
+					<span class="text-sm font-medium text-gray-500">Rating</span>
+					<div class="flex items-center gap-1">
+						<i class="pi pi-star text-yellow-500"></i>
+						<span class="font-medium"
+							>{{ selectedMovie.vote_average | number : "1.1-1" }}/10</span
+						>
+					</div>
+				</div>
+
+				<div class="flex items-center justify-between">
+					<span class="text-sm font-medium text-gray-500">Status</span>
+					<p-tag
+						[value]="getMovieStatus(selectedMovie)"
+						[severity]="getStatusSeverity(getMovieStatus(selectedMovie))"
+					>
+					</p-tag>
+				</div>
+
+				<div class="flex items-center justify-between">
+					<span class="text-sm font-medium text-gray-500">Release Date</span>
+					<span class="font-medium">{{
+						selectedMovie.release_date | date : "MMM dd, yyyy"
+					}}</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Movie Details -->
+		<div class="lg:col-span-2">
+			<div class="space-y-4">
+				<div>
+					<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+						Overview
+					</h3>
+					<p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+						{{ selectedMovie.overview || "No overview available." }}
+					</p>
+				</div>
+
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div>
+						<h4
+							class="text-sm font-semibold text-gray-900 dark:text-white mb-2"
+						>
+							Genres
+						</h4>
+						<div class="flex flex-wrap gap-1">
+							<p-tag
+								*ngFor="let genre of getGenreNames(selectedMovie.genre_ids)"
+								[value]="genre"
+								severity="secondary"
+							>
+							</p-tag>
+						</div>
+					</div>
+
+					<div>
+						<h4
+							class="text-sm font-semibold text-gray-900 dark:text-white mb-2"
+						>
+							Available Formats
+						</h4>
+						<div class="flex gap-1">
+							<p-tag
+								*ngIf="selectedMovie.format2D"
+								value="2D"
+								severity="secondary"
+							></p-tag>
+							<p-tag
+								*ngIf="selectedMovie.format3D"
+								value="3D"
+								severity="info"
+							></p-tag>
+							<p-tag
+								*ngIf="selectedMovie.formatIMAX"
+								value="IMAX"
+								severity="warning"
+							></p-tag>
+						</div>
+					</div>
+				</div>
+
+				<div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+					<div class="flex gap-3">
+						<p-button
+							label="Edit Movie"
+							icon="pi pi-pencil"
+							severity="warn"
+							(onClick)="editMovie(selectedMovie)"
+						>
+						</p-button>
+						<p-button
+							label="Duplicate"
+							icon="pi pi-copy"
+							severity="info"
+							outlined="true"
+							(onClick)="duplicateMovie(selectedMovie)"
+						>
+						</p-button>
+						<p-button
+							label="Delete"
+							icon="pi pi-trash"
+							severity="danger"
+							outlined="true"
+							(onClick)="deleteMovie(selectedMovie)"
+						>
+						</p-button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<p-button
+			label="Close"
+			icon="pi pi-times"
+			severity="secondary"
+			outlined="true"
+			(onClick)="closeMovieDetail()"
+		>
+		</p-button>
+	</ng-template>
+</p-dialog>

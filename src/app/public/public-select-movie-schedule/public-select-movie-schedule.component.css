@@ -1,0 +1,31 @@
+/* PrimeNG Component Overrides */
+:host ::ng-deep .p-button.p-button-lg {
+    @apply bg-gradient-to-r from-pink-600 to-pink-500 border-0 font-semibold shadow-lg hover:from-pink-500 hover:to-pink-400 transition-all duration-300;
+}
+
+:host ::ng-deep .p-chip {
+    @apply text-sm font-medium shadow-sm;
+}
+
+:host ::ng-deep .p-button.p-button-lg:disabled {
+    @apply opacity-50 cursor-not-allowed;
+}
+
+/* Trailer Dialog Styles */
+:host ::ng-deep .trailer-dialog {
+    @apply backdrop-blur-xl;
+    overflow: hidden;
+}
+
+:host ::ng-deep .trailer-dialog .p-dialog-header {
+    @apply hidden;
+}
+
+:host ::ng-deep .trailer-dialog .p-dialog-content {
+    @apply bg-gray-900/90 p-0 border-none;
+}
+
+:host ::ng-deep .trailer-dialog .p-dialog-mask {
+    @apply backdrop-blur-sm;
+}
+

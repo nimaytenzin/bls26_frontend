@@ -1,0 +1,99 @@
+<div class="p-6 bg-gray-50">
+	<!-- Header -->
+	<div class="mb-6">
+		<h1 class="text-3xl font-bold text-gray-800 mb-2">
+			Hall Seat Layout for {{ hallDetails.name }}
+		</h1>
+		<p class="text-gray-600">View Theatre hall seating arrangements</p>
+	</div>
+
+	<!-- Hall Layout -->
+	<p-card>
+		<h3 class="text-lg font-medium text-gray-800 mb-3">Seat Legend</h3>
+		<div class="flex flex-wrap gap-6">
+			<div *ngFor="let type of seatTypes" class="flex items-center gap-2">
+				<div
+					class="w-4 h-4 rounded border-2"
+					[ngClass]="getLegendSeatClass(type.value)"
+				></div>
+				<span class="text-sm text-gray-700">{{ type.label }}</span>
+			</div>
+			<div class="flex items-center gap-2">
+				<div class="w-4 h-4 rounded border-2 border-blue-600 bg-blue-200"></div>
+				<span class="text-sm text-gray-700">Selected</span>
+			</div>
+		</div>
+		<div class="text-center">
+			<!-- Screen -->
+			<div class="mx-auto my-8">
+				<div
+					class="bg-gray-800 text-white py-3 px-12 rounded-lg inline-block mb-3"
+				>
+					<i class="pi pi-desktop mr-2"></i>
+					SCREEN
+				</div>
+				<div
+					class="h-2 bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded"
+				></div>
+			</div>
+
+			<!-- Seat Grid -->
+			<div class="inline-block bg-white p-8 rounded-lg shadow-sm border">
+				<!-- Rows -->
+				<div
+					*ngFor="let rowIndex of rowArray"
+					class="flex items-center gap-1 mb-1"
+				>
+					<!-- Row Letter -->
+					<div
+						class="w-8 h-10 flex items-center justify-center text-sm font-bold text-gray-600 mr-2"
+					>
+						{{ String.fromCharCode(65 + rowIndex) }}
+					</div>
+
+					<!-- Seats in Row -->
+					<div class="flex gap-1">
+						<div
+							*ngFor="let colIndex of colArray"
+							[ngClass]="getSeatClass(rowIndex, colIndex)"
+							[pTooltip]="
+								getSeatAt(rowIndex, colIndex)?.seatNumber
+									? 'Seat ' +
+									  getSeatAt(rowIndex, colIndex)?.seatNumber +
+									  ' (' +
+									  getSeatAt(rowIndex, colIndex)?.type +
+									  ')'
+									: undefined
+							"
+							tooltipPosition="top"
+						>
+							<span *ngIf="getSeatAt(rowIndex, colIndex)">{{
+								getSeatDisplayText(rowIndex, colIndex)
+							}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Layout Stats -->
+		<div class="mt-6 grid grid-cols-3 md:grid-cols-3 gap-4">
+			<div class="text-center p-3 bg-blue-50 rounded-lg">
+				<div class="text-lg font-bold text-blue-600">
+					{{ getSeatsCount("BASIC") }}
+				</div>
+				<div class="text-sm text-blue-700">Basic Seats</div>
+			</div>
+			<div class="text-center p-3 bg-green-50 rounded-lg">
+				<div class="text-lg font-bold text-green-600">
+					{{ getSeatsCount("PREMIUM") }}
+				</div>
+				<div class="text-sm text-green-700">Premium Seats</div>
+			</div>
+			<div class="text-center p-3 bg-gray-50 rounded-lg">
+				<div class="text-lg font-bold text-gray-600">{{ getTotalSeats() }}</div>
+				<div class="text-sm text-gray-700">Total Seats</div>
+			</div>
+		</div>
+	</p-card>
+</div>

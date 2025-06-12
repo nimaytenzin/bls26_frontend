@@ -9,15 +9,14 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import CustomTheme from './assets/custom-theme';
 
 bootstrapApplication(AppComponent, {
-  providers: [
-    provideRouter(routes), // Provide the routes
-    provideHttpClient(), // Provide HttpClient
+	providers: [
+		provideRouter(routes), // Provide the routes
+		provideHttpClient(), // Provide HttpClient
 		provideAnimationsAsync(),
-    providePrimeNG({
-      theme: {
-        preset: CustomTheme,
-      }
-    })
-  ],
-}).catch(err => console.error(err));
-
+		providePrimeNG({
+			theme: {
+				preset: CustomTheme,
+			},
+		}),
+	],
+}).catch((err) => console.error(err));

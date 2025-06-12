@@ -1,53 +1,126 @@
-<div class="login-wrapper">
-	<p-card class="login-card">
-		<ng-template pTemplate="title">
-			<h2 class="login-title">Welcome Back 👋</h2>
-		</ng-template>
-
-		<ng-template pTemplate="content">
-			<p class="login-subtitle">Please login to access your dashboard</p>
-
-			<form
-				[formGroup]="loginForm"
-				(ngSubmit)="onSubmit()"
-				class="login-form p-fluid"
-			>
-				<div class="form-field">
-					<label for="email">Email</label>
-					<input
-						id="email"
-						type="email"
-						pInputText
-						formControlName="email"
-						placeholder="Enter your email"
+<!-- login.component.html -->
+<div
+	class="flex items-center justify-center h-screen w-screen bg-black relative overflow-hidden"
+	(mousemove)="onMouseMove($event)"
+>
+	<!-- Content Container -->
+	<div class="relative z-50 flex flex-col items-center">
+		<!-- Card with micro-interactions -->
+		<p-card
+			class="w-full max-w-md bg-white rounded-2xl shadow-white shadow-2xl transform transition-transform duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-yellow-100 cursor-pointer"
+			[style.transform]="
+				'perspective(1000px) rotateX(' +
+				-mouseY / 20 +
+				'deg) rotateY(' +
+				mouseX / 20 +
+				'deg)'
+			"
+		>
+			<!-- Title Slot -->
+			<ng-template pTemplate="title">
+				<div class="flex items-center gap-3 p-8">
+					<img
+						src="logo.png"
+						alt="Druk Cinema Logo"
+						class="w-20 rounded-full border-4 border-purple-500 transform transition-transform duration-300 hover:rotate-12 hover:scale-110"
 					/>
+					<div>
+						<p class="text-2xl font-extrabold text-gray-800">Druk Cinema</p>
+						<p class="text-sm font-thin">
+							Redefining cinmena experience in bhutan.
+						</p>
+					</div>
 				</div>
+			</ng-template>
 
-				<div class="form-field">
-					<label for="password">Password</label>
-					<p-password
-						id="password"
-						formControlName="password"
-						toggleMask
-						[feedback]="false"
-						placeholder="Enter your password"
-					></p-password>
-				</div>
+			<!-- Content Slot -->
+			<ng-template pTemplate="content">
+				<p class="text-center mb-2 animate-fade-in text-xl font-normal text0">
+					Welcome | <span class="text-purple-700"> Login</span>
+				</p>
+				<form [formGroup]="loginForm" class="flex flex-col gap-5 px-8 pb-8">
+					<div class="flex flex-col">
+						<label for="usernam" class="mb-1 text-sm font-medium text-gray-700">
+							Username
+						</label>
+						<input
+							id="username"
+							type="text"
+							pInputText
+							formControlName="username"
+							placeholder="Enter your username"
+							class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-colors"
+						/>
+					</div>
 
-				<p-button
-					type="submit"
-					label="Login"
-					icon="pi pi-sign-in"
-					class="login-btn"
-					[disabled]="loginForm.invalid"
-				></p-button>
+					<div class="flex flex-col w-full">
+						<label
+							for="password"
+							class="mb-1 text-sm font-medium text-gray-700"
+						>
+							Password
+						</label>
+						<p-password
+							id="password"
+							formControlName="password"
+							toggleMask
+							[feedback]="false"
+							placeholder="Enter your password"
+							styleClass="w-full"
+							[fluid]="true"
+						></p-password>
+					</div>
 
-				<div class="login-footer">
-					<a routerLink="/reset-password">Forgot password?</a>
-					<span>|</span>
-					<a routerLink="/register">Create an account</a>
-				</div>
-			</form>
-		</ng-template>
-	</p-card>
+					<p-button
+						type="button"
+						(click)="login()"
+						label="Login"
+						icon="pi pi-sign-in"
+						[disabled]="loginForm.invalid"
+						fluid="true"
+					></p-button>
+
+					<!-- Footer Links -->
+					<div class="mt-6 text-center text-sm text-gray-400 space-x-2">
+						<a
+							routerLink="/reset-password"
+							class="text-indigo-500 hover:underline hover:text-indigo-600 transition-colors"
+							>Forgot password?</a
+						>
+						<span><br /></span>
+						<a
+							routerLink="/register"
+							class="text-indigo-500 hover:underline hover:text-indigo-600 transition-colors"
+							>Are you a producer? movie director? Request access</a
+						>
+					</div>
+				</form>
+			</ng-template>
+		</p-card>
+	</div>
+
+	<!-- Background Circles with Parallax -->
+	<div
+		class="absolute -top-[30%] -left-[30%] h-[1400px] w-[1400px] rounded-full filter blur-3xl"
+		[ngStyle]="getTopCircleStyle()"
+		style="
+			background: radial-gradient(
+				circle at center,
+				#6f1c76bc 0%,
+				transparent 70%
+			);
+		"
+	></div>
+
+	<div
+		class="absolute -bottom-[30%] -right-[30%] h-[1400px] w-[1400px] rounded-full filter blur-3xl"
+		[ngStyle]="getBottomCircleStyle()"
+		style="
+			background: radial-gradient(
+				circle at center,
+				#461ca8c4 0%,
+				transparent 70%
+			);
+		"
+	></div>
 </div>

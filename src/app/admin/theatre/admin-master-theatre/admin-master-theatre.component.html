@@ -1,0 +1,136 @@
+<!-- Theater Management Interface -->
+<div class="font-inter bg-slate-50 min-h-screen">
+	<!-- Header Section -->
+	<div
+		class="bg-gradient-to-br rounded-lg from-indigo-500 via-purple-500 to-purple-600 text-white py-8 mb-8"
+	>
+		<div class="max-w-7xl mx-auto px-6">
+			<div class="mb-8">
+				<h1 class="text-4xl font-bold mb-2 flex items-center gap-4">
+					<i class="fas fa-film text-3xl opacity-90"></i>
+					Theater Management
+				</h1>
+				<p class="text-lg opacity-90">
+					Manage theaters and halls across Bhutan
+				</p>
+			</div>
+
+			<!-- Statistics Cards -->
+			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+				<p-card
+					styleClass="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-0.5"
+				>
+					<div class="flex items-center gap-4">
+						<div
+							class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center text-xl"
+						>
+							<i class="fas fa-building"></i>
+						</div>
+						<div>
+							<h3 class="text-2xl font-bold mb-1">
+								{{ statistics.totalTheatres }}
+							</h3>
+							<p class="text-sm opacity-90">Active Theaters</p>
+						</div>
+					</div>
+				</p-card>
+
+				<p-card
+					styleClass="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-0.5"
+				>
+					<div class="flex items-center gap-4">
+						<div
+							class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center text-xl"
+						>
+							<i class="fas fa-door-open"></i>
+						</div>
+						<div>
+							<h3 class="text-2xl font-bold mb-1">
+								{{ statistics.totalHalls }}
+							</h3>
+							<p class="text-sm opacity-90">Total Halls</p>
+						</div>
+					</div>
+				</p-card>
+
+				<p-card
+					styleClass="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-0.5"
+				>
+					<div class="flex items-center gap-4">
+						<div
+							class="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center text-xl"
+						>
+							<i class="fas fa-chair"></i>
+						</div>
+						<div>
+							<h3 class="text-2xl font-bold mb-1">
+								{{ statistics.totalSeats }}
+							</h3>
+							<p class="text-sm opacity-90">Total Seats</p>
+						</div>
+					</div>
+				</p-card>
+
+				<p-card
+					styleClass="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-0.5"
+				>
+					<div class="flex items-center gap-4">
+						<div
+							class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center text-xl"
+						>
+							<i class="fas fa-chart-line"></i>
+						</div>
+						<div>
+							<h3 class="text-2xl font-bold mb-1">
+								{{ statistics.averageRating | number : "1.1-1" }}
+							</h3>
+							<p class="text-sm opacity-90">Avg Rating</p>
+						</div>
+					</div>
+				</p-card>
+			</div>
+		</div>
+	</div>
+
+	<!-- Navigation Tabs -->
+	<div class="max-w-7xl mx-auto px-6 mb-8">
+		<p-selectButton
+			[options]="tabOptions"
+			[(ngModel)]="activeTab"
+			optionLabel="label"
+			optionValue="value"
+			styleClass="w-full"
+		>
+			<ng-template pTemplate="item" let-item>
+				<div class="flex items-center justify-center gap-2 py-2">
+					<i [class]="item.icon"></i>
+					{{ item.label }}
+					<p-badge
+						[value]="
+							item.value === 'theatres'
+								? statistics.totalTheatres
+								: statistics.totalHalls
+						"
+						severity="info"
+						size="small"
+					></p-badge>
+				</div>
+			</ng-template>
+		</p-selectButton>
+	</div>
+
+	<!-- Content Area -->
+	<div class="max-w-7xl mx-auto px-6">
+		<!-- Loading State -->
+
+		<!-- Theatres Tab Content -->
+		<div *ngIf="activeTab === 'theatres'">
+			<app-admin-theatre-listing></app-admin-theatre-listing>
+		</div>
+
+		<!-- Halls Tab Content -->
+		<div *ngIf="activeTab === 'halls'">
+			<app-admin-hall-listing></app-admin-hall-listing>
+		</div>
+	</div>
+</div>

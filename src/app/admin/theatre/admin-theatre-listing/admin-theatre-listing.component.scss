@@ -1,0 +1,195 @@
+/* Theatre Listing Component Styles */
+
+.theatre-card {
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    &.selected {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+}
+
+.theatre-image {
+    transition: transform 0.3s ease;
+
+    &:hover {
+        transform: scale(1.05);
+    }
+}
+
+.facility-chip {
+    &.parking {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+
+    &.food-court {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    &.accessible {
+        background-color: #f3e8ff;
+        color: #7c3aed;
+    }
+}
+
+.bulk-actions-bar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px;
+    padding: 1rem;
+
+    .bulk-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+}
+
+.empty-state {
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    .empty-icon {
+        font-size: 4rem;
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+    }
+}
+
+.search-filters {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: stretch;
+
+        .search-input {
+            width: 100%;
+        }
+
+        .filter-controls {
+            justify-content: space-between;
+        }
+    }
+}
+
+.theatre-stats {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.875rem;
+    color: #64748b;
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+
+        i {
+            color: #f59e0b;
+
+            &.fa-chair {
+                color: #8b5cf6;
+            }
+
+            &.fa-clock {
+                color: #10b981;
+            }
+        }
+    }
+}
+
+.view-mode-toggle {
+    .p-selectbutton {
+        .p-button {
+            border-radius: 0;
+
+            &:first-child {
+                border-top-left-radius: 6px;
+                border-bottom-left-radius: 6px;
+            }
+
+            &:last-child {
+                border-top-right-radius: 6px;
+                border-bottom-right-radius: 6px;
+            }
+        }
+    }
+}
+
+.table-actions {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: center;
+}
+
+// Responsive grid adjustments
+@media (max-width: 1024px) {
+    .theatre-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .theatre-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .theatre-card {
+        .card-header {
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .card-actions {
+            align-self: flex-end;
+        }
+    }
+}
+
+// Loading animation
+.loading-state {
+    .spinner {
+        animation: spin 1s linear infinite;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Status-specific styling
+.status-tag {
+    &.active {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    &.inactive {
+        background-color: #f1f5f9;
+        color: #475569;
+    }
+
+    &.maintenance {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+}

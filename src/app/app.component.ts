@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, NavigationStart, RouterModule } from '@angular/router';
 import { filter, first } from 'rxjs/operators';
-
 @Component({
 	selector: 'app-root',
 	standalone: true,

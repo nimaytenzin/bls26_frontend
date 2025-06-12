@@ -1,0 +1,98 @@
+<footer class="bg-gray-900 text-gray-300 py-12 mt-16">
+	<div class="max-w-screen-xl mx-auto px-4">
+		<!-- Main Grid -->
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+			<!-- Quick Links -->
+			<div>
+				<h3 class="text-white font-semibold mb-4">Quick Links</h3>
+				<ul class="space-y-2">
+					<li>
+						<a href="#" class="hover:text-white transition-colors">Movies</a>
+					</li>
+					<li>
+						<a href="#" class="hover:text-white transition-colors"
+							>Promotions</a
+						>
+					</li>
+					<li>
+						<a href="#" class="hover:text-white transition-colors"
+							>Book A Hall</a
+						>
+					</li>
+					<li>
+						<a href="#" class="hover:text-white transition-colors"
+							>Druk Cinemas</a
+						>
+					</li>
+
+					<li>
+						<a href="#" class="hover:text-white transition-colors"
+							>Experiences</a
+						>
+					</li>
+				</ul>
+			</div>
+
+			<!-- Company Info -->
+			<div>
+				<h3 class="text-white font-semibold mb-4">Company</h3>
+				<p class="mb-4">Druk Cinema Pvt LTD<br />+975234482 (1559-Hotline)</p>
+				<p class="mb-4">
+					323, Norzin Lam SE 22/19, Norzin Wog,<br />47400 Thimphu Thromde,
+					Bhutan
+				</p>
+			</div>
+
+			<!-- Download App -->
+			<div>
+				<h3 class="text-white font-semibold mb-4">Download Our App</h3>
+				<div class="flex flex-col gap-2">
+					<a
+						*ngFor="let link of downloadLinks"
+						href="#"
+						class="flex items-center gap-2 hover:text-white transition-colors"
+					>
+						<i [class]="link.icon"></i>
+						<span>{{ link.platform }}</span>
+					</a>
+				</div>
+			</div>
+
+			<!-- Social Media -->
+			<div>
+				<h3 class="text-white font-semibold mb-4">Follow Us On</h3>
+				<div class="flex gap-4 flex-wrap">
+					<a
+						*ngFor="let social of socialLinks"
+						href="#"
+						class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors"
+					>
+						<i [class]="social.icon"></i>
+					</a>
+				</div>
+			</div>
+		</div>
+
+		<!-- Bottom Bar -->
+		<div class="border-t border-gray-800 pt-8 mt-8">
+			<div class="flex flex-col md:flex-row justify-between items-center gap-4">
+				<div class="flex gap-4 flex-wrap">
+					<a href="#" class="hover:text-white transition-colors"
+						>Terms & Conditions</a
+					>
+					<a href="#" class="hover:text-white transition-colors"
+						>Personal Data Notice</a
+					>
+					<a href="#" class="hover:text-white transition-colors">ABAC Policy</a>
+					<a href="#" class="hover:text-white transition-colors"
+						>Whistleblowing Policy</a
+					>
+				</div>
+				<p class="text-sm">
+					© Copyright {{ currentYear }} Golden Screen Cinemas Sdn Bhd. All
+					Rights Reserved.
+				</p>
+			</div>
+		</div>
+	</div>
+</footer>

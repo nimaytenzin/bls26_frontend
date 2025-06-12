@@ -1,0 +1,28 @@
+.screen-arc {
+    width: 100%; /* ← adjust to match your seats’ container width */
+    height: 50px;
+
+    border-bottom: 4px solid #fff; /* ← thickness/color of your “screen” edge */
+
+    border-bottom-left-radius: 300px 100%;
+    border-bottom-right-radius: 300px 100%;
+    transform: rotate(180deg);
+}
+
+// .screen-arc::after {
+//     content: "";
+//     position: absolute;
+//     bottom: 0;
+//     left: 0;
+//     width: 100%;
+//     /* Make the bottom border transparent here, but set up the gradient via border-image */
+//     border-bottom: 10px solid transparent;
+//     border-bottom-left-radius: 300px 100%;
+//     border-bottom-right-radius: 300px 100%;
+//     /* Use border-image to paint a gradient along the bottom border only */
+//     border-image: linear-gradient(to right, rgba(254, 255, 255, 0.8), rgba(255, 0, 255, 0.8)) 1; /* the “1” slice means use the gradient for the entire border length */
+//     /* Blur it to create a soft glow */
+//     filter: blur(10px);
+//     /* Slightly expand beyond the element so the glow isn’t cut off */
+//     margin-bottom: -2px;
+// }

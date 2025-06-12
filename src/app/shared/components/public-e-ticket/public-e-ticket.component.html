@@ -1,0 +1,54 @@
+<div class="border-4 border-indigo-700 rounded-xl m-0 w-full flex-grow-1">
+	<div
+		class="rounded-t-xl overflow-hidden h-[40vh] bg-center bg-cover transform transition-transform duration-300"
+		[ngStyle]="{ 'background-image': 'url(' + selectedMovie.image + ')' }"
+		[attr.aria-label]="selectedMovie.title"
+	></div>
+
+	<hr class="flex-grow border-t-2 border-dashed border-indigo-700" />
+	<div class="flex flex-col justify-center items-center">
+		<h2 class="text-2xl font-semibold">
+			{{ selectedMovie.title }}
+		</h2>
+		<h2>City Cinema, Hall 2</h2>
+		<h2>Sat, 26th July 2025 7:00 PM</h2>
+	</div>
+
+	<div class="p-6">
+		<div class="flex justify-between px-5">
+			<div class="">
+				<p>Seats</p>
+				<div class="flex gap-2 flex-wrap">
+					<div
+						*ngFor="let seat of selectedSeats"
+						class="text-center text-white bg-gray-800 px-2 py-1 rounded-sm"
+					>
+						<p class="font-medium">{{ seat.rowLabel }}-{{ seat.seatNumber }}</p>
+						<p class="text-xs">
+							{{ seat.category | lowercase }}
+						</p>
+					</div>
+				</div>
+			</div>
+			<div class="flex flex-col items-center space-y-3">
+				<qrcode
+					[qrdata]="ticket.idString"
+					[elementType]="'canvas'"
+					[errorCorrectionLevel]="'H'"
+					[margin]="4"
+					[colorDark]="'#6F1C76'"
+					[colorLight]="'#ffffff'"
+					cssClass="mx-auto block"
+				></qrcode>
+				<p class="text-gray-500 text-sm">Scan to check in</p>
+			</div>
+		</div>
+		<div class="mt-6 text-gray-500 text-xs italic">
+			<p>
+				Please arrive 15 minutes before showtime. This ticket is
+				non-transferable and non-refundable.
+			</p>
+			<p>For support, call +975-1234-5678 or email support.bt.</p>
+		</div>
+	</div>
+</div>

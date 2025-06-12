@@ -10,10 +10,30 @@ import { TableModule } from 'primeng/table'; // optional
 import { TooltipModule } from 'primeng/tooltip'; // optional
 import { ConfirmDialogModule } from 'primeng/confirmdialog'; // optional
 import { PanelMenuModule } from 'primeng/panelmenu'; // optional
+import { InputNumberModule } from 'primeng/inputnumber';
+import { MenubarModule } from 'primeng/menubar';
+import { AvatarModule } from 'primeng/avatar';
+import { ScrollPanelModule } from 'primeng/scrollpanel'; // optional
+import { DividerModule } from 'primeng/divider'; // optional
+import { ListboxModule } from 'primeng/listbox'; // optio
+import { ChipModule } from 'primeng/chip';
+import { TagModule } from 'primeng/tag';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { ChartModule } from 'primeng/chart';
+import { PanelModule } from 'primeng/panel';
+import { BadgeModule } from 'primeng/badge';
+import { KnobModule } from 'primeng/knob';
+import { SkeletonModule } from 'primeng/skeleton';
+import { CheckboxModule } from 'primeng/checkbox';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { ContextMenuModule } from 'primeng/contextmenu';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 
 const PRIME_NG_MODULES = [
 	CardModule,
 	InputTextModule,
+	InputNumberModule,
 	ButtonModule,
 	PasswordModule,
 	DropdownModule,
@@ -23,6 +43,25 @@ const PRIME_NG_MODULES = [
 	TooltipModule,
 	ConfirmDialogModule,
 	PanelMenuModule,
+	MenubarModule,
+	AvatarModule,
+	ScrollPanelModule,
+	DividerModule,
+	ListboxModule,
+	ChipModule,
+	TagModule,
+	ProgressBarModule,
+	ChartModule,
+	PanelModule,
+	BadgeModule,
+	KnobModule,
+	SkeletonModule,
+	CheckboxModule,
+	SelectButtonModule,
+	ContextMenuModule,
+	InputGroupModule,
+	InputGroupAddonModule,
+	BadgeModule,
 ];
 
 @NgModule({
