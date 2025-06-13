@@ -67,6 +67,7 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin/master-theatres'],
 				roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
 			},
+
 			{
 				label: 'Screenings',
 				icon: 'pi pi-fw pi-th-large',
@@ -74,7 +75,7 @@ export const ADMINSIDEBARITEMS = [
 				roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
 			},
 			{
-				label: 'Payments',
+				label: 'Search',
 				icon: 'pi pi-fw pi-th-large',
 				routerLink: ['/admin/master-properties/list-buildings'],
 				roles: [USERROLESENUM.ADMIN, USERROLESENUM.MANAGER],
@@ -125,6 +126,12 @@ export const ADMINSIDEBARITEMS = [
 				label: 'Locations',
 				icon: 'pi pi-fw pi-th-large',
 				routerLink: ['/admin/master-locations/dzongkhags'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'Languages',
+				icon: 'pi pi-fw pi-th-large',
+				routerLink: ['/admin/master-languages'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 		],
