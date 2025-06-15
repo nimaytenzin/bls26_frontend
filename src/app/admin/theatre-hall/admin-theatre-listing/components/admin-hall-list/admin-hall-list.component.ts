@@ -6,7 +6,7 @@ import {
 	DialogService,
 } from 'primeng/dynamicdialog';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { takeUntil } from 'rxjs';
+import { takeUntil, forkJoin } from 'rxjs';
 import { Subject } from 'rxjs';
 
 import { PrimeNgModules } from '../../../../../primeng.modules';
@@ -18,6 +18,9 @@ import { AdminHallEditComponent } from '../admin-hall-edit/admin-hall-edit.compo
 import { AdminSeatCategoryAddComponent } from '../admin-seat-category-add/admin-seat-category-add.component';
 import { SeatCategory } from '../../../../../core/dataservice/seat-category/seat-category.interface';
 import { AdminSeatCategoryEditComponent } from '../admin-seat-category-edit/admin-seat-category-edit.component';
+import { AdminSeatAddComponent } from '../admin-seat-add/admin-seat-add.component';
+import { SeatDataService } from '../../../../../core/dataservice/seat/seat.dataservice';
+import { Seat } from '../../../../../core/dataservice/seat/seat.interface';
 
 @Component({
 	selector: 'app-admin-hall-list',
@@ -32,6 +35,7 @@ export class AdminHallListComponent implements OnInit, OnDestroy {
 
 	theatre: Theatre;
 	halls: Hall[] = [];
+	hallSeats: Map<number, Seat[]> = new Map(); // Track seats by hall ID
 	loading = false;
 	hallDialogRef: DynamicDialogRef | undefined;
 
@@ -39,6 +43,7 @@ export class AdminHallListComponent implements OnInit, OnDestroy {
 		private ref: DynamicDialogRef,
 		private config: DynamicDialogConfig,
 		private hallService: HallDataService,
+		private seatService: SeatDataService,
 		private messageService: MessageService,
 		private confirmationService: ConfirmationService,
 		private dialogService: DialogService
@@ -83,7 +88,7 @@ export class AdminHallListComponent implements OnInit, OnDestroy {
 			.subscribe({
 				next: (halls) => {
 					this.halls = halls;
-					this.loading = false;
+					this.loadSeatsForAllHalls();
 				},
 				error: (error) => {
 					console.error('Error loading halls:', error);
@@ -97,10 +102,43 @@ export class AdminHallListComponent implements OnInit, OnDestroy {
 			});
 	}
 
+	private loadSeatsForAllHalls(): void {
+		if (this.halls.length === 0) {
+			this.loading = false;
+			return;
+		}
+
+		// Create observables for loading seats for each hall
+		const seatObservables = this.halls.map((hall) =>
+			this.seatService.findSeatsByHallId(hall.id)
+		);
+
+		forkJoin(seatObservables)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (allSeats) => {
+					// Map seats to their respective halls
+					this.halls.forEach((hall, index) => {
+						this.hallSeats.set(hall.id, allSeats[index] || []);
+					});
+					this.loading = false;
+				},
+				error: (error) => {
+					console.error('Error loading seats:', error);
+					this.loading = false;
+					// Still show halls even if seats fail to load
+					this.messageService.add({
+						severity: 'warn',
+						summary: 'Warning',
+						detail: 'Halls loaded but could not load seat data.',
+					});
+				},
+			});
+	}
+
 	onAddHall(): void {
 		this.hallDialogRef = this.dialogService.open(AdminHallAddComponent, {
 			header: `Add Hall to ${this.theatre.name}`,
-
 			closable: true,
 			dismissableMask: true,
 			maximizable: true,
@@ -122,7 +160,6 @@ export class AdminHallListComponent implements OnInit, OnDestroy {
 	onEditHall(hall: Hall): void {
 		this.hallDialogRef = this.dialogService.open(AdminHallEditComponent, {
 			header: `Edit Hall: ${hall.name}`,
-
 			closable: true,
 			dismissableMask: true,
 			maximizable: true,
@@ -238,31 +275,52 @@ export class AdminHallListComponent implements OnInit, OnDestroy {
 			rejectButtonStyleClass: 'p-button-text',
 			acceptButtonStyleClass: 'p-button-danger',
 			accept: () => {
-				// For now, we'll implement a delete method in the seat category service
-				// this.seatCategoryService.deleteSeatCategory(seatCategory.id)
-				// 	.pipe(takeUntil(this.destroy$))
-				// 	.subscribe({
-				// 		next: () => {
-				// 			this.messageService.add({
-				// 				severity: 'success',
-				// 				summary: 'Success',
-				// 				detail: `Seat category "${seatCategory.name}" has been deleted successfully!`,
-				// 			});
-				// 			this.loadHalls(); // Refresh the halls list
-				// 		},
-				// 		error: (error) => {
-				// 			console.error('Error deleting seat category:', error);
-				// 			this.messageService.add({
-				// 				severity: 'error',
-				// 				summary: 'Error',
-				// 				detail:
-				// 					error.error?.message ||
-				// 					'Failed to delete seat category. Please try again.',
-				// 			});
-				// 		},
-				// 	});
-
 				// Temporary implementation - show message
+				this.messageService.add({
+					severity: 'info',
+					summary: 'Info',
+					detail:
+						'Delete functionality will be implemented when the backend API is available.',
+				});
+			},
+		});
+	}
+
+	openAddSeatDialog(hall: Hall): void {
+		this.hallDialogRef = this.dialogService.open(AdminSeatAddComponent, {
+			header: `Add Seats - ${hall.name}`,
+			data: { hall },
+			modal: true,
+			draggable: false,
+			resizable: false,
+		});
+
+		this.hallDialogRef.onClose
+			.pipe(takeUntil(this.destroy$))
+			.subscribe((result) => {
+				if (result?.success) {
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: 'Seats added successfully!',
+					});
+					this.loadHalls(); // Refresh hall data to show new seats
+				}
+			});
+	}
+
+	onDeleteSeat(seat: Seat, event: Event): void {
+		this.confirmationService.confirm({
+			target: event.target as EventTarget,
+			message: `Are you sure you want to delete this seat? This action cannot be undone.`,
+			header: 'Confirm Delete',
+			icon: 'pi pi-exclamation-triangle',
+			acceptIcon: 'none',
+			rejectIcon: 'none',
+			rejectButtonStyleClass: 'p-button-text',
+			acceptButtonStyleClass: 'p-button-danger',
+			accept: () => {
+				// Implement seat deletion logic here
 				this.messageService.add({
 					severity: 'info',
 					summary: 'Info',
@@ -297,23 +355,102 @@ export class AdminHallListComponent implements OnInit, OnDestroy {
 		return hall.id;
 	}
 
+	trackByRowId(
+		index: number,
+		row: { rowId: number; rowLabel: string; seats: Seat[] }
+	): number {
+		return row.rowId;
+	}
+
+	trackBySeatId(index: number, seat: Seat): number {
+		return seat.id;
+	}
+
 	getSeatClass(rowIndex: number, colIndex: number, hall: Hall): string {
-		return 'bg-gray-400 dark:bg-gray-500 cursor-not-allowed';
+		const seat = this.getSeatAt(rowIndex, colIndex, hall);
+
+		if (seat && seat.category) {
+			return seat.category.className || 'bg-blue-500';
+		}
+
+		// Empty seat position
+		return 'bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 cursor-pointer opacity-60';
 	}
 
 	getSeatTitle(rowIndex: number, colIndex: number, hall: Hall): string {
+		const seat = this.getSeatAt(rowIndex, colIndex, hall);
 		const rowLabel = String.fromCharCode(65 + rowIndex);
 		const seatNumber = colIndex + 1;
 		const column = colIndex + 1;
 
-		if (
-			column >= hall.screenStart &&
-			column < hall.screenStart + hall.screenSpan
-		) {
-			return `${rowLabel}${seatNumber} - Behind Screen (Not Available)`;
+		if (seat) {
+			const categoryName = seat.category?.name || 'Unknown Category';
+			return `${seat.seatNumber} - ${categoryName}`;
 		}
 
-		return `${rowLabel}${seatNumber} - Available Seat`;
+		return `${rowLabel}${seatNumber} - Empty Position`;
+	}
+
+	getSeatAt(rowIndex: number, colIndex: number, hall: Hall): Seat | null {
+		const hallSeats = this.hallSeats.get(hall.id) || [];
+		return (
+			hallSeats.find(
+				(seat) => seat.rowId === rowIndex + 1 && seat.colId === colIndex + 1
+			) || null
+		);
+	}
+
+	getSeatNumber(rowIndex: number, colIndex: number, hall: Hall): string {
+		const seat = this.getSeatAt(rowIndex, colIndex, hall);
+		return seat?.seatNumber || '';
+	}
+
+	hasSeatAt(rowIndex: number, colIndex: number, hall: Hall): boolean {
+		return this.getSeatAt(rowIndex, colIndex, hall) !== null;
+	}
+
+	getHallSeats(hall: Hall): Seat[] {
+		return this.hallSeats.get(hall.id) || [];
+	}
+
+	getSeatsCountByCategory(hall: Hall): Map<string, number> {
+		const seats = this.getHallSeats(hall);
+		const categoryCount = new Map<string, number>();
+
+		seats.forEach((seat) => {
+			if (seat.category) {
+				const current = categoryCount.get(seat.category.name) || 0;
+				categoryCount.set(seat.category.name, current + 1);
+			}
+		});
+
+		return categoryCount;
+	}
+
+	getGroupedSeatsByRow(
+		hall: Hall
+	): { rowId: number; rowLabel: string; seats: Seat[] }[] {
+		const seats = this.getHallSeats(hall);
+		const rowMap = new Map<number, Seat[]>();
+
+		// Group seats by rowId
+		seats.forEach((seat) => {
+			if (!rowMap.has(seat.rowId)) {
+				rowMap.set(seat.rowId, []);
+			}
+			rowMap.get(seat.rowId)!.push(seat);
+		});
+
+		// Convert to array and sort by rowId, then sort seats within each row by colId
+		const result = Array.from(rowMap.entries())
+			.map(([rowId, rowSeats]) => ({
+				rowId,
+				rowLabel: String.fromCharCode(64 + rowId), // A, B, C, etc.
+				seats: rowSeats.sort((a, b) => a.colId - b.colId),
+			}))
+			.sort((a, b) => a.rowId - b.rowId);
+
+		return result;
 	}
 
 	isInScreenArea(index: number, hall: Hall): boolean {

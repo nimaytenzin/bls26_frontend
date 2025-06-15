@@ -11,12 +11,10 @@ import {
 	TheatreStatus,
 } from '../../../core/dataservice/theatre/theatre.interface';
 import { DzongkhagDataService } from '../../../core/dataservice/dzonkhag/dzongkhag.dataservice';
-import { Hall } from '../../../core/dataservice/hall/hall.interface';
 import { AdminTheatreAddWithImageComponent } from './components/admin-theatre-add-with-image/admin-theatre-add-with-image.component';
 import { AdminTheatreEditComponent } from './components/admin-theatre-edit/admin-theatre-edit.component';
 import { AdminHallAddComponent } from './components/admin-hall-add/admin-hall-add.component';
 import { AdminHallListComponent } from './components/admin-hall-list/admin-hall-list.component';
-import { AdminHallEditComponent } from './components/admin-hall-edit/admin-hall-edit.component';
 
 interface ViewModeOption {
 	label: string;

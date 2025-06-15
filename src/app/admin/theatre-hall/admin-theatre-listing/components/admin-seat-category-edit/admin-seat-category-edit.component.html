@@ -2,6 +2,61 @@
 <p-toast position="top-right"></p-toast>
 
 <div class="max-w-4xl mx-auto p-6">
+	<!-- Header Card -->
+	<p-card styleClass="mb-6">
+		<ng-template pTemplate="header">
+			<div class="flex items-center gap-3 p-4">
+				<div
+					class="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center"
+				>
+					<i
+						class="pi pi-pencil text-primary-600 dark:text-primary-400 text-lg"
+					></i>
+				</div>
+				<div>
+					<h2 class="text-xl font-semibold text-gray-900 dark:text-white m-0">
+						Edit Seat Category
+					</h2>
+					<p class="text-sm text-gray-600 dark:text-gray-400 mt-1 m-0">
+						Update seat category "{{ seatCategory.name }}"
+					</p>
+				</div>
+			</div>
+		</ng-template>
+
+		<!-- Quick Category Selection -->
+		<div class="quick-categories mb-6">
+			<h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+				Quick Select Category Type:
+			</h3>
+			<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+				<button
+					*ngFor="let type of seatCategoryTypes"
+					type="button"
+					class="flex items-center gap-2 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-primary-500 dark:hover:border-primary-400 transition-colors duration-200 bg-white dark:bg-gray-800 hover:bg-primary-50 dark:hover:bg-primary-900"
+					[class.border-primary-500]="
+						seatCategoryForm.get('className')?.value === type.className
+					"
+					[class.bg-primary-50]="
+						seatCategoryForm.get('className')?.value === type.className
+					"
+					[class.dark:bg-primary-900]="
+						seatCategoryForm.get('className')?.value === type.className
+					"
+					(click)="onSeatCategoryTypeSelect(type)"
+				>
+					<div
+						class="w-4 h-4 rounded-full flex-shrink-0"
+						[style.background-color]="type.color"
+					></div>
+					<span class="text-sm font-medium text-gray-900 dark:text-white">{{
+						type.name
+					}}</span>
+				</button>
+			</div>
+		</div>
+	</p-card>
+
 	<form [formGroup]="seatCategoryForm" (ngSubmit)="onSubmit()">
 		<div class="grid grid-cols-1 gap-6">
 			<!-- Seat Category Name -->

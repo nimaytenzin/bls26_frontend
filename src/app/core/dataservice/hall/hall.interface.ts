@@ -1,4 +1,5 @@
 import { SeatCategory } from '../seat-category/seat-category.interface';
+import { Seat } from '../seat/seat.interface';
 import { Theatre } from '../theatre/theatre.interface';
 
 export interface Hall {
@@ -15,6 +16,7 @@ export interface Hall {
 	createdAt?: Date;
 	updatedAt?: Date;
 	seatCategories?: SeatCategory[];
+	seats?: Seat[];
 }
 
 export interface CreateHallDto {

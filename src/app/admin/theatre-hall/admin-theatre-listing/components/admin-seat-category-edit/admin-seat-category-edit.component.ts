@@ -33,6 +33,18 @@ export class AdminSeatCategoryEditComponent implements OnInit, OnDestroy {
 	seatCategory: SeatCategory;
 	isSubmitting = false;
 
+	// Predefined seat category types
+	seatCategoryTypes = [
+		{ name: 'Standard', className: 'standard-seat', color: '#6b7280' },
+		{ name: 'Premium', className: 'premium-seat', color: '#3b82f6' },
+		{ name: 'VIP', className: 'vip-seat', color: '#8b5cf6' },
+		{ name: 'Deluxe', className: 'deluxe-seat', color: '#10b981' },
+		{ name: 'Executive', className: 'executive-seat', color: '#f59e0b' },
+		{ name: 'Gold', className: 'gold-seat', color: '#eab308' },
+		{ name: 'Platinum', className: 'platinum-seat', color: '#64748b' },
+		{ name: 'Diamond', className: 'diamond-seat', color: '#06b6d4' },
+	];
+
 	constructor(
 		private fb: FormBuilder,
 		private ref: DynamicDialogRef,

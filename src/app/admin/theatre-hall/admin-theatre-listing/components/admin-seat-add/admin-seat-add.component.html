@@ -1,0 +1,306 @@
+<!-- Seat Add Modal -->
+<div class="p-6">
+	<!-- Header -->
+	<div class="mb-6">
+		<div class="flex items-center gap-3 mb-2">
+			<i class="pi pi-plus-circle text-2xl text-blue-600"></i>
+			<h2 class="text-xl font-bold text-gray-800 dark:text-white">
+				Add Seats to Hall
+			</h2>
+		</div>
+		<p class="text-gray-600 dark:text-gray-400">
+			Select cells in the grid and assign a seat category to create seats for
+			"{{ hall.name }}"
+		</p>
+	</div>
+
+	<!-- Form -->
+	<form [formGroup]="seatForm" (ngSubmit)="generateSeats()">
+		<!-- Seat Category Selection -->
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+			<div class="space-y-2">
+				<label
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+				>
+					<i class="pi pi-tag mr-1"></i>
+					Seat Category *
+				</label>
+				<p-dropdown
+					formControlName="categoryId"
+					[options]="seatCategories"
+					optionLabel="name"
+					optionValue="id"
+					placeholder="Select a seat category"
+					styleClass="w-full"
+					[class.ng-invalid]="isFieldInvalid('categoryId')"
+				>
+					<ng-template pTemplate="selectedItem" let-option>
+						<div class="flex items-center gap-2" *ngIf="option">
+							<div
+								class="w-4 h-4 rounded border border-white shadow-sm"
+								[class]="option.className"
+							></div>
+							<span>{{ option.name }}</span>
+						</div>
+					</ng-template>
+					<ng-template pTemplate="item" let-option>
+						<div class="flex items-center gap-2">
+							<div
+								class="w-4 h-4 rounded border border-white shadow-sm"
+								[class]="option.className"
+							></div>
+							<div>
+								<div class="font-medium">{{ option.name }}</div>
+								<div class="text-sm text-gray-500">
+									{{ option.description }}
+								</div>
+							</div>
+						</div>
+					</ng-template>
+				</p-dropdown>
+				<small class="text-red-500" *ngIf="isFieldInvalid('categoryId')">
+					{{ getFieldError("categoryId") }}
+				</small>
+			</div>
+
+			<div class="space-y-2">
+				<label
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+				>
+					<i class="pi pi-comment mr-1"></i>
+					Annotation (Optional)
+				</label>
+				<input
+					type="text"
+					pInputText
+					formControlName="annotation"
+					placeholder="Add any special notes"
+					class="w-full"
+					[class.ng-invalid]="isFieldInvalid('annotation')"
+				/>
+				<small class="text-red-500" *ngIf="isFieldInvalid('annotation')">
+					{{ getFieldError("annotation") }}
+				</small>
+			</div>
+		</div>
+
+		<!-- Selection Info -->
+		<div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6">
+			<div class="flex items-center justify-between mb-3">
+				<div class="flex items-center gap-4">
+					<div class="flex items-center gap-2">
+						<i class="pi pi-info-circle text-blue-600"></i>
+						<span class="text-sm font-medium text-blue-800 dark:text-blue-300">
+							Selected: {{ selectedCells.length }}
+						</span>
+					</div>
+					<div class="flex items-center gap-2">
+						<i class="pi pi-check text-green-600"></i>
+						<span
+							class="text-sm font-medium text-green-800 dark:text-green-300"
+						>
+							Existing: {{ existingSeats.length }}
+						</span>
+					</div>
+					<div class="flex items-center gap-2">
+						<i class="pi pi-th-large text-gray-600"></i>
+						<span class="text-sm font-medium text-gray-800 dark:text-gray-300">
+							Total Capacity: {{ hall.capacity }}
+						</span>
+					</div>
+				</div>
+				<div class="flex gap-2">
+					<p-button
+						label="Clear All"
+						icon="pi pi-times"
+						severity="secondary"
+						size="small"
+						[text]="true"
+						(onClick)="clearSelection()"
+						[disabled]="selectedCells.length === 0"
+					></p-button>
+					<p-button
+						label="Select All Empty"
+						icon="pi pi-check-square"
+						severity="info"
+						size="small"
+						[text]="true"
+						(onClick)="selectAll()"
+					></p-button>
+				</div>
+			</div>
+
+			<!-- Existing Seats by Category -->
+			<div
+				*ngIf="existingSeats.length > 0"
+				class="border-t border-blue-200 dark:border-blue-700 pt-3"
+			>
+				<div class="text-xs text-blue-700 dark:text-blue-300 mb-2 font-medium">
+					Existing Seats by Category:
+				</div>
+				<div class="flex flex-wrap gap-3 text-xs">
+					<div
+						*ngFor="let category of getExistingSeatsByCategory()"
+						class="flex items-center gap-1"
+					>
+						<div
+							class="w-3 h-3 rounded border border-white shadow-sm"
+							[class]="category.className"
+						></div>
+						<span class="text-gray-600 dark:text-gray-400">
+							{{ category.name }}: {{ category.count }}
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Hall Layout Grid -->
+		<div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+			<h3
+				class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2"
+			>
+				<i class="pi pi-th text-blue-600"></i>
+				Hall Layout Grid
+			</h3>
+
+			<!-- Screen Representation -->
+			<div class="mb-4">
+				<div class="flex items-center gap-2">
+					<!-- Empty space for row label -->
+					<div class="w-8"></div>
+					<!-- Screen Grid Container -->
+					<div class="flex gap-1 flex-1 justify-center">
+						<div
+							*ngFor="
+								let col of Array(hall.columns).fill(0);
+								let colIndex = index
+							"
+							class="w-8 h-2 flex items-center justify-center"
+						>
+							<!-- Screen spans across specified columns -->
+							<div
+								*ngIf="
+									colIndex >= hall.screenStart - 1 &&
+									colIndex < hall.screenStart - 1 + hall.screenSpan
+								"
+								class="w-full h-2 bg-gray-800 dark:bg-gray-900 text-white text-xs flex items-center justify-center font-semibold"
+								[class.rounded-l-md]="colIndex === hall.screenStart - 1"
+								[class.rounded-r-md]="
+									colIndex === hall.screenStart - 1 + hall.screenSpan - 1
+								"
+							></div>
+						</div>
+					</div>
+					<div class="w-8"></div>
+				</div>
+				<div class="text-center text-xs text-gray-500 mt-1">SCREEN</div>
+			</div>
+
+			<!-- Seat Grid -->
+			<div class="space-y-1">
+				<!-- Column Numbers at Top -->
+				<div class="flex items-center gap-1">
+					<!-- Empty space for row label -->
+					<div class="w-8 text-xs font-medium text-gray-500 text-center"></div>
+					<!-- Column Numbers -->
+					<div
+						*ngFor="
+							let col of Array(hall.columns).fill(0);
+							let colIndex = index
+						"
+						class="w-8 text-xs font-medium text-gray-500 text-center"
+					>
+						{{ colIndex + 1 }}
+					</div>
+					<!-- Empty space for right side -->
+					<div class="w-8"></div>
+				</div>
+
+				<!-- Rows with Seats -->
+				<div
+					*ngFor="let row of Array(hall.rows).fill(0); let rowIndex = index"
+					class="flex items-center gap-1"
+				>
+					<!-- Row Label (Left) -->
+					<div
+						class="w-8 text-sm font-medium text-gray-600 dark:text-gray-400 text-center"
+					>
+						{{ getRowLabel(rowIndex) }}
+					</div>
+
+					<!-- Seats in Row -->
+					<div
+						*ngFor="
+							let col of Array(hall.columns).fill(0);
+							let colIndex = index
+						"
+						[class]="getCellClass(rowIndex, colIndex)"
+						(click)="onCellClick(rowIndex, colIndex)"
+						[title]="getCellTitle(rowIndex, colIndex)"
+					>
+						{{ getCellContent(rowIndex, colIndex) }}
+					</div>
+
+					<!-- Row Label (Right) -->
+					<div
+						class="w-8 text-sm font-medium text-gray-600 dark:text-gray-400 text-center"
+					>
+						{{ getRowLabel(rowIndex) }}
+					</div>
+				</div>
+			</div>
+
+			<!-- Legend -->
+			<div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
+				<div class="flex items-center justify-center gap-6 text-sm">
+					<div class="flex items-center gap-2">
+						<div
+							class="w-4 h-4 bg-gray-100 border border-gray-300 rounded"
+						></div>
+						<span class="text-gray-600 dark:text-gray-400">Empty Cell</span>
+					</div>
+					<div class="flex items-center gap-2">
+						<div
+							class="w-4 h-4 bg-blue-500 border border-blue-600 rounded"
+						></div>
+						<span class="text-gray-600 dark:text-gray-400"
+							>Selected for New Seat</span
+						>
+					</div>
+					<div class="flex items-center gap-2">
+						<div
+							class="w-4 h-4 bg-green-500 border border-green-600 rounded"
+						></div>
+						<span class="text-gray-600 dark:text-gray-400"
+							>Existing Seat (Click to Delete)</span
+						>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Action Buttons -->
+		<div class="flex justify-end gap-3">
+			<p-button
+				label="Cancel"
+				icon="pi pi-times"
+				severity="secondary"
+				[outlined]="true"
+				(onClick)="onClose()"
+				[disabled]="isSubmitting"
+			></p-button>
+			<p-button
+				label="Create Seats"
+				icon="pi pi-plus"
+				severity="primary"
+				type="submit"
+				[loading]="isSubmitting"
+				[disabled]="selectedCells.length === 0 || seatForm.invalid"
+			></p-button>
+		</div>
+	</form>
+</div>
+
+<!-- Confirmation Dialog -->
+<p-confirmDialog></p-confirmDialog>
