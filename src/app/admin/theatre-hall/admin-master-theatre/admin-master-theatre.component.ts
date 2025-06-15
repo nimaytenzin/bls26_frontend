@@ -42,7 +42,6 @@ export class AdminMasterTheatreComponent implements OnInit, OnDestroy {
 
 	// UI State
 	searchQuery = '';
-	activeTab: 'theatres' | 'halls' = 'theatres';
 	viewMode: 'grid' | 'list' | 'table' = 'grid';
 	showFilters = false;
 	activeFiltersCount = 0;
@@ -127,11 +126,6 @@ export class AdminMasterTheatreComponent implements OnInit, OnDestroy {
 		this.searchSubject.next(query);
 	}
 
-	// UI Actions
-	onTabChange(tab: 'theatres' | 'halls'): void {
-		this.activeTab = tab;
-	}
-
 	onViewModeChange(): void {
 		// Handle view mode change
 	}
@@ -143,11 +137,6 @@ export class AdminMasterTheatreComponent implements OnInit, OnDestroy {
 	clearSearch(): void {
 		this.searchQuery = '';
 		this.searchSubject.next('');
-	}
-
-	// Template Methods
-	setActiveTab(tab: 'theatres' | 'halls'): void {
-		this.activeTab = tab;
 	}
 
 	onSearch(): void {

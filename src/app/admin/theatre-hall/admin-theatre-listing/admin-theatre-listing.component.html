@@ -125,12 +125,6 @@
 							[attr.aria-label]="theatre.name"
 						></div>
 
-						<div class="absolute top-3 left-3">
-							<p-tag
-								[value]="theatre.status"
-								[severity]="getStatusSeverity(theatre.status)"
-							></p-tag>
-						</div>
 						<div
 							class="absolute flex justify-between items-end bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white"
 						>
@@ -143,7 +137,7 @@
 									{{ theatre.address }}
 								</p>
 							</div>
-							<p class="text-sm">{{ getTheatreHalls(theatre).length }} Halls</p>
+							<p class="text-sm">{{ theatre.halls?.length }} Halls</p>
 						</div>
 					</div>
 				</ng-template>
@@ -158,14 +152,7 @@
 							(onClick)="onTheatreEdit(theatre); $event.stopPropagation()"
 							pTooltip="Edit Theatre"
 						></p-button>
-						<p-button
-							icon="pi pi-eye"
-							severity="secondary"
-							size="small"
-							[outlined]="true"
-							(onClick)="onTheatreView(theatre); $event.stopPropagation()"
-							pTooltip="View Details"
-						></p-button>
+
 						<p-button
 							icon="pi pi-trash"
 							severity="danger"
@@ -175,12 +162,13 @@
 							pTooltip="Delete Theatre"
 						></p-button>
 						<p-button
-							label="Hall"
-							icon="pi pi-plus"
+							label="Halls"
+							icon="pi pi-home"
 							severity="secondary"
 							size="small"
 							[outlined]="true"
-							(onClick)="onAddHall(theatre.id); $event.stopPropagation()"
+							(onClick)="onManageHalls(theatre.id); $event.stopPropagation()"
+							pTooltip="Manage Halls"
 						></p-button>
 					</div>
 				</ng-template>
@@ -224,9 +212,7 @@
 							</div>
 							<div class="flex items-center gap-2">
 								<span class="text-slate-500">Halls:</span>
-								<span class="text-slate-900">{{
-									getTheatreHalls(theatre).length
-								}}</span>
+								<span class="text-slate-900">{{ theatre.halls?.length }}</span>
 							</div>
 							<div class="flex items-center gap-2">
 								<span class="text-slate-500">Seats:</span>
@@ -253,21 +239,14 @@
 							(onClick)="onTheatreEdit(theatre); $event.stopPropagation()"
 							pTooltip="Edit Theatre"
 						></p-button>
+
 						<p-button
-							icon="pi pi-eye"
-							severity="secondary"
-							size="small"
-							[text]="true"
-							(onClick)="onTheatreView(theatre); $event.stopPropagation()"
-							pTooltip="View Details"
-						></p-button>
-						<p-button
-							icon="pi pi-plus"
+							icon="pi pi-home"
 							severity="info"
 							size="small"
 							[text]="true"
-							(onClick)="onAddHall(theatre.id); $event.stopPropagation()"
-							pTooltip="Add Hall"
+							(onClick)="onManageHalls(theatre.id); $event.stopPropagation()"
+							pTooltip="Manage Halls"
 						></p-button>
 						<p-button
 							icon="pi pi-trash"
@@ -326,7 +305,7 @@
 						></p-tag>
 					</td>
 					<td class="text-center text-slate-700">
-						{{ getTheatreHalls(theatre.id).length }}
+						{{ theatre.halls.length }}
 					</td>
 					<td class="text-center text-slate-700">
 						{{ getTotalSeatsForTheatre(theatre.id) }}
@@ -347,21 +326,14 @@
 								(onClick)="onTheatreEdit(theatre)"
 								pTooltip="Edit Theatre"
 							></p-button>
+
 							<p-button
-								icon="pi pi-eye"
-								severity="secondary"
-								size="small"
-								[text]="true"
-								(onClick)="onTheatreView(theatre)"
-								pTooltip="View Details"
-							></p-button>
-							<p-button
-								icon="pi pi-plus"
+								icon="pi pi-home"
 								severity="info"
 								size="small"
 								[text]="true"
-								(onClick)="onAddHall(theatre.id)"
-								pTooltip="Add Hall"
+								(onClick)="onManageHalls(theatre.id)"
+								pTooltip="Manage Halls"
 							></p-button>
 							<p-button
 								icon="pi pi-trash"

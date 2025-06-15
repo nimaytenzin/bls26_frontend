@@ -12,6 +12,11 @@ import {
 } from '../../../core/dataservice/theatre/theatre.interface';
 import { DzongkhagDataService } from '../../../core/dataservice/dzonkhag/dzongkhag.dataservice';
 import { Hall } from '../../../core/dataservice/hall/hall.interface';
+import { AdminTheatreAddWithImageComponent } from './components/admin-theatre-add-with-image/admin-theatre-add-with-image.component';
+import { AdminTheatreEditComponent } from './components/admin-theatre-edit/admin-theatre-edit.component';
+import { AdminHallAddComponent } from './components/admin-hall-add/admin-hall-add.component';
+import { AdminHallListComponent } from './components/admin-hall-list/admin-hall-list.component';
+import { AdminHallEditComponent } from './components/admin-hall-edit/admin-hall-edit.component';
 
 interface ViewModeOption {
 	label: string;
@@ -153,16 +158,15 @@ export class AdminTheatreListingComponent implements OnInit, OnDestroy {
 		let filtered = [...this.theatres];
 
 		// Apply search
-		// if (this.searchTerm.trim()) {
-		// 	const query = this.searchTerm.toLowerCase();
-		// 	filtered = filtered.filter(
-		// 		(theatre) =>
-		// 			theatre.name.toLowerCase().includes(query) ||
-		// 			theatre.location.toLowerCase().includes(query) ||
-		// 			theatre.city.toLowerCase().includes(query) ||
-		// 			theatre.district.toLowerCase().includes(query)
-		// 	);
-		// }
+		if (this.searchTerm.trim()) {
+			const query = this.searchTerm.toLowerCase();
+			filtered = filtered.filter(
+				(theatre) =>
+					theatre.name.toLowerCase().includes(query) ||
+					theatre.address.toLowerCase().includes(query) ||
+					(theatre.dzongkhag?.name || '').toLowerCase().includes(query)
+			);
+		}
 
 		// Apply filters
 		if (this.selectedStatus) {
@@ -171,11 +175,11 @@ export class AdminTheatreListingComponent implements OnInit, OnDestroy {
 			);
 		}
 
-		// if (this.selectedLocation) {
-		// 	filtered = filtered.filter(
-		// 		(theatre) => theatre.city === this.selectedLocation
-		// 	);
-		// }
+		if (this.selectedLocation) {
+			filtered = filtered.filter(
+				(theatre) => theatre.dzongkhag?.name === this.selectedLocation
+			);
+		}
 
 		// Apply sorting
 		filtered = this.sortTheatres(filtered);
@@ -193,7 +197,9 @@ export class AdminTheatreListingComponent implements OnInit, OnDestroy {
 				case 'name':
 					comparison = a.name.localeCompare(b.name);
 					break;
-
+				case 'location':
+					comparison = a.address.localeCompare(b.address);
+					break;
 				case 'createdAt':
 					const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
 					const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -255,11 +261,20 @@ export class AdminTheatreListingComponent implements OnInit, OnDestroy {
 
 	// Theatre Actions
 	onTheatreEdit(theatre: Theatre): void {
-		console.log('Edit theatre:', theatre);
-	}
+		this.ref = this.dialogService.open(AdminTheatreEditComponent, {
+			header: `Edit Theatre: ${theatre.name}`,
 
-	onTheatreView(theatre: Theatre): void {
-		console.log('View theatre:', theatre);
+			closable: true,
+			dismissableMask: true,
+			data: { theatre },
+		});
+
+		this.ref.onClose.subscribe((result: any) => {
+			if (result?.success) {
+				console.log('Theatre updated successfully:', result.data);
+				this.loadData(); // Refresh the theatre list
+			}
+		});
 	}
 
 	onTheatreDelete(theatre: Theatre): void {
@@ -274,59 +289,73 @@ export class AdminTheatreListingComponent implements OnInit, OnDestroy {
 	}
 
 	openAddTheatreDialog(): void {
-		// this.ref = this.dialogService.open(AdminTheatreAddComponent, {
-		// 	header: 'Add New Theatre',
-		// 	width: '90%',
-		// 	height: '90%',
-		// 	closable: true,
-		// 	maximizable: true,
-		// });
-		// this.ref.onClose.subscribe((result: any) => {
-		// 	if (result?.success) {
-		// 		console.log('Theatre added successfully:', result.data);
-		// 		this.loadData();
-		// 	}
-		// });
+		this.ref = this.dialogService.open(AdminTheatreAddWithImageComponent, {
+			header: 'Add New Theatre',
+
+			closable: true,
+			dismissableMask: true,
+			maximizable: true,
+		});
+
+		this.ref.onClose.subscribe((result: any) => {
+			if (result?.success) {
+				console.log('Theatre added successfully:', result.data);
+				this.loadData(); // Refresh the theatre list
+			}
+		});
+	}
+
+	onManageHalls(theatreId: string): void {
+		// Find the theatre object
+		const theatre = this.theatres.find((t) => t.id === theatreId);
+
+		if (!theatre) {
+			console.error('Theatre not found');
+			return;
+		}
+
+		this.ref = this.dialogService.open(AdminHallListComponent, {
+			header: `Manage Halls - ${theatre.name}`,
+
+			closable: true,
+			dismissableMask: true,
+			maximizable: true,
+			data: { theatre },
+		});
+
+		this.ref.onClose.subscribe((result: any) => {
+			if (result?.success || result?.dataChanged) {
+				console.log('Hall management completed, refreshing theatre data');
+				this.loadData(); // Refresh the theatre list to show updated hall information
+			}
+		});
 	}
 
 	onAddHall(theatreId: string): void {
-		console.log('Add hall for theatre:', theatreId);
-	}
+		// Find the theatre object
+		const theatre = this.theatres.find((t) => t.id === theatreId);
 
-	// Bulk Actions
-	onBulkStatusUpdate(status: string): void {
-		if (this.selectedItems.length === 0) return;
-
-		this.theatreService
-			.bulkUpdateTheatreStatus(this.selectedItems, status)
-			.pipe(takeUntil(this.destroy$))
-			.subscribe(() => {
-				this.loadData();
-				this.clearSelection();
-			});
-	}
-
-	onBulkDelete(): void {
-		if (this.selectedItems.length === 0) return;
-
-		const theatreNames = this.theatres
-			.filter((t) => this.selectedItems.includes(t.id))
-			.map((t) => t.name)
-			.join(', ');
-
-		if (
-			confirm(
-				`Are you sure you want to delete these theatres: ${theatreNames}?`
-			)
-		) {
-			this.theatreService
-				.bulkDeleteTheatres(this.selectedItems)
-				.pipe(takeUntil(this.destroy$))
-				.subscribe(() => {
-					this.loadData();
-					this.clearSelection();
-				});
+		if (!theatre) {
+			console.error('Theatre not found');
+			return;
 		}
+
+		this.ref = this.dialogService.open(AdminHallAddComponent, {
+			header: `Add Hall to ${theatre.name}`,
+			width: '90%',
+			height: '90%',
+			closable: true,
+			dismissableMask: true,
+			maximizable: true,
+			data: { theatre },
+		});
+
+		this.ref.onClose.subscribe((result: any) => {
+			if (result?.success) {
+				console.log('Hall added successfully:', result.data);
+				this.loadData(); // Refresh the theatre list to show updated hall count
+			}
+		});
 	}
 
 	// Utility Methods
@@ -347,12 +376,8 @@ export class AdminTheatreListingComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	getTheatreHalls(theatre: Theatre): Hall[] {
-		return theatre.halls || [];
-	}
-
 	getTotalSeatsForTheatre(theatre: Theatre): number {
-		return this.getTheatreHalls(theatre).reduce(
+		return (theatre.halls ?? []).reduce(
 			(total, hall) => total + hall.capacity,
 			0
 		);

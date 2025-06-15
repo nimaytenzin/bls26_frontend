@@ -1,0 +1,234 @@
+<!-- Hall Add Modal Content -->
+<p-toast position="top-right"></p-toast>
+
+<div class="hall-add-form">
+	<!-- Info Box -->
+
+	<form [formGroup]="hallForm" (ngSubmit)="onSubmit()">
+		<div class="grid grid-cols-1">
+			<!-- Left Column - Basic Information -->
+			<div class="space-y-4">
+				<!-- Theatre Information (Read-only) -->
+				<div class="field">
+					<label
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+					>
+						Theatre
+					</label>
+					<input
+						type="text"
+						[value]="theatre.name"
+						pInputText
+						readonly
+						class="w-full bg-gray-100 dark:bg-gray-700"
+					/>
+				</div>
+
+				<!-- Hall Name -->
+				<div class="field">
+					<label
+						for="name"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+					>
+						Hall Name *
+					</label>
+					<input
+						id="name"
+						type="text"
+						formControlName="name"
+						pInputText
+						placeholder="Enter hall name (e.g., Hall 1, IMAX Hall)"
+						class="w-full"
+					/>
+					<small class="p-error" *ngIf="isFieldInvalid('name')">
+						{{ getFieldErrorMessage("name") }}
+					</small>
+				</div>
+
+				<!-- Description -->
+				<div class="field">
+					<label
+						for="description"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+					>
+						Description
+					</label>
+					<textarea
+						id="description"
+						formControlName="description"
+						pInputTextarea
+						placeholder="Enter hall description (optional)"
+						rows="3"
+						class="w-full"
+					></textarea>
+					<small class="p-error" *ngIf="isFieldInvalid('description')">
+						{{ getFieldErrorMessage("description") }}
+					</small>
+				</div>
+			</div>
+
+			<!-- Right Column - Layout Configuration -->
+			<div class="space-y-4">
+				<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+					Layout Configuration
+				</h3>
+
+				<!-- Dimensions -->
+				<div class="grid grid-cols-2 gap-4">
+					<div class="field">
+						<label
+							for="rows"
+							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+						>
+							Rows *
+						</label>
+						<p-inputNumber
+							id="rows"
+							formControlName="rows"
+							[min]="1"
+							[max]="50"
+							placeholder="Enter number of rows"
+							class="w-full"
+							(onInput)="onRowsOrColumnsChange()"
+						></p-inputNumber>
+						<small class="p-error" *ngIf="isFieldInvalid('rows')">
+							{{ getFieldErrorMessage("rows") }}
+						</small>
+					</div>
+
+					<div class="field">
+						<label
+							for="columns"
+							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+						>
+							Columns *
+						</label>
+						<p-inputNumber
+							id="columns"
+							formControlName="columns"
+							[min]="1"
+							[max]="50"
+							placeholder="Enter number of columns"
+							class="w-full"
+							(onInput)="onRowsOrColumnsChange()"
+						></p-inputNumber>
+						<small class="p-error" *ngIf="isFieldInvalid('columns')">
+							{{ getFieldErrorMessage("columns") }}
+						</small>
+					</div>
+				</div>
+
+				<!-- Capacity Display -->
+				<div class="field">
+					<label
+						for="capacity"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+					>
+						Total Capacity
+					</label>
+					<p-inputNumber
+						id="capacity"
+						formControlName="capacity"
+						placeholder="Capacity will be auto-calculated"
+						class="w-full"
+						[disabled]="true"
+					></p-inputNumber>
+					<small class="text-gray-500 text-xs mt-1">
+						Auto-calculated: {{ hallForm.get("rows")?.value || 0 }} ×
+						{{ hallForm.get("columns")?.value || 0 }} =
+						{{
+							(hallForm.get("rows")?.value || 0) *
+								(hallForm.get("columns")?.value || 0)
+						}}
+						seats
+					</small>
+					<small class="p-error" *ngIf="isFieldInvalid('capacity')">
+						{{ getFieldErrorMessage("capacity") }}
+					</small>
+				</div>
+
+				<!-- Screen Configuration -->
+				<div class="space-y-3">
+					<h4 class="text-md font-medium text-gray-800 dark:text-gray-200">
+						Screen Configuration
+					</h4>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div class="field">
+							<label
+								for="screenStart"
+								class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+							>
+								Screen Row Start Position *
+							</label>
+							<p-inputNumber
+								id="screenStart"
+								formControlName="screenStart"
+								[min]="1"
+								[max]="hallForm.get('columns')?.value || 1"
+								placeholder="1"
+								class="w-full"
+								(onInput)="onScreenStartChange()"
+							></p-inputNumber>
+							<small class="p-error" *ngIf="isFieldInvalid('screenStart')">
+								{{ getFieldErrorMessage("screenStart") }}
+							</small>
+						</div>
+
+						<div class="field">
+							<label
+								for="screenSpan"
+								class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+							>
+								Screen Span *
+							</label>
+							<p-inputNumber
+								id="screenSpan"
+								formControlName="screenSpan"
+								[min]="1"
+								[max]="hallForm.get('columns')?.value || 1"
+								placeholder="1"
+								class="w-full"
+								(onInput)="onScreenSpanChange()"
+							></p-inputNumber>
+							<small class="p-error" *ngIf="isFieldInvalid('screenSpan')">
+								{{ getFieldErrorMessage("screenSpan") }}
+							</small>
+						</div>
+					</div>
+
+					<small class="text-xs text-gray-500">
+						Screen will span from column
+						{{ hallForm.get("screenStart")?.value || 1 }} to column
+						{{
+							(hallForm.get("screenStart")?.value || 1) +
+								(hallForm.get("screenSpan")?.value || 1) -
+								1
+						}}
+					</small>
+				</div>
+			</div>
+		</div>
+
+		<!-- Action Buttons -->
+		<div
+			class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700"
+		>
+			<p-button
+				label="Cancel"
+				icon="pi pi-times"
+				severity="secondary"
+				[outlined]="true"
+				(onClick)="onCancel()"
+				[disabled]="loading"
+			></p-button>
+			<p-button
+				label="Create Hall"
+				icon="pi pi-plus"
+				type="submit"
+				[loading]="loading"
+				[disabled]="hallForm.invalid"
+			></p-button>
+		</div>
+	</form>
+</div>

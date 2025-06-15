@@ -34,7 +34,10 @@ import { CalendarModule } from 'primeng/calendar';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TextareaModule } from 'primeng/textarea';
 import { FileUploadModule } from 'primeng/fileupload';
+import { TabsModule } from 'primeng/tabs';
 import { TabViewModule } from 'primeng/tabview';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+
 const PRIME_NG_MODULES = [
 	CardModule,
 	InputTextModule,
@@ -71,7 +74,9 @@ const PRIME_NG_MODULES = [
 	MultiSelectModule,
 	TextareaModule,
 	FileUploadModule,
+	TabsModule,
 	TabViewModule,
+	ProgressSpinnerModule,
 ];
 
 @NgModule({

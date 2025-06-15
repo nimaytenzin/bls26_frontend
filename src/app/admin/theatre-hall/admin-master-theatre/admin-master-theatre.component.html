@@ -92,45 +92,8 @@
 		</div>
 	</div>
 
-	<!-- Navigation Tabs -->
-	<div class="max-w-7xl mx-auto px-6 mb-8">
-		<p-selectButton
-			[options]="tabOptions"
-			[(ngModel)]="activeTab"
-			optionLabel="label"
-			optionValue="value"
-			styleClass="w-full"
-		>
-			<ng-template pTemplate="item" let-item>
-				<div class="flex items-center justify-center gap-2 py-2">
-					<i [class]="item.icon"></i>
-					{{ item.label }}
-					<p-badge
-						[value]="
-							item.value === 'theatres'
-								? statistics.totalTheatres
-								: statistics.totalHalls
-						"
-						severity="info"
-						size="small"
-					></p-badge>
-				</div>
-			</ng-template>
-		</p-selectButton>
-	</div>
-
 	<!-- Content Area -->
 	<div class="max-w-7xl mx-auto px-6">
-		<!-- Loading State -->
-
-		<!-- Theatres Tab Content -->
-		<div *ngIf="activeTab === 'theatres'">
-			<app-admin-theatre-listing></app-admin-theatre-listing>
-		</div>
-
-		<!-- Halls Tab Content -->
-		<div *ngIf="activeTab === 'halls'">
-			<!-- <app-admin-hall-listing></app-admin-hall-listing> -->
-		</div>
+		<app-admin-theatre-listing></app-admin-theatre-listing>
 	</div>
 </div>

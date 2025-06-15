@@ -5,9 +5,10 @@ import { Hall } from '../hall/hall.interface';
 export interface Theatre {
 	id: string;
 	name: string;
-	lat: number;
-	lng: number;
+
 	address: string;
+
+	googleMapAddressUrl: string;
 	status: TheatreStatus;
 	imageUrl?: string;
 	dzongkhagId: string;
@@ -27,34 +28,22 @@ export enum TheatreStatus {
 
 export interface CreateTheatreDto {
 	name: string;
-	lat: number;
-	lng: number;
 	address: string;
-	location: string;
-	city: string;
-	district: string;
+	googleMapAddressUrl: string;
 	dzongkhagId: string;
 }
 
 export interface CreateTheatreWithImageDto {
 	name: string;
-	lat: number;
-	lng: number;
 	address: string;
-	location: string;
-	city: string;
-	district: string;
+	googleMapAddressUrl: string;
 	dzongkhagId: string;
 }
 
 export interface UpdateTheatreDto {
 	name?: string;
-	lat?: number;
-	lng?: number;
+	googleMapAddressUrl?: string;
 	address?: string;
-	location?: string;
-	city?: string;
-	district?: string;
 	dzongkhagId?: string;
 }
 
