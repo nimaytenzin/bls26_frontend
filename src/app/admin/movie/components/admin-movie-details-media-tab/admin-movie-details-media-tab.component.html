@@ -1,0 +1,393 @@
+<!-- Instagram-Style Media Feed -->
+<div class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+	<div class="max-w-6xl mx-auto px-4 py-8">
+		<!-- Header with Filters (Instagram-style top bar) -->
+		<div class="rounded-xl shadow-sm border p-6 mb-8">
+			<div
+				class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+			>
+				<!-- Filter Pills (Instagram-style) -->
+				<div class="flex flex-wrap gap-2">
+					<button
+						*ngFor="let filter of filterOptions"
+						(click)="setMediaTypeFilter(filter.value)"
+						[class]="
+							'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ' +
+							(mediaTypeFilter === filter.value
+								? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+								: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600')
+						"
+					>
+						<i [class]="'pi ' + filter.icon"></i>
+						<span>{{ filter.label }}</span>
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Instagram-Style Media Grid -->
+		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+			<!-- Loading Skeleton -->
+			<div *ngIf="loading" class="contents">
+				<div
+					*ngFor="let item of [1, 2, 3, 4, 5, 6]"
+					class="instagram-post-skeleton"
+				>
+					<div
+						class="aspect-square bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"
+					></div>
+				</div>
+			</div>
+
+			<!-- Media Posts -->
+			<div
+				*ngFor="let media of getFilteredMedia(); let i = index"
+				class="instagram-post group"
+				(click)="openMediaModal(media)"
+			>
+				<!-- Post Container -->
+				<div
+					class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+				>
+					<!-- Media Content -->
+					<div class="relative aspect-square overflow-hidden">
+						<!-- Image Post -->
+						<div *ngIf="media.type === 'IMAGE'" class="relative w-full h-full">
+							<img
+								[src]="getMediaUrl(media.uri)"
+								[alt]="media.name"
+								class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+								(error)="onImageError($event)"
+							/>
+						</div>
+
+						<!-- Video Post -->
+						<div
+							*ngIf="media.type === 'VIDEO'"
+							class="relative w-full h-full bg-black"
+						>
+							<video
+								[src]="getMediaUrl(media.uri)"
+								class="w-full h-full object-cover"
+								muted
+								preload="metadata"
+								(error)="onVideoError($event)"
+							></video>
+							<!-- Video Play Button -->
+							<div class="absolute inset-0 flex items-center justify-center">
+								<div
+									class="w-16 h-16 bg-black/60 rounded-full flex items-center justify-center backdrop-blur-sm"
+								>
+									<i class="pi pi-play text-white text-2xl ml-1"></i>
+								</div>
+							</div>
+							<!-- Video Duration -->
+							<div
+								class="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-medium"
+							>
+								<i class="pi pi-clock mr-1"></i>0:{{ 15 + ((i * 7) % 45) }}
+							</div>
+						</div>
+
+						<!-- Type Badge -->
+						<div class="absolute top-3 left-3">
+							<div
+								[class]="
+									'px-2 py-1 rounded-lg text-xs font-medium text-white ' +
+									(media.type === 'IMAGE'
+										? 'bg-green-500/80'
+										: 'bg-blue-500/80')
+								"
+							>
+								<i [class]="getMediaTypeIcon(media.type) + ' mr-1'"></i>
+								{{ media.type === "IMAGE" ? "Photo" : "Video" }}
+							</div>
+						</div>
+
+						<!-- Selection Indicator -->
+						<div
+							*ngIf="selectedMedia?.id === media.id"
+							class="absolute inset-0 border-4 border-purple-500 bg-purple-500/20 rounded-xl"
+						>
+							<div
+								class="absolute top-2 right-2 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center"
+							>
+								<i class="pi pi-check text-white text-sm"></i>
+							</div>
+						</div>
+					</div>
+
+					<!-- Post Footer (Instagram-style) -->
+					<div class="p-4">
+						<!-- Post Actions -->
+						<div class="flex items-center justify-between mb-3">
+							<div class="flex items-center gap-4">
+								<button
+									class="instagram-action-btn text-red-500 hover:text-red-600"
+								>
+									<i class="pi pi-heart text-xl"></i>
+								</button>
+
+								<button
+									class="instagram-action-btn"
+									(click)="downloadMedia(media)"
+								>
+									<i class="pi pi-download text-xl"></i>
+								</button>
+								<button
+									class="instagram-action-btn text-red-500 hover:text-red-600"
+									(click)="confirmDeleteMedia(media, $event)"
+									title="Delete media"
+								>
+									<i class="pi pi-trash text-xl"></i>
+								</button>
+							</div>
+						</div>
+
+						<!-- Post Title -->
+						<div class="space-y-1">
+							<h3
+								class="font-semibold text-gray-900 dark:text-white text-sm line-clamp-2"
+							>
+								{{ media.name || "Untitled" }}
+							</h3>
+							<p class="text-xs text-gray-500 dark:text-gray-400">
+								{{ formatMediaDate(media.uploadedAt) }}
+								• {{ media.orientation }}
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Empty State (Instagram-style) -->
+		<div
+			*ngIf="getFilteredMedia().length === 0 && !loading"
+			class="text-center py-20"
+		>
+			<div
+				class="w-32 h-32 mx-auto mb-6 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-full flex items-center justify-center"
+			>
+				<i class="pi pi-camera text-5xl text-purple-500"></i>
+			</div>
+			<h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+				No Media yet
+			</h3>
+			<p class="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
+				<span *ngIf="mediaTypeFilter !== 'ALL'">
+					No {{ mediaTypeFilter.toLowerCase() }}s found. Try changing your
+					filter or
+				</span>
+				<span *ngIf="mediaTypeFilter === 'ALL'">
+					When you add photos and videos, they'll appear on this tab.
+				</span>
+			</p>
+			<div class="flex flex-col sm:flex-row gap-4 justify-center">
+				<p-button
+					*ngIf="mediaTypeFilter !== 'ALL'"
+					label="Show All"
+					icon="pi pi-filter-slash"
+					[outlined]="true"
+					(onClick)="clearFilters()"
+					styleClass="instagram-btn-secondary"
+				>
+				</p-button>
+				<p-button
+					label="Upload New Media"
+					icon="pi pi-plus"
+					(onClick)="navigateToMediaUpload()"
+					styleClass="instagram-btn-primary"
+				>
+				</p-button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Media Modal Viewer -->
+<p-dialog
+	[(visible)]="showMediaModal"
+	[modal]="true"
+	[closable]="true"
+	[draggable]="false"
+	[resizable]="false"
+	[style]="{ width: '95vw', height: '95vh' }"
+	styleClass="media-modal"
+	(onHide)="closeMediaModal()"
+	[dismissableMask]="true"
+	[blockScroll]="true"
+	[focusOnShow]="false"
+	[closeOnEscape]="false"
+>
+	<ng-template pTemplate="header">
+		<div class="flex items-center justify-between w-full">
+			<div class="flex items-center gap-3">
+				<i [class]="getMediaTypeIcon(modalMedia?.type)" class="text-xl"></i>
+				<span class="font-semibold text-lg">{{
+					modalMedia?.name || "Media"
+				}}</span>
+			</div>
+			<div class="flex items-center gap-2">
+				<p-button
+					icon="pi pi-arrow-left"
+					[outlined]="true"
+					size="small"
+					(onClick)="previousMedia()"
+					[disabled]="getFilteredMedia().length <= 1"
+					pTooltip="Previous (←)"
+					[tabindex]="0"
+				></p-button>
+				<p-button
+					icon="pi pi-arrow-right"
+					[outlined]="true"
+					size="small"
+					(onClick)="nextMedia()"
+					[disabled]="getFilteredMedia().length <= 1"
+					pTooltip="Next (→)"
+					[tabindex]="0"
+				></p-button>
+			</div>
+		</div>
+	</ng-template>
+
+	<div class="modal-content">
+		<div class="flex h-full">
+			<!-- Media Display -->
+			<div
+				class="flex-1 flex items-center justify-center bg-black rounded-lg overflow-hidden"
+			>
+				<!-- Image Display -->
+				<img
+					*ngIf="modalMedia?.type === 'IMAGE'"
+					[src]="getMediaUrl(modalMedia.uri)"
+					[alt]="modalMedia.name"
+					class="max-w-full max-h-full object-contain"
+					(error)="onImageError($event)"
+				/>
+
+				<!-- Video Display -->
+				<video
+					*ngIf="modalMedia?.type === 'VIDEO'"
+					[src]="getMediaUrl(modalMedia.uri)"
+					class="max-w-full max-h-full object-contain"
+					controls
+					autoplay
+					muted
+					[attr.tabindex]="-1"
+				></video>
+			</div>
+
+			<!-- Media Info Sidebar -->
+			<div
+				class="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 p-6 flex flex-col"
+			>
+				<!-- Media Details -->
+				<div class="space-y-4 flex-1">
+					<div>
+						<h3
+							class="font-semibold text-lg text-gray-900 dark:text-white mb-2"
+						>
+							{{ modalMedia?.name || "Untitled" }}
+						</h3>
+						<p class="text-sm text-gray-500 dark:text-gray-400">
+							{{ formatMediaDate(modalMedia?.uploadedAt) }}
+						</p>
+					</div>
+
+					<div class="space-y-2">
+						<div class="flex justify-between text-sm">
+							<span class="text-gray-500 dark:text-gray-400">Type:</span>
+							<span class="font-medium">{{ modalMedia?.type }}</span>
+						</div>
+						<div class="flex justify-between text-sm">
+							<span class="text-gray-500 dark:text-gray-400">Orientation:</span>
+							<span class="font-medium">{{
+								modalMedia?.orientation || "Unknown"
+							}}</span>
+						</div>
+						<div class="flex justify-between text-sm" *ngIf="modalMedia?.size">
+							<span class="text-gray-500 dark:text-gray-400">Size:</span>
+							<span class="font-medium">{{ modalMedia.size }}</span>
+						</div>
+					</div>
+
+					<!-- Description -->
+					<div *ngIf="modalMedia?.description">
+						<label
+							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+						>
+							Description
+						</label>
+						<p
+							class="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg"
+						>
+							{{ modalMedia.description }}
+						</p>
+					</div>
+				</div>
+
+				<!-- Action Buttons -->
+				<div
+					class="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3"
+				>
+					<p-button
+						label="Download"
+						icon="pi pi-download"
+						[outlined]="true"
+						size="small"
+						(onClick)="downloadMedia(modalMedia)"
+						styleClass="w-full"
+					></p-button>
+
+					<p-button
+						label="Delete"
+						icon="pi pi-trash"
+						severity="danger"
+						[outlined]="true"
+						size="small"
+						(onClick)="confirmDeleteMedia(modalMedia)"
+						styleClass="w-full"
+					></p-button>
+				</div>
+			</div>
+		</div>
+	</div>
+</p-dialog>
+
+<!-- Delete Confirmation Dialog -->
+<p-dialog
+	[(visible)]="showDeleteConfirmation"
+	[modal]="true"
+	[closable]="true"
+	[draggable]="false"
+	[resizable]="false"
+	[style]="{ width: '400px' }"
+	header="Confirm Delete"
+	(onHide)="cancelDelete()"
+>
+	<div class="text-center py-4">
+		<i class="pi pi-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+		<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+			Delete Media?
+		</h3>
+		<p class="text-gray-600 dark:text-gray-400 mb-6">
+			Are you sure you want to delete "{{
+				mediaToDelete?.name || "this media"
+			}}"? This action cannot be undone.
+		</p>
+
+		<div class="flex justify-center gap-3">
+			<p-button
+				label="Cancel"
+				[outlined]="true"
+				(onClick)="cancelDelete()"
+			></p-button>
+			<p-button
+				label="Delete"
+				severity="danger"
+				(onClick)="deleteMedia()"
+			></p-button>
+		</div>
+	</div>
+</p-dialog>

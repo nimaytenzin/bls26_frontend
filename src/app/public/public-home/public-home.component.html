@@ -156,8 +156,7 @@
 			*ngFor="let movie of filteredMovies"
 			class="movie-card bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
 		>
-			<div class="relative aspect-[2/3] overflow-hidden">
-				<!-- Status Badge -->
+			<!-- <div class="relative aspect-[2/3] overflow-hidden">
 				<div class="absolute top-2 left-2 z-10">
 					<span
 						class="px-2 py-1 rounded-full text-xs font-semibold shadow-md"
@@ -195,17 +194,16 @@
 					class="movie-poster w-full h-full object-cover transition-transform duration-300 hover:scale-105"
 				/>
 
-				<!-- Play button overlay -->
 				<button
 					(click)="watchTrailer(movie.trailerUrl)"
 					class="absolute inset-0 m-auto w-12 h-12 border bg-black bg-opacity-60 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center group-hover:opacity-100"
 				>
 					<i class="pi pi-play text-white ml-1"></i>
 				</button>
-			</div>
+			</div> -->
 
 			<div class="p-4">
-				<h3
+				<!-- <h3
 					class="text-base sm:text-lg font-semibold text-white mb-2 line-clamp-2 min-h-[3rem] sm:min-h-[3.5rem]"
 				>
 					{{ movie.title }}
@@ -239,7 +237,7 @@
 								: 'p-button-sm'
 						"
 					></p-button>
-				</div>
+				</div> -->
 			</div>
 		</div>
 	</div>

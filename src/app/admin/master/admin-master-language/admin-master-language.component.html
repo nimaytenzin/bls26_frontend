@@ -29,6 +29,27 @@
 		</div>
 	</div>
 
+	<!-- Success/Error Messages -->
+	<div
+		*ngIf="successMessage"
+		class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400"
+	>
+		<div class="flex items-center">
+			<i class="pi pi-check-circle mr-2"></i>
+			{{ successMessage }}
+		</div>
+	</div>
+
+	<div
+		*ngIf="errorMessage"
+		class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
+	>
+		<div class="flex items-center">
+			<i class="pi pi-exclamation-triangle mr-2"></i>
+			{{ errorMessage }}
+		</div>
+	</div>
+
 	<!-- Search and Filter Bar -->
 	<div
 		class="flex justify-between items-center gap-4 flex-wrap"
@@ -126,7 +147,7 @@
 								class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center"
 							>
 								<span class="text-white font-bold text-xl">{{
-									language.code.toUpperCase()
+									(language.code || "N/A").toUpperCase()
 								}}</span>
 							</div>
 						</div>
@@ -141,7 +162,7 @@
 							{{ language.name }}
 						</h3>
 						<p class="text-slate-600 dark:text-slate-400 text-sm">
-							Code: {{ language.code }}
+							Code: {{ language.code || "N/A" }}
 						</p>
 					</div>
 
@@ -156,15 +177,6 @@
 
 					<!-- Action Buttons -->
 					<div class="flex gap-2 pt-2">
-						<p-button
-							icon="pi pi-eye"
-							severity="secondary"
-							size="small"
-							[text]="true"
-							(onClick)="viewLanguage(language)"
-							pTooltip="View Details"
-							class="flex-1"
-						></p-button>
 						<p-button
 							icon="pi pi-pencil"
 							severity="secondary"
@@ -201,7 +213,7 @@
 							class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center"
 						>
 							<span class="text-white font-bold">{{
-								language.code.toUpperCase()
+								(language.code || "N/A").toUpperCase()
 							}}</span>
 						</div>
 					</div>
@@ -212,7 +224,7 @@
 								{{ language.name }}
 							</h4>
 							<p class="text-slate-600 dark:text-slate-400">
-								Code: {{ language.code }}
+								Code: {{ language.code || "N/A" }}
 							</p>
 						</div>
 
@@ -227,14 +239,6 @@
 					</div>
 
 					<div class="flex gap-2">
-						<p-button
-							icon="pi pi-eye"
-							severity="secondary"
-							size="small"
-							[text]="true"
-							(onClick)="viewLanguage(language)"
-							pTooltip="View Details"
-						></p-button>
 						<p-button
 							icon="pi pi-pencil"
 							severity="secondary"
@@ -292,26 +296,18 @@
 								class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center"
 							>
 								<span class="text-white font-bold text-xs">{{
-									language.code.toUpperCase()
+									(language.code || "N/A").toUpperCase()
 								}}</span>
 							</div>
 							<span class="font-medium">{{ language.name }}</span>
 						</div>
 					</td>
 					<td>
-						<p-tag [value]="language.code" severity="info"></p-tag>
+						<p-tag [value]="language.code || 'N/A'" severity="info"></p-tag>
 					</td>
 					<td>{{ language.createdAt | date : "MMM dd, yyyy" }}</td>
 					<td class="text-center">
 						<div class="flex justify-center gap-1">
-							<p-button
-								icon="pi pi-eye"
-								severity="secondary"
-								size="small"
-								[text]="true"
-								(onClick)="viewLanguage(language)"
-								pTooltip="View Details"
-							></p-button>
 							<p-button
 								icon="pi pi-pencil"
 								severity="secondary"
@@ -373,82 +369,6 @@
 	</div>
 </div>
 
-<!-- Language Detail Dialog -->
-<p-dialog
-	[(visible)]="showLanguageDetail"
-	[header]="selectedLanguage?.name || 'Language Details'"
-	[modal]="true"
-	[style]="{ width: '50vw', maxWidth: '600px' }"
-	[draggable]="false"
-	[resizable]="false"
->
-	<div *ngIf="selectedLanguage" class="space-y-6">
-		<!-- Language Header -->
-		<div class="text-center">
-			<div
-				class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4"
-			>
-				<span class="text-white font-bold text-2xl">{{
-					selectedLanguage.code.toUpperCase()
-				}}</span>
-			</div>
-			<h3 class="text-2xl font-bold text-gray-900 dark:text-white">
-				{{ selectedLanguage.name }}
-			</h3>
-		</div>
-
-		<!-- Language Details -->
-		<div class="grid grid-cols-2 gap-4">
-			<div class="flex items-center justify-between">
-				<span class="text-sm font-medium text-gray-500">Language Code</span>
-				<span class="font-medium">{{ selectedLanguage.code }}</span>
-			</div>
-
-			<div class="flex items-center justify-between">
-				<span class="text-sm font-medium text-gray-500">Created Date</span>
-				<span class="font-medium">{{
-					selectedLanguage.createdAt | date : "MMM dd, yyyy"
-				}}</span>
-			</div>
-
-			<div class="flex items-center justify-between">
-				<span class="text-sm font-medium text-gray-500">Last Updated</span>
-				<span class="font-medium">{{
-					selectedLanguage.updatedAt | date : "MMM dd, yyyy"
-				}}</span>
-			</div>
-		</div>
-
-		<div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-			<div class="flex gap-3">
-				<p-button
-					label="Edit Language"
-					icon="pi pi-pencil"
-					severity="warn"
-					(onClick)="editLanguage(selectedLanguage); closeLanguageDetail()"
-				></p-button>
-				<p-button
-					label="Delete"
-					icon="pi pi-trash"
-					severity="danger"
-					outlined="true"
-					(onClick)="deleteLanguage(selectedLanguage); closeLanguageDetail()"
-				></p-button>
-			</div>
-		</div>
-	</div>
-
-	<ng-template pTemplate="footer">
-		<p-button
-			label="Close"
-			icon="pi pi-times"
-			severity="secondary"
-			outlined="true"
-			(onClick)="closeLanguageDetail()"
-		></p-button>
-	</ng-template>
-</p-dialog>
-
 <!-- Add/Edit Language Dialog -->
 <p-dialog
 	[(visible)]="showAddEditDialog"
@@ -470,8 +390,15 @@
 				name="languageName"
 				placeholder="Enter language name"
 				class="w-full"
+				[class.border-red-500]="!languageForm.name && showValidationErrors"
 				required
 			/>
+			<small
+				*ngIf="!languageForm.name && showValidationErrors"
+				class="text-red-500 mt-1"
+			>
+				Language name is required
+			</small>
 		</div>
 
 		<div>
@@ -487,9 +414,31 @@
 				class="w-full"
 				maxlength="2"
 				style="text-transform: lowercase"
+				(input)="onLanguageCodeInput($event)"
+				[class.border-red-500]="
+					(!languageForm.code ||
+						!isValidLanguageCode(languageForm.code || '')) &&
+					showValidationErrors
+				"
 				required
 			/>
 			<small class="text-gray-500">ISO 639-1 two-letter language code</small>
+			<small
+				*ngIf="
+					languageForm.code &&
+					!isValidLanguageCode(languageForm.code) &&
+					showValidationErrors
+				"
+				class="text-red-500 mt-1 block"
+			>
+				Language code must be exactly 2 lowercase letters
+			</small>
+			<small
+				*ngIf="!languageForm.code && showValidationErrors"
+				class="text-red-500 mt-1 block"
+			>
+				Language code is required
+			</small>
 		</div>
 	</form>
 
@@ -512,3 +461,11 @@
 		</div>
 	</ng-template>
 </p-dialog>
+
+<!-- Confirmation Dialog -->
+<p-confirmDialog
+	[style]="{ width: '450px' }"
+	[baseZIndex]="10000"
+	acceptButtonStyleClass="p-button-danger"
+	rejectButtonStyleClass="p-button-secondary p-button-outlined"
+></p-confirmDialog>

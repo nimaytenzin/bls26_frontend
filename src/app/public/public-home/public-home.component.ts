@@ -6,8 +6,10 @@ import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { MovieService } from '../../core/services/movie.service';
-import { Movie } from '../../core/services/movie.interface';
+import {
+	Movie,
+	ScreeningStatusEnum,
+} from '../../core/dataservice/movie/movie.interface';
 
 @Component({
 	selector: 'app-public-home',
@@ -58,11 +60,7 @@ export class PublicHomeComponent implements OnInit {
 	movieStatuses: string[] = ['Screening', 'Coming Soon'];
 	selectedStatus: string = 'Screening';
 
-	constructor(
-		private router: Router,
-		private sanitizer: DomSanitizer,
-		private movieService: MovieService
-	) {}
+	constructor(private router: Router, private sanitizer: DomSanitizer) {}
 
 	ngOnInit() {
 		this.loadMovies();
@@ -72,12 +70,7 @@ export class PublicHomeComponent implements OnInit {
 		}, 0);
 	}
 
-	private loadMovies() {
-		this.movieService.getAllMovies().subscribe((movies) => {
-			this.movies = movies;
-			this.filterByStatus('Screening');
-		});
-	}
+	private loadMovies() {}
 
 	buyTickets(movieId: number) {
 		// Find the movie to check its status
@@ -85,10 +78,14 @@ export class PublicHomeComponent implements OnInit {
 			this.movies.find((m) => m.id === movieId) ||
 			this.filteredMovies.find((m) => m.id === movieId);
 
-		if (movie && (movie.status === 'coming-soon' || movie.status === 'ended')) {
+		if (
+			movie &&
+			(movie.screeningStatus === ScreeningStatusEnum.UPCOMING ||
+				movie.screeningStatus === ScreeningStatusEnum.ENDED)
+		) {
 			// Show alert or message that booking is not available
 			alert(
-				movie.status === 'coming-soon'
+				movie.screeningStatus === ScreeningStatusEnum.UPCOMING
 					? 'This movie is coming soon. Booking will be available closer to the release date.'
 					: 'This movie is no longer screening.'
 			);
@@ -118,12 +115,12 @@ export class PublicHomeComponent implements OnInit {
 			'Coming Soon': 'coming-soon',
 		} as const;
 
-		const movieStatus =
-			statusMapping[status as keyof typeof statusMapping] || 'screening';
+		// const movieStatus =
+		// 	statusMapping[status as keyof typeof statusMapping] || 'screening';
 
-		this.movieService.getMoviesByStatus(movieStatus).subscribe((movies) => {
-			this.filteredMovies = movies;
-		});
+		// this.movieService.getMoviesByStatus(movieStatus).subscribe((movies) => {
+		// 	this.filteredMovies = movies;
+		// });
 	}
 
 	private convertToEmbedUrl(youtubeUrl: string): string {

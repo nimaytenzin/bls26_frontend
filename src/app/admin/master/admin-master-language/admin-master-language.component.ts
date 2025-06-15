@@ -1,16 +1,21 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import {
+	Subject,
+	takeUntil,
+	debounceTime,
+	distinctUntilChanged,
+	finalize,
+} from 'rxjs';
+import { ConfirmationService } from 'primeng/api';
 import { PrimeNgModules } from '../../../primeng.modules';
-
-export interface Language {
-	id: number;
-	name: string;
-	code: string;
-	createdAt?: Date;
-	updatedAt?: Date;
-}
+import { LanguageDataService } from '../../../core/dataservice/language/language.dataservice';
+import {
+	Language,
+	CreateLanguageDto,
+	UpdateLanguageDto,
+} from '../../../core/dataservice/language/language.interface';
 
 interface FilterOptions {
 	sortBy: 'name' | 'code' | 'createdAt';
@@ -23,6 +28,7 @@ interface FilterOptions {
 	styleUrls: ['./admin-master-language.component.scss'],
 	standalone: true,
 	imports: [CommonModule, PrimeNgModules, FormsModule],
+	providers: [ConfirmationService],
 })
 export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 	private destroy$ = new Subject<void>();
@@ -33,6 +39,8 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 	filteredLanguages: Language[] = [];
 	loading = false;
 	searchQuery = '';
+	errorMessage = '';
+	successMessage = '';
 
 	// UI State
 	viewMode: 'grid' | 'list' | 'table' = 'table';
@@ -48,6 +56,7 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 	showAddEditDialog = false;
 	selectedLanguage: Language | null = null;
 	editingLanguage: Language | null = null;
+	showValidationErrors = false;
 
 	// Form properties
 	languageForm: Partial<Language> = {
@@ -80,7 +89,10 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 		{ label: 'Descending', value: 'desc' },
 	];
 
-	constructor() {}
+	constructor(
+		private languageDataService: LanguageDataService,
+		private confirmationService: ConfirmationService
+	) {}
 
 	ngOnInit() {
 		this.initializeData();
@@ -93,47 +105,35 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 	}
 
 	private initializeData() {
-		this.loading = true;
-		// Load initial data - replace with actual service call
 		this.loadLanguages();
-		this.loading = false;
 	}
 
 	private loadLanguages() {
-		// Mock data - replace with actual service call
-		this.languages = [
-			{
-				id: 1,
-				name: 'English',
-				code: 'en',
-				createdAt: new Date('2024-01-01'),
-				updatedAt: new Date('2024-01-01'),
-			},
-			{
-				id: 2,
-				name: 'Dzongkha',
-				code: 'dz',
-				createdAt: new Date('2024-01-02'),
-				updatedAt: new Date('2024-01-02'),
-			},
-			{
-				id: 3,
-				name: 'Hindi',
-				code: 'hi',
-				createdAt: new Date('2024-01-03'),
-				updatedAt: new Date('2024-01-03'),
-			},
-			{
-				id: 4,
-				name: 'Nepali',
-				code: 'ne',
-				createdAt: new Date('2024-01-04'),
-				updatedAt: new Date('2024-01-04'),
-			},
-		];
+		this.loading = true;
+		this.clearMessages();
 
-		this.totalRecords = this.languages.length;
-		this.applyFilters();
+		this.languageDataService
+			.findAllLanguages()
+			.pipe(
+				finalize(() => {
+					this.loading = false;
+				}),
+				takeUntil(this.destroy$)
+			)
+			.subscribe({
+				next: (languages) => {
+					this.languages = languages;
+					this.totalRecords = this.languages.length;
+					this.applyFilters();
+				},
+				error: (error) => {
+					console.error('Error loading languages:', error);
+					this.setErrorMessage('Failed to load languages. Please try again.');
+					this.languages = [];
+					this.totalRecords = 0;
+					this.applyFilters();
+				},
+			});
 	}
 
 	/**
@@ -156,6 +156,22 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 	}
 
 	/**
+	 * Handle language code input to automatically clean and format
+	 */
+	onLanguageCodeInput(event: any) {
+		const value = event.target.value;
+		if (value) {
+			// Remove non-alphabetic characters and convert to lowercase
+			const cleanValue = value
+				.replace(/[^a-zA-Z]/g, '')
+				.toLowerCase()
+				.slice(0, 2);
+			this.languageForm.code = cleanValue;
+			event.target.value = cleanValue;
+		}
+	}
+
+	/**
 	 * Apply filters and search
 	 */
 	applyFilters() {
@@ -167,7 +183,7 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 			filtered = filtered.filter(
 				(language) =>
 					language.name.toLowerCase().includes(query) ||
-					language.code.toLowerCase().includes(query)
+					(language.code && language.code.toLowerCase().includes(query))
 			);
 		}
 
@@ -179,7 +195,7 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 					comparison = a.name.localeCompare(b.name);
 					break;
 				case 'code':
-					comparison = a.code.localeCompare(b.code);
+					comparison = (a.code || '').localeCompare(b.code || '');
 					break;
 				case 'createdAt':
 					comparison =
@@ -245,6 +261,8 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 			name: '',
 			code: '',
 		};
+		this.showValidationErrors = false;
+		this.clearMessages();
 		this.showAddEditDialog = true;
 	}
 
@@ -254,6 +272,8 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 	editLanguage(language: Language) {
 		this.editingLanguage = language;
 		this.languageForm = { ...language };
+		this.showValidationErrors = false;
+		this.clearMessages();
 		this.showAddEditDialog = true;
 	}
 
@@ -261,36 +281,89 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 	 * Save language (add or edit)
 	 */
 	saveLanguage() {
+		this.showValidationErrors = true;
+
 		if (!this.languageForm.name || !this.languageForm.code) {
+			this.setErrorMessage('Name and code are required fields.');
 			return;
 		}
 
-		if (this.editingLanguage) {
-			// Update existing language
-			const index = this.languages.findIndex(
-				(l) => l.id === this.editingLanguage!.id
+		// Clean and normalize the language code
+		const cleanCode = this.languageForm.code.trim().toLowerCase();
+
+		// Validate language code format
+		if (!this.isValidLanguageCode(cleanCode)) {
+			this.setErrorMessage(
+				'Language code must be exactly 2 lowercase letters (e.g., en, dz, hi).'
 			);
-			if (index > -1) {
-				this.languages[index] = {
-					...this.languages[index],
-					...this.languageForm,
-					updatedAt: new Date(),
-				};
-			}
-		} else {
-			// Add new language
-			const newLanguage: Language = {
-				id: Math.max(...this.languages.map((l) => l.id)) + 1,
-				name: this.languageForm.name!,
-				code: this.languageForm.code!,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			};
-			this.languages.unshift(newLanguage);
+			return;
 		}
 
-		this.applyFilters();
-		this.closeAddEditDialog();
+		// Update the form with the cleaned code
+		this.languageForm.code = cleanCode;
+
+		this.loading = true;
+		this.clearMessages();
+
+		if (this.editingLanguage) {
+			// Update existing language
+			const updateDto: UpdateLanguageDto = {
+				name: this.languageForm.name,
+				code: this.languageForm.code,
+			};
+
+			this.languageDataService
+				.updateLanguage(this.editingLanguage.id, updateDto)
+				.pipe(
+					finalize(() => {
+						this.loading = false;
+					}),
+					takeUntil(this.destroy$)
+				)
+				.subscribe({
+					next: (response) => {
+						console.log('Language updated successfully:', response);
+						this.setSuccessMessage('Language updated successfully.');
+						this.loadLanguages(); // Reload the list
+						this.closeAddEditDialog();
+					},
+					error: (error) => {
+						console.error('Error updating language:', error);
+						this.setErrorMessage(
+							'Failed to update language. Please try again.'
+						);
+					},
+				});
+		} else {
+			// Add new language
+			const createDto: CreateLanguageDto = {
+				name: this.languageForm.name!,
+				code: this.languageForm.code!,
+			};
+
+			this.languageDataService
+				.createLanguage(createDto)
+				.pipe(
+					finalize(() => {
+						this.loading = false;
+					}),
+					takeUntil(this.destroy$)
+				)
+				.subscribe({
+					next: (response) => {
+						console.log('Language created successfully:', response);
+						this.setSuccessMessage('Language created successfully.');
+						this.loadLanguages(); // Reload the list
+						this.closeAddEditDialog();
+					},
+					error: (error) => {
+						console.error('Error creating language:', error);
+						this.setErrorMessage(
+							'Failed to create language. Please try again.'
+						);
+					},
+				});
+		}
 	}
 
 	/**
@@ -303,19 +376,59 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 			name: '',
 			code: '',
 		};
+		this.showValidationErrors = false;
+		this.clearMessages();
 	}
 
 	/**
 	 * Delete language
 	 */
 	deleteLanguage(language: Language) {
-		if (confirm(`Are you sure you want to delete "${language.name}"?`)) {
-			const index = this.languages.findIndex((l) => l.id === language.id);
-			if (index > -1) {
-				this.languages.splice(index, 1);
-				this.applyFilters();
-			}
-		}
+		this.confirmationService.confirm({
+			message: `Are you sure you want to delete the language "${language.name}"? This action cannot be undone.`,
+			header: 'Delete Confirmation',
+			icon: 'pi pi-exclamation-triangle',
+			acceptButtonStyleClass: 'p-button-danger',
+			rejectButtonStyleClass: 'p-button-secondary p-button-outlined',
+			acceptLabel: 'Yes, Delete',
+			rejectLabel: 'Cancel',
+			accept: () => {
+				this.performDelete(language);
+			},
+			reject: () => {
+				// User cancelled, do nothing
+			},
+		});
+	}
+
+	/**
+	 * Perform the actual delete operation
+	 */
+	private performDelete(language: Language) {
+		this.loading = true;
+		this.clearMessages();
+
+		this.languageDataService
+			.deleteLanguage(language.id)
+			.pipe(
+				finalize(() => {
+					this.loading = false;
+				}),
+				takeUntil(this.destroy$)
+			)
+			.subscribe({
+				next: (response) => {
+					console.log('Language deleted successfully:', response);
+					this.setSuccessMessage(
+						`Language "${language.name}" deleted successfully.`
+					);
+					this.loadLanguages(); // Reload the list
+				},
+				error: (error) => {
+					console.error('Error deleting language:', error);
+					this.setErrorMessage('Failed to delete language. Please try again.');
+				},
+			});
 	}
 
 	/**
@@ -329,7 +442,7 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 	 * Refresh data
 	 */
 	refreshData() {
-		this.initializeData();
+		this.loadLanguages();
 	}
 
 	/**
@@ -352,7 +465,39 @@ export class AdminMasterLanguageComponent implements OnInit, OnDestroy {
 	 * Validate language code format
 	 */
 	isValidLanguageCode(code: string): boolean {
-		// Basic validation for ISO 639-1 codes (2 letters)
-		return /^[a-z]{2}$/.test(code);
+		// Check if code exists and is a string
+		if (!code || typeof code !== 'string') {
+			return false;
+		}
+
+		// Trim whitespace and convert to lowercase
+		const cleanCode = code.trim().toLowerCase();
+
+		// Basic validation for ISO 639-1 codes (exactly 2 lowercase letters)
+		return /^[a-z]{2}$/.test(cleanCode);
+	}
+
+	/**
+	 * Clear all messages
+	 */
+	private clearMessages() {
+		this.errorMessage = '';
+		this.successMessage = '';
+	}
+
+	/**
+	 * Set error message
+	 */
+	private setErrorMessage(message: string) {
+		this.errorMessage = message;
+		this.successMessage = '';
+	}
+
+	/**
+	 * Set success message
+	 */
+	private setSuccessMessage(message: string) {
+		this.successMessage = message;
+		this.errorMessage = '';
 	}
 }

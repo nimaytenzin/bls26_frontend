@@ -19,13 +19,12 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as QRCode from 'qrcode';
-import { MovieService } from '../../core/services/movie.service';
-import {
-	BookingDetails,
-	Ticket,
-	Movie,
-	Screening,
-} from '../../core/models/movie.interface';
+// import {
+// 	BookingDetails,
+// 	Ticket,
+// 	Movie,
+// 	Screening,
+// } from '../../core/models/movie.interface';
 
 @Component({
 	selector: 'app-payment',
@@ -48,447 +47,384 @@ import {
 	providers: [MessageService],
 })
 export class PaymentComponent implements OnInit, OnDestroy {
-	bookingDetails: BookingDetails | null = null;
-	movie: Movie | null = null;
-	screening: Screening | null = null;
-	customerForm: FormGroup;
-	paymentForm: FormGroup;
-	processing = false;
-	currentStep = 1; // 1: Customer Info, 2: Payment, 3: Success
-	ticket: Ticket | null = null;
+	// bookingDetails: BookingDetails | null = null;
+	// movie: Movie | null = null;
+	// screening: Screening | null = null;
+	// customerForm: FormGroup;
+	// paymentForm: FormGroup;
+	// processing = false;
+	// currentStep = 1; // 1: Customer Info, 2: Payment, 3: Success
+	// ticket: Ticket | null = null;
 
-	// RMA Payment Gateway properties
-	paymentStep = 1; // 1: Bank Selection, 2: Account Entry, 3: OTP Verification
-	selectedBank: any = null;
-	accountNumber = '';
-	otpCode = '';
-	otpSent = false;
-	countdown = 0;
-	countdownInterval: any;
+	// // RMA Payment Gateway properties
+	// paymentStep = 1; // 1: Bank Selection, 2: Account Entry, 3: OTP Verification
+	// selectedBank: any = null;
+	// accountNumber = '';
+	// otpCode = '';
+	// otpSent = false;
+	// countdown = 0;
+	// countdownInterval: any;
 
-	// Bank options for RMA Payment Gateway
-	banks = [
-		{ name: 'Bank of Bhutan', code: 'BOB', logo: '/assets/banks/bob.png' },
-		{
-			name: 'Bhutan National Bank',
-			code: 'BNB',
-			logo: '/assets/banks/bnb.png',
-		},
-		{ name: 'Druk PNB Bank', code: 'DPNB', logo: '/assets/banks/dpnb.png' },
-		{ name: 'T-Bank', code: 'TBANK', logo: '/assets/banks/tbank.png' },
-	];
+	// // Bank options for RMA Payment Gateway
+	// banks = [
+	// 	{ name: 'Bank of Bhutan', code: 'BOB', logo: '/assets/banks/bob.png' },
+	// 	{
+	// 		name: 'Bhutan National Bank',
+	// 		code: 'BNB',
+	// 		logo: '/assets/banks/bnb.png',
+	// 	},
+	// 	{ name: 'Druk PNB Bank', code: 'DPNB', logo: '/assets/banks/dpnb.png' },
+	// 	{ name: 'T-Bank', code: 'TBANK', logo: '/assets/banks/tbank.png' },
+	// ];
 
-	// Trailer properties
-	showTrailerDialog = false;
-	safeTrailerUrl: SafeResourceUrl | null = null;
+	// // Trailer properties
+	// showTrailerDialog = false;
+	// safeTrailerUrl: SafeResourceUrl | null = null;
 
-	// QR Code properties
-	qrCodeDataURL: string = '';
+	// // QR Code properties
+	// qrCodeDataURL: string = '';
 
 	constructor(
 		private router: Router,
-		private movieService: MovieService,
 		private fb: FormBuilder,
 		private sanitizer: DomSanitizer,
 		private messageService: MessageService
 	) {
-		this.customerForm = this.fb.group({
-			name: ['', [Validators.required, Validators.minLength(2)]],
-			email: ['', [Validators.required, Validators.email]],
-			phone: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
-		});
-
-		this.paymentForm = this.fb.group({
-			selectedBank: ['', Validators.required],
-			accountNumber: ['', [Validators.required]],
-			otpCode: ['', [Validators.required, Validators.pattern(/^[0-9]{6}$/)]],
-		});
+		// this.customerForm = this.fb.group({
+		// 	name: ['', [Validators.required, Validators.minLength(2)]],
+		// 	email: ['', [Validators.required, Validators.email]],
+		// 	phone: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
+		// });
+		// this.paymentForm = this.fb.group({
+		// 	selectedBank: ['', Validators.required],
+		// 	accountNumber: ['', [Validators.required]],
+		// 	otpCode: ['', [Validators.required, Validators.pattern(/^[0-9]{6}$/)]],
+		// });
 	}
 
 	ngOnInit() {
-		this.bookingDetails = this.movieService.getCurrentBooking();
-		if (!this.bookingDetails) {
-			this.router.navigate(['/']);
-			return;
-		}
-
-		// Load movie and screening details
-		this.loadMovieDetails();
-		this.loadScreeningDetails();
+		// if (!this.bookingDetails) {
+		// 	this.router.navigate(['/']);
+		// 	return;
+		// }
+		// // Load movie and screening details
+		// this.loadMovieDetails();
+		// this.loadScreeningDetails();
 	}
 
 	ngOnDestroy() {
-		if (this.countdownInterval) {
-			clearInterval(this.countdownInterval);
-		}
+		// if (this.countdownInterval) {
+		// 	clearInterval(this.countdownInterval);
+		// }
 	}
 
-	private loadMovieDetails() {
-		if (!this.bookingDetails) return;
+	// private loadMovieDetails() {
+	// 	if (!this.bookingDetails) return;
+	// }
 
-		this.movieService.getMovieById(this.bookingDetails.movieId).subscribe({
-			next: (movie) => {
-				this.movie = movie || null;
-			},
-			error: (err) => {
-				console.error('Error loading movie details:', err);
-			},
-		});
-	}
+	// private loadScreeningDetails() {
+	// 	if (!this.bookingDetails) return;
+	// }
 
-	private loadScreeningDetails() {
-		if (!this.bookingDetails) return;
+	// nextStep() {
+	// 	if (this.currentStep === 1 && this.customerForm.valid) {
+	// 		this.bookingDetails!.customerInfo = this.customerForm.value;
+	// 		this.currentStep = 2;
+	// 	}
+	// }
 
-		this.movieService
-			.getScreeningById(this.bookingDetails.screeningId)
-			.subscribe({
-				next: (screening) => {
-					this.screening = screening || null;
-				},
-				error: (err) => {
-					console.error('Error loading screening details:', err);
-				},
-			});
-	}
+	// previousStep() {
+	// 	if (this.currentStep === 2) {
+	// 		this.currentStep = 1;
+	// 	}
+	// }
 
-	nextStep() {
-		if (this.currentStep === 1 && this.customerForm.valid) {
-			this.bookingDetails!.customerInfo = this.customerForm.value;
-			this.currentStep = 2;
-		}
-	}
+	// processPayment() {
+	// 	if (!this.bookingDetails) return;
 
-	previousStep() {
-		if (this.currentStep === 2) {
-			this.currentStep = 1;
-		}
-	}
+	// 	this.processing = true;
+	// }
 
-	processPayment() {
-		if (!this.bookingDetails) return;
+	// downloadTicket() {
+	// 	if (!this.ticket) return;
 
-		this.processing = true;
+	// 	const ticketData = {
+	// 		id: this.ticket.id,
+	// 		movie: this.ticket.movieTitle,
+	// 		theatre: this.ticket.theatreName,
+	// 		date: this.ticket.date,
+	// 		time: this.ticket.time,
+	// 		seats: this.ticket.seats.join(', '),
+	// 		amount: this.ticket.totalAmount,
+	// 	};
 
-		this.movieService.processPayment(this.bookingDetails).subscribe({
-			next: (result) => {
-				if (result.success && result.transactionId) {
-					// Generate ticket
-					this.movieService
-						.generateTicket(this.bookingDetails!, result.transactionId)
-						.subscribe({
-							next: (ticket) => {
-								this.ticket = ticket;
-								this.generateQRCode(ticket.id);
-								this.currentStep = 3;
-								this.processing = false;
-								this.movieService.clearCurrentBooking();
-							},
-							error: (err) => {
-								console.error('Error generating ticket:', err);
-								this.processing = false;
-							},
-						});
-				} else {
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Payment Failed',
-						detail: result.error || 'Payment failed. Please try again.',
-					});
-					this.processing = false;
-				}
-			},
-			error: (err) => {
-				console.error('Payment error:', err);
-				this.messageService.add({
-					severity: 'error',
-					summary: 'Payment Error',
-					detail: 'Payment failed. Please try again.',
-				});
-				this.processing = false;
-			},
-		});
-	}
+	// 	const dataStr = JSON.stringify(ticketData, null, 2);
+	// 	const dataBlob = new Blob([dataStr], { type: 'application/json' });
+	// 	const url = URL.createObjectURL(dataBlob);
 
-	downloadTicket() {
-		if (!this.ticket) return;
+	// 	const link = document.createElement('a');
+	// 	link.href = url;
+	// 	link.download = `movie-ticket-${this.ticket.id}.json`;
+	// 	link.click();
 
-		const ticketData = {
-			id: this.ticket.id,
-			movie: this.ticket.movieTitle,
-			theatre: this.ticket.theatreName,
-			date: this.ticket.date,
-			time: this.ticket.time,
-			seats: this.ticket.seats.join(', '),
-			amount: this.ticket.totalAmount,
-		};
+	// 	URL.revokeObjectURL(url);
+	// }
 
-		const dataStr = JSON.stringify(ticketData, null, 2);
-		const dataBlob = new Blob([dataStr], { type: 'application/json' });
-		const url = URL.createObjectURL(dataBlob);
+	// goHome() {
+	// 	this.router.navigate(['/']);
+	// }
 
-		const link = document.createElement('a');
-		link.href = url;
-		link.download = `movie-ticket-${this.ticket.id}.json`;
-		link.click();
+	// formatCurrency(amount: number): string {
+	// 	return `Nu. ${amount.toFixed(2)}`;
+	// }
 
-		URL.revokeObjectURL(url);
-	}
+	// formatSeats(seats: string[]): string {
+	// 	return seats.join(', ');
+	// }
 
-	goHome() {
-		this.router.navigate(['/']);
-	}
+	// getSelectedSeatIds(): string {
+	// 	if (!this.bookingDetails?.selectedSeats) return '';
+	// 	return this.bookingDetails.selectedSeats.map((seat) => seat.id).join(', ');
+	// }
 
-	formatCurrency(amount: number): string {
-		return `Nu. ${amount.toFixed(2)}`;
-	}
+	// getMovieTitle(): string {
+	// 	return this.movie?.title || 'Loading...';
+	// }
 
-	formatSeats(seats: string[]): string {
-		return seats.join(', ');
-	}
+	// getTheatreName(): string {
+	// 	return this.screening?.theatreName || 'Loading...';
+	// }
 
-	getSelectedSeatIds(): string {
-		if (!this.bookingDetails?.selectedSeats) return '';
-		return this.bookingDetails.selectedSeats.map((seat) => seat.id).join(', ');
-	}
+	// getHallName(): string {
+	// 	return this.screening?.hallName || 'Loading...';
+	// }
 
-	getMovieTitle(): string {
-		return this.movie?.title || 'Loading...';
-	}
+	// getScreeningDateTime(): string {
+	// 	if (!this.screening) return 'Loading...';
+	// 	const date = new Date(this.screening.date).toLocaleDateString();
+	// 	return `${date} at ${this.screening.time}`;
+	// }
 
-	getTheatreName(): string {
-		return this.screening?.theatreName || 'Loading...';
-	}
+	// getTotalAmount(): number {
+	// 	if (!this.bookingDetails) return 0;
+	// 	return this.bookingDetails.selectedSeats.reduce(
+	// 		(total, seat) => total + seat.price,
+	// 		0
+	// 	);
+	// }
 
-	getHallName(): string {
-		return this.screening?.hallName || 'Loading...';
-	}
-
-	getScreeningDateTime(): string {
-		if (!this.screening) return 'Loading...';
-		const date = new Date(this.screening.date).toLocaleDateString();
-		return `${date} at ${this.screening.time}`;
-	}
-
-	getTotalAmount(): number {
-		if (!this.bookingDetails) return 0;
-		return this.bookingDetails.selectedSeats.reduce(
-			(total, seat) => total + seat.price,
-			0
-		);
-	}
-
-	goBackToSeats() {
-		if (this.bookingDetails?.screeningId) {
-			this.router.navigate(['/select-seats', this.bookingDetails.screeningId]);
-		} else {
-			this.router.navigate(['/']);
-		}
-	}
+	// goBackToSeats() {
+	// 	if (this.bookingDetails?.screeningId) {
+	// 		this.router.navigate(['/select-seats', this.bookingDetails.screeningId]);
+	// 	} else {
+	// 		this.router.navigate(['/']);
+	// 	}
+	// }
 
 	// RMA Payment Gateway Methods
-	selectBank(bank: any) {
-		this.selectedBank = bank;
-		this.paymentForm.patchValue({ selectedBank: bank });
-		this.paymentStep = 2;
-	}
+	// selectBank(bank: any) {
+	// 	this.selectedBank = bank;
+	// 	this.paymentForm.patchValue({ selectedBank: bank });
+	// 	this.paymentStep = 2;
+	// }
 
-	proceedToAccountEntry() {
-		if (this.selectedBank) {
-			this.paymentStep = 2;
-		}
-	}
+	// proceedToAccountEntry() {
+	// 	if (this.selectedBank) {
+	// 		this.paymentStep = 2;
+	// 	}
+	// }
 
-	proceedToOTP() {
-		const accountNumber = this.paymentForm.get('accountNumber')?.value;
-		if (accountNumber) {
-			this.accountNumber = accountNumber;
-			this.sendOTP();
-			this.paymentStep = 3;
-		} else {
-			this.messageService.add({
-				severity: 'error',
-				summary: 'Invalid Account',
-				detail: 'Please enter a valid account number.',
-			});
-		}
-	}
+	// proceedToOTP() {
+	// 	const accountNumber = this.paymentForm.get('accountNumber')?.value;
+	// 	if (accountNumber) {
+	// 		this.accountNumber = accountNumber;
+	// 		this.sendOTP();
+	// 		this.paymentStep = 3;
+	// 	} else {
+	// 		this.messageService.add({
+	// 			severity: 'error',
+	// 			summary: 'Invalid Account',
+	// 			detail: 'Please enter a valid account number.',
+	// 		});
+	// 	}
+	// }
 
-	sendOTP() {
-		this.otpSent = true;
-		this.countdown = 60;
-		this.startCountdown();
+	// sendOTP() {
+	// 	this.otpSent = true;
+	// 	this.countdown = 60;
+	// 	this.startCountdown();
 
-		this.messageService.add({
-			severity: 'success',
-			summary: 'OTP Sent',
-			detail: `OTP has been sent to your registered mobile number ending with ***${this.accountNumber.slice(
-				-3
-			)}`,
-		});
-	}
+	// 	this.messageService.add({
+	// 		severity: 'success',
+	// 		summary: 'OTP Sent',
+	// 		detail: `OTP has been sent to your registered mobile number ending with ***${this.accountNumber.slice(
+	// 			-3
+	// 		)}`,
+	// 	});
+	// }
 
-	resendOTP() {
-		if (this.countdown === 0) {
-			this.sendOTP();
-		}
-	}
+	// resendOTP() {
+	// 	if (this.countdown === 0) {
+	// 		this.sendOTP();
+	// 	}
+	// }
 
-	startCountdown() {
-		this.countdownInterval = setInterval(() => {
-			this.countdown--;
-			if (this.countdown === 0) {
-				clearInterval(this.countdownInterval);
-			}
-		}, 1000);
-	}
+	// startCountdown() {
+	// 	this.countdownInterval = setInterval(() => {
+	// 		this.countdown--;
+	// 		if (this.countdown === 0) {
+	// 			clearInterval(this.countdownInterval);
+	// 		}
+	// 	}, 1000);
+	// }
 
-	verifyOTP() {
-		const otpCode = this.paymentForm.get('otpCode')?.value;
-		if (otpCode && otpCode.length === 6) {
-			this.otpCode = otpCode;
-			// Simulate OTP verification
-			this.processing = true;
-			setTimeout(() => {
-				this.processPayment();
-			}, 2000);
-		} else {
-			this.messageService.add({
-				severity: 'error',
-				summary: 'Invalid OTP',
-				detail: 'Please enter a valid 6-digit OTP.',
-			});
-		}
-	}
+	// verifyOTP() {
+	// 	const otpCode = this.paymentForm.get('otpCode')?.value;
+	// 	if (otpCode && otpCode.length === 6) {
+	// 		this.otpCode = otpCode;
+	// 		// Simulate OTP verification
+	// 		this.processing = true;
+	// 		setTimeout(() => {
+	// 			this.processPayment();
+	// 		}, 2000);
+	// 	} else {
+	// 		this.messageService.add({
+	// 			severity: 'error',
+	// 			summary: 'Invalid OTP',
+	// 			detail: 'Please enter a valid 6-digit OTP.',
+	// 		});
+	// 	}
+	// }
 
-	goBackToPaymentStep(step: number) {
-		this.paymentStep = step;
-		if (step === 1) {
-			this.selectedBank = null;
-			this.accountNumber = '';
-			this.otpCode = '';
-			this.otpSent = false;
-			this.countdown = 0;
-			if (this.countdownInterval) {
-				clearInterval(this.countdownInterval);
-			}
-		}
-	}
+	// goBackToPaymentStep(step: number) {
+	// 	this.paymentStep = step;
+	// 	if (step === 1) {
+	// 		this.selectedBank = null;
+	// 		this.accountNumber = '';
+	// 		this.otpCode = '';
+	// 		this.otpSent = false;
+	// 		this.countdown = 0;
+	// 		if (this.countdownInterval) {
+	// 			clearInterval(this.countdownInterval);
+	// 		}
+	// 	}
+	// }
 
 	// Helper methods for ticket display
-	getFormattedSeats(): string {
-		if (!this.ticket?.seats && !this.bookingDetails?.selectedSeats)
-			return 'No seats';
+	// getFormattedSeats(): string {
+	// 	if (!this.ticket?.seats && !this.bookingDetails?.selectedSeats)
+	// 		return 'No seats';
 
-		if (this.ticket?.seats) {
-			return this.ticket.seats.join(', ');
-		}
+	// 	if (this.ticket?.seats) {
+	// 		return this.ticket.seats.join(', ');
+	// 	}
 
-		return this.bookingDetails!.selectedSeats.map((seat) => seat.id).join(', ');
-	}
+	// 	return this.bookingDetails!.selectedSeats.map((seat) => seat.id).join(', ');
+	// }
 
-	getFormattedDateTime(): string {
-		if (!this.ticket) return 'Loading...';
+	// getFormattedDateTime(): string {
+	// 	if (!this.ticket) return 'Loading...';
 
-		const date = new Date(this.ticket.date);
-		const formattedDate = date.toLocaleDateString('en-US', {
-			weekday: 'short',
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		});
+	// 	const date = new Date(this.ticket.date);
+	// 	const formattedDate = date.toLocaleDateString('en-US', {
+	// 		weekday: 'short',
+	// 		year: 'numeric',
+	// 		month: 'short',
+	// 		day: 'numeric',
+	// 	});
 
-		return `${formattedDate} at ${this.ticket.time}`;
-	}
+	// 	return `${formattedDate} at ${this.ticket.time}`;
+	// }
 
-	getCustomerName(): string {
-		return this.bookingDetails?.customerInfo?.name || 'Guest Customer';
-	}
+	// getCustomerName(): string {
+	// 	return this.bookingDetails?.customerInfo?.name || 'Guest Customer';
+	// }
 
-	getCustomerEmail(): string {
-		return this.bookingDetails?.customerInfo?.email || 'No email provided';
-	}
+	// getCustomerEmail(): string {
+	// 	return this.bookingDetails?.customerInfo?.email || 'No email provided';
+	// }
 
-	getCustomerPhone(): string {
-		return this.bookingDetails?.customerInfo?.phone || 'No phone provided';
-	}
+	// getCustomerPhone(): string {
+	// 	return this.bookingDetails?.customerInfo?.phone || 'No phone provided';
+	// }
 
-	getSeatCount(): number {
-		if (this.ticket?.seats) {
-			return this.ticket.seats.length;
-		}
-		return this.bookingDetails?.selectedSeats?.length || 0;
-	}
+	// getSeatCount(): number {
+	// 	if (this.ticket?.seats) {
+	// 		return this.ticket.seats.length;
+	// 	}
+	// 	return this.bookingDetails?.selectedSeats?.length || 0;
+	// }
 
 	// Trailer methods
-	openTrailer() {
-		if (this.movie?.trailerUrl) {
-			const embedUrl = this.convertToEmbedUrl(this.movie.trailerUrl);
-			this.safeTrailerUrl =
-				this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
-			this.showTrailerDialog = true;
-		}
-	}
+	// openTrailer() {
+	// 	if (this.movie?.trailerUrl) {
+	// 		const embedUrl = this.convertToEmbedUrl(this.movie.trailerUrl);
+	// 		this.safeTrailerUrl =
+	// 			this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+	// 		this.showTrailerDialog = true;
+	// 	}
+	// }
 
-	closeTrailer() {
-		this.showTrailerDialog = false;
-		this.safeTrailerUrl = null;
-	}
+	// closeTrailer() {
+	// 	this.showTrailerDialog = false;
+	// 	this.safeTrailerUrl = null;
+	// }
 
-	private convertToEmbedUrl(youtubeUrl: string): string {
-		const regExp =
-			/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-		const match = youtubeUrl.match(regExp);
-		const videoId = match && match[7].length === 11 ? match[7] : null;
+	// private convertToEmbedUrl(youtubeUrl: string): string {
+	// 	const regExp =
+	// 		/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+	// 	const match = youtubeUrl.match(regExp);
+	// 	const videoId = match && match[7].length === 11 ? match[7] : null;
 
-		if (videoId) {
-			return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1`;
-		}
-		return youtubeUrl;
-	}
+	// 	if (videoId) {
+	// 		return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1`;
+	// 	}
+	// 	return youtubeUrl;
+	// }
 
-	// QR Code generation method
-	async generateQRCode(ticketId: string): Promise<void> {
-		try {
-			const qrData = {
-				ticketId: ticketId,
-				movieTitle: this.movie?.title || 'Unknown Movie',
-				theatreName: this.screening?.theatreName || 'Unknown Theatre',
-				hallName: this.screening?.hallName || 'Unknown Hall',
-				date: this.screening?.date || new Date().toISOString(),
-				time: this.screening?.time || 'Unknown Time',
-				seats:
-					this.bookingDetails?.selectedSeats?.map((seat: any) => seat.id) || [],
-				customerName: this.getCustomerName(),
-				totalAmount: this.getTotalAmount(),
-				bookingDate: new Date().toISOString(),
-				verificationCode: this.generateVerificationCode(),
-			};
+	// // QR Code generation method
+	// async generateQRCode(ticketId: string): Promise<void> {
+	// 	try {
+	// 		const qrData = {
+	// 			ticketId: ticketId,
+	// 			movieTitle: this.movie?.title || 'Unknown Movie',
+	// 			theatreName: this.screening?.theatreName || 'Unknown Theatre',
+	// 			hallName: this.screening?.hallName || 'Unknown Hall',
+	// 			date: this.screening?.date || new Date().toISOString(),
+	// 			time: this.screening?.time || 'Unknown Time',
+	// 			seats:
+	// 				this.bookingDetails?.selectedSeats?.map((seat: any) => seat.id) || [],
+	// 			customerName: this.getCustomerName(),
+	// 			totalAmount: this.getTotalAmount(),
+	// 			bookingDate: new Date().toISOString(),
+	// 			verificationCode: this.generateVerificationCode(),
+	// 		};
 
-			const qrString = JSON.stringify(qrData);
-			this.qrCodeDataURL = await QRCode.toDataURL(qrString, {
-				width: 200,
-				margin: 2,
-				color: {
-					dark: '#000000',
-					light: '#FFFFFF',
-				},
-				errorCorrectionLevel: 'M',
-			});
-		} catch (error: any) {
-			console.error('Error generating QR code:', error);
-			// Fallback to a simple ticket ID QR code
-			try {
-				this.qrCodeDataURL = await QRCode.toDataURL(ticketId, {
-					width: 200,
-					margin: 2,
-				});
-			} catch (fallbackError: any) {
-				console.error('Error generating fallback QR code:', fallbackError);
-			}
-		}
-	}
+	// 		const qrString = JSON.stringify(qrData);
+	// 		this.qrCodeDataURL = await QRCode.toDataURL(qrString, {
+	// 			width: 200,
+	// 			margin: 2,
+	// 			color: {
+	// 				dark: '#000000',
+	// 				light: '#FFFFFF',
+	// 			},
+	// 			errorCorrectionLevel: 'M',
+	// 		});
+	// 	} catch (error: any) {
+	// 		console.error('Error generating QR code:', error);
+	// 		// Fallback to a simple ticket ID QR code
+	// 		try {
+	// 			this.qrCodeDataURL = await QRCode.toDataURL(ticketId, {
+	// 				width: 200,
+	// 				margin: 2,
+	// 			});
+	// 		} catch (fallbackError: any) {
+	// 			console.error('Error generating fallback QR code:', fallbackError);
+	// 		}
+	// 	}
+	// }
 
-	private generateVerificationCode(): string {
-		return Math.random().toString(36).substring(2, 8).toUpperCase();
-	}
+	// private generateVerificationCode(): string {
+	// 	return Math.random().toString(36).substring(2, 8).toUpperCase();
+	// }
 }

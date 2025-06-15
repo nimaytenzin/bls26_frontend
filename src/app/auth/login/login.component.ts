@@ -7,8 +7,9 @@ import {
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { PrimeNgModules } from '../../primeng.modules';
+import { AuthService } from '../../core/dataservice/auth/auth.service';
+import { LoginDto } from '../../core/dataservice/auth/auth.interface';
 
 @Component({
 	selector: 'app-login',
@@ -19,6 +20,8 @@ import { PrimeNgModules } from '../../primeng.modules';
 })
 export class LoginComponent implements OnInit {
 	loginForm!: FormGroup;
+	isLoading = false;
+	errorMessage = '';
 
 	mouseX: number = 0;
 	mouseY: number = 0;
@@ -27,20 +30,115 @@ export class LoginComponent implements OnInit {
 
 	constructor(
 		private fb: FormBuilder,
-		private http: HttpClient,
+		private authService: AuthService,
 		private router: Router
 	) {}
 
 	ngOnInit(): void {
+		// Initialize the form first
 		this.loginForm = this.fb.group({
-			username: ['nimaytenzin', [Validators.required]],
-			password: ['overlord123', Validators.required],
+			phoneNumber: [
+				17263764,
+				[
+					Validators.required,
+					Validators.min(1000000),
+					Validators.max(99999999999),
+				],
+			],
+			password: ['overlord123', [Validators.required, Validators.minLength(6)]],
 		});
+
+		// Check if user is already authenticated
+		if (this.authService.isAuthenticated()) {
+			this.redirectToUserDashboard();
+			return;
+		}
 	}
 
 	login(): void {
-		console.log('LOGGIN IN');
-		this.router.navigate(['admin']);
+		if (this.loginForm.invalid) {
+			this.markFormGroupTouched();
+			return;
+		}
+
+		this.isLoading = true;
+		this.errorMessage = '';
+
+		const loginDto: LoginDto = {
+			phoneNumber: this.loginForm.value.phoneNumber,
+			password: this.loginForm.value.password,
+		};
+
+		this.authService.login(loginDto).subscribe({
+			next: (response) => {
+				console.log('Login successful:', response);
+				this.isLoading = false;
+				this.redirectToUserDashboard();
+			},
+			error: (error) => {
+				console.error('Login error:', error);
+				this.isLoading = false;
+				this.errorMessage = error.message || 'Login failed. Please try again.';
+			},
+		});
+	}
+
+	/**
+	 * Redirect user to appropriate dashboard based on role
+	 */
+	private redirectToUserDashboard(): void {
+		const user = this.authService.getCurrentUser();
+
+		if (user) {
+			if (this.authService.isAdmin() || this.authService.isManager()) {
+				this.router.navigate(['/admin']);
+			} else {
+				this.router.navigate(['/']);
+			}
+		} else {
+			this.router.navigate(['/']);
+		}
+	}
+
+	/**
+	 * Mark all form controls as touched to show validation errors
+	 */
+	private markFormGroupTouched(): void {
+		Object.keys(this.loginForm.controls).forEach((key) => {
+			const control = this.loginForm.get(key);
+			control?.markAsTouched();
+		});
+	}
+
+	/**
+	 * Check if form field has error
+	 */
+	hasFieldError(fieldName: string): boolean {
+		const field = this.loginForm.get(fieldName);
+		return !!(field && field.invalid && field.touched);
+	}
+
+	/**
+	 * Get field error message
+	 */
+	getFieldError(fieldName: string): string {
+		const field = this.loginForm.get(fieldName);
+
+		if (field && field.errors && field.touched) {
+			if (field.errors['required']) {
+				return `${
+					fieldName === 'phoneNumber' ? 'Phone number' : 'Password'
+				} is required`;
+			}
+			if (field.errors['minlength']) {
+				return `Password must be at least ${field.errors['minlength'].requiredLength} characters`;
+			}
+			if (field.errors['min'] || field.errors['max']) {
+				return 'Please enter a valid phone number';
+			}
+		}
+
+		return '';
 	}
 
 	@HostListener('mousemove', ['$event'])

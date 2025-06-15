@@ -9,8 +9,6 @@ import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { MovieService } from '../../core/services/movie.service';
-import { Movie, Screening, Theatre } from '../../core/models/movie.interface';
 
 interface SeatType {
 	name: string;
@@ -44,191 +42,137 @@ interface ShowTime {
 	],
 })
 export class PublicSelectMovieScheduleComponent implements OnInit {
-	loading = true;
-	error: string | null = null;
+	// loading = true;
+	// error: string | null = null;
 
-	movie: Movie | null = null;
-	availableDates: Date[] = [];
-	selectedDate: Date = new Date();
-	cinemaLocations: Theatre[] = [];
-	selectedLocation: Theatre | null = null;
-	showtimes: ShowTime[] = [];
-	selectedShowtime: ShowTime | null = null;
+	// movie: Movie | null = null;
+	// availableDates: Date[] = [];
+	// selectedDate: Date = new Date();
+	// cinemaLocations: Theatre[] = [];
+	// selectedLocation: Theatre | null = null;
+	// showtimes: ShowTime[] = [];
+	// selectedShowtime: ShowTime | null = null;
 
-	// Trailer properties
-	showTrailerDialog = false;
-	safeTrailerUrl: SafeResourceUrl | null = null;
+	// // Trailer properties
+	// showTrailerDialog = false;
+	// safeTrailerUrl: SafeResourceUrl | null = null;
 
 	constructor(
 		private router: Router,
 		private route: ActivatedRoute,
-		private movieService: MovieService,
 		private sanitizer: DomSanitizer
 	) {}
 
 	ngOnInit() {
-		this.route.params.subscribe((params) => {
-			const movieId = +params['id'];
-			if (movieId) {
-				this.loadMovieData(movieId);
-			} else {
-				this.error = 'Movie not found';
-				this.loading = false;
-			}
-		});
+		// this.route.params.subscribe((params) => {
+		// 	const movieId = +params['id'];
+		// 	if (movieId) {
+		// 		this.loadMovieData(movieId);
+		// 	} else {
+		// 		this.error = 'Movie not found';
+		// 		this.loading = false;
+		// 	}
+		// });
 	}
 
-	private loadMovieData(movieId: number) {
-		this.loading = true;
-		this.error = null;
+	// private loadMovieData(movieId: number) {
+	// 	this.loading = true;
+	// 	this.error = null;
 
-		// Load movie details
-		this.movieService.getMovieById(movieId).subscribe({
-			next: (movie) => {
-				if (movie) {
-					this.movie = movie;
-					this.loadAvailableDates();
-					this.loadCinemaLocations(movieId);
-				} else {
-					this.error = 'Movie not found';
-					this.loading = false;
-				}
-			},
-			error: (err) => {
-				this.error = 'Failed to load movie details';
-				this.loading = false;
-			},
-		});
-	}
+	// 	// Load movie details
+	// 	// this.movieService.getMovieById(movieId).subscribe({
+	// 	// 	next: (movie) => {
+	// 	// 		if (movie) {
+	// 	// 			this.movie = movie;
+	// 	// 			this.loadAvailableDates();
+	// 	// 			this.loadCinemaLocations(movieId);
+	// 	// 		} else {
+	// 	// 			this.error = 'Movie not found';
+	// 	// 			this.loading = false;
+	// 	// 		}
+	// 	// 	},
+	// 	// 	error: (err) => {
+	// 	// 		this.error = 'Failed to load movie details';
+	// 	// 		this.loading = false;
+	// 	// 	},
+	// 	// });
+	// }
 
-	private loadAvailableDates() {
-		this.movieService.getAvailableDates().subscribe({
-			next: (dates) => {
-				this.availableDates = dates;
-				this.selectedDate = dates[0]; // Select today by default
-				this.loadShowtimes();
-			},
-		});
-	}
+	// private loadAvailableDates() {}
 
-	private loadCinemaLocations(movieId: number) {
-		this.movieService.getTheatresForMovie(movieId).subscribe({
-			next: (theatres) => {
-				this.cinemaLocations = theatres;
-				if (theatres.length > 0) {
-					this.selectedLocation = theatres[0]; // Select first theatre by default
-					this.loadShowtimes();
-				}
-			},
-		});
-	}
+	// private loadCinemaLocations(movieId: number) {}
 
-	private loadShowtimes() {
-		if (!this.movie || !this.selectedDate || !this.selectedLocation) {
-			this.loading = false;
-			return;
-		}
+	// private loadShowtimes() {}
 
-		this.movieService
-			.getScreeningsByMovieAndDate(this.movie.id, this.selectedDate)
-			.subscribe({
-				next: (screenings) => {
-					// Filter screenings by selected location
-					const locationScreenings = screenings.filter(
-						(s) => s.theatreId === this.selectedLocation!.id
-					);
+	// selectLocation(location: Theatre) {
+	// 	this.selectedLocation = location;
+	// 	this.selectedShowtime = null; // Reset showtime selection
+	// 	this.loadShowtimes();
+	// }
 
-					this.showtimes = locationScreenings.map((screening) => ({
-						screeningId: screening.id,
-						time: screening.time,
-						theatre: screening.theatreName,
-						hall: screening.hallName,
-						availableSeats: screening.availableSeats,
-						totalSeats: screening.totalSeats,
-						seatTypes: [
-							{ name: 'Basic', price: screening.seatPricing.basic },
-							{ name: 'Premium', price: screening.seatPricing.premium },
-						],
-					}));
+	// selectShowtime(showtime: ShowTime) {
+	// 	this.selectedShowtime = showtime;
+	// }
 
-					this.loading = false;
-				},
-				error: (err) => {
-					this.error = 'Failed to load showtimes';
-					this.loading = false;
-				},
-			});
-	}
+	// onDateChange() {
+	// 	this.selectedShowtime = null; // Reset showtime selection
+	// 	this.loadShowtimes();
+	// }
 
-	selectLocation(location: Theatre) {
-		this.selectedLocation = location;
-		this.selectedShowtime = null; // Reset showtime selection
-		this.loadShowtimes();
-	}
+	// formatDate(date: Date): string {
+	// 	const today = new Date();
+	// 	const tomorrow = new Date(today);
+	// 	tomorrow.setDate(today.getDate() + 1);
 
-	selectShowtime(showtime: ShowTime) {
-		this.selectedShowtime = showtime;
-	}
+	// 	if (date.toDateString() === today.toDateString()) {
+	// 		return 'Today';
+	// 	} else if (date.toDateString() === tomorrow.toDateString()) {
+	// 		return 'Tomorrow';
+	// 	} else {
+	// 		return date.toLocaleDateString('en-US', {
+	// 			weekday: 'short',
+	// 			month: 'short',
+	// 			day: 'numeric',
+	// 		});
+	// 	}
+	// }
 
-	onDateChange() {
-		this.selectedShowtime = null; // Reset showtime selection
-		this.loadShowtimes();
-	}
+	// formatPrice(amount: number): string {
+	// 	return `Nu. ${amount}`;
+	// }
 
-	formatDate(date: Date): string {
-		const today = new Date();
-		const tomorrow = new Date(today);
-		tomorrow.setDate(today.getDate() + 1);
+	// openTrailer() {
+	// 	if (this.movie?.trailerUrl) {
+	// 		const embedUrl = this.convertToEmbedUrl(this.movie.trailerUrl);
+	// 		this.safeTrailerUrl =
+	// 			this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+	// 		this.showTrailerDialog = true;
+	// 	}
+	// }
 
-		if (date.toDateString() === today.toDateString()) {
-			return 'Today';
-		} else if (date.toDateString() === tomorrow.toDateString()) {
-			return 'Tomorrow';
-		} else {
-			return date.toLocaleDateString('en-US', {
-				weekday: 'short',
-				month: 'short',
-				day: 'numeric',
-			});
-		}
-	}
+	// closeTrailer() {
+	// 	this.showTrailerDialog = false;
+	// 	this.safeTrailerUrl = null;
+	// }
 
-	formatPrice(amount: number): string {
-		return `Nu. ${amount}`;
-	}
+	// proceedToBooking() {
+	// 	if (this.selectedShowtime && this.movie) {
+	// 		this.router.navigate([
+	// 			'/select-seats',
+	// 			this.selectedShowtime.screeningId,
+	// 		]);
+	// 	}
+	// }
 
-	openTrailer() {
-		if (this.movie?.trailerUrl) {
-			const embedUrl = this.convertToEmbedUrl(this.movie.trailerUrl);
-			this.safeTrailerUrl =
-				this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
-			this.showTrailerDialog = true;
-		}
-	}
+	// private convertToEmbedUrl(youtubeUrl: string): string {
+	// 	const regExp =
+	// 		/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+	// 	const match = youtubeUrl.match(regExp);
+	// 	const videoId = match && match[7].length === 11 ? match[7] : null;
 
-	closeTrailer() {
-		this.showTrailerDialog = false;
-		this.safeTrailerUrl = null;
-	}
-
-	proceedToBooking() {
-		if (this.selectedShowtime && this.movie) {
-			this.router.navigate([
-				'/select-seats',
-				this.selectedShowtime.screeningId,
-			]);
-		}
-	}
-
-	private convertToEmbedUrl(youtubeUrl: string): string {
-		const regExp =
-			/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-		const match = youtubeUrl.match(regExp);
-		const videoId = match && match[7].length === 11 ? match[7] : null;
-
-		if (videoId) {
-			return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1`;
-		}
-		return youtubeUrl;
-	}
+	// 	if (videoId) {
+	// 		return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1`;
+	// 	}
+	// 	return youtubeUrl;
+	// }
 }

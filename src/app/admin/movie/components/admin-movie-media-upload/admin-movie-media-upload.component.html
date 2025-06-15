@@ -1,0 +1,315 @@
+<!-- Media Upload Component -->
+<div class="space-y-4" *ngIf="movie">
+	<!-- Current Media Display -->
+	<div *ngIf="movie.media?.length" class="border-b pb-4">
+		<h3 class="text-lg font-semibold mb-3">Current Media</h3>
+		<div class="grid grid-cols-2 gap-3">
+			<div
+				*ngFor="let media of movie.media"
+				class="relative group border rounded-lg overflow-hidden"
+			>
+				<img
+					*ngIf="media.type === 'IMAGE'"
+					[src]="getMediaUrl(media.uri)"
+					[alt]="media.name"
+					class="w-full h-48 object-cover"
+					(error)="onImageError($event)"
+				/>
+				<div
+					*ngIf="media.type === 'VIDEO'"
+					class="w-full h-48 bg-black flex items-center justify-center overflow-hidden"
+				>
+					<video
+						[src]="getMediaUrl(media.uri)"
+						class="w-full h-full object-cover"
+						controls
+						preload="metadata"
+						(error)="onVideoError($event)"
+					>
+						<p class="text-white text-center">
+							Your browser does not support the video tag.
+						</p>
+					</video>
+				</div>
+
+				<!-- Delete button - positioned at top-right corner -->
+				<div
+					class="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+				>
+					<p-button
+						icon="pi pi-trash"
+						severity="danger"
+						size="small"
+						[rounded]="true"
+						(onClick)="deleteMovieMedia(media.id, movie.name)"
+						pTooltip="Delete Media"
+						styleClass="shadow-lg"
+					>
+					</p-button>
+				</div>
+
+				<div class="p-2">
+					<p class="text-xs text-gray-600 truncate">{{ media.name }}</p>
+					<p class="text-xs text-gray-400">
+						{{ media.type }} - {{ media.orientation }}
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Upload New Media -->
+	<div>
+		<h3 class="text-lg font-semibold mb-3">Upload New Media</h3>
+
+		<!-- Error Message -->
+		<div *ngIf="mediaUploadError" class="mb-3">
+			<p-message severity="error" [text]="mediaUploadError"></p-message>
+		</div>
+
+		<!-- File Selection -->
+		<div class="space-y-4">
+			<!-- File Upload -->
+			<div>
+				<label
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+				>
+					Select File
+				</label>
+				<p-fileUpload
+					mode="basic"
+					accept="image/*,video/mp4,video/avi,video/mov,video/wmv,video/webm"
+					[auto]="false"
+					chooseLabel="Choose File"
+					chooseIcon="pi pi-upload"
+					(onSelect)="onFileSelect($event)"
+					[disabled]="uploadingMedia"
+					styleClass="w-full"
+				>
+				</p-fileUpload>
+				<p class="text-sm text-gray-500 mt-1">
+					Supported formats: JPG, PNG, GIF, MP4, AVI, MOV, WMV, WEBM (No file
+					size limit)
+				</p>
+			</div>
+
+			<!-- File Info and Options (shown after file selection) -->
+			<div
+				*ngIf="selectedFile"
+				class="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800"
+			>
+				<div class="space-y-4">
+					<!-- File Preview (for images and videos) -->
+					<div *ngIf="filePreviewUrl" class="text-center">
+						<h4
+							class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+						>
+							Preview
+						</h4>
+						<div
+							class="inline-block border rounded-lg overflow-hidden max-w-xs"
+						>
+							<!-- Image Preview -->
+							<img
+								*ngIf="selectedType === 'IMAGE'"
+								[src]="filePreviewUrl"
+								[alt]="selectedFile ? selectedFile.name : 'Preview'"
+								class="max-w-full max-h-48 object-contain"
+							/>
+							<!-- Video Preview -->
+							<video
+								*ngIf="selectedType === 'VIDEO'"
+								[src]="filePreviewUrl"
+								class="max-w-full max-h-48 object-contain bg-black"
+								controls
+								preload="metadata"
+								[muted]="true"
+							>
+								<p class="text-gray-500 p-4">
+									Your browser does not support video preview.
+								</p>
+							</video>
+						</div>
+					</div>
+
+					<!-- Selected File Info -->
+					<div>
+						<h4
+							class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+						>
+							Selected File
+						</h4>
+						<div
+							class="flex items-start space-x-3 p-3 border rounded-lg bg-white dark:bg-gray-700"
+						>
+							<i
+								[class]="
+									selectedType === 'IMAGE'
+										? 'pi pi-image text-green-500'
+										: 'pi pi-video text-purple-500'
+								"
+								class="text-xl mt-1"
+							></i>
+							<div class="flex-1 min-w-0">
+								<p
+									class="text-sm font-medium text-gray-900 dark:text-white truncate"
+								>
+									{{ selectedFile ? selectedFile.name : "No file selected" }}
+								</p>
+								<p class="text-sm text-gray-500 dark:text-gray-400">
+									{{
+										selectedFile ? formatFileSize(selectedFile.size) : "0 Bytes"
+									}}
+								</p>
+								<p class="text-xs text-gray-400 dark:text-gray-500">
+									Type:
+									{{
+										selectedFile ? selectedFile.type || "Unknown" : "Unknown"
+									}}
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Media Name -->
+					<div>
+						<label
+							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+						>
+							Media Name <span class="text-red-500">*</span>
+						</label>
+						<input
+							pInputText
+							[(ngModel)]="mediaName"
+							placeholder="Enter media name"
+							class="w-full"
+							[disabled]="uploadingMedia"
+						/>
+					</div>
+
+					<!-- Type Selection -->
+					<div>
+						<label
+							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+						>
+							Media Type
+						</label>
+						<p-selectButton
+							[options]="typeOptions"
+							[(ngModel)]="selectedType"
+							(onChange)="onTypeChange()"
+							optionLabel="label"
+							optionValue="value"
+							[disabled]="uploadingMedia"
+						>
+							<ng-template let-item>
+								<i [class]="item.icon"></i>
+								<span class="ml-2">{{ item.label }}</span>
+							</ng-template>
+						</p-selectButton>
+					</div>
+
+					<!-- Orientation Selection -->
+					<div>
+						<label
+							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+						>
+							Orientation
+						</label>
+						<p-selectButton
+							[options]="orientationOptions"
+							[(ngModel)]="selectedOrientation"
+							optionLabel="label"
+							optionValue="value"
+							[disabled]="uploadingMedia"
+						>
+							<ng-template let-item>
+								<i [class]="item.icon"></i>
+								<span class="ml-2">{{ item.label }}</span>
+							</ng-template>
+						</p-selectButton>
+					</div>
+
+					<!-- Large File Warning -->
+					<div
+						*ngIf="isLargeFile()"
+						class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg"
+					>
+						<div class="flex items-start space-x-2">
+							<i
+								class="pi pi-exclamation-triangle text-amber-600 dark:text-amber-400 text-sm mt-0.5"
+							></i>
+							<div>
+								<p
+									class="text-sm font-medium text-amber-800 dark:text-amber-200"
+								>
+									Large File Warning
+								</p>
+								<p class="text-xs text-amber-700 dark:text-amber-300 mt-1">
+									{{ getFileSizeWarning() }}
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Upload Button -->
+					<div class="flex justify-end">
+						<p-button
+							label="Upload Media"
+							icon="pi pi-upload"
+							(onClick)="uploadFile()"
+							[loading]="uploadingMedia"
+							[disabled]="uploadingMedia || !mediaName.trim()"
+							severity="success"
+						>
+						</p-button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Upload Progress -->
+		<div *ngIf="uploadingMedia" class="mt-4">
+			<div
+				class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+			>
+				<div class="flex items-center space-x-3">
+					<i class="pi pi-spin pi-spinner text-blue-500"></i>
+					<div class="flex-1">
+						<p class="text-sm font-medium text-blue-800 dark:text-blue-200">
+							Uploading {{ selectedFile ? selectedFile.name : "file" }}...
+						</p>
+						<p class="text-xs text-blue-600 dark:text-blue-300">
+							{{ selectedFile ? formatFileSize(selectedFile.size) : "" }} •
+							Please wait
+						</p>
+					</div>
+				</div>
+				<p-progressBar mode="indeterminate" class="mt-3"></p-progressBar>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Footer with action buttons -->
+<div class="flex justify-between items-center gap-2 mt-6">
+	<p-button
+		*ngIf="selectedFile"
+		label="Reset"
+		icon="pi pi-refresh"
+		severity="secondary"
+		[text]="true"
+		(onClick)="resetForm()"
+		[disabled]="uploadingMedia"
+	>
+	</p-button>
+	<div></div>
+	<p-button
+		label="Close"
+		severity="secondary"
+		[outlined]="true"
+		(onClick)="close()"
+		[disabled]="uploadingMedia"
+	>
+	</p-button>
+</div>

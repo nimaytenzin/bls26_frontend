@@ -29,7 +29,12 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { ContextMenuModule } from 'primeng/contextmenu';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
-
+import { MessageModule } from 'primeng/message';
+import { CalendarModule } from 'primeng/calendar';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { TextareaModule } from 'primeng/textarea';
+import { FileUploadModule } from 'primeng/fileupload';
+import { TabViewModule } from 'primeng/tabview';
 const PRIME_NG_MODULES = [
 	CardModule,
 	InputTextModule,
@@ -61,7 +66,12 @@ const PRIME_NG_MODULES = [
 	ContextMenuModule,
 	InputGroupModule,
 	InputGroupAddonModule,
-	BadgeModule,
+	MessageModule,
+	CalendarModule,
+	MultiSelectModule,
+	TextareaModule,
+	FileUploadModule,
+	TabViewModule,
 ];
 
 @NgModule({

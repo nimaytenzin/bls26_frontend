@@ -1,0 +1,913 @@
+<div
+	class="payment-container max-w-6xl mx-auto p-6 bg-gradient-to-b from-gray-900 to-black min-h-screen"
+>
+	<!-- Toast Messages -->
+	<p-toast position="top-right"></p-toast>
+
+	<!-- Step 1: Customer Information -->
+	<div *ngIf="currentStep === 1" class="customer-info">
+		<div class="text-center mb-8">
+			<h2 class="text-3xl font-bold text-white mb-2">Complete Your Booking</h2>
+			<p class="text-gray-400">Step 1 of 3: Customer Information</p>
+		</div>
+
+		<!-- Enhanced Booking Summary with Movie Poster -->
+		<div class="mb-8 bg-gray-800/50 backdrop-blur rounded-xl p-6">
+			<h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+				<i class="pi pi-ticket mr-3 text-purple-400"></i>
+				Booking Summary
+			</h3>
+
+			<div *ngIf="bookingDetails && movie" class="grid lg:grid-cols-3 gap-8">
+				<!-- Movie Poster with Trailer Button -->
+				<div class="lg:col-span-1">
+					<div class="relative w-full max-w-sm mx-auto group">
+						<img
+							[src]="movie.image"
+							[alt]="movie.title"
+							class="w-full h-full object-cover rounded-lg shadow-2xl transform transition-transform duration-300 hover:scale-105"
+						/>
+						<button
+							*ngIf="movie.trailerUrl"
+							(click)="openTrailer()"
+							class="absolute inset-0 m-auto w-16 h-16 bg-white rounded-full opacity-90 hover:opacity-100 transition-all duration-300 hover:scale-110 focus:outline-none group-hover:scale-110"
+						>
+							<svg class="w-full h-full" viewBox="0 0 48 48">
+								<rect width="48" height="48" rx="24" class="fill-white" />
+								<path
+									d="M18 30.3155V17.6845C18 16.9255 18.8125 16.4432 19.4789 16.8066L31.0572 23.1221C31.7521 23.5011 31.7521 24.4989 31.0572 24.8779L19.4789 31.1934C18.8125 31.5568 18 31.0745 18 30.3155Z"
+									class="fill-pink-600"
+								/>
+							</svg>
+						</button>
+					</div>
+
+					<!-- Movie Details -->
+					<div class="mt-4 text-center">
+						<h4 class="text-xl font-bold text-white mb-2">{{ movie.title }}</h4>
+						<div class="flex justify-center items-center gap-2 mb-3">
+							<p-chip
+								[label]="movie.rating"
+								styleClass="bg-yellow-500 text-gray-900"
+							></p-chip>
+						</div>
+						<div class="flex flex-wrap gap-2 justify-center">
+							<p-chip
+								*ngFor="let genre of movie.genre"
+								[label]="genre"
+								styleClass="bg-purple-500 text-white"
+							></p-chip>
+						</div>
+					</div>
+				</div>
+
+				<!-- Booking Details -->
+				<div class="lg:col-span-2 space-y-6">
+					<!-- Movie and Screening Details -->
+					<div class="bg-gray-700/30 p-6 rounded-lg border border-gray-600/30">
+						<h4 class="font-semibold mb-4 text-white flex items-center">
+							<i class="pi pi-video mr-2 text-blue-400"></i>
+							Movie & Screening Details
+						</h4>
+						<div class="grid md:grid-cols-2 gap-4 text-sm">
+							<div class="space-y-2">
+								<div class="flex justify-between">
+									<span class="text-gray-400">Movie:</span>
+									<span class="font-medium text-white">{{
+										getMovieTitle()
+									}}</span>
+								</div>
+								<div class="flex justify-between">
+									<span class="text-gray-400">Theatre:</span>
+									<span class="text-white">{{ getTheatreName() }}</span>
+								</div>
+							</div>
+							<div class="space-y-2">
+								<div class="flex justify-between">
+									<span class="text-gray-400">Hall:</span>
+									<span class="text-white">{{ getHallName() }}</span>
+								</div>
+								<div class="flex justify-between">
+									<span class="text-gray-400">Date & Time:</span>
+									<span class="text-white">{{ getScreeningDateTime() }}</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Selected Seats -->
+					<div class="bg-gray-700/30 p-6 rounded-lg border border-gray-600/30">
+						<h4 class="font-semibold mb-4 text-white flex items-center">
+							<i class="pi pi-map-marker mr-2 text-green-400"></i>
+							Selected Seats
+						</h4>
+						<div class="flex flex-wrap gap-3 mb-4">
+							<span
+								*ngFor="let seat of bookingDetails.selectedSeats"
+								class="px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 hover:scale-105"
+								[ngClass]="
+									seat.type === 'premium'
+										? 'bg-purple-100 text-purple-800 border-purple-200'
+										: 'bg-blue-100 text-blue-800 border-blue-200'
+								"
+							>
+								{{ seat.id }} ({{ seat.type | titlecase }})
+							</span>
+						</div>
+						<div class="text-sm text-gray-400">
+							{{ bookingDetails.selectedSeats.length }} seat(s) selected
+						</div>
+					</div>
+
+					<!-- Price Breakdown -->
+					<div class="bg-gray-700/30 p-6 rounded-lg border border-gray-600/30">
+						<h4 class="font-semibold mb-4 text-white flex items-center">
+							<i class="pi pi-credit-card mr-2 text-yellow-400"></i>
+							Price Breakdown
+						</h4>
+						<div class="space-y-3">
+							<div
+								*ngFor="let seat of bookingDetails.selectedSeats"
+								class="flex justify-between items-center text-sm py-2 border-b border-gray-600/50"
+							>
+								<div class="flex items-center gap-2">
+									<div
+										class="w-3 h-3 rounded-full"
+										[class]="
+											seat.type === 'premium' ? 'bg-purple-400' : 'bg-blue-400'
+										"
+									></div>
+									<span class="text-gray-300">{{ seat.id }}</span>
+									<span
+										class="text-xs px-2 py-1 rounded-full"
+										[class]="
+											seat.type === 'premium'
+												? 'bg-purple-900/50 text-purple-300'
+												: 'bg-blue-900/50 text-blue-300'
+										"
+									>
+										{{ seat.type }}
+									</span>
+								</div>
+								<span class="font-medium text-white">Nu. {{ seat.price }}</span>
+							</div>
+							<div class="border-t border-gray-600/50 pt-3">
+								<div class="flex justify-between items-center">
+									<span class="text-lg font-bold text-white">Total Amount</span>
+									<span class="text-2xl font-bold text-green-400">
+										Nu. {{ getTotalAmount() }}
+									</span>
+								</div>
+								<div class="text-sm text-gray-400 mt-1">
+									Including all taxes and fees
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Enhanced Customer Form -->
+		<div class="bg-gray-800/50 backdrop-blur rounded-xl p-6">
+			<h3 class="text-xl font-bold text-white mb-6 flex items-center">
+				<i class="pi pi-user mr-3 text-blue-400"></i>
+				Customer Information
+			</h3>
+
+			<form [formGroup]="customerForm" class="space-y-6">
+				<div class="grid md:grid-cols-2 gap-6">
+					<div>
+						<label
+							for="name"
+							class="block text-sm font-medium mb-2 text-gray-300"
+							>Full Name</label
+						>
+						<input
+							pInputText
+							id="name"
+							formControlName="name"
+							placeholder="Enter your full name"
+							class="w-full p-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+						/>
+						<small
+							*ngIf="
+								customerForm.get('name')?.invalid &&
+								customerForm.get('name')?.touched
+							"
+							class="text-red-400 text-xs mt-1 block"
+						>
+							Name is required (minimum 2 characters)
+						</small>
+					</div>
+
+					<div>
+						<label
+							for="email"
+							class="block text-sm font-medium mb-2 text-gray-300"
+							>Email Address</label
+						>
+						<input
+							pInputText
+							id="email"
+							formControlName="email"
+							placeholder="Enter your email"
+							class="w-full p-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+						/>
+						<small
+							*ngIf="
+								customerForm.get('email')?.invalid &&
+								customerForm.get('email')?.touched
+							"
+							class="text-red-400 text-xs mt-1 block"
+						>
+							Please enter a valid email address
+						</small>
+					</div>
+				</div>
+
+				<div>
+					<label
+						for="phone"
+						class="block text-sm font-medium mb-2 text-gray-300"
+						>Phone Number</label
+					>
+					<input
+						pInputText
+						id="phone"
+						formControlName="phone"
+						placeholder="Enter your phone number"
+						class="w-full p-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+					/>
+					<small
+						*ngIf="
+							customerForm.get('phone')?.invalid &&
+							customerForm.get('phone')?.touched
+						"
+						class="text-red-400 text-xs mt-1 block"
+					>
+						Please enter a valid 8-digit phone number
+					</small>
+				</div>
+
+				<!-- Action Buttons -->
+				<div class="flex gap-4 pt-6 border-t border-gray-600/50">
+					<button
+						pButton
+						label="Back to Seats"
+						icon="pi pi-arrow-left"
+						type="button"
+						(click)="goBackToSeats()"
+						class="flex-1 p-button-outlined p-button-secondary"
+					></button>
+					<button
+						pButton
+						label="Continue to Payment"
+						icon="pi pi-credit-card"
+						iconPos="right"
+						type="button"
+						(click)="nextStep()"
+						[disabled]="customerForm.invalid"
+						class="flex-2 p-button-lg p-button-success"
+					></button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- Step 2: Payment -->
+	<div *ngIf="currentStep === 2" class="payment-step">
+		<div class="text-center mb-8">
+			<h2 class="text-3xl font-bold text-white mb-2">Payment Details</h2>
+			<p class="text-gray-400">
+				Step 2 of 3: Secure Payment via RMA Payment Gateway
+			</p>
+		</div>
+
+		<div class="bg-gray-800/50 backdrop-blur rounded-xl p-6">
+			<h3 class="text-xl font-bold text-white mb-6 flex items-center">
+				<i class="pi pi-credit-card mr-3 text-green-400"></i>
+				RMA Payment Gateway
+			</h3>
+
+			<!-- Payment Step Indicator -->
+			<div class="flex items-center justify-center mb-8">
+				<div class="flex items-center space-x-4">
+					<div class="flex items-center">
+						<div
+							class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+							[class]="
+								paymentStep >= 1
+									? 'bg-green-500 text-white'
+									: 'bg-gray-600 text-gray-300'
+							"
+						>
+							1
+						</div>
+						<span
+							class="ml-2 text-sm"
+							[class]="paymentStep >= 1 ? 'text-green-400' : 'text-gray-400'"
+							>Bank</span
+						>
+					</div>
+					<div
+						class="w-8 h-0.5"
+						[class]="paymentStep >= 2 ? 'bg-green-500' : 'bg-gray-600'"
+					></div>
+					<div class="flex items-center">
+						<div
+							class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+							[class]="
+								paymentStep >= 2
+									? 'bg-green-500 text-white'
+									: 'bg-gray-600 text-gray-300'
+							"
+						>
+							2
+						</div>
+						<span
+							class="ml-2 text-sm"
+							[class]="paymentStep >= 2 ? 'text-green-400' : 'text-gray-400'"
+							>Account</span
+						>
+					</div>
+					<div
+						class="w-8 h-0.5"
+						[class]="paymentStep >= 3 ? 'bg-green-500' : 'bg-gray-600'"
+					></div>
+					<div class="flex items-center">
+						<div
+							class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+							[class]="
+								paymentStep >= 3
+									? 'bg-green-500 text-white'
+									: 'bg-gray-600 text-gray-300'
+							"
+						>
+							3
+						</div>
+						<span
+							class="ml-2 text-sm"
+							[class]="paymentStep >= 3 ? 'text-green-400' : 'text-gray-400'"
+							>OTP</span
+						>
+					</div>
+				</div>
+			</div>
+
+			<!-- Step 1: Bank Selection -->
+			<div *ngIf="paymentStep === 1" class="bank-selection">
+				<h4 class="text-lg font-semibold text-white mb-4">Select Your Bank</h4>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+					<div
+						*ngFor="let bank of banks"
+						class="bank-option p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:border-green-500 hover:bg-gray-700/30"
+						[class]="
+							selectedBank?.code === bank.code
+								? 'border-green-500 bg-green-500/10'
+								: 'border-gray-600 bg-gray-700/20'
+						"
+						(click)="selectBank(bank)"
+					>
+						<div class="flex items-center space-x-3">
+							<div
+								class="w-12 h-12 bg-white rounded-lg flex items-center justify-center"
+							>
+								<span class="text-gray-800 font-bold text-sm">{{
+									bank.code
+								}}</span>
+							</div>
+							<div>
+								<h5 class="font-medium text-white">{{ bank.name }}</h5>
+								<p class="text-sm text-gray-400">{{ bank.code }}</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Step 2: Account Number Entry -->
+			<div *ngIf="paymentStep === 2" class="account-entry">
+				<div class="flex items-center justify-between mb-4">
+					<h4 class="text-lg font-semibold text-white">
+						Enter Account Details
+					</h4>
+					<button
+						pButton
+						icon="pi pi-arrow-left"
+						class="p-button-text p-button-sm"
+						(click)="goBackToPaymentStep(1)"
+					></button>
+				</div>
+
+				<div
+					class="selected-bank mb-6 p-4 bg-gray-700/30 rounded-lg border border-gray-600"
+				>
+					<div class="flex items-center space-x-3">
+						<div
+							class="w-10 h-10 bg-white rounded-lg flex items-center justify-center"
+						>
+							<span class="text-gray-800 font-bold text-xs">{{
+								selectedBank?.code
+							}}</span>
+						</div>
+						<div>
+							<h5 class="font-medium text-white">{{ selectedBank?.name }}</h5>
+							<p class="text-sm text-green-400">Selected Bank</p>
+						</div>
+					</div>
+				</div>
+
+				<form [formGroup]="paymentForm" class="space-y-6">
+					<div>
+						<label
+							for="accountNumber"
+							class="block text-sm font-medium mb-2 text-gray-300"
+						>
+							Account Number
+						</label>
+						<input
+							pInputText
+							id="accountNumber"
+							formControlName="accountNumber"
+							placeholder="Enter your account number"
+							class="w-full p-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+						/>
+						<p class="text-xs text-gray-400 mt-1">
+							Enter your 10-20 digit account number
+						</p>
+					</div>
+
+					<button
+						pButton
+						label="Proceed to OTP"
+						icon="pi pi-arrow-right"
+						iconPos="right"
+						type="button"
+						(click)="proceedToOTP()"
+						class="w-full p-button-lg p-button-success"
+						[disabled]="!paymentForm.get('accountNumber')?.valid"
+					></button>
+				</form>
+			</div>
+
+			<!-- Step 3: OTP Verification -->
+			<div *ngIf="paymentStep === 3" class="otp-verification">
+				<div class="flex items-center justify-between mb-4">
+					<h4 class="text-lg font-semibold text-white">OTP Verification</h4>
+					<button
+						pButton
+						icon="pi pi-arrow-left"
+						class="p-button-text p-button-sm"
+						(click)="goBackToPaymentStep(2)"
+					></button>
+				</div>
+
+				<div class="text-center mb-6">
+					<div class="text-sm text-gray-400 mb-2">
+						OTP has been sent to your registered mobile number
+					</div>
+					<div class="text-sm text-white">
+						Account: {{ selectedBank?.name }} - ***{{ accountNumber.slice(-4) }}
+					</div>
+				</div>
+
+				<form [formGroup]="paymentForm" class="space-y-6">
+					<div>
+						<label
+							for="otpCode"
+							class="block text-sm font-medium mb-2 text-gray-300 text-center"
+						>
+							Enter 6-digit OTP
+						</label>
+						<input
+							pInputText
+							id="otpCode"
+							formControlName="otpCode"
+							placeholder="000000"
+							maxlength="6"
+							class="w-full p-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:ring-1 focus:ring-green-500 text-center text-2xl tracking-widest"
+						/>
+					</div>
+
+					<div class="text-center">
+						<button
+							pButton
+							[label]="
+								countdown > 0
+									? 'Resend OTP in ' + countdown + 's'
+									: 'Resend OTP'
+							"
+							class="p-button-text p-button-sm"
+							[disabled]="countdown > 0"
+							(click)="resendOTP()"
+						></button>
+					</div>
+
+					<button
+						pButton
+						label="Verify & Pay"
+						icon="pi pi-check"
+						iconPos="right"
+						type="button"
+						(click)="verifyOTP()"
+						class="w-full p-button-lg p-button-success"
+						[disabled]="!paymentForm.get('otpCode')?.valid || processing"
+					>
+						<span *ngIf="processing" class="pi pi-spin pi-spinner mr-2"></span>
+					</button>
+				</form>
+			</div>
+
+			<!-- Payment Summary -->
+			<div class="bg-gray-700/30 p-6 rounded-lg border border-gray-600/30 mt-6">
+				<h4 class="font-semibold mb-4 text-white">Payment Summary</h4>
+				<div class="flex justify-between items-center text-lg">
+					<span class="text-gray-300">Total Amount:</span>
+					<span class="font-bold text-green-400"
+						>Nu. {{ getTotalAmount() }}</span
+					>
+				</div>
+			</div>
+
+			<!-- Back to Customer Info Button -->
+			<div
+				class="flex gap-4 pt-6 border-t border-gray-600/50"
+				*ngIf="paymentStep === 1"
+			>
+				<button
+					pButton
+					label="Back to Customer Info"
+					icon="pi pi-arrow-left"
+					type="button"
+					(click)="previousStep()"
+					class="w-full p-button-outlined p-button-secondary"
+				></button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Step 3: Success -->
+	<div *ngIf="currentStep === 3" class="success-step text-center">
+		<div class="max-w-4xl mx-auto">
+			<div class="mb-8">
+				<i
+					class="pi pi-check-circle text-6xl text-green-400 mb-4 block animate-pulse"
+				></i>
+				<h2 class="text-3xl font-bold text-white mb-2">
+					🎉 Booking Confirmed!
+				</h2>
+				<p class="text-gray-400 text-lg">
+					Your movie tickets have been booked successfully. Get ready for an
+					amazing experience!
+				</p>
+			</div>
+			<!-- Movie Ticket Design with Prominent QR Code at Top -->
+			<div
+				*ngIf="ticket && movie && bookingDetails"
+				class="max-w-4xl mx-auto mb-8"
+			>
+				<div
+					class="bg-gradient-to-br from-slate-900 via-gray-900 to-black rounded-2xl overflow-hidden shadow-2xl border border-gray-700/50"
+				>
+					<!-- TOP: Prominent QR Code Section -->
+					<div
+						class="bg-gradient-to-r from-slate-800 to-gray-800 p-12 text-center border-b border-gray-600/50"
+					>
+						<div class="space-y-6">
+							<h2
+								class="text-4xl font-black text-white flex items-center justify-center gap-4"
+							>
+								<i class="pi pi-qrcode text-cyan-400 text-4xl"></i>
+								SCAN TO ENTER
+							</h2>
+							<div
+								class="w-24 h-1 bg-gradient-to-r from-cyan-400 to-blue-400 mx-auto rounded-full"
+							></div>
+						</div>
+
+						<!-- Extra Large QR Code - Most Prominent -->
+						<div class="flex justify-center mt-8">
+							<div
+								class="bg-white p-8 rounded-3xl shadow-2xl border-4 border-white/20"
+							>
+								<img
+									*ngIf="qrCodeDataURL; else defaultQR"
+									[src]="qrCodeDataURL"
+									alt="Booking QR Code"
+									class="w-80 h-80 rounded-2xl"
+								/>
+								<ng-template #defaultQR>
+									<div
+										class="w-80 h-80 bg-gray-100 flex items-center justify-center rounded-2xl"
+									>
+										<i class="pi pi-qrcode text-gray-600 text-9xl"></i>
+									</div>
+								</ng-template>
+							</div>
+						</div>
+
+						<div class="mt-6">
+							<p class="text-cyan-300 font-bold text-2xl">
+								Present this code at theatre entrance
+							</p>
+							<p class="text-gray-300 text-lg mt-2 font-mono">
+								Booking ID: {{ ticket.id }}
+							</p>
+						</div>
+					</div>
+
+					<!-- Movie & Booking Details Section -->
+					<div class="p-6 space-y-6">
+						<!-- Movie Title & Basic Info -->
+						<div class="text-center space-y-3">
+							<h1 class="text-3xl font-bold text-white">
+								{{ ticket.movieTitle }}
+							</h1>
+							<div class="flex justify-center gap-2">
+								<span
+									*ngFor="let genre of movie.genre.slice(0, 3)"
+									class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium"
+								>
+									{{ genre }}
+								</span>
+							</div>
+						</div>
+
+						<!-- Booking Details Grid -->
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-base">
+							<div class="space-y-3">
+								<div class="flex items-center gap-3">
+									<div
+										class="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center"
+									>
+										<i class="pi pi-building text-blue-400"></i>
+									</div>
+									<div>
+										<p class="text-white font-semibold">
+											{{ ticket.theatreName }}
+										</p>
+									</div>
+								</div>
+
+								<div class="flex items-center gap-3">
+									<div
+										class="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center"
+									>
+										<i class="pi pi-home text-green-400"></i>
+									</div>
+									<div>
+										<p class="text-white font-semibold">{{ getHallName() }}</p>
+									</div>
+								</div>
+							</div>
+
+							<div class="space-y-3">
+								<div class="flex items-center gap-3">
+									<div
+										class="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center"
+									>
+										<i class="pi pi-calendar text-purple-400"></i>
+									</div>
+									<div>
+										<p class="text-white font-semibold">
+											{{ ticket.date }} • {{ ticket.time }}
+										</p>
+									</div>
+								</div>
+
+								<div class="flex items-center gap-3">
+									<div
+										class="w-10 h-10 bg-orange-500/20 rounded-full flex items-center justify-center"
+									>
+										<i class="pi pi-user text-orange-400"></i>
+									</div>
+									<div>
+										<p class="text-white font-semibold">
+											{{ bookingDetails.customerInfo.name || "Guest Customer" }}
+										</p>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Seats Section -->
+						<div class="bg-gray-800/50 rounded-xl p-4">
+							<h3 class="text-white font-semibold mb-3 flex items-center gap-2">
+								<i class="pi pi-map-marker text-red-400"></i>
+								Selected Seats
+							</h3>
+							<div class="flex flex-wrap gap-2 mb-3">
+								<span
+									*ngFor="let seat of bookingDetails.selectedSeats"
+									class="px-3 py-1.5 rounded-lg text-sm font-semibold border"
+									[ngClass]="
+										seat.type === 'premium'
+											? 'bg-purple-500/20 text-purple-200 border-purple-500/30'
+											: 'bg-blue-500/20 text-blue-200 border-blue-500/30'
+									"
+								>
+									{{ seat.id }}
+								</span>
+							</div>
+							<div
+								class="flex justify-between items-center text-lg pt-2 border-t border-gray-600/50"
+							>
+								<span class="text-gray-300">Total Amount:</span>
+								<span class="text-green-400 font-bold"
+									>Nu. {{ ticket.totalAmount }}</span
+								>
+							</div>
+						</div>
+
+						<!-- Payment Status -->
+						<div
+							class="bg-green-900/30 border border-green-600/30 rounded-xl p-4"
+						>
+							<div class="flex items-center justify-between">
+								<div class="flex items-center gap-2">
+									<i class="pi pi-check-circle text-green-400"></i>
+									<span class="text-green-300 font-semibold"
+										>Payment Successful</span
+									>
+								</div>
+								<span
+									class="text-xs text-green-200 bg-green-800/30 px-2 py-1 rounded-full"
+									>RMA Gateway</span
+								>
+							</div>
+						</div>
+					</div>
+
+					<!-- Bottom: Customer Info and Disclaimers -->
+					<div
+						class="bg-gradient-to-r from-gray-900/60 to-slate-900/60 p-8 border-t-2 border-gray-600/30 backdrop-blur-sm"
+					>
+						<!-- Customer Name -->
+						<div
+							class="mb-6 p-6 bg-gradient-to-r from-gray-800/50 to-slate-800/50 rounded-2xl border border-gray-700/30"
+						>
+							<h4
+								class="text-sm font-bold text-gray-400 mb-3 uppercase tracking-wider"
+							>
+								Ticket Holder
+							</h4>
+							<div class="flex items-center gap-4">
+								<div
+									class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center border border-blue-500/30"
+								>
+									<i class="pi pi-user text-blue-400 text-xl"></i>
+								</div>
+								<div>
+									<p class="text-white font-bold text-xl">
+										{{ bookingDetails.customerInfo.name || "Guest Customer" }}
+									</p>
+									<p class="text-gray-300 text-base">
+										{{ bookingDetails.customerInfo.phone }}
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<!-- Payment Status -->
+						<div
+							class="mb-6 p-4 bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-2xl border border-green-600/30"
+						>
+							<div class="flex items-center justify-between">
+								<div class="flex items-center gap-3">
+									<i class="pi pi-check-circle text-green-400 text-xl"></i>
+									<span class="text-green-300 font-bold text-lg"
+										>Payment Successful</span
+									>
+								</div>
+								<span
+									class="text-sm text-green-200 bg-green-800/30 px-3 py-1 rounded-full"
+									>RMA Gateway</span
+								>
+							</div>
+						</div>
+
+						<!-- Disclaimers -->
+						<div
+							class="bg-gradient-to-r from-gray-800/30 to-slate-800/30 rounded-2xl p-6 border border-gray-700/30"
+						>
+							<h4
+								class="text-sm font-bold text-gray-400 mb-4 uppercase tracking-wider"
+							>
+								Important Instructions
+							</h4>
+							<div
+								class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-300"
+							>
+								<div
+									class="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg"
+								>
+									<i class="pi pi-clock text-yellow-400 text-lg"></i>
+									<span>Arrive 15 minutes before showtime</span>
+								</div>
+								<div
+									class="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg"
+								>
+									<i class="pi pi-id-card text-blue-400 text-lg"></i>
+									<span>Carry a valid ID for verification</span>
+								</div>
+								<div
+									class="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg"
+								>
+									<i class="pi pi-ban text-red-400 text-lg"></i>
+									<span>No outside food or beverages allowed</span>
+								</div>
+								<div
+									class="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg"
+								>
+									<i class="pi pi-mobile text-purple-400 text-lg"></i>
+									<span>Keep phones on silent during show</span>
+								</div>
+							</div>
+
+							<div class="mt-6 pt-4 border-t border-gray-700/50 text-center">
+								<p class="text-sm text-gray-400">
+									For support:
+									<span class="text-blue-400 font-semibold"
+										>+975-XXXX-XXXX</span
+									>
+									|
+									<span class="text-blue-400 font-semibold"
+										>support&#64;movieapp.bt</span
+									>
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Action Buttons -->
+			<div class="flex flex-col sm:flex-row gap-4 justify-center">
+				<p-button
+					label="Download Ticket"
+					icon="pi pi-download"
+					(onClick)="downloadTicket()"
+					severity="secondary"
+					outlined="true"
+					styleClass="flex-1 sm:flex-none"
+				></p-button>
+				<p-button
+					label="Share Ticket"
+					icon="pi pi-share-alt"
+					severity="info"
+					outlined="true"
+					styleClass="flex-1 sm:flex-none"
+				></p-button>
+				<p-button
+					label="Book Another Movie"
+					icon="pi pi-plus"
+					(onClick)="goHome()"
+					styleClass="flex-1 sm:flex-none"
+				></p-button>
+			</div>
+
+			<!-- Additional Info -->
+			<div class="mt-8 text-center">
+				<p class="text-gray-400 text-sm mb-2">
+					Need help? Contact our support team
+				</p>
+				<div class="flex justify-center gap-4 text-gray-500">
+					<span class="flex items-center gap-1">
+						<i class="pi pi-phone"></i>
+						+975-XXXX-XXXX
+					</span>
+					<span class="flex items-center gap-1">
+						<i class="pi pi-envelope"></i>
+						support&#64;movieapp.bt
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Trailer Dialog -->
+<p-dialog
+	[(visible)]="showTrailerDialog"
+	[modal]="true"
+	[draggable]="false"
+	[resizable]="false"
+	[style]="{ width: '90vw', maxWidth: '1200px' }"
+	styleClass="trailer-dialog"
+	[dismissableMask]="true"
+	(onHide)="closeTrailer()"
+>
+	<div class="relative w-full rounded-xl" style="padding-top: 56.25%">
+		<iframe
+			*ngIf="safeTrailerUrl"
+			[src]="safeTrailerUrl"
+			class="absolute top-0 left-0 w-full h-full rounded-xl"
+			frameborder="0"
+			allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+			allowfullscreen
+			autoplay
+		>
+		</iframe>
+	</div>
+</p-dialog>

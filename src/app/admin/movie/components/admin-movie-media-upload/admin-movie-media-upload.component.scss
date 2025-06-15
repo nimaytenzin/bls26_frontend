@@ -1,0 +1,113 @@
+/* Admin Movie Media Upload Component Styles */
+
+.p-fileupload-basic {
+    width: 100%;
+}
+
+.p-fileupload-basic .p-button {
+    width: 100%;
+    justify-content: center;
+}
+
+.p-progressbar {
+    height: 6px;
+}
+
+.border-b {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.dark .border-b {
+    border-bottom-color: #374151;
+}
+
+.group:hover .group-hover\:opacity-100 {
+    opacity: 1;
+}
+
+.line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+/* File selection area */
+.file-selection-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f9fafb;
+    transition: all 0.2s ease;
+}
+
+.dark .file-selection-area {
+    border-color: #4b5563;
+    background-color: #1f2937;
+}
+
+.file-selection-area:hover {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+.dark .file-selection-area:hover {
+    border-color: #60a5fa;
+    background-color: #1e3a8a;
+}
+
+/* Select button styling */
+.p-selectbutton .p-button {
+    margin-right: 0.25rem;
+}
+
+.p-selectbutton .p-button:last-child {
+    margin-right: 0;
+}
+
+/* Input styling */
+.p-inputtext {
+    width: 100%;
+}
+
+/* File preview styling */
+.file-preview-container {
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.file-preview-container img {
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* File info card */
+.file-info-card {
+    transition: all 0.2s ease;
+}
+
+.file-info-card:hover {
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Upload progress styling */
+.upload-progress-container {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.dark .upload-progress-container {
+    background: linear-gradient(135deg, rgba(30, 64, 175, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
+}
+
+/* Better spacing for form elements */
+.form-section {
+    margin-bottom: 1.5rem;
+}
+
+.form-section:last-child {
+    margin-bottom: 0;
+}
