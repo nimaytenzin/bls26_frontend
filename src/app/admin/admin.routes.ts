@@ -8,6 +8,7 @@ import { LayoutComponent } from '../layout/layout.component';
 import { AdminMasterGenreComponent } from './master/admin-master-genre/admin-master-genre.component';
 import { AdminMasterLocationsComponent } from './master/admin-master-locations/admin-master-locations.component';
 import { AdminMasterScreeningComponent } from './screening/admin-master-screening/admin-master-screening.component';
+import { AdminMasterBookingsComponent } from './booking/admin-master-bookings/admin-master-bookings.component';
 
 export const adminRoutes: Routes = [
 	{
@@ -37,6 +38,10 @@ export const adminRoutes: Routes = [
 			{
 				path: 'master-screenings',
 				component: AdminMasterScreeningComponent,
+			},
+			{
+				path: 'bookings',
+				component: AdminMasterBookingsComponent,
 			},
 
 			//master tables
