@@ -68,6 +68,7 @@ export class PublicSelectMovieScheduleComponent implements OnInit, OnDestroy {
 
 	// Screening data
 	allScreenings: Screening[] = [];
+	allScreeningsForAllDates: Map<string, Screening[]> = new Map(); // Store screenings for all dates
 	groupedScreenings: GroupedScreening[] = [];
 	availableDates: Date[] = [];
 	selectedDate: Date = new Date();
@@ -119,7 +120,7 @@ export class PublicSelectMovieScheduleComponent implements OnInit, OnDestroy {
 			.subscribe({
 				next: (movie) => {
 					this.movie = movie;
-					this.loadScreeningsForDate(movieId, this.selectedDate);
+					this.loadScreeningsForAllDates(movieId);
 				},
 				error: (err) => {
 					console.error('Error loading movie:', err);
@@ -180,6 +181,63 @@ export class PublicSelectMovieScheduleComponent implements OnInit, OnDestroy {
 			});
 	}
 
+	private loadScreeningsForAllDates(movieId: number) {
+		let completedRequests = 0;
+		const totalRequests = this.availableDates.length;
+
+		if (totalRequests === 0) {
+			this.loading = false;
+			return;
+		}
+
+		// Load screenings for each available date
+		this.availableDates.forEach((date) => {
+			const dateStr = this.formatDateForAPI(date);
+
+			this.publicDataService
+				.findScrenningsByMovieAndDate(movieId, dateStr)
+				.pipe(takeUntil(this.destroy$))
+				.subscribe({
+					next: (screenings) => {
+						// Store screenings for this date
+						const screeningsArray = Array.isArray(screenings) ? screenings : [];
+						this.allScreeningsForAllDates.set(dateStr, screeningsArray);
+
+						completedRequests++;
+
+						// If this is the first load or the selected date, update current screenings
+						if (dateStr === this.formatDateForAPI(this.selectedDate)) {
+							this.allScreenings = screeningsArray;
+							this.processScreeningsForSelectedDate();
+						}
+
+						// Check if all requests are completed
+						if (completedRequests >= totalRequests) {
+							this.loading = false;
+						}
+					},
+					error: (err) => {
+						console.error('Error loading screenings for date:', dateStr, err);
+						// Store empty array for this date on error
+						this.allScreeningsForAllDates.set(dateStr, []);
+
+						completedRequests++;
+
+						// If this was for the selected date, clear current screenings
+						if (dateStr === this.formatDateForAPI(this.selectedDate)) {
+							this.allScreenings = [];
+							this.groupedScreenings = [];
+						}
+
+						// Check if all requests are completed
+						if (completedRequests >= totalRequests) {
+							this.loading = false;
+						}
+					},
+				});
+		});
+	}
+
 	formatDateForAPI(date: Date): string {
 		return date.toISOString().split('T')[0];
 	}
@@ -193,6 +251,12 @@ export class PublicSelectMovieScheduleComponent implements OnInit, OnDestroy {
 	isToday(date: Date): boolean {
 		const today = new Date();
 		return this.formatDateForAPI(date) === this.formatDateForAPI(today);
+	}
+
+	hasShowsAvailable(date: Date): boolean {
+		const dateStr = this.formatDateForAPI(date);
+		const screeningsForDate = this.allScreeningsForAllDates.get(dateStr);
+		return screeningsForDate ? screeningsForDate.length > 0 : false;
 	}
 
 	private processScreeningsForSelectedDate() {
@@ -308,7 +372,18 @@ export class PublicSelectMovieScheduleComponent implements OnInit, OnDestroy {
 	// Event handlers
 	onDateChange() {
 		this.selectedScreening = null;
-		this.loadScreeningsForDate(this.movieId, this.selectedDate);
+
+		// Use already loaded screenings for the selected date
+		const dateStr = this.formatDateForAPI(this.selectedDate);
+		const screeningsForDate = this.allScreeningsForAllDates.get(dateStr);
+
+		if (screeningsForDate) {
+			this.allScreenings = screeningsForDate;
+			this.processScreeningsForSelectedDate();
+		} else {
+			// Fallback: load screenings for date if not already loaded
+			this.loadScreeningsForDate(this.movieId, this.selectedDate);
+		}
 	}
 
 	selectScreening(screening: ScreeningDisplay) {

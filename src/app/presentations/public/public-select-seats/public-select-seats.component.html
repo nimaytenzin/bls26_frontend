@@ -36,9 +36,7 @@
 
 				<div class="bg-gray-800/50 backdrop-blur rounded-xl p-6">
 					<h1 class="text-3xl font-bold text-white mb-4">Select Your Seats</h1>
-					<h1 class="text-white">
-						Session ID: {{ sessionService.getSessionId() }}
-					</h1>
+
 					<div class="grid md:grid-cols-2 gap-6">
 						<div>
 							<h3 class="text-xl font-semibold text-white mb-2">
@@ -73,7 +71,7 @@
 						Seat Legend & Pricing
 					</h4>
 					<div
-						class="grid grid-cols-2 md:grid-cols-4 gap-6 justify-items-center"
+						class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 justify-items-center"
 					>
 						<div class="flex flex-col items-center gap-3">
 							<div class="seat seat-basic w-10 h-10 flex flex-col">
@@ -132,6 +130,12 @@
 							SCREEN
 						</div>
 					</div>
+				</div>
+
+				<!-- Mobile Scroll Hint -->
+				<div class="seat-layout-scroll-hint">
+					<div class="scroll-icon"></div>
+					<span class="ml-2">Swipe left and right to view all seats</span>
 				</div>
 
 				<!-- Seats Grid -->
@@ -194,13 +198,17 @@
 			</div>
 
 			<!-- Booking Summary -->
-			<div class="bg-gray-800/50 backdrop-blur rounded-xl p-6 booking-summary">
-				<div class="flex items-center justify-between mb-6">
-					<h3 class="text-xl font-bold text-white">Booking Summary</h3>
-					<div class="text-sm text-gray-400">Step 2 of 3</div>
+			<div
+				class="bg-gray-800/50 backdrop-blur rounded-xl p-4 sm:p-6 booking-summary"
+			>
+				<div class="flex items-center justify-between mb-4 sm:mb-6">
+					<h3 class="text-lg sm:text-xl font-bold text-white">
+						Booking Summary
+					</h3>
+					<div class="text-xs sm:text-sm text-gray-400">Step 2 of 3</div>
 				</div>
 
-				<div class="grid md:grid-cols-2 gap-8">
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
 					<!-- Selected Seats -->
 					<div class="space-y-4">
 						<h4 class="text-lg font-semibold text-white mb-3 flex items-center">
@@ -315,13 +323,15 @@
 				</div>
 
 				<!-- Action Buttons -->
-				<div class="flex gap-4 mt-8 pt-6 border-t border-gray-600/50">
+				<div
+					class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-600/50"
+				>
 					<button
 						pButton
 						label="Back to Schedule"
 						icon="pi pi-arrow-left"
 						(click)="goBack()"
-						class="flex-1 p-button-outlined p-button-secondary"
+						class="w-full sm:flex-1 p-button-outlined p-button-secondary"
 					></button>
 					<button
 						pButton
@@ -330,7 +340,7 @@
 						iconPos="right"
 						(click)="processPayment()"
 						[disabled]="selectedSeats.length === 0"
-						class="flex-2 p-button-lg"
+						class="w-full sm:flex-2 p-button-lg"
 						[class]="
 							selectedSeats.length === 0
 								? 'p-button-secondary'
@@ -339,8 +349,11 @@
 					></button>
 				</div>
 
-				<div *ngIf="selectedSeats.length === 0" class="text-center mt-4">
-					<p class="text-sm text-gray-500">
+				<div
+					*ngIf="selectedSeats.length === 0"
+					class="text-center mt-3 sm:mt-4"
+				>
+					<p class="text-xs sm:text-sm text-gray-500">
 						Select at least one seat to continue
 					</p>
 				</div>

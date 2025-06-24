@@ -39,12 +39,41 @@
     margin: 0 auto;
 
     @media (max-width: 768px) {
-        transform: scale(0.85);
-        transform-origin: top center;
+        // Remove scaling and enable horizontal scroll instead
+        overflow-x: auto;
+        overflow-y: visible;
+        padding: 0 16px;
+        -webkit-overflow-scrolling: touch; // Smooth scrolling on iOS
+        scrollbar-width: thin;
+        scrollbar-color: rgba(139, 92, 246, 0.5) rgba(55, 65, 81, 0.3);
+
+        // Custom scrollbar for webkit browsers
+        &::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: rgba(55, 65, 81, 0.3);
+            border-radius: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.5);
+            border-radius: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.7);
+        }
     }
 
     @media (max-width: 480px) {
-        transform: scale(0.7);
+        padding: 0 12px;
+
+        // Ensure minimum width for proper seat layout
+        .seats-container {
+            min-width: 600px; // Adjust based on your typical seat layout width
+        }
     }
 }
 
@@ -53,6 +82,12 @@
     flex-direction: column;
     gap: 12px;
     align-items: center;
+
+    @media (max-width: 768px) {
+        // Ensure seats don't get cut off on mobile
+        min-width: max-content;
+        padding: 0 20px; // Add some padding for better touch targets
+    }
 }
 
 .seat-row {
@@ -293,6 +328,45 @@
     }
 }
 
+// Mobile scroll hint
+.seat-layout-scroll-hint {
+    display: none;
+
+    @media (max-width: 768px) {
+        display: block;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 0.875rem;
+        margin-bottom: 16px;
+
+        .scroll-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+
+            &::before {
+                content: "←";
+                animation: scrollHint 2s infinite;
+            }
+
+            &::after {
+                content: "→";
+                animation: scrollHint 2s infinite reverse;
+            }
+        }
+    }
+}
+
+@keyframes scrollHint {
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
 // Responsive enhancements
 @media (max-width: 1024px) {
     .seat-layout-grid {
@@ -315,12 +389,12 @@
     }
 
     .seats-grid {
-        gap: 4px;
+        gap: 5px; // Slightly larger gap for better touch targets
     }
 
     .seat {
-        width: 34px;
-        height: 34px;
+        width: 36px; // Slightly larger for better touch
+        height: 36px;
 
         .seat-number {
             font-size: 10px;
@@ -334,12 +408,18 @@
     .seat-wrapper.aisle-right {
         margin-right: 16px;
     }
+
+    // Add touch-friendly spacing
+    .row-label-left,
+    .row-label-right {
+        font-size: 1rem;
+    }
 }
 
 @media (max-width: 480px) {
     .seat {
-        width: 30px;
-        height: 30px;
+        width: 32px; // Maintain reasonable touch target size
+        height: 32px;
 
         .seat-number {
             font-size: 9px;
@@ -348,6 +428,10 @@
         .seat-price {
             font-size: 6px;
         }
+    }
+
+    .seats-grid {
+        gap: 4px;
     }
 
     .row-label-left,

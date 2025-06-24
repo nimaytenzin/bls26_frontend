@@ -118,10 +118,11 @@
 							<p class="text-xs opacity-75">
 								{{ date | date : "MMM" }}
 							</p>
-							<!-- Today indicator -->
+							<!-- Shows available indicator -->
 							<div
-								*ngIf="isToday(date)"
-								class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"
+								*ngIf="hasShowsAvailable(date)"
+								class="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-pulse"
+								title="Shows available"
 							></div>
 						</div>
 					</div>
