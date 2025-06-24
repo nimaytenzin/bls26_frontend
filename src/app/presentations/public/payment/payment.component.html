@@ -2,126 +2,6 @@
 	<!-- Toast Messages -->
 	<p-toast position="top-right"></p-toast>
 
-	<!-- Custom Stepper Header -->
-	<div class="mb-8">
-		<div class="flex items-center justify-center space-x-4">
-			<!-- Step 1: Customer Information -->
-			<div class="flex items-center">
-				<div
-					class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300"
-					[ngClass]="{
-						'bg-blue-600 border-blue-600 text-white': activeStep >= 1,
-						'border-gray-300 text-gray-500': activeStep < 1
-					}"
-				>
-					<i class="pi pi-user text-sm"></i>
-				</div>
-				<span
-					class="ml-2 text-sm font-medium transition-colors duration-300"
-					[ngClass]="{
-						'text-blue-600': activeStep >= 1,
-						'text-gray-500': activeStep < 1
-					}"
-				>
-					Customer Info
-				</span>
-			</div>
-
-			<!-- Connector Line -->
-			<div
-				class="w-16 h-px transition-colors duration-300"
-				[ngClass]="{
-					'bg-blue-600': activeStep >= 2,
-					'bg-gray-300': activeStep < 2
-				}"
-			></div>
-
-			<!-- Step 2: Select Bank -->
-			<div class="flex items-center">
-				<div
-					class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300"
-					[ngClass]="{
-						'bg-blue-600 border-blue-600 text-white': activeStep >= 2,
-						'border-gray-300 text-gray-500': activeStep < 2
-					}"
-				>
-					<i class="pi pi-building text-sm"></i>
-				</div>
-				<span
-					class="ml-2 text-sm font-medium transition-colors duration-300"
-					[ngClass]="{
-						'text-blue-600': activeStep >= 2,
-						'text-gray-500': activeStep < 2
-					}"
-				>
-					Select Bank
-				</span>
-			</div>
-
-			<!-- Connector Line -->
-			<div
-				class="w-16 h-px transition-colors duration-300"
-				[ngClass]="{
-					'bg-blue-600': activeStep >= 3,
-					'bg-gray-300': activeStep < 3
-				}"
-			></div>
-
-			<!-- Step 3: Account Number -->
-			<div class="flex items-center">
-				<div
-					class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300"
-					[ngClass]="{
-						'bg-blue-600 border-blue-600 text-white': activeStep >= 3,
-						'border-gray-300 text-gray-500': activeStep < 3
-					}"
-				>
-					<i class="pi pi-credit-card text-sm"></i>
-				</div>
-				<span
-					class="ml-2 text-sm font-medium transition-colors duration-300"
-					[ngClass]="{
-						'text-blue-600': activeStep >= 3,
-						'text-gray-500': activeStep < 3
-					}"
-				>
-					Account Number
-				</span>
-			</div>
-
-			<!-- Connector Line -->
-			<div
-				class="w-16 h-px transition-colors duration-300"
-				[ngClass]="{
-					'bg-blue-600': activeStep >= 4,
-					'bg-gray-300': activeStep < 4
-				}"
-			></div>
-
-			<!-- Step 4: OTP -->
-			<div class="flex items-center">
-				<div
-					class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300"
-					[ngClass]="{
-						'bg-blue-600 border-blue-600 text-white': activeStep >= 4,
-						'border-gray-300 text-gray-500': activeStep < 4
-					}"
-				>
-					<i class="pi pi-lock text-sm"></i>
-				</div>
-				<span
-					class="ml-2 text-sm font-medium transition-colors duration-300"
-					[ngClass]="{
-						'text-blue-600': activeStep >= 4,
-						'text-gray-500': activeStep < 4
-					}"
-				>
-					Enter OTP
-				</span>
-			</div>
-		</div>
-	</div>
-
 	<!-- Step Content -->
 	<div class="max-w-2xl mx-auto">
 		<!-- Step 1: Customer Information -->
@@ -474,7 +354,7 @@
 							Enter 6-digit OTP
 						</label>
 						<input
-							pInputOtp
+							pInputText
 							id="otp"
 							formControlName="otpCode"
 							placeholder="Enter OTP"
