@@ -1,0 +1,261 @@
+<div class="min-h-screen bg-gray-50 p-6">
+	<!-- Header -->
+	<div class="mb-8">
+		<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+			<div>
+				<h1 class="text-3xl font-bold text-gray-900 mb-2">
+					Executive Producer Dashboard
+				</h1>
+				<p class="text-gray-600">
+					Track your movie portfolio performance and revenue insights.
+				</p>
+			</div>
+			<div class="mt-4 lg:mt-0 flex space-x-3">
+				<p-button
+					label="Revenue Report"
+					icon="pi pi-chart-line"
+					styleClass="p-button-outlined"
+					size="small"
+				>
+				</p-button>
+				<p-button
+					label="Submit New Movie"
+					icon="pi pi-plus"
+					size="small"
+					routerLink="/executive-producer/submit-movie"
+				>
+				</p-button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Stats Overview Cards -->
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+		<!-- Total Movies -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Total Movies</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ stats.totalMovies }}
+					</p>
+				</div>
+				<div class="bg-purple-100 p-3 rounded-full">
+					<i class="pi pi-video text-purple-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+
+		<!-- Active Releases -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Active Releases</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ stats.activeReleases }}
+					</p>
+				</div>
+				<div class="bg-green-100 p-3 rounded-full">
+					<i class="pi pi-play-circle text-green-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+
+		<!-- Total Revenue -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Total Revenue</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ formatCurrency(stats.totalRevenue) }}
+					</p>
+				</div>
+				<div class="bg-blue-100 p-3 rounded-full">
+					<i class="pi pi-money-bill text-blue-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+
+		<!-- Pending Royalties -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Pending Royalties</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ formatCurrency(stats.pendingRoyalties) }}
+					</p>
+				</div>
+				<div class="bg-yellow-100 p-3 rounded-full">
+					<i class="pi pi-clock text-yellow-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Main Content Grid -->
+	<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+		<!-- Revenue Trend -->
+		<div
+			class="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border border-gray-200"
+		>
+			<h3 class="text-lg font-semibold text-gray-900 mb-4">Revenue Trend</h3>
+			<p-chart
+				type="line"
+				[data]="revenueData"
+				[options]="chartOptions"
+				height="300px"
+			>
+			</p-chart>
+		</div>
+
+		<!-- Movie Genre Distribution -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<h3 class="text-lg font-semibold text-gray-900 mb-4">
+				Genre Distribution
+			</h3>
+			<p-chart
+				type="doughnut"
+				[data]="movieDistributionData"
+				[options]="chartOptions"
+				height="300px"
+			>
+			</p-chart>
+		</div>
+	</div>
+
+	<!-- Movie Performance Table -->
+	<div
+		class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+	>
+		<div class="px-6 py-4 border-b border-gray-200">
+			<div class="flex items-center justify-between">
+				<h3 class="text-lg font-semibold text-gray-900">Movie Performance</h3>
+				<p-button
+					label="View All"
+					styleClass="p-button-text p-button-sm"
+					routerLink="/executive-producer/movies"
+				>
+				</p-button>
+			</div>
+		</div>
+
+		<p-table
+			[value]="moviePerformance"
+			[paginator]="false"
+			responsiveLayout="scroll"
+			styleClass="p-datatable-sm"
+		>
+			<ng-template pTemplate="header">
+				<tr>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						Movie Title
+					</th>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						Release Date
+					</th>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						Revenue
+					</th>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						Bookings
+					</th>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						Rating
+					</th>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						Status
+					</th>
+				</tr>
+			</ng-template>
+
+			<ng-template pTemplate="body" let-movie>
+				<tr class="hover:bg-gray-50 border-b border-gray-100">
+					<td class="py-3 px-4">
+						<div class="font-medium text-gray-900">{{ movie.title }}</div>
+					</td>
+					<td class="py-3 px-4">
+						<span class="text-gray-600">{{
+							formatDate(movie.releaseDate)
+						}}</span>
+					</td>
+					<td class="py-3 px-4">
+						<span class="font-medium text-gray-900">{{
+							formatCurrency(movie.totalRevenue)
+						}}</span>
+					</td>
+					<td class="py-3 px-4">
+						<span class="text-gray-600">{{
+							movie.totalBookings.toLocaleString()
+						}}</span>
+					</td>
+					<td class="py-3 px-4">
+						<div class="flex items-center">
+							<i class="pi pi-star-fill text-yellow-400 mr-1"></i>
+							<span class="text-gray-900">{{
+								formatRating(movie.averageRating)
+							}}</span>
+						</div>
+					</td>
+					<td class="py-3 px-4">
+						<p-tag
+							[value]="movie.status"
+							[severity]="getStatusSeverity(movie.status)"
+							class="text-xs"
+						>
+						</p-tag>
+					</td>
+				</tr>
+			</ng-template>
+		</p-table>
+	</div>
+
+	<!-- Quick Actions -->
+	<div class="mt-8 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+		<h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+		<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+			<p-button
+				label="Submit New Movie"
+				icon="pi pi-plus"
+				styleClass="p-button-outlined w-full"
+				routerLink="/executive-producer/submit-movie"
+			>
+			</p-button>
+			<p-button
+				label="Distribution Deals"
+				icon="pi pi-share-alt"
+				styleClass="p-button-outlined w-full"
+				routerLink="/executive-producer/distribution"
+			>
+			</p-button>
+			<p-button
+				label="Revenue Reports"
+				icon="pi pi-chart-bar"
+				styleClass="p-button-outlined w-full"
+				routerLink="/executive-producer/revenue"
+			>
+			</p-button>
+			<p-button
+				label="Marketing Campaigns"
+				icon="pi pi-megaphone"
+				styleClass="p-button-outlined w-full"
+				routerLink="/executive-producer/campaigns"
+			>
+			</p-button>
+		</div>
+	</div>
+
+	<!-- Toast Messages -->
+	<p-toast position="top-right"></p-toast>
+</div>

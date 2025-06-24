@@ -62,6 +62,11 @@
 				layoutService.state.profileSidebarVisible
 		}"
 	>
+		<!-- Role Switcher (for development/testing) -->
+		<div class="layout-topbar-button-container">
+			<app-role-switcher></app-role-switcher>
+		</div>
+
 		<button
 			class="p-link layout-topbar-button"
 			(click)="profileSideBarVisible = true"

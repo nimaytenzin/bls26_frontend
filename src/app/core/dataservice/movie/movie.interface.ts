@@ -1,14 +1,18 @@
+import { User } from '../auth/auth.interface';
 import { Genre } from '../genre/genre.interface';
 import { Language } from '../language/language.interface';
 
 export interface CreateMovieDto {
 	name: string;
 	description?: string;
+	casts: string;
 	pgRating?: string;
 	durationMin?: number;
 	releaseDate: string;
 	trailerURL?: string;
 	productionHouse?: string;
+	producerId: number;
+
 	screeningStatus?: ScreeningStatusEnum;
 	genreIds?: number[];
 	languageIds?: number[];
@@ -22,6 +26,7 @@ export interface UpdateMovieDto {
 	durationMin?: number;
 	releaseDate?: string;
 	trailerURL?: string;
+	producerId?: number;
 	productionHouse?: string;
 	screeningStatus?: ScreeningStatusEnum;
 	genreIds?: number[];
@@ -33,11 +38,13 @@ export interface Movie {
 	id: number;
 	name: string;
 	description?: string;
+	casts: string;
 	pgRating?: string;
 	durationMin?: number;
 	releaseDate?: Date;
 	trailerURL?: string;
 	productionHouse?: string;
+	producerId: number;
 	screeningStatus: ScreeningStatusEnum;
 	media: MovieMedia[];
 	languages?: Language[];
@@ -45,6 +52,7 @@ export interface Movie {
 	genres?: Genre[];
 	createdAt?: Date;
 	updatedAt?: Date;
+	producer?: User;
 }
 
 export interface MovieMedia {

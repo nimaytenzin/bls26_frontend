@@ -1,0 +1,256 @@
+<div class="min-h-screen bg-gradient-to-b from-gray-900 to-black">
+	<div class="container mx-auto px-4 py-8">
+		<!-- Loading State -->
+		<div *ngIf="loading" class="flex items-center justify-center min-h-[60vh]">
+			<div class="p-4 rounded-lg bg-gray-800/50 text-white text-center">
+				<i class="pi pi-spin pi-spinner text-4xl mb-2"></i>
+				<p>Loading movie screening schedule...</p>
+			</div>
+		</div>
+
+		<!-- Error State -->
+		<div *ngIf="error" class="flex items-center justify-center min-h-[60vh]">
+			<div class="p-6 rounded-lg bg-red-900/50 text-white text-center max-w-md">
+				<i class="pi pi-exclamation-triangle text-4xl mb-4 text-red-400"></i>
+				<p class="mb-4">{{ error }}</p>
+				<button
+					pButton
+					label="Try Again"
+					(click)="ngOnInit()"
+					class="p-button-outlined p-button-danger"
+				></button>
+			</div>
+		</div>
+
+		<!-- Main Content -->
+		<div *ngIf="!loading && !error && movie">
+			<div class="grid md:grid-cols-2 gap-8">
+				<div class="relative w-full max-w-lg mx-auto md:mx-0 group">
+					<img
+						[src]="getMovieImage()"
+						[alt]="movie.name"
+						class="w-full h-full object-cover rounded-lg shadow-2xl transform transition-transform duration-300 hover:scale-105"
+					/>
+					<button
+						*ngIf="movie.trailerURL"
+						(click)="openTrailer()"
+						class="absolute inset-0 m-auto w-16 h-16 bg-white rounded-full opacity-90 hover:opacity-100 transition-all duration-300 hover:scale-110 focus:outline-none group-hover:scale-110"
+					>
+						<svg class="w-full h-full" viewBox="0 0 48 48">
+							<rect width="48" height="48" rx="24" class="fill-white" />
+							<path
+								d="M18 30.3155V17.6845C18 16.9255 18.8125 16.4432 19.4789 16.8066L31.0572 23.1221C31.7521 23.5011 31.7521 24.4989 31.0572 24.8779L19.4789 31.1934C18.8125 31.5568 18 31.0745 18 30.3155Z"
+								class="fill-pink-600"
+							/>
+						</svg>
+					</button>
+				</div>
+
+				<!-- Movie Details Section -->
+				<div class="space-y-6">
+					<div class="flex items-center gap-4">
+						<h1 class="text-4xl font-bold text-white">{{ movie.name }}</h1>
+						<p-chip
+							*ngIf="movie.pgRating"
+							[label]="movie.pgRating"
+							styleClass="bg-yellow-500 text-gray-900"
+						></p-chip>
+					</div>
+
+					<p class="text-gray-300 text-lg">{{ movie.description }}</p>
+
+					<div class="space-y-4">
+						<div
+							class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-6"
+						>
+							<span class="text-gray-400 uppercase text-sm tracking-wider"
+								>Duration</span
+							>
+							<span class="text-white">{{
+								formatDuration(movie.durationMin)
+							}}</span>
+						</div>
+						<div
+							*ngIf="movie.genres && movie.genres.length > 0"
+							class="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-6"
+						>
+							<span class="text-gray-400 uppercase text-sm tracking-wider"
+								>Genre</span
+							>
+							<div class="flex flex-wrap gap-2">
+								<p-chip
+									*ngFor="let genre of movie.genres"
+									[label]="genre.name"
+									styleClass="bg-purple-500"
+								></p-chip>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Showtimes Section -->
+			<div class="mt-12 bg-gray-800/50 backdrop-blur rounded-xl p-8 space-y-8">
+				<!-- Date Selection -->
+				<div>
+					<h3 class="text-2xl font-bold mb-6 text-white">Select Show Date</h3>
+					<div
+						class="flex gap-4 overflow-x-auto pb-4 scrollbar-thumb-gray-600 scrollbar-track-gray-800"
+					>
+						<div
+							*ngFor="let date of availableDates; let i = index"
+							class="flex-shrink-0 cursor-pointer relative p-4 backdrop-blur rounded-lg transition-all duration-300 hover:translate-y-1 group min-w-[80px] text-center"
+							[class.bg-pink-600]="isDateSelected(date)"
+							[class.text-white]="isDateSelected(date)"
+							[class.shadow-lg]="isDateSelected(date)"
+							[class.bg-gray-700]="!isDateSelected(date)"
+							[class.text-gray-300]="!isDateSelected(date)"
+							[class.hover:bg-pink-500]="!isDateSelected(date)"
+							[class.hover:text-white]="!isDateSelected(date)"
+							(click)="selectedDate = date; onDateChange()"
+						>
+							<p class="font-extralight text-sm">
+								{{ date | date : "EEE" }}
+							</p>
+							<p class="mt-1 font-semibold text-lg">
+								{{ date | date : "dd" }}
+							</p>
+							<p class="text-xs opacity-75">
+								{{ date | date : "MMM" }}
+							</p>
+							<!-- Today indicator -->
+							<div
+								*ngIf="isToday(date)"
+								class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"
+							></div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Theatres and Showtimes -->
+				<div *ngIf="groupedScreenings.length > 0">
+					<h3 class="text-2xl font-bold mb-6 text-white">
+						Available Screenings
+					</h3>
+
+					<div class="space-y-8">
+						<div
+							*ngFor="let group of groupedScreenings"
+							class="bg-gray-700/30 rounded-lg p-6"
+						>
+							<!-- Theatre Info -->
+							<div class="mb-6">
+								<h4 class="text-xl font-bold text-white mb-2">
+									{{ group.theatre.name }}
+								</h4>
+								<p class="text-gray-300 text-sm mb-2">
+									<i class="pi pi-map-marker mr-2"></i>
+									{{ group.theatre.address }}
+								</p>
+								<p class="text-gray-400 text-sm">
+									<i class="pi pi-home mr-2"></i>
+									{{ group.hall.name }} • {{ group.hall.capacity }} seats
+								</p>
+							</div>
+
+							<!-- Showtimes for this theatre/hall -->
+							<div
+								class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+							>
+								<div
+									*ngFor="let screening of group.screenings"
+									class="relative p-4 bg-gray-600/50 backdrop-blur rounded-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer"
+									[class.ring-2]="selectedScreening?.id === screening.id"
+									[class.ring-pink-600]="selectedScreening?.id === screening.id"
+									[class.bg-pink-600]="selectedScreening?.id === screening.id"
+									(click)="selectScreening(screening)"
+								>
+									<div class="space-y-3">
+										<div class="text-lg font-bold text-white">
+											{{ formatTime(screening.startTime) }} -
+											{{ formatTime(screening.endTime) }}
+										</div>
+										<div class="text-sm text-gray-400">
+											{{ screening.availableSeats }}/{{ screening.totalSeats }}
+											seats available
+										</div>
+
+										<!-- Seat Types and Prices -->
+										<div
+											class="space-y-2 border-t border-gray-500/50 pt-2"
+											*ngIf="screening.seatPrices.length > 0"
+										>
+											<div
+												class="flex items-center justify-between"
+												*ngFor="let seatPrice of screening.seatPrices"
+											>
+												<span class="text-sm text-gray-300">{{
+													seatPrice.seatCategory?.name
+												}}</span>
+												<div class="text-right">
+													<span class="text-sm font-semibold text-white">{{
+														formatPrice(seatPrice.price)
+													}}</span>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div
+										class="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-pink-600 to-pink-400 transform scale-x-0 transition-transform duration-300 group-hover:scale-x-100"
+									></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- No screenings message -->
+				<div
+					*ngIf="groupedScreenings.length === 0 && !loading"
+					class="text-center py-8"
+				>
+					<div class="text-gray-400 text-lg mb-4">
+						<i class="pi pi-calendar-times text-4xl mb-4"></i>
+						<p>No screenings available for {{ formatDate(selectedDate) }}</p>
+					</div>
+					<p class="text-gray-500">Please select a different date</p>
+				</div>
+
+				<!-- Book Now Button -->
+				<div class="flex justify-center pt-4" *ngIf="selectedScreening">
+					<p-button
+						label="Confirm and Select Seats"
+						icon="pi pi-ticket"
+						styleClass="p-button-lg w-full md:w-auto"
+						(onClick)="proceedToBooking()"
+					></p-button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Trailer Dialog -->
+<p-dialog
+	[(visible)]="showTrailerDialog"
+	[modal]="true"
+	[draggable]="false"
+	[resizable]="false"
+	[style]="{ width: '90vw', maxWidth: '1200px' }"
+	styleClass="trailer-dialog"
+	[dismissableMask]="true"
+	(onHide)="closeTrailer()"
+>
+	<div class="relative w-full" style="padding-top: 56.25%">
+		<iframe
+			*ngIf="safeTrailerUrl"
+			[src]="safeTrailerUrl"
+			class="absolute top-0 left-0 w-full h-full"
+			frameborder="0"
+			allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+			allowfullscreen
+			autoplay
+		>
+		</iframe>
+	</div>
+</p-dialog>

@@ -1,0 +1,990 @@
+<!-- Admin Master Screening Component -->
+<div class="min-h-screen p-6 relative overflow-x-auto">
+	<!-- Header -->
+	<div
+		class="flex flex-col lg:flex-row border-b shadow-b lg:items-start lg:justify-between gap-6 mb-8 p-6 lg:p-10 bg-white/95 backdrop-blur-md rounded-3xl border border-white/20 relative overflow-hidden"
+	>
+		<div class="flex-1">
+			<h1
+				class="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-3"
+			>
+				Screening Management
+			</h1>
+			<p class="text-slate-600 mt-3 text-lg font-medium leading-relaxed">
+				Manage movie screenings, showtimes, and pricing
+			</p>
+		</div>
+		<div class="flex-shrink-0">
+			<p-button
+				label="Add Screening"
+				icon="pi pi-plus"
+				(onClick)="openCreateDialog()"
+				styleClass="!bg-gradient-to-r !from-blue-500 !to-blue-600 !border-none !text-white !font-semibold !px-8 !py-4 !rounded-xl !shadow-lg hover:!shadow-blue-500/25 hover:!scale-105 !transition-all !duration-300"
+			>
+			</p-button>
+		</div>
+	</div>
+
+	<!-- Filters & View Controls -->
+	<div class="mb-8">
+		<div class="flex flex-col gap-8">
+			<!-- Search and Filters -->
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+				<div class="flex flex-col gap-3">
+					<label
+						for="movie-filter"
+						class="text-sm font-semibold text-slate-700 flex items-center gap-2"
+					>
+						<i class="pi pi-video text-blue-500"></i>
+						Movie
+					</label>
+					<p-dropdown
+						id="movie-filter"
+						[options]="movies"
+						optionLabel="name"
+						optionValue="id"
+						placeholder="All Movies"
+						[showClear]="true"
+						formControlName="movieId"
+						[formGroup]="filterForm"
+					>
+					</p-dropdown>
+				</div>
+
+				<div class="flex flex-col gap-3">
+					<label
+						for="theatre-filter"
+						class="text-sm font-semibold text-slate-700 flex items-center gap-2"
+					>
+						<i class="pi pi-building text-blue-500"></i>
+						Theatre
+					</label>
+					<p-dropdown
+						id="theatre-filter"
+						[options]="theatres"
+						optionLabel="name"
+						optionValue="id"
+						placeholder="All Theatres"
+						[showClear]="true"
+						formControlName="theatreId"
+						[formGroup]="filterForm"
+					>
+					</p-dropdown>
+				</div>
+
+				<div class="flex flex-col gap-3">
+					<label
+						for="date-filter"
+						class="text-sm font-semibold text-slate-700 flex items-center gap-2"
+					>
+						<i class="pi pi-calendar text-blue-500"></i>
+						Date
+					</label>
+					<p-calendar
+						id="date-filter"
+						formControlName="date"
+						[formGroup]="filterForm"
+						placeholder="Select date"
+						dateFormat="yy-mm-dd"
+						appendTo="body"
+						[showClear]="true"
+					>
+					</p-calendar>
+				</div>
+			</div>
+
+			<!-- View Mode Toggle -->
+			<div class="flex justify-center lg:justify-end">
+				<div class="flex flex-col items-center lg:items-end gap-3">
+					<label
+						class="text-sm font-semibold text-slate-700 flex items-center gap-2"
+					>
+						<i class="pi pi-eye text-blue-500"></i>
+						View Mode
+					</label>
+					<p-selectButton
+						[options]="[
+							{ label: 'List', value: 'list', icon: 'pi pi-list' },
+							{
+								label: 'Calendar',
+								value: 'calendar',
+								icon: 'pi pi-calendar'
+							}
+						]"
+						[(ngModel)]="viewMode"
+						optionLabel="label"
+						optionValue="value"
+						(onChange)="onViewModeChange()"
+						styleClass="!rounded-xl !overflow-hidden !shadow-md"
+					>
+						<ng-template pTemplate="item" let-option>
+							<div class="flex items-center gap-2 px-4 py-2">
+								<i [class]="option.icon"></i>
+								<span>{{ option.label }}</span>
+							</div>
+						</ng-template>
+					</p-selectButton>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Main Content -->
+	<div class="mb-8">
+		<!-- Loading State -->
+		<div
+			*ngIf="loading"
+			class="flex flex-col items-center justify-center p-16 bg-white/95 backdrop-blur-md rounded-3xl shadow-lg border border-white/20 relative overflow-hidden"
+		>
+			<div
+				class="absolute inset-0 bg-gradient-conic from-blue-500/5 via-transparent to-purple-500/5 animate-spin"
+			></div>
+			<div class="relative z-10 text-center">
+				<p-progressSpinner
+					strokeWidth="3"
+					styleClass="!w-16 !h-16"
+				></p-progressSpinner>
+				<h3 class="text-xl font-bold text-slate-700 mt-6">
+					Loading Screenings
+				</h3>
+				<p class="text-slate-600 mt-2 text-lg">
+					Please wait while we fetch the latest screening data...
+				</p>
+			</div>
+		</div>
+
+		<!-- List View -->
+		<div *ngIf="!loading && viewMode === 'list'" class="space-y-6">
+			<p-card
+				styleClass="!bg-white/95 !backdrop-blur-md !rounded-3xl !border !border-white/20 !shadow-lg"
+			>
+				<ng-template pTemplate="header">
+					<div
+						class="flex items-center justify-between p-6 border-b border-slate-200"
+					>
+						<div class="flex items-center gap-4">
+							<div class="flex items-center gap-3">
+								<i class="pi pi-video text-2xl text-blue-500"></i>
+								<h3 class="text-xl font-bold text-slate-800">
+									Screenings
+									<span
+										class="ml-2 px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full"
+									>
+										{{ filteredScreenings.length }}
+									</span>
+								</h3>
+							</div>
+						</div>
+						<div class="flex items-center gap-2">
+							<p-button
+								icon="pi pi-refresh"
+								styleClass="!bg-transparent !border-none !text-slate-600 hover:!bg-slate-100 !rounded-lg !p-2"
+								pTooltip="Refresh Data"
+								(onClick)="loadInitialData()"
+							>
+							</p-button>
+						</div>
+					</div>
+				</ng-template>
+
+				<p-table
+					[value]="filteredScreenings"
+					[paginator]="true"
+					[rows]="10"
+					[rowsPerPageOptions]="[5, 10, 25, 50]"
+					[showCurrentPageReport]="true"
+					currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+					[responsive]="true"
+					styleClass="!bg-transparent !border-none !rounded-2xl !overflow-hidden !shadow-none"
+					[loading]="false"
+					loadingIcon="pi pi-spin pi-spinner"
+				>
+					<ng-template pTemplate="header">
+						<tr
+							class="!bg-gradient-to-r !from-slate-50 !to-slate-100 !border-none"
+						>
+							<th
+								class="!p-4 !text-left !font-bold !text-slate-700 !text-sm !uppercase !tracking-wide !border-none"
+							>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-video text-blue-500"></i>
+									Movie
+								</div>
+							</th>
+							<th
+								class="!p-4 !text-left !font-bold !text-slate-700 !text-sm !uppercase !tracking-wide !border-none"
+							>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-building text-blue-500"></i>
+									Theatre & Hall
+								</div>
+							</th>
+							<th
+								class="!p-4 !text-left !font-bold !text-slate-700 !text-sm !uppercase !tracking-wide !border-none"
+							>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-clock text-blue-500"></i>
+									Date & Time
+								</div>
+							</th>
+							<th
+								class="!p-4 !text-left !font-bold !text-slate-700 !text-sm !uppercase !tracking-wide !border-none"
+							>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-globe text-blue-500"></i>
+									Languages
+								</div>
+							</th>
+							<th
+								class="!p-4 !text-left !font-bold !text-slate-700 !text-sm !uppercase !tracking-wide !border-none"
+							>
+								<div class="flex items-center gap-2">Seat Prices</div>
+							</th>
+							<th
+								class="!p-4 !text-left !font-bold !text-slate-700 !text-sm !uppercase !tracking-wide !border-none"
+							>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-info-circle text-blue-500"></i>
+									Status
+								</div>
+							</th>
+							<th
+								class="!p-4 !text-center !font-bold !text-slate-700 !text-sm !uppercase !tracking-wide !border-none"
+							>
+								<div class="flex items-center justify-center gap-2">
+									<i class="pi pi-cog text-blue-500"></i>
+									Actions
+								</div>
+							</th>
+						</tr>
+					</ng-template>
+
+					<ng-template pTemplate="body" let-screening let-rowIndex="rowIndex">
+						<tr
+							class="!border-none !border-b !border-slate-100 hover:!bg-gradient-to-r hover:!from-blue-50/50 hover:!to-purple-50/50 !transition-all !duration-300 hover:!transform hover:!scale-[1.01]"
+						>
+							<td class="!p-4 !border-none !align-middle">
+								<div class="flex items-center gap-4 group">
+									<div class="relative">
+										<img
+											*ngIf="getFirstPortraitImage(screening.movie)"
+											[src]="
+												getMediaUrl(getFirstPortraitImage(screening.movie).uri)
+											"
+											[alt]="screening.movie?.name"
+											class="w-16 h-20 object-cover rounded-xl shadow-md border-2 border-white group-hover:scale-105 transition-transform duration-300"
+											loading="lazy"
+											(error)="onImageError($event)"
+										/>
+										<div
+											*ngIf="!getFirstPortraitImage(screening.movie)"
+											class="w-16 h-20 bg-slate-200 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300"
+										>
+											<i class="pi pi-image text-slate-400 text-2xl"></i>
+										</div>
+									</div>
+									<div class="flex-1">
+										<div
+											class="font-semibold text-slate-800 text-base group-hover:text-blue-600 transition-colors duration-300"
+										>
+											{{ screening.movie?.name }}
+										</div>
+										<div
+											class="text-slate-500 text-sm mt-1 flex items-center gap-2"
+										>
+											<i class="pi pi-clock text-xs"></i>
+											{{ screening.movie?.durationMin }}min
+										</div>
+									</div>
+								</div>
+							</td>
+							<td class="!p-4 !border-none !align-middle">
+								<div class="space-y-2">
+									<div class="flex items-center gap-2">
+										<span class="font-semibold text-slate-800">{{
+											screening.hall?.theatre?.name
+										}}</span>
+									</div>
+									<div class="text-blue-600 font-medium">
+										{{ screening.hall?.name }} (<i
+											class="pi pi-users text-xs"
+										></i>
+										{{ screening.hall?.capacity }} seats)
+									</div>
+								</div>
+							</td>
+							<td class="!p-4 !border-none !align-middle">
+								<div class="space-y-2">
+									<div class="flex items-center gap-2 text-slate-700">
+										<i class="pi pi-calendar text-blue-500 text-sm"></i>
+										<span class="font-medium">{{
+											screening.date | date : "mediumDate"
+										}}</span>
+									</div>
+									<div class="flex items-center gap-2 text-slate-600">
+										<i class="pi pi-clock text-blue-500 text-sm"></i>
+										<span
+											>{{ screening.startTime }} - {{ screening.endTime }}</span
+										>
+									</div>
+								</div>
+							</td>
+							<td class="!p-4 !border-none !align-middle">
+								<div class="flex flex-col space-y-2">
+									<p-tag
+										*ngIf="screening.audioLanguage"
+										[value]="'Audio: ' + screening.audioLanguage.name"
+										severity="info"
+										styleClass="!bg-blue-100 !text-blue-800 !border-blue-200 !px-3 !py-1 !rounded-full !text-xs !font-medium"
+										icon="pi pi-volume-up"
+									>
+									</p-tag>
+									<p-tag
+										*ngIf="screening.subtitleLanguage"
+										[value]="'Subtitle: ' + screening.subtitleLanguage.name"
+										severity="secondary"
+										styleClass="!bg-slate-100 !text-slate-700 !border-slate-200 !px-3 !py-1 !rounded-full !text-xs !font-medium"
+										icon="pi pi-file-o"
+									>
+									</p-tag>
+									<div
+										*ngIf="
+											!screening.audioLanguage && !screening.subtitleLanguage
+										"
+										class="text-slate-400 text-sm italic"
+									>
+										No languages set
+									</div>
+								</div>
+							</td>
+							<td class="!p-4 !border-none !align-middle">
+								<div class="">
+									<p
+										class="text-sm text-slate-600 leading-relaxed"
+										*ngFor="let item of screening.screeningSeatPrices"
+									>
+										{{ item.seatCategory.name }}:
+										{{ item.price | currency : "BTN" : "symbol" : "1.0-0" }}
+									</p>
+								</div>
+							</td>
+							<td class="!p-4 !border-none !align-middle">
+								<p-tag
+									[value]="
+										getScreeningSeverity(screening) === 'secondary'
+											? 'Screening Now'
+											: getScreeningSeverity(screening) === 'warning'
+											? 'Screening Now'
+											: 'Upcoming'
+									"
+									[severity]="getScreeningSeverity(screening)"
+									styleClass="!px-4 !py-2 !rounded-full !font-semibold !text-xs !uppercase !tracking-wide"
+									[icon]="
+										getScreeningSeverity(screening) === 'secondary'
+											? 'pi pi-check-circle'
+											: getScreeningSeverity(screening) === 'warning'
+											? 'pi pi-clock'
+											: 'pi pi-calendar-plus'
+									"
+								>
+								</p-tag>
+							</td>
+							<td class="!p-4 !border-none !align-middle">
+								<div class="flex items-center justify-center gap-2">
+									<p-button
+										icon="pi pi-eye"
+										styleClass="!bg-transparent !border-none !text-blue-500 hover:!bg-blue-50 !rounded-lg !p-2 !w-10 !h-10"
+										pTooltip="View Details"
+										tooltipPosition="top"
+									>
+									</p-button>
+									<p-button
+										icon="pi pi-pencil"
+										styleClass="!bg-transparent !border-none !text-cyan-500 hover:!bg-cyan-50 !rounded-lg !p-2 !w-10 !h-10"
+										pTooltip="Edit Screening"
+										tooltipPosition="top"
+										(onClick)="openEditDialog(screening)"
+									>
+									</p-button>
+									<p-button
+										icon="pi pi-trash"
+										styleClass="!bg-transparent !border-none !text-red-500 hover:!bg-red-50 !rounded-lg !p-2 !w-10 !h-10"
+										pTooltip="Delete Screening"
+										tooltipPosition="top"
+										(onClick)="deleteScreening(screening, $event)"
+									>
+									</p-button>
+								</div>
+							</td>
+						</tr>
+					</ng-template>
+
+					<ng-template pTemplate="emptymessage">
+						<tr>
+							<td colspan="7" class="!p-16 !text-center !border-none">
+								<div
+									class="flex flex-col items-center justify-center space-y-4"
+								>
+									<div
+										class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center"
+									>
+										<i class="pi pi-video text-slate-400 text-3xl"></i>
+									</div>
+									<h4 class="text-xl font-semibold text-slate-700">
+										No screenings found
+									</h4>
+									<p class="text-slate-500 max-w-md">
+										Try adjusting your filters or create a new screening to get
+										started
+									</p>
+								</div>
+							</td>
+						</tr>
+					</ng-template>
+				</p-table>
+			</p-card>
+		</div>
+
+		<!-- Calendar View -->
+		<div *ngIf="!loading && viewMode === 'calendar'" class="space-y-6">
+			<p-card
+				styleClass="!bg-white/95 !backdrop-blur-md !rounded-3xl !border !border-white/20 !shadow-lg"
+			>
+				<ng-template pTemplate="header">
+					<div class="p-6 border-b border-slate-200">
+						<h3
+							class="text-xl font-bold text-slate-800 flex items-center gap-3"
+						>
+							<i class="pi pi-calendar text-2xl text-blue-500"></i>
+							Screening Calendar
+						</h3>
+					</div>
+				</ng-template>
+
+				<div
+					class="flex items-center justify-center min-h-[500px] bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-dashed border-slate-300 relative overflow-hidden"
+				>
+					<div
+						class="absolute inset-0 bg-gradient-conic from-blue-500/5 via-transparent to-purple-500/5 animate-spin [animation-duration:8s]"
+					></div>
+					<div class="text-center p-12 relative z-10">
+						<div
+							class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg mb-6 mx-auto"
+						>
+							<i class="pi pi-calendar text-blue-500 text-4xl"></i>
+						</div>
+						<h4 class="text-2xl font-bold text-slate-700 mb-4">
+							Calendar View Coming Soon
+						</h4>
+						<p class="text-slate-600 text-lg mb-2 max-w-md mx-auto">
+							Calendar view will be available once FullCalendar is installed.
+						</p>
+						<p class="text-slate-500 mb-8 max-w-md mx-auto">
+							For now, please use the List View to manage screenings.
+						</p>
+						<div class="flex justify-center">
+							<p-button
+								label="Switch to List View"
+								icon="pi pi-list"
+								(onClick)="viewMode = 'list'"
+								styleClass="!bg-gradient-to-r !from-blue-500 !to-blue-600 !border-none !text-white !font-semibold !px-8 !py-3 !rounded-xl !shadow-lg hover:!shadow-blue-500/25 hover:!scale-105 !transition-all !duration-300"
+							>
+							</p-button>
+						</div>
+					</div>
+				</div>
+			</p-card>
+		</div>
+	</div>
+
+	<!-- Create Screening Dialog -->
+	<p-dialog
+		header="Create New Screening"
+		[(visible)]="showCreateDialog"
+		[modal]="true"
+		[closable]="true"
+		[style]="{ width: '70vw', minWidth: '600px' }"
+		styleClass="!rounded-3xl !border-none !shadow-2xl"
+	>
+		<div class="p-8">
+			<!-- Step Indicator -->
+			<div class="mb-10">
+				<div class="flex justify-center items-center gap-8 relative">
+					<div
+						*ngFor="let step of Array(totalSteps); let i = index"
+						class="flex flex-col items-center gap-3 relative z-10"
+						[class.opacity-50]="currentStep < i + 1"
+					>
+						<div
+							class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300"
+							[class]="
+								currentStep === i + 1
+									? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+									: currentStep > i + 1
+									? 'bg-green-500 text-white'
+									: 'bg-slate-200 text-slate-400'
+							"
+						>
+							<i *ngIf="currentStep > i + 1" class="pi pi-check"></i>
+							<span *ngIf="currentStep <= i + 1">{{ i + 1 }}</span>
+						</div>
+						<div
+							class="text-sm font-medium text-center transition-colors duration-300"
+							[class]="
+								currentStep === i + 1
+									? 'text-blue-600'
+									: currentStep > i + 1
+									? 'text-green-600'
+									: 'text-slate-400'
+							"
+						>
+							{{
+								i === 0 ? "Movie & Venue" : i === 1 ? "Date & Time" : "Pricing"
+							}}
+						</div>
+						<!-- Progress line -->
+						<div
+							*ngIf="i < totalSteps - 1"
+							class="absolute top-6 left-full w-8 h-0.5 transition-colors duration-300"
+							[class]="currentStep > i + 1 ? 'bg-green-500' : 'bg-slate-200'"
+						></div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Step 1: Movie & Venue Selection -->
+			<div *ngIf="currentStep === 1" class="space-y-6">
+				<h4 class="text-2xl font-bold text-slate-800 mb-6">
+					Select Movie and Venue
+				</h4>
+				<form [formGroup]="screeningForm">
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+						<div class="space-y-3">
+							<label
+								for="movie"
+								class="block text-sm font-semibold text-slate-700"
+								>Movie *</label
+							>
+							<p-dropdown
+								id="movie"
+								[options]="movies"
+								optionLabel="name"
+								optionValue="id"
+								placeholder="Select Movie"
+								formControlName="movieId"
+								[class.ng-invalid]="isFieldInvalid(screeningForm, 'movieId')"
+								[filter]="true"
+								filterBy="name"
+								appendTo="body"
+								styleClass="!w-full !rounded-xl !border-2 !border-slate-200 focus-within:!border-blue-500 !transition-all !duration-300"
+							>
+								<ng-template pTemplate="selectedItem" let-movie>
+									<div *ngIf="movie" class="flex items-center gap-3">
+										<img
+											*ngIf="movie.posterUrl"
+											[src]="movie.posterUrl"
+											[alt]="movie.name"
+											class="w-8 h-10 object-cover rounded"
+										/>
+										<span class="font-medium">{{ movie.name }}</span>
+									</div>
+								</ng-template>
+								<ng-template pTemplate="item" let-movie>
+									<div class="flex items-center gap-3 p-2">
+										<img
+											*ngIf="movie.posterUrl"
+											[src]="movie.posterUrl"
+											[alt]="movie.name"
+											class="w-8 h-10 object-cover rounded"
+										/>
+										<div class="flex-1">
+											<div class="font-medium text-slate-800">
+												{{ movie.name }}
+											</div>
+											<div class="text-sm text-slate-500">
+												{{ movie.genre }} • {{ movie.duration }}min
+											</div>
+										</div>
+									</div>
+								</ng-template>
+							</p-dropdown>
+							<small
+								*ngIf="isFieldInvalid(screeningForm, 'movieId')"
+								class="text-red-500 text-xs"
+							>
+								{{ getFieldError(screeningForm, "movieId") }}
+							</small>
+						</div>
+
+						<div class="space-y-3">
+							<label
+								for="theatre"
+								class="block text-sm font-semibold text-slate-700"
+								>Theatre *</label
+							>
+							<p-dropdown
+								id="theatre"
+								[options]="theatres"
+								optionLabel="name"
+								optionValue="id"
+								appendTo="body"
+								placeholder="Select Theatre"
+								formControlName="theatreId"
+								[class.ng-invalid]="isFieldInvalid(screeningForm, 'theatreId')"
+								styleClass="!w-full !rounded-xl !border-2 !border-slate-200 focus-within:!border-blue-500 !transition-all !duration-300"
+							>
+							</p-dropdown>
+							<small
+								*ngIf="isFieldInvalid(screeningForm, 'theatreId')"
+								class="text-red-500 text-xs"
+							>
+								{{ getFieldError(screeningForm, "theatreId") }}
+							</small>
+						</div>
+
+						<div class="space-y-3">
+							<label
+								for="hall"
+								class="block text-sm font-semibold text-slate-700"
+								>Hall *</label
+							>
+							<p-dropdown
+								id="hall"
+								[options]="halls"
+								optionLabel="name"
+								optionValue="id"
+								appendTo="body"
+								placeholder="Select Hall"
+								formControlName="hallId"
+								[class.ng-invalid]="isFieldInvalid(screeningForm, 'hallId')"
+								[disabled]="!screeningForm.get('theatreId')?.value"
+								styleClass="!w-full !rounded-xl !border-2 !border-slate-200 focus-within:!border-blue-500 !transition-all !duration-300"
+							>
+							</p-dropdown>
+							<small
+								*ngIf="isFieldInvalid(screeningForm, 'hallId')"
+								class="text-red-500 text-xs"
+							>
+								{{ getFieldError(screeningForm, "hallId") }}
+							</small>
+						</div>
+					</div>
+				</form>
+			</div>
+
+			<!-- Step 2: Date & Time -->
+			<div *ngIf="currentStep === 2" class="step-content">
+				<h4>Schedule Screening</h4>
+				<form [formGroup]="screeningForm">
+					<div class="form-grid">
+						<div class="form-field">
+							<label for="date">Date *</label>
+							<p-calendar
+								id="date"
+								formControlName="date"
+								[class.ng-invalid]="isFieldInvalid(screeningForm, 'date')"
+								dateFormat="yy-mm-dd"
+								[minDate]="minDate"
+								placeholder="Select date"
+							>
+							</p-calendar>
+							<small
+								*ngIf="isFieldInvalid(screeningForm, 'date')"
+								class="p-error"
+							>
+								{{ getFieldError(screeningForm, "date") }}
+							</small>
+						</div>
+
+						<div class="form-field">
+							<label for="startTime">Start Time *</label>
+							<p-calendar
+								id="startTime"
+								formControlName="startTime"
+								[class.ng-invalid]="isFieldInvalid(screeningForm, 'startTime')"
+								[timeOnly]="true"
+								placeholder="Select start time"
+							>
+							</p-calendar>
+							<small
+								*ngIf="isFieldInvalid(screeningForm, 'startTime')"
+								class="p-error"
+							>
+								{{ getFieldError(screeningForm, "startTime") }}
+							</small>
+						</div>
+
+						<div class="form-field">
+							<label for="endTime">End Time *</label>
+							<p-calendar
+								id="endTime"
+								formControlName="endTime"
+								[class.ng-invalid]="isFieldInvalid(screeningForm, 'endTime')"
+								[timeOnly]="true"
+								placeholder="Select end time"
+							>
+							</p-calendar>
+							<small
+								*ngIf="isFieldInvalid(screeningForm, 'endTime')"
+								class="p-error"
+							>
+								{{ getFieldError(screeningForm, "endTime") }}
+							</small>
+						</div>
+
+						<div class="form-field">
+							<label for="audioLang">Audio Language</label>
+							<p-dropdown
+								id="audioLang"
+								[options]="languages"
+								optionLabel="name"
+								optionValue="id"
+								placeholder="Select audio language"
+								formControlName="audioLanguageId"
+								[showClear]="true"
+							>
+							</p-dropdown>
+						</div>
+
+						<div class="form-field">
+							<label for="subtitleLang">Subtitle Language</label>
+							<p-dropdown
+								id="subtitleLang"
+								[options]="languages"
+								optionLabel="name"
+								optionValue="id"
+								placeholder="Select subtitle language"
+								formControlName="subtitleLanguageId"
+								[showClear]="true"
+							>
+							</p-dropdown>
+						</div>
+					</div>
+				</form>
+			</div>
+
+			<!-- Step 3: Pricing -->
+			<div *ngIf="currentStep === 3" class="step-content">
+				<h4>Set Ticket Pricing</h4>
+				<div class="pricing-section">
+					<p class="pricing-description">
+						Set prices for each seat category in the selected hall.
+					</p>
+
+					<form [formGroup]="priceForm" *ngIf="seatCategories.length > 0">
+						<div class="price-grid">
+							<div *ngFor="let category of seatCategories" class="price-field">
+								<label [for]="'price_' + category.id">
+									{{ category.name }} *
+								</label>
+								<div class="price-input-container">
+									<span class="currency-symbol">$</span>
+									<p-inputNumber
+										[id]="'price_' + category.id"
+										[formControlName]="'price_' + category.id"
+										mode="decimal"
+										[minFractionDigits]="2"
+										[maxFractionDigits]="2"
+										[min]="0"
+										placeholder="0.00"
+										[class.ng-invalid]="
+											isFieldInvalid(priceForm, 'price_' + category.id)
+										"
+									>
+									</p-inputNumber>
+								</div>
+								<small
+									*ngIf="isFieldInvalid(priceForm, 'price_' + category.id)"
+									class="p-error"
+								>
+									{{ getFieldError(priceForm, "price_" + category.id) }}
+								</small>
+							</div>
+						</div>
+					</form>
+
+					<div *ngIf="seatCategories.length === 0" class="empty-categories">
+						<p>No seat categories found for the selected hall.</p>
+						<p>
+							Please select a different hall or add seat categories to this hall
+							first.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<ng-template pTemplate="footer">
+			<div class="dialog-footer">
+				<p-button
+					*ngIf="currentStep > 1"
+					label="Previous"
+					icon="pi pi-chevron-left"
+					styleClass="p-button-secondary"
+					(onClick)="previousStep()"
+				>
+				</p-button>
+
+				<p-button
+					*ngIf="currentStep < totalSteps"
+					label="Next"
+					icon="pi pi-chevron-right"
+					iconPos="right"
+					[disabled]="!canProceedToNextStep()"
+					(onClick)="nextStep()"
+				>
+				</p-button>
+
+				<p-button
+					*ngIf="currentStep === totalSteps"
+					label="Create Screening"
+					icon="pi pi-check"
+					[loading]="isSubmitting"
+					[disabled]="!canProceedToNextStep()"
+					(onClick)="submitScreening()"
+				>
+				</p-button>
+
+				<p-button
+					label="Cancel"
+					icon="pi pi-times"
+					styleClass="p-button-text"
+					(onClick)="showCreateDialog = false"
+				>
+				</p-button>
+			</div>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Edit Screening Dialog -->
+	<p-dialog
+		header="Edit Screening"
+		[(visible)]="showEditDialog"
+		[modal]="true"
+		[closable]="true"
+		[style]="{ width: '60vw', minWidth: '500px' }"
+		styleClass="edit-screening-dialog"
+	>
+		<div class="dialog-content">
+			<form [formGroup]="screeningForm">
+				<div class="form-grid">
+					<div class="form-field">
+						<label for="edit-movie">Movie</label>
+						<p-dropdown
+							id="edit-movie"
+							[options]="movies"
+							optionLabel="title"
+							optionValue="id"
+							formControlName="movieId"
+							[filter]="true"
+						>
+						</p-dropdown>
+					</div>
+
+					<div class="form-field">
+						<label for="edit-theatre">Theatre</label>
+						<p-dropdown
+							id="edit-theatre"
+							[options]="theatres"
+							optionLabel="name"
+							optionValue="id"
+							formControlName="theatreId"
+						>
+						</p-dropdown>
+					</div>
+
+					<div class="form-field">
+						<label for="edit-hall">Hall</label>
+						<p-dropdown
+							id="edit-hall"
+							[options]="halls"
+							optionLabel="name"
+							optionValue="id"
+							formControlName="hallId"
+						>
+						</p-dropdown>
+					</div>
+
+					<div class="form-field">
+						<label for="edit-date">Date</label>
+						<p-calendar
+							id="edit-date"
+							formControlName="date"
+							dateFormat="yy-mm-dd"
+						>
+						</p-calendar>
+					</div>
+
+					<div class="form-field">
+						<label for="edit-startTime">Start Time</label>
+						<p-calendar
+							id="edit-startTime"
+							formControlName="startTime"
+							[timeOnly]="true"
+						>
+						</p-calendar>
+					</div>
+
+					<div class="form-field">
+						<label for="edit-endTime">End Time</label>
+						<p-calendar
+							id="edit-endTime"
+							formControlName="endTime"
+							[timeOnly]="true"
+						>
+						</p-calendar>
+					</div>
+				</div>
+
+				<!-- Pricing Section for Edit -->
+				<div *ngIf="seatCategories.length > 0" class="pricing-section">
+					<h5>Update Pricing</h5>
+					<form [formGroup]="priceForm">
+						<div class="price-grid">
+							<div *ngFor="let category of seatCategories" class="price-field">
+								<label [for]="'edit_price_' + category.id">{{
+									category.name
+								}}</label>
+								<div class="price-input-container">
+									<span class="currency-symbol">$</span>
+									<p-inputNumber
+										[id]="'edit_price_' + category.id"
+										[formControlName]="'price_' + category.id"
+										mode="decimal"
+										[minFractionDigits]="2"
+										[maxFractionDigits]="2"
+										[min]="0"
+									>
+									</p-inputNumber>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+			</form>
+		</div>
+
+		<ng-template pTemplate="footer">
+			<p-button
+				label="Update"
+				icon="pi pi-check"
+				[loading]="isSubmitting"
+				(onClick)="submitScreening()"
+			>
+			</p-button>
+			<p-button
+				label="Cancel"
+				icon="pi pi-times"
+				styleClass="p-button-text"
+				(onClick)="showEditDialog = false"
+			>
+			</p-button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Confirmation Dialog -->
+	<p-confirmDialog></p-confirmDialog>
+
+	<!-- Toast Messages -->
+	<p-toast></p-toast>
+</div>

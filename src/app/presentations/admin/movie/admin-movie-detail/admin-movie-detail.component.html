@@ -1,0 +1,458 @@
+<!-- Movie Detail Component -->
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+	<!-- Loading State -->
+	<div *ngIf="loading" class="flex justify-center items-center min-h-screen">
+		<div class="text-center">
+			<p-progressBar mode="indeterminate" styleClass="w-64"></p-progressBar>
+			<p class="mt-4 text-gray-600 dark:text-gray-400">
+				Loading movie details...
+			</p>
+		</div>
+	</div>
+
+	<!-- Error State -->
+	<div
+		*ngIf="error && !loading"
+		class="flex justify-center items-center min-h-screen"
+	>
+		<div class="text-center">
+			<p-message severity="error" styleClass="w-full max-w-md">
+				<ng-template pTemplate>
+					{{ error }}
+				</ng-template>
+			</p-message>
+			<div class="flex gap-3 mt-6 justify-center">
+				<p-button
+					label="Go Back"
+					icon="pi pi-arrow-left"
+					(onClick)="goBack()"
+					severity="secondary"
+				>
+				</p-button>
+				<p-button
+					label="Retry"
+					icon="pi pi-refresh"
+					(onClick)="loadMovieDetails(movie?.id || 0)"
+				>
+				</p-button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Movie Content -->
+	<div *ngIf="!loading && !error && movie" class="pb-8">
+		<!-- Header Section -->
+		<div class="bg-gradient-to-r from-blue-600 to-purple-700 text-white">
+			<div class="max-w-7xl mx-auto px-6 py-8">
+				<!-- Navigation -->
+				<div class="flex items-center mb-6">
+					<p-button
+						icon="pi pi-arrow-left"
+						[text]="true"
+						(onClick)="goBack()"
+						pTooltip="Back to Movies"
+					>
+					</p-button>
+					<span class="mx-3 text-white/60">|</span>
+					<span class="text-white/80">Movie Details</span>
+				</div>
+
+				<!-- Movie Header Info -->
+				<div class="grid md:grid-cols-3 gap-8">
+					<!-- Movie Poster -->
+					<div class="md:col-span-1">
+						<div class="relative group">
+							<!-- Poster Image -->
+							<div class="relative overflow-hidden rounded-lg shadow-2xl">
+								<img
+									*ngIf="getFirstPortraitImage()"
+									[src]="getMediaUrl(getFirstPortraitImage().uri)"
+									[alt]="movie.name"
+									class="w-full max-w-sm mx-auto aspect-[2/3] object-cover transform transition-transform duration-300 group-hover:scale-105"
+									(error)="onImageError($event)"
+								/>
+
+								<!-- Placeholder when no portrait media -->
+								<div
+									*ngIf="!getFirstPortraitImage()"
+									class="w-full max-w-sm mx-auto aspect-[2/3] bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 rounded-lg flex flex-col items-center justify-center text-gray-400"
+								>
+									<i class="pi pi-film text-6xl mb-4"></i>
+									<p class="text-sm font-medium">
+										No Portrait Poster Available
+									</p>
+									<p class="text-xs text-gray-500 text-center px-4 mt-2">
+										Upload a portrait image in media gallery
+									</p>
+								</div>
+
+								<!-- Loading shimmer overlay -->
+								<div
+									*ngIf="loading"
+									class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-pulse"
+								></div>
+							</div>
+
+							<!-- Media Count Badge -->
+							<div
+								*ngIf="getFirstPortraitImage()"
+								class="absolute top-3 left-3 bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium"
+							>
+								{{ movie.media.length }} media
+							</div>
+
+							<!-- Play Trailer Button -->
+							<div
+								*ngIf="movie.trailerURL"
+								class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300"
+							>
+								<div class="relative">
+									<div
+										class="absolute inset-0 bg-white/20 rounded-full blur-xl"
+									></div>
+									<p-button
+										icon="pi pi-play"
+										[rounded]="true"
+										size="large"
+										(onClick)="openTrailer()"
+										pTooltip="Watch Trailer"
+										styleClass="relative bg-white/20 backdrop-blur-sm hover:bg-white/30 border-white/30 text-white"
+									>
+									</p-button>
+								</div>
+							</div>
+
+							<!-- No Trailer Indicator -->
+							<div
+								*ngIf="!movie.trailerURL"
+								class="absolute bottom-3 right-3 bg-yellow-500/80 text-white px-2 py-1 rounded text-xs font-medium"
+							>
+								No Trailer
+							</div>
+						</div>
+					</div>
+
+					<!-- Movie Info -->
+					<div class="md:col-span-2 space-y-6">
+						<div>
+							<h1 class="text-4xl font-bold mb-2">{{ movie.name }}</h1>
+							<p class="text-xl text-blue-100" *ngIf="movie.productionHouse">
+								{{ movie.productionHouse }}
+							</p>
+						</div>
+
+						<p class="text-lg text-blue-50 leading-relaxed">
+							{{ movie.description || "No description available" }}
+						</p>
+						<!-- Movie Details Grid -->
+						<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+							<div
+								class="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm stat-card"
+							>
+								<p class="text-sm text-blue-200">Duration</p>
+								<p class="text-xl font-semibold">
+									{{ formatDuration(movie.durationMin || 0) }}
+								</p>
+							</div>
+							<div
+								class="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm stat-card"
+							>
+								<p class="text-sm text-blue-200">Rating</p>
+								<p class="text-xl font-semibold">
+									{{ movie.pgRating || "N/A" }}
+								</p>
+							</div>
+							<div
+								class="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm stat-card"
+							>
+								<p class="text-sm text-blue-200">Release</p>
+								<p class="text-xl font-semibold">
+									{{ formatDate(movie.releaseDate || "") }}
+								</p>
+							</div>
+							<div
+								class="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm stat-card"
+							>
+								<p class="text-sm text-blue-200">Status</p>
+								<p-tag
+									[value]="getStatusText(movie.screeningStatus)"
+									[severity]="getStatusSeverity(movie.screeningStatus)"
+									styleClass="text-sm"
+								>
+								</p-tag>
+							</div>
+						</div>
+
+						<!-- Genres, Languages, Subtitles -->
+						<div class="space-y-4">
+							<!-- Genres -->
+							<div *ngIf="movie.genres?.length">
+								<h3 class="text-sm font-medium text-blue-200 mb-2">Genres</h3>
+								<div class="flex flex-wrap gap-2">
+									<p-tag
+										*ngFor="let genre of movie.genres"
+										[value]="genre.name"
+										severity="secondary"
+										styleClass="bg-white/20 text-white"
+									>
+									</p-tag>
+								</div>
+							</div>
+
+							<!-- Languages -->
+							<div *ngIf="movie.languages?.length">
+								<h3 class="text-sm font-medium text-blue-200 mb-2">
+									Languages
+								</h3>
+								<div class="flex flex-wrap gap-2">
+									<p-tag
+										*ngFor="let language of movie.languages"
+										[value]="language.name"
+										severity="success"
+										styleClass="bg-green-500/20 text-green-100"
+									>
+									</p-tag>
+								</div>
+							</div>
+
+							<!-- Subtitle Languages -->
+							<div *ngIf="movie.subtitleLanguages?.length">
+								<h3 class="text-sm font-medium text-blue-200 mb-2">
+									Subtitles
+								</h3>
+								<div class="flex flex-wrap gap-2">
+									<p-tag
+										*ngFor="let subtitle of movie.subtitleLanguages"
+										[value]="subtitle.name"
+										severity="warning"
+										styleClass="bg-yellow-500/20 text-yellow-100"
+									>
+									</p-tag>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Tab View for Movie Details & Screenings -->
+		<div class="max-w-7xl mx-auto px-6 py-8">
+			<p-tabView [(activeIndex)]="activeTabIndex" styleClass="custom-tabview">
+				<!-- Movie Details & Media Tab -->
+				<p-tabPanel header="Movie Details & Media">
+					<ng-template pTemplate="header">
+						<div class="flex items-center gap-2">
+							<i class="pi pi-film text-lg"></i>
+							<span class="font-medium">Media</span>
+							<p-tag
+								*ngIf="movie?.media && movie.media.length > 0"
+								[value]="movie.media.length + ' media'"
+								severity="info"
+								styleClass="text-xs ml-2"
+							>
+							</p-tag>
+						</div>
+					</ng-template>
+
+					<!-- Media Tab Component -->
+					<app-admin-movie-details-media-tab
+						[movie]="movie"
+						[loading]="loading"
+					></app-admin-movie-details-media-tab>
+				</p-tabPanel>
+
+				<!-- Screening Details Tab -->
+				<p-tabPanel header="Statistics">
+					<ng-template pTemplate="header">
+						<div class="flex items-center gap-2">
+							<i class="pi pi-file text-lg"></i>
+							<span class="font-medium">Statistics</span>
+							<!-- <p-tag
+								[value]="screeningStats.total + ' screenings'"
+								severity="success"
+								styleClass="text-xs ml-2"
+							>
+							</p-tag> -->
+						</div>
+					</ng-template>
+
+					<!-- Screening Overview Section -->
+					<div class="space-y-8">
+						<!-- Screening Stats -->
+						<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+							<div
+								class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center"
+							>
+								<div class="text-3xl font-bold text-blue-600 mb-2">12</div>
+								<div class="text-sm text-gray-600 dark:text-gray-400">
+									Total Screenings
+								</div>
+							</div>
+							<div
+								class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center"
+							>
+								<div class="text-3xl font-bold text-green-600 mb-2">3722</div>
+								<div class="text-sm text-gray-600 dark:text-gray-400">
+									Total tickets Sold
+								</div>
+							</div>
+							<div
+								class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center"
+							>
+								<div class="text-3xl font-bold text-orange-600 mb-2">
+									Nu. 14,85,078
+								</div>
+								<div class="text-sm text-gray-600 dark:text-gray-400">
+									Total Revenue till Date
+								</div>
+							</div>
+							<div
+								class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center"
+							>
+								<div class="text-3xl font-bold text-gray-600 mb-2">72.3%</div>
+								<div class="text-sm text-gray-600 dark:text-gray-400">
+									Average Occupancy Rate
+								</div>
+							</div>
+						</div>
+
+						<!-- Recent Screenings -->
+						<div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+							<div class="flex items-center justify-between mb-6">
+								<h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+									Recent Screenings
+								</h3>
+								<p-button
+									label="View All Screenings"
+									icon="pi pi-external-link"
+									[outlined]="true"
+									size="small"
+									(onClick)="navigateToScreenings()"
+								>
+								</p-button>
+							</div>
+
+							<!-- Screenings Table/List -->
+							<div
+								*ngIf="screenings && screenings.length > 0"
+								class="space-y-4"
+							>
+								<div
+									*ngFor="let screening of screenings.slice(0, 5)"
+									class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+								>
+									<div class="flex-1">
+										<div class="flex items-center gap-4">
+											<div>
+												<h4 class="font-medium text-gray-900 dark:text-white">
+													{{ screening.theatre?.name || "Unknown Theatre" }}
+												</h4>
+												<p class="text-sm text-gray-600 dark:text-gray-400">
+													{{ formatDate(screening.showDate) }} at
+													{{ screening.showTime }}
+												</p>
+											</div>
+										</div>
+									</div>
+									<div class="flex items-center gap-4">
+										<p-tag
+											[value]="getStatusText(screening.status)"
+											[severity]="getStatusSeverity(screening.status)"
+										>
+										</p-tag>
+										<span class="text-sm text-gray-600 dark:text-gray-400">
+											{{ screening.bookedSeats || 0 }}/{{
+												screening.totalSeats || 0
+											}}
+											seats
+										</span>
+									</div>
+								</div>
+							</div>
+
+							<!-- Empty State -->
+							<div
+								*ngIf="!screenings || screenings.length === 0"
+								class="text-center py-12 text-gray-500 dark:text-gray-400"
+							>
+								<div class="mb-4">
+									<i
+										class="pi pi-calendar-times text-6xl text-gray-300 dark:text-gray-600"
+									></i>
+								</div>
+								<h3 class="text-lg font-medium mb-2">No Screenings Found</h3>
+								<p class="text-sm mb-4">
+									This movie doesn't have any scheduled screenings yet.
+								</p>
+								<p-button
+									label="Schedule Screening"
+									icon="pi pi-plus"
+									[outlined]="true"
+									(onClick)="navigateToScreenings()"
+								>
+								</p-button>
+							</div>
+						</div>
+
+						<!-- Quick Actions -->
+						<div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+							<h3
+								class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
+							>
+								Quick Actions
+							</h3>
+							<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+								<p-button
+									label="Schedule New Screening"
+									icon="pi pi-plus"
+									class="w-full"
+									(onClick)="navigateToScreenings()"
+								>
+								</p-button>
+								<p-button
+									label="View Analytics"
+									icon="pi pi-chart-line"
+									[outlined]="true"
+									class="w-full"
+									(onClick)="navigateToScreenings()"
+								>
+								</p-button>
+								<p-button
+									label="Manage Bookings"
+									icon="pi pi-ticket"
+									[outlined]="true"
+									class="w-full"
+									(onClick)="navigateToScreenings()"
+								>
+								</p-button>
+							</div>
+						</div>
+					</div>
+				</p-tabPanel>
+			</p-tabView>
+		</div>
+	</div>
+
+	<!-- Trailer Dialog -->
+	<p-dialog
+		[(visible)]="showTrailerDialog"
+		[modal]="true"
+		[draggable]="false"
+		[resizable]="false"
+		[style]="{ width: '90vw', maxWidth: '1200px' }"
+		header="Movie Trailer"
+		[dismissableMask]="true"
+		(onHide)="closeTrailer()"
+	>
+		<div class="relative w-full" style="padding-top: 56.25%">
+			<iframe
+				*ngIf="safeTrailerUrl"
+				[src]="safeTrailerUrl"
+				class="absolute top-0 left-0 w-full h-full rounded-lg"
+				frameborder="0"
+				allowfullscreen
+			></iframe>
+		</div>
+	</p-dialog>
+</div>

@@ -37,6 +37,7 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { TabsModule } from 'primeng/tabs';
 import { TabViewModule } from 'primeng/tabview';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { InputOtpModule } from 'primeng/inputotp';
 
 const PRIME_NG_MODULES = [
 	CardModule,
@@ -77,6 +78,7 @@ const PRIME_NG_MODULES = [
 	TabsModule,
 	TabViewModule,
 	ProgressSpinnerModule,
+	InputOtpModule,
 ];
 
 @NgModule({

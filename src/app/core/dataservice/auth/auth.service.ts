@@ -9,6 +9,8 @@ import {
 	LoginResponse,
 	User,
 	UserRole,
+	AdminSignupDto,
+	AdminSignupResponse,
 } from './auth.interface';
 
 @Injectable({
@@ -148,8 +150,8 @@ export class AuthService {
 	 * Check if user is manager
 	 * @returns boolean
 	 */
-	isManager(): boolean {
-		return this.hasRole(UserRole.MANAGER);
+	isTheatreManager(): boolean {
+		return this.hasRole(UserRole.THEATRE_MANAGER);
 	}
 
 	/**
@@ -194,6 +196,21 @@ export class AuthService {
 				this.forceLogout();
 				return throwError(() => false);
 			})
+		);
+	}
+
+	/**
+	 * Admin signup - Create new user (admin only)
+	 * @param adminSignupDto - Admin signup data
+	 * @returns Observable<AdminSignupResponse>
+	 */
+	adminSignup(adminSignupDto: AdminSignupDto): Observable<AdminSignupResponse> {
+		return this.authDataService.adminSignup(adminSignupDto).pipe(
+			tap((response) => {
+				// Admin signup doesn't automatically log in the new user
+				// The current admin remains logged in
+			}),
+			catchError((error) => throwError(() => error))
 		);
 	}
 

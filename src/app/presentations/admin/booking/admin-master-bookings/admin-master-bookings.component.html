@@ -1,0 +1,200 @@
+<div class="bg-white p-6 rounded-lg shadow-sm">
+	<!-- Header Section -->
+	<div class="flex justify-between items-center mb-6">
+		<div>
+			<h2 class="text-2xl font-bold text-gray-800">Bookings Management</h2>
+			<p class="text-gray-600 mt-1">Manage all movie bookings</p>
+		</div>
+		<div class="flex gap-3">
+			<button
+				pButton
+				type="button"
+				icon="pi pi-refresh"
+				label="Refresh"
+				class="p-button-outlined"
+				(click)="refreshBookings()"
+				[loading]="loading"
+			></button>
+		</div>
+	</div>
+
+	<!-- Toast Messages -->
+	<p-toast position="top-right"></p-toast>
+
+	<!-- Bookings Table -->
+	<div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+		<p-table
+			[value]="bookings"
+			[columns]="cols"
+			[loading]="loading"
+			[paginator]="true"
+			[rows]="10"
+			[showCurrentPageReport]="true"
+			currentPageReportTemplate="Showing {first} to {last} of {totalRecords} bookings"
+			[rowsPerPageOptions]="[10, 25, 50]"
+			responsiveLayout="scroll"
+			styleClass="p-datatable-sm"
+		>
+			<!-- Table Header -->
+			<ng-template pTemplate="header" let-columns>
+				<tr>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						ID
+					</th>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						Customer
+					</th>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						Contact
+					</th>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						Amount
+					</th>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						Status
+					</th>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						Entry
+					</th>
+					<th
+						class="bg-gray-50 text-gray-700 font-semibold py-3 px-4 text-left"
+					>
+						Date
+					</th>
+				</tr>
+			</ng-template>
+
+			<!-- Table Body -->
+			<ng-template pTemplate="body" let-booking>
+				<tr class="hover:bg-gray-50 border-b border-gray-100">
+					<!-- ID -->
+					<td class="py-3 px-4">
+						<span class="font-mono text-sm text-gray-600"
+							>#{{ booking.id }}</span
+						>
+					</td>
+
+					<!-- Customer Info -->
+					<td class="py-3 px-4">
+						<div>
+							<div class="font-medium text-gray-900">{{ booking.name }}</div>
+							<div class="text-sm text-gray-500" *ngIf="booking.email">
+								{{ booking.email }}
+							</div>
+						</div>
+					</td>
+
+					<!-- Contact -->
+					<td class="py-3 px-4">
+						<span class="text-gray-700">{{ booking.phoneNumber }}</span>
+					</td>
+
+					<!-- Amount -->
+					<td class="py-3 px-4">
+						<span class="font-semibold text-green-600">{{
+							booking.totalAmount | currency : "BTN" : "symbol" : "1.0-0"
+						}}</span>
+					</td>
+
+					<!-- Booking Status -->
+					<td class="py-3 px-4">
+						<p-tag
+							[value]="booking.bookingStatus"
+							[severity]="getStatusSeverity(booking.bookingStatus)"
+							class="text-xs"
+						></p-tag>
+					</td>
+
+					<!-- Entry Status -->
+					<td class="py-3 px-4">
+						<p-tag
+							[value]="booking.entryStatus"
+							[severity]="getEntryStatusSeverity(booking.entryStatus)"
+							class="text-xs"
+						></p-tag>
+					</td>
+
+					<!-- Date -->
+					<td class="py-3 px-4">
+						<span class="text-sm text-gray-600">{{
+							formatDate(booking.createdAt)
+						}}</span>
+					</td>
+				</tr>
+			</ng-template>
+
+			<!-- Empty State -->
+			<ng-template pTemplate="emptymessage">
+				<tr>
+					<td colspan="7" class="text-center py-8">
+						<div class="flex flex-col items-center">
+							<i class="pi pi-inbox text-4xl text-gray-400 mb-3"></i>
+							<p class="text-gray-500 text-lg">No bookings found</p>
+							<p class="text-gray-400 text-sm">
+								Bookings will appear here once customers make reservations
+							</p>
+						</div>
+					</td>
+				</tr>
+			</ng-template>
+
+			<!-- Loading Template -->
+			<ng-template pTemplate="loadingbody">
+				<tr>
+					<td colspan="7" class="text-center py-8">
+						<div class="flex flex-col items-center">
+							<i class="pi pi-spin pi-spinner text-2xl text-blue-500 mb-3"></i>
+							<p class="text-gray-500">Loading bookings...</p>
+						</div>
+					</td>
+				</tr>
+			</ng-template>
+		</p-table>
+	</div>
+
+	<!-- Summary Stats -->
+	<div
+		class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4"
+		*ngIf="bookings.length > 0"
+	>
+		<div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+			<div class="text-blue-600 text-sm font-medium">Total Bookings</div>
+			<div class="text-2xl font-bold text-blue-800">
+				{{ getBookingsCount() }}
+			</div>
+		</div>
+
+		<div class="bg-green-50 p-4 rounded-lg border border-green-200">
+			<div class="text-green-600 text-sm font-medium">Successful</div>
+			<div class="text-2xl font-bold text-green-800">
+				{{ getSuccessfulBookingsCount() }}
+			</div>
+		</div>
+
+		<div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+			<div class="text-yellow-600 text-sm font-medium">Processing</div>
+			<div class="text-2xl font-bold text-yellow-800">
+				{{ getProcessingBookingsCount() }}
+			</div>
+		</div>
+
+		<div class="bg-red-50 p-4 rounded-lg border border-red-200">
+			<div class="text-red-600 text-sm font-medium">Failed/Cancelled</div>
+			<div class="text-2xl font-bold text-red-800">
+				{{ getFailedBookingsCount() }}
+			</div>
+		</div>
+	</div>
+</div>

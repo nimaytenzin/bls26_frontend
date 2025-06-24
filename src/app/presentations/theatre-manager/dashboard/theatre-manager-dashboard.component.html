@@ -1,0 +1,175 @@
+<div class="min-h-screen bg-gray-50 p-6">
+	<!-- Header -->
+	<div class="mb-8">
+		<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+			<div>
+				<h1 class="text-3xl font-bold text-gray-900 mb-2">
+					Theatre Manager Dashboard
+				</h1>
+				<p class="text-gray-600">
+					Welcome back! Here's what's happening with your theatres today.
+				</p>
+			</div>
+			<div class="mt-4 lg:mt-0 flex space-x-3">
+				<p-button
+					label="Export Report"
+					icon="pi pi-download"
+					styleClass="p-button-outlined"
+					size="small"
+				>
+				</p-button>
+				<p-button label="Quick Sale" icon="pi pi-plus" size="small"> </p-button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Stats Overview Cards -->
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+		<!-- Total Theatres -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">My Theatres</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ stats.totalTheatres }}
+					</p>
+				</div>
+				<div class="bg-blue-100 p-3 rounded-full">
+					<i class="pi pi-building text-blue-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+
+		<!-- Active Shows -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Active Shows</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ stats.activeShows }}
+					</p>
+				</div>
+				<div class="bg-green-100 p-3 rounded-full">
+					<i class="pi pi-play text-green-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+
+		<!-- Today's Bookings -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Today's Bookings</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ stats.todayBookings }}
+					</p>
+				</div>
+				<div class="bg-yellow-100 p-3 rounded-full">
+					<i class="pi pi-ticket text-yellow-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+
+		<!-- Today's Revenue -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Today's Revenue</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ formatCurrency(stats.todayRevenue) }}
+					</p>
+				</div>
+				<div class="bg-purple-100 p-3 rounded-full">
+					<i class="pi pi-money-bill text-purple-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Main Content Grid -->
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+		<!-- Revenue Chart -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<h3 class="text-lg font-semibold text-gray-900 mb-4">Revenue Overview</h3>
+			<p-chart
+				type="line"
+				[data]="chartData"
+				[options]="chartOptions"
+				height="300px"
+			>
+			</p-chart>
+		</div>
+
+		<!-- Recent Bookings -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between mb-4">
+				<h3 class="text-lg font-semibold text-gray-900">Recent Bookings</h3>
+				<p-button
+					label="View All"
+					styleClass="p-button-text p-button-sm"
+					routerLink="/theatre-manager/bookings"
+				>
+				</p-button>
+			</div>
+
+			<div class="space-y-4">
+				<div
+					*ngFor="let booking of recentBookings"
+					class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+				>
+					<div class="flex-1">
+						<h4 class="font-medium text-gray-900">{{ booking.movieTitle }}</h4>
+						<p class="text-sm text-gray-600">
+							{{ booking.customerName }} • {{ booking.showTime }}
+						</p>
+						<p class="text-sm text-gray-500">
+							Seats: {{ booking.seats.join(", ") }}
+						</p>
+					</div>
+					<div class="text-right">
+						<p class="font-medium text-gray-900">
+							{{ formatCurrency(booking.amount) }}
+						</p>
+						<p-tag
+							[value]="booking.status"
+							[severity]="getStatusSeverity(booking.status)"
+							class="text-xs mt-1"
+						>
+						</p-tag>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Quick Actions -->
+	<div class="mt-8 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+		<h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+			<p-button
+				label="Manage Screenings"
+				icon="pi pi-calendar"
+				styleClass="p-button-outlined w-full"
+				routerLink="/theatre-manager/screenings"
+			>
+			</p-button>
+			<p-button
+				label="View Reports"
+				icon="pi pi-chart-bar"
+				styleClass="p-button-outlined w-full"
+				routerLink="/theatre-manager/reports"
+			>
+			</p-button>
+			<p-button
+				label="Staff Management"
+				icon="pi pi-users"
+				styleClass="p-button-outlined w-full"
+				routerLink="/theatre-manager/counter-staff"
+			>
+			</p-button>
+		</div>
+	</div>
+
+	<!-- Toast Messages -->
+	<p-toast position="top-right"></p-toast>
+</div>

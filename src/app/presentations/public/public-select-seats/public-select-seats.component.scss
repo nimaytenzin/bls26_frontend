@@ -1,0 +1,506 @@
+.container {
+    max-width: 1200px;
+}
+
+// Improved Screen Design
+.screen-container {
+    perspective: 500px;
+    transform-style: preserve-3d;
+    margin: 0 auto;
+    max-width: 800px;
+}
+
+.screen-arc {
+    width: 100%;
+    height: 50px;
+    border-bottom: 4px solid #8b5cf6;
+    border-bottom-left-radius: 300px 100%;
+    border-bottom-right-radius: 300px 100%;
+    transform: rotate(180deg);
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 20px;
+        background: linear-gradient(to bottom, rgba(139, 92, 246, 0.3), transparent);
+        border-bottom-left-radius: 300px 100%;
+        border-bottom-right-radius: 300px 100%;
+        filter: blur(8px);
+    }
+}
+
+// Cinema-style Seat Layout
+.seat-layout-grid {
+    max-width: 1000px;
+    margin: 0 auto;
+
+    @media (max-width: 768px) {
+        transform: scale(0.85);
+        transform-origin: top center;
+    }
+
+    @media (max-width: 480px) {
+        transform: scale(0.7);
+    }
+}
+
+.seats-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+.seat-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .row-label-left,
+    .row-label-right {
+        width: 32px;
+        text-align: center;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #d1d5db;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.seats-grid {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.seat-wrapper {
+    position: relative;
+}
+
+// Enhanced Seat Styling
+.seat {
+    width: 42px;
+    height: 42px;
+    border: 2px solid transparent;
+    border-radius: 8px 8px 20px 20px;
+    font-size: 10px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+
+    .seat-number {
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+
+    .seat-price {
+        font-size: 8px;
+        opacity: 0.8;
+        line-height: 1;
+    }
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.1) 0%,
+            rgba(255, 255, 255, 0.05) 50%,
+            rgba(0, 0, 0, 0.1) 100%
+        );
+        border-radius: 8px 8px 20px 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    &:hover:not(:disabled) {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+
+        &::before {
+            opacity: 1;
+        }
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(-1px) scale(1.02);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        transform: none !important;
+    }
+}
+
+.notseat {
+    width: 42px;
+    height: 42px;
+    border: 2px solid transparent;
+    border-radius: 8px 8px 20px 20px;
+    font-size: 10px;
+    font-weight: 600;
+}
+.seat-basic {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+
+    &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%);
+        border-color: #2563eb;
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+    }
+}
+
+.seat-premium {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+    border-color: #8b5cf6;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+
+    &::after {
+        content: "★";
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        font-size: 8px;
+        color: #fbbf24;
+        text-shadow: 0 0 4px rgba(251, 191, 36, 0.8);
+    }
+
+    &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 50%, #5b21b6 100%);
+        border-color: #7c3aed;
+        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+    }
+}
+
+.seat-selected {
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%) !important;
+    border-color: #10b981 !important;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5) !important;
+
+    &::before {
+        opacity: 1;
+    }
+
+    &:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%) !important;
+        border-color: #059669 !important;
+        transform: translateY(-3px) scale(1.08) !important;
+    }
+}
+
+.seat-unavailable {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 50%, #374151 100%);
+    border-color: #6b7280;
+    color: #9ca3af;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+
+    &::before {
+        content: "×";
+        position: absolute;
+        font-size: 16px;
+        font-weight: bold;
+        color: #ef4444;
+        text-shadow: 0 0 4px rgba(239, 68, 68, 0.8);
+    }
+
+    .seat-number,
+    .seat-price {
+        opacity: 0.5;
+    }
+}
+
+// Card styling overrides
+:host ::ng-deep {
+    .p-card {
+        background: rgba(31, 41, 55, 0.5);
+        border: 1px solid rgba(55, 65, 81, 0.3);
+        backdrop-filter: blur(10px);
+
+        .p-card-header {
+            background: rgba(55, 65, 81, 0.5);
+            color: white;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+            font-weight: 600;
+        }
+
+        .p-card-content {
+            color: white;
+        }
+    }
+
+    .p-chip {
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .p-button {
+        font-weight: 500;
+
+        &.p-button-lg {
+            padding: 0.875rem 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        &:disabled {
+            opacity: 0.6;
+        }
+    }
+
+    .p-toast .p-toast-message {
+        backdrop-filter: blur(10px);
+    }
+
+    // Trailer Dialog Styles
+    .trailer-dialog {
+        @apply backdrop-blur-xl;
+        overflow: hidden;
+
+        .p-dialog-header {
+            @apply hidden;
+        }
+
+        .p-dialog-content {
+            @apply bg-gray-900/90 p-0 border-none;
+        }
+
+        .p-dialog-mask {
+            @apply backdrop-blur-sm;
+        }
+    }
+}
+
+// Responsive enhancements
+@media (max-width: 1024px) {
+    .seat-layout-grid {
+        max-width: 900px;
+    }
+
+    .seat {
+        width: 38px;
+        height: 38px;
+    }
+}
+
+@media (max-width: 768px) {
+    .seats-container {
+        gap: 10px;
+    }
+
+    .seat-row {
+        gap: 12px;
+    }
+
+    .seats-grid {
+        gap: 4px;
+    }
+
+    .seat {
+        width: 34px;
+        height: 34px;
+
+        .seat-number {
+            font-size: 10px;
+        }
+
+        .seat-price {
+            font-size: 7px;
+        }
+    }
+
+    .seat-wrapper.aisle-right {
+        margin-right: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .seat {
+        width: 30px;
+        height: 30px;
+
+        .seat-number {
+            font-size: 9px;
+        }
+
+        .seat-price {
+            font-size: 6px;
+        }
+    }
+
+    .row-label-left,
+    .row-label-right {
+        width: 24px !important;
+        font-size: 0.9rem !important;
+    }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+    .seat {
+        border-width: 3px;
+    }
+
+    .seat-basic {
+        border-color: #ffffff;
+    }
+
+    .seat-premium {
+        border-color: #ffff00;
+    }
+
+    .seat-selected {
+        border-color: #00ff00 !important;
+    }
+
+    .seat-unavailable {
+        border-color: #ff0000;
+    }
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+    .seat {
+        transition: none;
+
+        &:hover:not(:disabled) {
+            transform: none;
+        }
+    }
+
+    .seat-selected {
+        transform: none !important;
+
+        &:hover {
+            transform: none !important;
+        }
+    }
+}
+
+// Focus styles for accessibility
+.seat:focus-visible {
+    outline: 3px solid #60a5fa;
+    outline-offset: 2px;
+    border-radius: 8px 8px 20px 20px;
+}
+
+// Loading and error state improvements
+.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Booking summary enhancements
+.booking-summary {
+    .total-amount {
+        background: linear-gradient(135deg, #10b981, #059669);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: none;
+    }
+}
+
+// Enhanced Booking Summary Styling
+.seat-chip {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: 1px solid #3b82f6;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: white;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    &.premium-chip {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        border-color: #8b5cf6;
+
+        &:hover {
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+    }
+}
+
+.flex-2 {
+    flex: 2;
+}
+
+// Enhanced total amount styling
+.total-amount {
+    background: linear-gradient(135deg, #10b981, #059669);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.3));
+}
+
+// Step indicator styling
+.booking-summary h3 + div {
+    background: rgba(139, 92, 246, 0.1);
+    color: #c4b5fd;
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+// Enhanced empty state
+.pi-info-circle,
+.pi-shopping-cart {
+    display: block;
+    margin: 0 auto;
+}
+
+// Trailer Dialog Styles
+:host ::ng-deep .trailer-dialog {
+    backdrop-filter: blur(16px);
+    overflow: hidden;
+
+    .p-dialog-header {
+        display: none;
+    }
+
+    .p-dialog-content {
+        background: rgba(17, 24, 39, 0.9);
+        padding: 0;
+        border: none;
+    }
+
+    .p-dialog-mask {
+        backdrop-filter: blur(4px);
+    }
+}

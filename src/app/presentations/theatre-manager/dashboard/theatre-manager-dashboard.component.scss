@@ -1,0 +1,123 @@
+/* Theatre Manager Dashboard Styles */
+.dashboard-container {
+    min-height: 100vh;
+    background-color: #f8fafc;
+}
+
+.stat-card {
+    transition:
+        transform 0.2s ease-in-out,
+        box-shadow 0.2s ease-in-out;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow:
+            0 10px 25px -5px rgba(0, 0, 0, 0.1),
+            0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.recent-booking-item {
+    transition: background-color 0.2s ease-in-out;
+
+    &:hover {
+        background-color: #e5e7eb;
+    }
+}
+
+.chart-container {
+    .p-chart {
+        .p-chart-canvas {
+            border-radius: 8px;
+        }
+    }
+}
+
+.quick-actions {
+    .p-button {
+        height: 3rem;
+
+        &:hover {
+            transform: translateY(-1px);
+        }
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animation for loading states */
+.loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Chart customizations */
+.revenue-chart {
+    .p-chart {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+}
+
+/* Button group spacing */
+.button-group {
+    .p-button {
+        margin-right: 0.5rem;
+
+        &:last-child {
+            margin-right: 0;
+        }
+    }
+}
+
+/* Status indicator styles */
+.status-indicator {
+    &.success {
+        color: #10b981;
+    }
+
+    &.warning {
+        color: #f59e0b;
+    }
+
+    &.danger {
+        color: #ef4444;
+    }
+
+    &.info {
+        color: #3b82f6;
+    }
+}

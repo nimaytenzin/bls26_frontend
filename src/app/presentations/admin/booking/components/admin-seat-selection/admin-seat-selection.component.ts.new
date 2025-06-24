@@ -1,0 +1,695 @@
+import {
+	Component,
+	Input,
+	Output,
+	EventEmitter,
+	OnChanges,
+	SimpleChanges,
+	OnDestroy,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { PrimeNgModules } from '../../../../../primeng.modules';
+import { MessageService } from 'primeng/api';
+import { Subject, forkJoin } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+import { Hall } from '../../../../../core/dataservice/hall/hall.interface';
+import { Seat } from '../../../../../core/dataservice/seat/seat.interface';
+import {
+	Screening,
+	ScreeningSeatPrice,
+} from '../../../../../core/dataservice/screening/screening.interface';
+import { ScreeningDataService } from '../../../../../core/dataservice/screening/screening.dataservice';
+import { SeatDataService } from '../../../../../core/dataservice/seat/seat.dataservice';
+import { BookingDataService } from '../../../../../core/dataservice/booking/booking.dataservice';
+import {
+	Booking,
+	BookingStatusEnum,
+	OccupiedSeatResponse,
+	SeatSelectionDto,
+	SeatSelectionResponse,
+} from '../../../../../core/dataservice/booking/booking.interface';
+
+interface SelectedSeat extends Seat {
+	price: number;
+	selected: boolean;
+	status: 'available' | 'booked' | 'selected';
+}
+
+@Component({
+	selector: 'app-admin-seat-selection',
+	standalone: true,
+	imports: [CommonModule, PrimeNgModules],
+	templateUrl: './admin-seat-selection.component.html',
+	styleUrls: ['./admin-seat-selection.component.scss'],
+	providers: [MessageService],
+})
+export class AdminSeatSelectionComponent implements OnChanges, OnDestroy {
+	private destroy$ = new Subject<void>();
+
+	@Input() screeningId: number | null = null;
+
+	@Output() seatsSelected = new EventEmitter<SelectedSeat[]>();
+	@Output() totalAmountChange = new EventEmitter<number>();
+
+	// Internal data properties
+	isLoading = false;
+	screening: Screening | null = null;
+	hall: Hall | null = null;
+	seats: Seat[] = [];
+	screeningPrices: ScreeningSeatPrice[] = [];
+	seatAvailability: { [seatId: string]: 'available' | 'booked' | 'selected' } =
+		{};
+
+	hallLayout: (SelectedSeat | null)[][] = [];
+	selectedSeats: SelectedSeat[] = [];
+
+	// Session management for seat selection (new)
+	sessionId: string = '';
+	selectionTimer: any = null;
+	seatSelectionTimeout: number = 0;
+
+	constructor(
+		private messageService: MessageService,
+		private screeningDataService: ScreeningDataService,
+		private seatDataService: SeatDataService,
+		private bookingDataService: BookingDataService
+	) {
+		// Generate a unique session ID for this admin session
+		this.sessionId = this.generateSessionId();
+	}
+
+	ngOnChanges(changes: SimpleChanges): void {
+		if (changes['screeningId'] && this.screeningId) {
+			this.loadScreeningData();
+		}
+	}
+
+	ngOnDestroy(): void {
+		this.destroy$.next();
+		this.destroy$.complete();
+
+		// Clear seat selection timer if exists
+		if (this.selectionTimer) {
+			clearTimeout(this.selectionTimer);
+		}
+	}
+
+	/**
+	 * Generate a unique session ID for this admin session
+	 */
+	private generateSessionId(): string {
+		return (
+			'admin_session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+		);
+	}
+
+	private loadScreeningData(): void {
+		if (!this.screeningId) {
+			return;
+		}
+
+		this.isLoading = true;
+		this.resetData();
+
+		// Fetch screening details with all related data
+		this.screeningDataService
+			.findScreeningById(this.screeningId)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (screening) => {
+					console.log('Loaded screening:', screening);
+					this.screening = screening;
+					this.hall = screening.hall || null;
+					this.screeningPrices = screening.screeningSeatPrices || [];
+
+					if (screening.hallId) {
+						this.loadSeatsForHall(screening.hallId);
+					} else {
+						this.isLoading = false;
+						this.messageService.add({
+							severity: 'error',
+							summary: 'Error',
+							detail: 'No hall information found for this screening.',
+						});
+					}
+				},
+				error: (error) => {
+					console.error('Error loading screening:', error);
+					this.isLoading = false;
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load screening information.',
+					});
+				},
+			});
+	}
+
+	private loadSeatsForHall(hallId: number): void {
+		// Load seats and occupied seats in parallel using the new API
+		forkJoin({
+			seats: this.seatDataService.findSeatsByHallId(hallId),
+			occupiedSeats: this.bookingDataService.getOccupiedSeats(this.screeningId!),
+		})
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (result) => {
+					console.log('Admin loaded seats:', result.seats);
+					console.log('Admin loaded occupied seats:', result.occupiedSeats);
+
+					this.seats = result.seats;
+
+					// If hall info not available from screening, get it from first seat
+					if (!this.hall && result.seats.length > 0 && result.seats[0].hall) {
+						this.hall = result.seats[0].hall;
+					}
+
+					// Initialize seat availability using occupied seats API
+					this.initializeSeatAvailabilityFromOccupied(
+						result.seats,
+						result.occupiedSeats
+					);
+					this.generateHallLayout();
+					this.isLoading = false;
+
+					// Start periodic refresh of occupied seats for real-time updates
+					this.startPeriodicRefresh();
+				},
+				error: (error) => {
+					console.error('Error loading seats or occupied seats:', error);
+					this.isLoading = false;
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load seat or booking information.',
+					});
+				},
+			});
+	}
+
+	/**
+	 * Initialize seat availability using the new occupied seats API
+	 */
+	private initializeSeatAvailabilityFromOccupied(
+		seats: Seat[],
+		occupiedSeats: OccupiedSeatResponse[]
+	): void {
+		// Initialize all seats as available
+		this.seatAvailability = {};
+		seats.forEach((seat) => {
+			this.seatAvailability[seat.id.toString()] = 'available';
+		});
+
+		// Mark occupied seats as booked (both CONFIRMED and active PENDING)
+		occupiedSeats.forEach((occupiedSeat) => {
+			this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
+		});
+
+		console.log(
+			'Admin seat availability from occupied seats API:',
+			this.seatAvailability
+		);
+		console.log('Admin occupied seats:', occupiedSeats);
+	}
+
+	private resetData(): void {
+		this.screening = null;
+		this.hall = null;
+		this.seats = [];
+		this.screeningPrices = [];
+		this.seatAvailability = {};
+		this.hallLayout = [];
+		this.selectedSeats = [];
+	}
+
+	private generateHallLayout(): void {
+		if (!this.hall) {
+			return;
+		}
+
+		// Reset selected seats
+		this.selectedSeats = [];
+		this.emitChanges();
+
+		// Create a 2D array representing the hall layout
+		this.hallLayout = [];
+
+		// Initialize the layout with null values
+		for (let row = 0; row < this.hall.rows; row++) {
+			this.hallLayout[row] = [];
+			for (let col = 0; col < this.hall.columns; col++) {
+				this.hallLayout[row][col] = null;
+			}
+		}
+
+		// Map actual seats onto the layout
+		this.seats.forEach((seat) => {
+			const rowIndex = seat.rowId - 1; // rowId is 1-based, array is 0-based
+			const colIndex = seat.colId - 1; // colId is 1-based, array is 0-based
+
+			if (
+				rowIndex >= 0 &&
+				rowIndex < this.hall!.rows &&
+				colIndex >= 0 &&
+				colIndex < this.hall!.columns
+			) {
+				const price = this.getSeatPrice(seat);
+				const status = this.seatAvailability[seat.id.toString()] || 'available';
+
+				this.hallLayout[rowIndex][colIndex] = {
+					...seat,
+					price,
+					selected: false,
+					status: status as 'available' | 'booked' | 'selected',
+				} as SelectedSeat;
+			}
+		});
+	}
+
+	getSeatAtPosition(rowIndex: number, colIndex: number): SelectedSeat | null {
+		if (!this.hallLayout[rowIndex] || !this.hallLayout[rowIndex][colIndex]) {
+			return null;
+		}
+		return this.hallLayout[rowIndex][colIndex];
+	}
+
+	getSeatPrice(seat: Seat): number {
+		if (!seat.categoryId || !this.screeningPrices.length) {
+			return 0;
+		}
+
+		const priceInfo = this.screeningPrices.find(
+			(sp) => sp.seatCategoryId === seat.categoryId
+		);
+
+		return priceInfo ? Number(priceInfo.price) : 0;
+	}
+
+	toggleSeatSelection(seat: SelectedSeat): void {
+		if (seat.status === 'booked') {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Seat Unavailable',
+				detail: 'This seat is already booked.',
+			});
+			return;
+		}
+
+		const seatIndex = this.selectedSeats.findIndex((s) => s.id === seat.id);
+
+		if (seatIndex > -1) {
+			// Remove from selection (deselect)
+			this.deselectSeat(seat);
+		} else {
+			// Add to selection (select)
+			this.selectSeat(seat);
+		}
+	}
+
+	/**
+	 * Select a seat and update via API
+	 */
+	private selectSeat(seat: SelectedSeat): void {
+		// Update UI immediately for better UX
+		seat.status = 'selected';
+		seat.selected = true;
+		this.selectedSeats.push(seat);
+		this.seatAvailability[seat.id.toString()] = 'selected';
+
+		// Update the layout
+		const rowIndex = seat.rowId - 1;
+		const colIndex = seat.colId - 1;
+		if (this.hallLayout[rowIndex] && this.hallLayout[rowIndex][colIndex]) {
+			this.hallLayout[rowIndex][colIndex]!.selected = true;
+			this.hallLayout[rowIndex][colIndex]!.status = 'selected';
+		}
+
+		this.emitChanges();
+
+		// Call the seat selection API
+		this.updateSeatSelection();
+	}
+
+	/**
+	 * Deselect a seat and update via API
+	 */
+	private deselectSeat(seat: SelectedSeat): void {
+		// Update UI immediately for better UX
+		seat.status = 'available';
+		seat.selected = false;
+		const index = this.selectedSeats.findIndex((s) => s.id === seat.id);
+		if (index > -1) {
+			this.selectedSeats.splice(index, 1);
+		}
+		this.seatAvailability[seat.id.toString()] = 'available';
+
+		// Update the layout
+		const rowIndex = seat.rowId - 1;
+		const colIndex = seat.colId - 1;
+		if (this.hallLayout[rowIndex] && this.hallLayout[rowIndex][colIndex]) {
+			this.hallLayout[rowIndex][colIndex]!.selected = false;
+			this.hallLayout[rowIndex][colIndex]!.status = 'available';
+		}
+
+		this.emitChanges();
+
+		// Call the seat selection API
+		this.updateSeatSelection();
+	}
+
+	/**
+	 * Update seat selection using the new API with session management
+	 */
+	private updateSeatSelection(): void {
+		const seatIds = this.selectedSeats.map((seat) => seat.id);
+
+		const seatSelectionDto: SeatSelectionDto = {
+			seatIds: seatIds,
+			screeningId: this.screeningId!,
+			sessionId: this.sessionId,
+			userMetadata: {
+				userAgent: navigator.userAgent,
+				ipAddress: '', // Will be populated by backend
+			},
+		};
+
+		this.bookingDataService
+			.selectSeats(seatSelectionDto)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (response: SeatSelectionResponse) => {
+					console.log('Admin seat selection response:', response);
+
+					if (response.success) {
+						// Update seat availability based on response
+						this.updateSeatAvailabilityFromResponse(response.occupiedSeats);
+
+						// Set up timeout for selected seats
+						if (response.timeoutSeconds > 0) {
+							this.startSeatSelectionTimer(response.timeoutSeconds);
+						}
+
+						this.messageService.add({
+							severity: 'success',
+							summary: 'Seats Selected',
+							detail: `${seatIds.length} seat(s) selected successfully`,
+						});
+					}
+				},
+				error: (error) => {
+					console.error('Error updating admin seat selection:', error);
+
+					// Handle seat conflict (409 error)
+					if (error.status === 409) {
+						this.handleSeatConflict(error.error);
+					} else {
+						this.messageService.add({
+							severity: 'error',
+							summary: 'Selection Failed',
+							detail: 'Failed to update seat selection. Please try again.',
+						});
+
+						// Revert UI changes on error
+						this.revertSeatSelection();
+					}
+				},
+			});
+	}
+
+	/**
+	 * Update seat availability from the API response
+	 */
+	private updateSeatAvailabilityFromResponse(
+		occupiedSeats: OccupiedSeatResponse[]
+	): void {
+		// Reset all seats to available first (except our selected ones)
+		Object.keys(this.seatAvailability).forEach((seatId) => {
+			if (this.seatAvailability[seatId] !== 'selected') {
+				this.seatAvailability[seatId] = 'available';
+			}
+		});
+
+		// Mark occupied seats as booked
+		occupiedSeats.forEach((occupiedSeat) => {
+			// Don't mark our own selected seats as booked
+			const isOurSelection = this.selectedSeats.some(
+				(seat) => seat.id === occupiedSeat.seatId
+			);
+			if (!isOurSelection) {
+				this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
+			}
+		});
+
+		// Update the hall layout to reflect changes
+		this.updateHallLayoutFromAvailability();
+	}
+
+	/**
+	 * Update hall layout from seat availability
+	 */
+	private updateHallLayoutFromAvailability(): void {
+		if (!this.hallLayout || !this.hall) return;
+
+		for (let rowIndex = 0; rowIndex < this.hall.rows; rowIndex++) {
+			for (let colIndex = 0; colIndex < this.hall.columns; colIndex++) {
+				const seatAtPosition = this.hallLayout[rowIndex][colIndex];
+				if (seatAtPosition) {
+					const availability =
+						this.seatAvailability[seatAtPosition.id.toString()];
+					seatAtPosition.status = availability as
+						| 'available'
+						| 'booked'
+						| 'selected';
+					seatAtPosition.selected = availability === 'selected';
+				}
+			}
+		}
+	}
+
+	/**
+	 * Handle seat conflict response (409 error)
+	 */
+	private handleSeatConflict(conflictResponse: any): void {
+		this.messageService.add({
+			severity: 'warn',
+			summary: 'Seat Conflict',
+			detail: conflictResponse.message || 'Some seats are no longer available',
+		});
+
+		// Update seat availability with conflict data
+		if (conflictResponse.occupiedSeats) {
+			this.updateSeatAvailabilityFromResponse(conflictResponse.occupiedSeats);
+		}
+
+		// Clear conflicted selections
+		this.revertSeatSelection();
+	}
+
+	/**
+	 * Revert seat selection on error
+	 */
+	private revertSeatSelection(): void {
+		// Clear all selected seats and revert to available
+		this.selectedSeats.forEach((seat) => {
+			seat.status = 'available';
+			seat.selected = false;
+			this.seatAvailability[seat.id.toString()] = 'available';
+		});
+		this.selectedSeats = [];
+		this.updateHallLayoutFromAvailability();
+		this.emitChanges();
+	}
+
+	/**
+	 * Start timer for seat selection timeout
+	 */
+	private startSeatSelectionTimer(timeoutSeconds: number): void {
+		// Clear existing timer
+		if (this.selectionTimer) {
+			clearTimeout(this.selectionTimer);
+		}
+
+		this.seatSelectionTimeout = timeoutSeconds;
+
+		// Set timeout to automatically clear selections
+		this.selectionTimer = setTimeout(() => {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Selection Expired',
+				detail: 'Your seat selection has expired. Please select seats again.',
+			});
+			this.revertSeatSelection();
+		}, timeoutSeconds * 1000);
+	}
+
+	/**
+	 * Periodically refresh occupied seats to handle concurrent user selections
+	 */
+	private startPeriodicRefresh(): void {
+		// Refresh every 30 seconds
+		setInterval(() => {
+			if (this.screeningId && !this.isLoading) {
+				this.refreshOccupiedSeats();
+			}
+		}, 30000);
+	}
+
+	/**
+	 * Refresh occupied seats without affecting current selections
+	 */
+	private refreshOccupiedSeats(): void {
+		this.bookingDataService
+			.getOccupiedSeats(this.screeningId!)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (occupiedSeats: OccupiedSeatResponse[]) => {
+					console.log('Admin refreshed occupied seats:', occupiedSeats);
+					this.updateSeatAvailabilityFromResponse(occupiedSeats);
+				},
+				error: (error) => {
+					console.error('Error refreshing occupied seats:', error);
+					// Silently fail - don't disrupt user experience
+				},
+			});
+	}
+
+	getSeatClass(seat: SelectedSeat): string {
+		const baseClass =
+			'w-8 h-8 rounded-t-lg text-xs font-bold flex items-center justify-center transition-all duration-200 cursor-pointer border-2';
+
+		if (seat.status === 'booked') {
+			return `${baseClass} bg-red-500 text-white border-red-600 cursor-not-allowed`;
+		}
+
+		if (seat.status === 'selected') {
+			return `${baseClass} bg-green-500 text-white border-green-600 shadow-lg transform scale-110`;
+		}
+
+		// Available seat - color by category
+		if (seat.category?.className) {
+			return `${baseClass} ${seat.category.className} border-white hover:scale-105`;
+		}
+
+		return `${baseClass} bg-blue-500 text-white border-blue-600 hover:scale-105`;
+	}
+
+	getSeatDisplayText(seat: SelectedSeat): string {
+		return seat.seatNumber || '';
+	}
+
+	getHallRows(): number[] {
+		if (!this.hall) return [];
+		return Array.from({ length: this.hall.rows }, (_, i) => i);
+	}
+
+	getHallColumns(): number[] {
+		if (!this.hall) return [];
+		return Array.from({ length: this.hall.columns }, (_, i) => i);
+	}
+
+	getRowLabel(rowIndex: number): string {
+		return String.fromCharCode(65 + rowIndex); // A, B, C, etc.
+	}
+
+	getTotalAmount(): number {
+		return this.selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
+	}
+
+	getUniqueSeatCategories(): Array<{
+		category: any;
+		price: number;
+		count: number;
+	}> {
+		const categoryMap = new Map<
+			string,
+			{
+				category: any;
+				price: number;
+				count: number;
+			}
+		>();
+
+		this.seats.forEach((seat) => {
+			if (seat.category && seat.categoryId) {
+				const price = this.getSeatPrice(seat);
+				const key = seat.categoryId.toString();
+
+				if (categoryMap.has(key)) {
+					categoryMap.get(key)!.count++;
+				} else {
+					categoryMap.set(key, {
+						category: seat.category,
+						price: price,
+						count: 1,
+					});
+				}
+			}
+		});
+
+		return Array.from(categoryMap.values()).sort((a, b) => a.price - b.price);
+	}
+
+	getSelectedSeatsByCategory(): Array<{
+		category: any;
+		seats: SelectedSeat[];
+		totalPrice: number;
+	}> {
+		const categoryMap = new Map<
+			string,
+			{
+				category: any;
+				seats: SelectedSeat[];
+				totalPrice: number;
+			}
+		>();
+
+		this.selectedSeats.forEach((seat) => {
+			if (seat.category && seat.categoryId) {
+				const key = seat.categoryId.toString();
+
+				if (categoryMap.has(key)) {
+					const existing = categoryMap.get(key)!;
+					existing.seats.push(seat);
+					existing.totalPrice += seat.price;
+				} else {
+					categoryMap.set(key, {
+						category: seat.category,
+						seats: [seat],
+						totalPrice: seat.price,
+					});
+				}
+			}
+		});
+
+		return Array.from(categoryMap.values()).sort((a, b) =>
+			a.category.name.localeCompare(b.category.name)
+		);
+	}
+
+	private emitChanges(): void {
+		this.seatsSelected.emit([...this.selectedSeats]);
+		this.totalAmountChange.emit(this.getTotalAmount());
+	}
+
+	clearSelection(): void {
+		this.selectedSeats.forEach((seat) => {
+			seat.selected = false;
+			seat.status = 'available';
+
+			// Update layout
+			const rowIndex = seat.rowId - 1;
+			const colIndex = seat.colId - 1;
+			if (this.hallLayout[rowIndex] && this.hallLayout[rowIndex][colIndex]) {
+				this.hallLayout[rowIndex][colIndex]!.selected = false;
+				this.hallLayout[rowIndex][colIndex]!.status = 'available';
+			}
+		});
+
+		this.selectedSeats = [];
+		this.emitChanges();
+
+		// Update seat selection via API
+		this.updateSeatSelection();
+	}
+}

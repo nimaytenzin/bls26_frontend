@@ -2,13 +2,20 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { LoginDto, LoginResponse, ApiError } from './auth.interface';
+import {
+	LoginDto,
+	LoginResponse,
+	ApiError,
+	AdminSignupDto,
+	AdminSignupResponse,
+} from './auth.interface';
+import { BASEAPI_URL } from '../../constants/constants';
 
 @Injectable({
 	providedIn: 'root',
 })
 export class AuthDataService {
-	private readonly apiUrl = '/api/auth';
+	private readonly apiUrl = BASEAPI_URL + '/auth';
 
 	constructor(private http: HttpClient) {}
 
@@ -90,6 +97,17 @@ export class AuthDataService {
 	}): Observable<any> {
 		return this.http
 			.post(`${this.apiUrl}/reset-password`, resetData)
+			.pipe(catchError(this.handleError));
+	}
+
+	/**
+	 * Admin signup - Create new user with admin privileges
+	 * @param adminSignupDto - Admin signup data
+	 * @returns Observable<AdminSignupResponse>
+	 */
+	adminSignup(adminSignupDto: AdminSignupDto): Observable<AdminSignupResponse> {
+		return this.http
+			.post<AdminSignupResponse>(`${this.apiUrl}/admin-signup`, adminSignupDto)
 			.pipe(catchError(this.handleError));
 	}
 

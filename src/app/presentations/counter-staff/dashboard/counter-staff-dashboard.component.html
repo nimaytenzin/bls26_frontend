@@ -1,0 +1,318 @@
+<div class="min-h-screen bg-gray-50 p-6">
+	<!-- Header -->
+	<div class="mb-8">
+		<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+			<div>
+				<h1 class="text-3xl font-bold text-gray-900 mb-2">
+					Counter Staff Dashboard
+				</h1>
+				<p class="text-gray-600">
+					{{ currentDate | date : "fullDate" }} - Manage ticket sales and
+					customer service
+				</p>
+			</div>
+			<div class="mt-4 lg:mt-0 flex space-x-3">
+				<p-button
+					label="Print Daily Report"
+					icon="pi pi-print"
+					styleClass="p-button-outlined"
+					size="small"
+				>
+				</p-button>
+				<p-button
+					label="Sell Tickets"
+					icon="pi pi-shopping-cart"
+					size="small"
+					routerLink="/counter-staff/sell-tickets"
+				>
+				</p-button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Today's Stats -->
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+		<!-- Tickets Sold -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Tickets Sold Today</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ stats.ticketsSold }}
+					</p>
+				</div>
+				<div class="bg-green-100 p-3 rounded-full">
+					<i class="pi pi-ticket text-green-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+
+		<!-- Total Sales -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Total Sales</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ formatCurrency(stats.totalSales) }}
+					</p>
+				</div>
+				<div class="bg-blue-100 p-3 rounded-full">
+					<i class="pi pi-money-bill text-blue-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+
+		<!-- Walk-in Customers -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Walk-in Customers</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ stats.walkInCustomers }}
+					</p>
+				</div>
+				<div class="bg-purple-100 p-3 rounded-full">
+					<i class="pi pi-users text-purple-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+
+		<!-- Online Bookings -->
+		<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Online Bookings</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ stats.onlineBookings }}
+					</p>
+				</div>
+				<div class="bg-yellow-100 p-3 rounded-full">
+					<i class="pi pi-globe text-yellow-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Main Content Grid -->
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+		<!-- Current Shows -->
+		<div
+			class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+		>
+			<div class="px-6 py-4 border-b border-gray-200">
+				<h3 class="text-lg font-semibold text-gray-900">Current Shows</h3>
+			</div>
+
+			<div class="divide-y divide-gray-200">
+				<div
+					*ngFor="let show of currentShows"
+					class="p-6 hover:bg-gray-50 transition-colors"
+				>
+					<div class="flex items-center justify-between mb-3">
+						<h4 class="font-medium text-gray-900">{{ show.movieTitle }}</h4>
+						<p-tag
+							[value]="show.status"
+							[severity]="getShowStatusSeverity(show.status)"
+							class="text-xs"
+						>
+						</p-tag>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+						<div>
+							<span class="font-medium">Hall:</span> {{ show.hallName }}
+						</div>
+						<div>
+							<span class="font-medium">Time:</span> {{ show.showTime }}
+						</div>
+						<div>
+							<span class="font-medium">Price:</span>
+							{{ formatCurrency(show.ticketPrice) }}
+						</div>
+						<div>
+							<span class="font-medium">Available:</span>
+							{{ show.availableSeats }}/{{ show.totalSeats }}
+						</div>
+					</div>
+
+					<!-- Occupancy Bar -->
+					<div class="mb-3">
+						<div class="flex justify-between text-xs text-gray-500 mb-1">
+							<span>Occupancy</span>
+							<span>{{ getOccupancyPercentage(show) }}%</span>
+						</div>
+						<div class="w-full bg-gray-200 rounded-full h-2">
+							<div
+								class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+								[style.width.%]="getOccupancyPercentage(show)"
+							></div>
+						</div>
+					</div>
+
+					<div class="flex space-x-2">
+						<p-button
+							*ngIf="show.status === 'selling'"
+							label="Sell Tickets"
+							icon="pi pi-shopping-cart"
+							styleClass="p-button-sm"
+							(click)="sellTickets(show)"
+						>
+						</p-button>
+						<p-button
+							label="View Details"
+							icon="pi pi-eye"
+							styleClass="p-button-outlined p-button-sm"
+							(click)="viewBookingDetails(show.id)"
+						>
+						</p-button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Recent Transactions -->
+		<div
+			class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+		>
+			<div class="px-6 py-4 border-b border-gray-200">
+				<div class="flex items-center justify-between">
+					<h3 class="text-lg font-semibold text-gray-900">
+						Recent Transactions
+					</h3>
+					<p-button
+						label="View All"
+						styleClass="p-button-text p-button-sm"
+						routerLink="/counter-staff/transactions"
+					>
+					</p-button>
+				</div>
+			</div>
+
+			<div class="divide-y divide-gray-200">
+				<div
+					*ngFor="let transaction of recentTransactions"
+					class="p-6 hover:bg-gray-50 transition-colors"
+				>
+					<div class="flex items-center justify-between mb-2">
+						<div class="flex items-center space-x-3">
+							<div class="flex-shrink-0">
+								<div
+									class="w-8 h-8 rounded-full flex items-center justify-center"
+									[class]="
+										transaction.type === 'sale'
+											? 'bg-green-100'
+											: 'bg-yellow-100'
+									"
+								>
+									<i
+										[class]="
+											transaction.type === 'sale'
+												? 'pi pi-shopping-cart text-green-600'
+												: 'pi pi-undo text-yellow-600'
+										"
+										class="text-sm"
+									>
+									</i>
+								</div>
+							</div>
+							<div>
+								<p class="font-medium text-gray-900">
+									{{ transaction.customerName }}
+								</p>
+								<p class="text-sm text-gray-600">
+									{{ transaction.movieTitle }}
+								</p>
+							</div>
+						</div>
+						<div class="text-right">
+							<p
+								class="font-medium"
+								[class]="
+									transaction.type === 'sale'
+										? 'text-green-600'
+										: 'text-yellow-600'
+								"
+							>
+								{{ transaction.type === "sale" ? "+" : "-"
+								}}{{ formatCurrency(transaction.amount) }}
+							</p>
+							<p class="text-xs text-gray-500">
+								{{ formatTime(transaction.timestamp) }}
+							</p>
+						</div>
+					</div>
+
+					<div class="flex items-center justify-between">
+						<div class="flex items-center space-x-2">
+							<p-tag
+								[value]="transaction.type"
+								[severity]="getTransactionTypeSeverity(transaction.type)"
+								class="text-xs"
+							>
+							</p-tag>
+							<span class="text-xs text-gray-500">{{
+								transaction.paymentMethod
+							}}</span>
+						</div>
+
+						<div class="flex space-x-1">
+							<p-button
+								icon="pi pi-eye"
+								styleClass="p-button-text p-button-sm"
+								(click)="viewBookingDetails(transaction.id)"
+								pTooltip="View Details"
+							>
+							</p-button>
+							<p-button
+								*ngIf="transaction.type === 'sale'"
+								icon="pi pi-undo"
+								styleClass="p-button-text p-button-sm"
+								(click)="processRefund(transaction.id)"
+								pTooltip="Process Refund"
+							>
+							</p-button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Quick Actions -->
+	<div class="mt-8 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+		<h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+		<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+			<p-button
+				label="Sell Tickets"
+				icon="pi pi-shopping-cart"
+				styleClass="p-button-outlined w-full"
+				routerLink="/counter-staff/sell-tickets"
+			>
+			</p-button>
+			<p-button
+				label="Check Booking"
+				icon="pi pi-search"
+				styleClass="p-button-outlined w-full"
+				routerLink="/counter-staff/check-bookings"
+			>
+			</p-button>
+			<p-button
+				label="Print Tickets"
+				icon="pi pi-print"
+				styleClass="p-button-outlined w-full"
+				routerLink="/counter-staff/print-tickets"
+			>
+			</p-button>
+			<p-button
+				label="Customer Support"
+				icon="pi pi-question-circle"
+				styleClass="p-button-outlined w-full"
+				routerLink="/counter-staff/support"
+			>
+			</p-button>
+		</div>
+	</div>
+
+	<!-- Toast Messages -->
+	<p-toast position="top-right"></p-toast>
+</div>

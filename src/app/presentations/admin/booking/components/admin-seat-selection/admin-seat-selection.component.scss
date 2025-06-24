@@ -1,0 +1,84 @@
+/* Admin Seat Selection Component Styles */
+
+.seat-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.seat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.seat-button {
+    transition: all 0.2s ease;
+}
+
+.seat-button:hover:not(:disabled) {
+    transform: scale(1.05);
+}
+
+.seat-button:disabled {
+    cursor: not-allowed;
+}
+
+.seat-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .seat-row {
+        gap: 4px;
+    }
+
+    .seat-summary-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+}
+
+// Pricing legend styles
+.pricing-legend {
+    .category-card {
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+        }
+    }
+
+    .category-icon {
+        transition: transform 0.2s ease;
+
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+}
+
+// Selected seats breakdown styles
+.selected-breakdown {
+    .category-group {
+        border-left: 3px solid #10b981;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: #f9fafb;
+            border-left-color: #059669;
+        }
+    }
+
+    .seat-tag {
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: #e5e7eb;
+            transform: translateY(-1px);
+        }
+    }
+}

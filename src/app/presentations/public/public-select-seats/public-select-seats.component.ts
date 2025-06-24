@@ -1,0 +1,1258 @@
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { ChipModule } from 'primeng/chip';
+import { ToastModule } from 'primeng/toast';
+import { DialogModule } from 'primeng/dialog';
+import { MessageService } from 'primeng/api';
+import { Subject, forkJoin } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import {
+	ReactiveFormsModule,
+	FormBuilder,
+	FormGroup,
+	Validators,
+} from '@angular/forms';
+import { InputTextModule } from 'primeng/inputtext';
+import { DropdownModule } from 'primeng/dropdown';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
+import { StepsModule } from 'primeng/steps';
+import { MenuItem } from 'primeng/api';
+import { DividerModule } from 'primeng/divider';
+import * as QRCode from 'qrcode';
+
+// Interfaces
+import { Movie } from '../../../core/dataservice/movie/movie.interface';
+import { Hall } from '../../../core/dataservice/hall/hall.interface';
+import { Seat } from '../../../core/dataservice/seat/seat.interface';
+import {
+	Screening,
+	ScreeningSeatPrice,
+} from '../../../core/dataservice/screening/screening.interface';
+import {
+	BookingSeat,
+	CreateBookingResponse,
+	OccupiedSeatResponse,
+	SeatSelectionDto,
+	SeatSelectionResponse,
+	SessionSeatInfo,
+} from '../../../core/dataservice/booking/booking.interface';
+import { PublicDataService } from '../../../core/dataservice/public/public.dataservice';
+import { SessionService } from '../../../core/dataservice/session.service';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { PaymentComponent } from '../payment/payment.component';
+import { BookingDataService } from '../../../core/dataservice/booking/booking.dataservice';
+
+interface SelectedSeat extends Seat {
+	price: number;
+	selected: boolean;
+	status: 'available' | 'booked' | 'selected';
+}
+
+@Component({
+	selector: 'app-public-select-seats',
+	templateUrl: './public-select-seats.component.html',
+	styleUrls: ['./public-select-seats.component.scss'],
+	standalone: true,
+	imports: [
+		CommonModule,
+		ButtonModule,
+		CardModule,
+		ChipModule,
+		ToastModule,
+		DialogModule,
+		ReactiveFormsModule,
+		InputTextModule,
+		DropdownModule,
+		ProgressSpinnerModule,
+		ConfirmDialogModule,
+		StepsModule,
+		DividerModule,
+	],
+	providers: [MessageService, ConfirmationService, DialogService],
+})
+export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
+	private destroy$ = new Subject<void>();
+
+	ref: DynamicDialogRef | null = null;
+	// Loading and error states
+	loading = true;
+	error: string | null = null;
+
+	// Data properties
+	movie: Movie | null = null;
+	screening: Screening | null = null;
+	hall: Hall | null = null;
+	seats: Seat[] = [];
+	screeningPrices: ScreeningSeatPrice[] = [];
+
+	// Session-based seat management
+	sessionId: string = '';
+	sessionSeats: SessionSeatInfo[] = [];
+	occupiedSeats: BookingSeat[] = [];
+	seatAvailability: { [seatId: string]: 'available' | 'booked' | 'selected' } =
+		{};
+
+	// Seat layout and selection
+	hallLayout: (SelectedSeat | null)[][] = [];
+	selectedSeats: SelectedSeat[] = [];
+
+	// Constants
+	readonly MAX_SEATS = 10;
+
+	// Route parameters
+	screeningId: number = 0;
+
+	// Session timeout management
+	sessionTimeout: number = 0;
+	sessionExpiresAt: string | null = null;
+	timeoutTimer: any = null;
+	refreshTimer: any = null;
+
+	// Booking modal properties
+	showBookingModal = false;
+	currentBookingStep = 1;
+	bookingForm: FormGroup;
+	paymentForm: FormGroup;
+	processing = false;
+
+	// Payment stepper properties
+	paymentStep = 1;
+	selectedBank: any = null;
+	accountNumber = '';
+	otpCode = '';
+	otpSent = false;
+	countdown = 0;
+
+	// Bank options for RMA Payment Gateway
+	banks = [
+		{ name: 'Bank of Bhutan', code: 'BOB', logo: '/assets/banks/bob.png' },
+		{
+			name: 'Bhutan National Bank',
+			code: 'BNB',
+			logo: '/assets/banks/bnb.png',
+		},
+		{ name: 'Druk PNB Bank', code: 'DPNB', logo: '/assets/banks/dpnb.png' },
+		{ name: 'T-Bank', code: 'TBANK', logo: '/assets/banks/tbank.png' },
+	];
+
+	// Booking response and e-ticket
+	bookingResponse: CreateBookingResponse | null = null;
+	qrCodeDataURL: string = '';
+
+	// Steps for stepper
+	steps: MenuItem[] = [
+		{ label: 'Customer Info' },
+		{ label: 'Payment' },
+		{ label: 'Confirmation' },
+	];
+
+	constructor(
+		private route: ActivatedRoute,
+		private router: Router,
+		private messageService: MessageService,
+		private publicDataService: PublicDataService,
+		private fb: FormBuilder,
+		private confirmationService: ConfirmationService,
+		private dialogService: DialogService,
+		private cdr: ChangeDetectorRef,
+		public sessionService: SessionService,
+		private bookingService: BookingDataService
+	) {
+		// Initialize forms
+		this.bookingForm = this.fb.group({
+			customerName: ['', [Validators.required, Validators.minLength(2)]],
+			phoneNumber: [
+				'',
+				[Validators.required, Validators.pattern(/^[0-9]{8}$/)],
+			],
+			email: ['', [Validators.required, Validators.email]],
+		});
+
+		this.paymentForm = this.fb.group({
+			selectedBank: ['', Validators.required],
+			accountNumber: ['', [Validators.required]],
+			otpCode: ['', [Validators.required, Validators.pattern(/^[0-9]{6}$/)]],
+		});
+	}
+
+	ngOnInit() {
+		// Get session ID from session service
+		this.sessionId = this.sessionService.getSessionId() || '';
+		if (!this.sessionId) {
+			// Create new session if none exists
+			this.sessionId = this.sessionService.createSession();
+		}
+
+		console.log('Using session ID:', this.sessionId);
+
+		this.route.params.subscribe((params) => {
+			const screeningId = +params['id'];
+			if (screeningId) {
+				this.screeningId = screeningId;
+				this.loadScreeningData();
+			} else {
+				this.error = 'Invalid screening selected';
+				this.loading = false;
+			}
+		});
+	}
+
+	ngOnDestroy(): void {
+		console.log('Component destroying, performing cleanup');
+
+		this.destroy$.next();
+		this.destroy$.complete();
+
+		// Clear selections (this will attempt API calls if still valid)
+		if (this.selectedSeats.length > 0) {
+			console.log('Clearing selections before component destruction');
+			this.clearAllSelections();
+		}
+
+		// End session when component is destroyed
+		this.sessionService.endSession();
+	}
+
+	private loadScreeningData(): void {
+		this.loading = true;
+		this.error = null;
+		this.resetData();
+
+		// Load screening details using public data service
+		this.publicDataService
+			.findScreeningById(this.screeningId)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (screening) => {
+					console.log('Loaded screening:', screening);
+					this.screening = screening;
+					this.hall = screening.hall || null;
+					this.screeningPrices = screening.screeningSeatPrices || [];
+
+					// Load movie details
+					if (screening.movieId) {
+						this.loadMovieDetails(screening.movieId);
+					}
+
+					// Load seats for the hall
+					if (screening.hallId) {
+						this.loadSeatsForHall(screening.hallId);
+					} else {
+						this.loading = false;
+						this.error = 'No hall information found for this screening.';
+					}
+				},
+				error: (error) => {
+					console.error('Error loading screening:', error);
+					this.loading = false;
+					this.error = 'Failed to load screening information.';
+				},
+			});
+	}
+
+	private loadMovieDetails(movieId: number): void {
+		this.publicDataService
+			.findMovieById(movieId)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (movie) => {
+					console.log('Loaded movie:', movie);
+					this.movie = movie;
+				},
+				error: (error) => {
+					console.error('Error loading movie:', error);
+					// Don't stop loading if movie fails, continue with seats
+				},
+			});
+	}
+
+	private loadSeatsForHall(hallId: number): void {
+		// Load seats and occupied seats in parallel using the new API
+		forkJoin({
+			seats: this.bookingService.findSeatsByHallId(hallId),
+			occupiedSeatResponse: this.bookingService.getOccupiedSeatsBySession(
+				this.screeningId,
+				this.sessionId
+			),
+		})
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (result) => {
+					console.log('Loaded seats:', result.seats);
+					console.log('Loaded occupied seats:', result.occupiedSeatResponse);
+
+					this.seats = result.seats;
+
+					// If there are session seats, map them to SelectedSeat and add to selectedSeats
+					if (Array.isArray(result.occupiedSeatResponse.sessionSeats)) {
+						result.occupiedSeatResponse.sessionSeats.forEach(
+							(sessionSeat: any) => {
+								const seat = this.seats.find(
+									(s) => s.id === sessionSeat.seatId
+								);
+								if (seat) {
+									const selectedSeat: SelectedSeat = {
+										...seat,
+										price: this.getSeatPrice(seat),
+										selected: true,
+										status: 'selected',
+									};
+									this.selectedSeats.push(selectedSeat);
+									this.seatAvailability[seat.id.toString()] = 'selected';
+								}
+							}
+						);
+					}
+
+					// If hall info not available from screening, get it from first seat
+					if (!this.hall && result.seats.length > 0 && result.seats[0].hall) {
+						this.hall = result.seats[0].hall;
+					}
+
+					// Initialize seat availability using occupied seats API
+					this.initializeSeatAvailabilityFromOccupied(
+						result.seats,
+						result.occupiedSeatResponse
+					);
+					this.generateHallLayout();
+					this.loading = false;
+
+					// Start periodic refresh of occupied seats
+					this.startPeriodicRefresh();
+				},
+				error: (error) => {
+					console.error('Error loading seats or occupied seats:', error);
+					this.loading = false;
+					this.error = 'Failed to load seat information.';
+				},
+			});
+	}
+
+	/**
+	 * Initialize seat availability using the new occupied seats API
+	 */
+	private initializeSeatAvailabilityFromOccupied(
+		seats: Seat[],
+		occupiedSeatResponse: OccupiedSeatResponse
+	): void {
+		// Initialize all seats as available
+		this.seatAvailability = {};
+		seats.forEach((seat) => {
+			this.seatAvailability[seat.id.toString()] = 'available';
+		});
+
+		// Mark occupied seats as booked (both CONFIRMED and active PENDING)
+		occupiedSeatResponse.occupiedSeats.forEach((occupiedSeat) => {
+			this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
+		});
+	}
+
+	private resetData(): void {
+		this.movie = null;
+		this.screening = null;
+		this.hall = null;
+		this.seats = [];
+		this.screeningPrices = [];
+		this.seatAvailability = {};
+		this.hallLayout = [];
+		this.selectedSeats = [];
+	}
+
+	private generateHallLayout(): void {
+		if (!this.hall) {
+			return;
+		}
+
+		// Reset selected seats
+		this.selectedSeats = [];
+		// Create a 2D array representing the hall layout
+		this.hallLayout = [];
+
+		// Initialize the layout with null values
+		for (let row = 0; row < this.hall.rows; row++) {
+			this.hallLayout[row] = [];
+			for (let col = 0; col < this.hall.columns; col++) {
+				this.hallLayout[row][col] = null;
+			}
+		}
+
+		// Map actual seats onto the layout
+		this.seats.forEach((seat) => {
+			const rowIndex = seat.rowId - 1; // rowId is 1-based, array is 0-based
+			const colIndex = seat.colId - 1; // colId is 1-based, array is 0-based
+
+			if (
+				rowIndex >= 0 &&
+				rowIndex < this.hall!.rows &&
+				colIndex >= 0 &&
+				colIndex < this.hall!.columns
+			) {
+				const price = this.getSeatPrice(seat);
+				const status = this.seatAvailability[seat.id.toString()] || 'available';
+
+				this.hallLayout[rowIndex][colIndex] = {
+					...seat,
+					price,
+					selected: false,
+					status: status as 'available' | 'booked' | 'selected',
+				} as SelectedSeat;
+			}
+		});
+	}
+
+	// Public methods for template
+	getSeatAtPosition(rowIndex: number, colIndex: number): SelectedSeat | null {
+		if (!this.hallLayout[rowIndex] || !this.hallLayout[rowIndex][colIndex]) {
+			return null;
+		}
+		return this.hallLayout[rowIndex][colIndex];
+	}
+
+	getSeatPrice(seat: Seat): number {
+		if (!seat.categoryId || !this.screeningPrices.length) {
+			return 0;
+		}
+
+		const priceInfo = this.screeningPrices.find(
+			(sp) => sp.seatCategoryId === seat.categoryId
+		);
+
+		return priceInfo ? Number(priceInfo.price) : 0;
+	}
+
+	onSeatClick(seat: SelectedSeat): void {
+		// Prevent interactions during loading
+		if (this.loading) {
+			return;
+		}
+
+		// Check if seat is booked
+		if (seat.status === 'booked') {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Seat Unavailable',
+				detail: 'This seat is already booked',
+			});
+			return;
+		}
+
+		const isSelected = seat.status === 'selected';
+
+		if (isSelected) {
+			// Deselect the seat
+			this.deselectSeat(seat);
+		} else {
+			// Check seat limit before selecting
+			if (this.selectedSeats.length >= this.MAX_SEATS) {
+				this.messageService.add({
+					severity: 'warn',
+					summary: 'Maximum Seats Reached',
+					detail: `You can select maximum ${this.MAX_SEATS} seats`,
+				});
+				return;
+			}
+
+			// Select the seat
+			this.selectSeat(seat);
+		}
+	}
+
+	private selectSeat(seat: SelectedSeat): void {
+		console.log(`Attempting to select seat ${seat.id} (${seat.seatNumber})`);
+
+		// Validate session before proceeding
+		if (!this.sessionService.isSessionValid()) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Session Invalid',
+				detail: 'Your session has expired. Please refresh the page.',
+			});
+			return;
+		}
+
+		// Validate seat is still available
+		if (seat.status !== 'available') {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Seat Unavailable',
+				detail: `Seat ${seat.seatNumber} is no longer available`,
+			});
+			return;
+		}
+
+		// Check if already selected (prevent double selection)
+		const alreadySelected = this.selectedSeats.some((s) => s.id === seat.id);
+		if (alreadySelected) {
+			console.log(`Seat ${seat.id} is already selected`);
+			return;
+		}
+
+		// Update UI immediately for better UX (optimistic update)
+		seat.status = 'selected';
+		seat.selected = true;
+		this.selectedSeats.push(seat);
+		this.seatAvailability[seat.id.toString()] = 'selected';
+		this.updateSeatInHallLayout(seat);
+
+		// Call the seat selection API
+		this.updateSeatSelection(seat);
+	}
+
+	private deselectSeat(seat: SelectedSeat): void {
+		console.log(`Attempting to deselect seat ${seat.id} (${seat.seatNumber})`);
+
+		// Validate session before proceeding
+		if (!this.sessionService.isSessionValid()) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Session Invalid',
+				detail: 'Your session has expired. Please refresh the page.',
+			});
+			return;
+		}
+
+		// Validate seat is currently selected
+		if (seat.status !== 'selected') {
+			console.log(`Seat ${seat.id} is not currently selected`);
+			return;
+		}
+
+		// Find and remove from selected seats array
+		const index = this.selectedSeats.findIndex((s) => s.id === seat.id);
+		if (index === -1) {
+			console.log(`Seat ${seat.id} not found in selected seats array`);
+			return;
+		}
+
+		// Update UI immediately for better UX (optimistic update)
+		seat.status = 'available';
+		seat.selected = false;
+		this.selectedSeats.splice(index, 1);
+		this.seatAvailability[seat.id.toString()] = 'available';
+		this.updateSeatInHallLayout(seat);
+
+		// Call the seat deselection API
+		this.updateSeatDeselection(seat);
+	}
+
+	/**
+	 * Update seat selection using the new API with session management
+	 */
+	private updateSeatSelection(seat: SelectedSeat): void {
+		const seatSelectionDto: SeatSelectionDto = {
+			seatId: seat.id,
+			screeningId: this.screeningId,
+			userMetadata: {
+				userAgent: navigator.userAgent,
+				ipAddress: '', // Will be populated by backend
+			},
+		};
+
+		this.bookingService
+			.selectSeatBySession(this.sessionId, seatSelectionDto)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (response: SeatSelectionResponse) => {
+					console.log(`Seat ${seat.id} selected successfully`, response);
+					if (response.success) {
+						this.messageService.add({
+							severity: 'success',
+							summary: 'Seat Selected',
+							detail: `You have selected seat ${seat.seatNumber}`,
+						});
+						// Update seat availability based on response
+						this.updateSeatAvailabilityFromSeatSelectionResponse(response);
+					} else {
+						// Server returned success=false, revert the selection
+						this.revertSeatSelection(seat);
+						this.messageService.add({
+							severity: 'error',
+							summary: 'Selection Failed',
+							detail: 'Failed to select seat. Please try again.',
+						});
+					}
+				},
+				error: (error) => {
+					console.error('Error selecting seat:', error);
+
+					// Handle seat conflict (409 error) differently
+					if (error.status === 409) {
+						this.handleSeatConflict(seat, error.error);
+					} else {
+						// For other errors, revert the optimistic UI update
+						this.revertSeatSelection(seat);
+						this.messageService.add({
+							severity: 'error',
+							summary: 'Selection Failed',
+							detail:
+								error.error?.message ||
+								'Failed to select seat. Please try again.',
+						});
+					}
+				},
+			});
+	}
+
+	private updateSeatDeselection(seat: SelectedSeat): void {
+		const seatSelectionDto: SeatSelectionDto = {
+			seatId: seat.id,
+			screeningId: this.screeningId,
+			userMetadata: {
+				userAgent: navigator.userAgent,
+				ipAddress: '', // Will be populated by backend
+			},
+		};
+
+		this.bookingService
+			.deselectSeatBySession(this.sessionId, seatSelectionDto)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (response: SeatSelectionResponse) => {
+					console.log(`Seat ${seat.id} deselected successfully`, response);
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Seat Deselected',
+						detail: `You have deselected seat ${seat.seatNumber}`,
+					});
+
+					// Update seat availability based on response
+					this.updateSeatAvailabilityFromSeatSelectionResponse(response);
+				},
+				error: (error) => {
+					console.error('Error deselecting seat:', error);
+
+					// Revert the optimistic UI update
+					this.revertSeatDeselection(seat);
+
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Deselection Failed',
+						detail:
+							error.error?.message ||
+							'Failed to deselect seat. Please try again.',
+					});
+				},
+			});
+	}
+	/**
+	 * Revert seat selection when API call fails
+	 */
+	private revertSeatSelection(seat: SelectedSeat): void {
+		console.log(`Reverting selection for seat ${seat.id}`);
+
+		// Remove from selected seats array
+		const index = this.selectedSeats.findIndex((s) => s.id === seat.id);
+		if (index > -1) {
+			this.selectedSeats.splice(index, 1);
+		}
+
+		// Update seat status and availability
+		seat.status = 'available';
+		seat.selected = false;
+		this.seatAvailability[seat.id.toString()] = 'available';
+
+		// Update hall layout
+		this.updateSeatInHallLayout(seat);
+	}
+
+	/**
+	 * Handle seat conflict when selecting a seat
+	 */
+	private handleSeatConflict(seat: SelectedSeat, conflictResponse: any): void {
+		console.log('Handling seat conflict for seat:', seat.id, conflictResponse);
+
+		// Mark the seat as booked instead of available
+		seat.status = 'booked';
+		seat.selected = false;
+		this.seatAvailability[seat.id.toString()] = 'booked';
+
+		// Remove from selected seats array
+		const index = this.selectedSeats.findIndex((s) => s.id === seat.id);
+		if (index > -1) {
+			this.selectedSeats.splice(index, 1);
+		}
+
+		// Update hall layout
+		this.updateSeatInHallLayout(seat);
+
+		// Show conflict message
+		this.messageService.add({
+			severity: 'warn',
+			summary: 'Seat Conflict',
+			detail:
+				conflictResponse.message || 'This seat was just taken by another user',
+		});
+
+		// Refresh occupied seats to get latest state
+		this.refreshOccupiedSeats();
+	}
+
+	/**
+	 * Revert seat deselection when API call fails
+	 */
+	private revertSeatDeselection(seat: SelectedSeat): void {
+		console.log(`Reverting deselection for seat ${seat.id}`);
+
+		// Add back to selected seats array if not already there
+		const exists = this.selectedSeats.some((s) => s.id === seat.id);
+		if (!exists) {
+			this.selectedSeats.push(seat);
+		}
+
+		// Update seat status and availability
+		seat.status = 'selected';
+		seat.selected = true;
+		this.seatAvailability[seat.id.toString()] = 'selected';
+
+		// Update hall layout
+		this.updateSeatInHallLayout(seat);
+	}
+
+	/**
+	 * Update a specific seat in the hall layout
+	 */
+	private updateSeatInHallLayout(seat: SelectedSeat): void {
+		if (!this.hall || !this.hallLayout) return;
+
+		const rowIndex = seat.rowId - 1;
+		const colIndex = seat.colId - 1;
+
+		if (
+			rowIndex >= 0 &&
+			rowIndex < this.hall.rows &&
+			colIndex >= 0 &&
+			colIndex < this.hall.columns &&
+			this.hallLayout[rowIndex] &&
+			this.hallLayout[rowIndex][colIndex]
+		) {
+			const hallSeat = this.hallLayout[rowIndex][colIndex];
+			if (hallSeat && hallSeat.id === seat.id) {
+				hallSeat.status = seat.status;
+				hallSeat.selected = seat.selected;
+			}
+		}
+	}
+
+	/**
+	 * Update seat availability from the API response
+	 */
+	private updateSeatAvailabilityFromResponse(
+		seatAvailabilityResponse: OccupiedSeatResponse,
+		isConflictUpdate: boolean = false
+	): void {
+		// Reset all seats to available first (except our selected ones in non-conflict scenarios)
+		Object.keys(this.seatAvailability).forEach((seatId) => {
+			if (!isConflictUpdate && this.seatAvailability[seatId] !== 'selected') {
+				this.seatAvailability[seatId] = 'available';
+			} else if (isConflictUpdate) {
+				// In conflict scenarios, reset all seats to available initially
+				this.seatAvailability[seatId] = 'available';
+			}
+		});
+
+		// Mark occupied seats as booked
+		seatAvailabilityResponse.occupiedSeats.forEach((occupiedSeat) => {
+			// In conflict scenarios, mark ALL occupied seats as booked (including previously selected ones)
+			if (isConflictUpdate) {
+				console.log(
+					`Conflict: Marking seat ${occupiedSeat.seatId} as booked (was occupied by another user)`
+				);
+				this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
+			} else {
+				// In normal updates, don't mark our own selected seats as booked
+				const isOurSelection = this.selectedSeats.some(
+					(seat) => seat.id === occupiedSeat.seatId
+				);
+				if (!isOurSelection) {
+					console.log(`Marking seat ${occupiedSeat.seatId} as booked`);
+					this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
+				} else {
+					console.log(
+						`Seat ${occupiedSeat.seatId} is our selection, keeping as selected`
+					);
+				}
+			}
+		});
+
+		// Update hall layout to reflect changes
+		this.updateHallLayoutFromAvailability();
+
+		console.log('Updated seat availability:', this.seatAvailability);
+	}
+
+	/**
+	 * Update seat availability based on seat selection response
+	 * This method handles the response from seat selection/deselection API calls
+	 */
+	private updateSeatAvailabilityFromSeatSelectionResponse(
+		response: SeatSelectionResponse
+	): void {
+		console.log(
+			'Updating seat availability from seat selection response:',
+			response
+		);
+
+		// Reset all seats to available first
+		Object.keys(this.seatAvailability).forEach((seatId) => {
+			this.seatAvailability[seatId] = 'available';
+		});
+
+		// Mark occupied seats as booked (these are seats occupied by other users/sessions)
+		if (response.occupiedSeats && Array.isArray(response.occupiedSeats)) {
+			response.occupiedSeats.forEach((occupiedSeat: BookingSeat) => {
+				const isOurSelection = this.selectedSeats.some(
+					(seat) => seat.id === occupiedSeat.seatId
+				);
+				if (!isOurSelection) {
+					console.log(`Marking seat ${occupiedSeat.seatId} as booked`);
+					this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
+				} else {
+					console.log(
+						`Seat ${occupiedSeat.seatId} is our selection, keeping as selected`
+					);
+					this.seatAvailability[occupiedSeat.seatId.toString()] = 'selected';
+				}
+			});
+		}
+
+		// Mark our selected seats as selected (these are seats selected by current session)
+		// if (response.selectedSeat && Array.isArray(response.selectedSeat)) {
+		// 	response.selectedSeat.forEach((selectedSeat: BookingSeat) => {
+		// 		console.log(
+		// 			`Marking seat ${selectedSeat.seatId} as selected for our session`
+		// 		);
+		// 		this.seatAvailability[selectedSeat.seatId.toString()] = 'selected';
+		// 	});
+		// }
+
+		// Update selected seats array to match server state
+		this.syncSelectedSeatsWithResponse(response);
+
+		// Update hall layout to reflect changes
+		this.updateHallLayoutFromAvailability();
+
+		console.log('Updated seat availability:', this.seatAvailability);
+	}
+
+	/**
+	 * Synchronize local selected seats array with server response
+	 */
+	private syncSelectedSeatsWithResponse(response: SeatSelectionResponse): void {
+		// if (response.selectedSeat && Array.isArray(response.selectedSeat)) {
+		// 	// Clear current selected seats
+		// 	this.selectedSeats = [];
+		// 	// Rebuild selected seats from server response
+		// 	response.selectedSeat.forEach((selectedSeat: BookingSeat) => {
+		// 		const seat = this.seats.find((s) => s.id === selectedSeat.seatId);
+		// 		if (seat) {
+		// 			const selectedSeatObj: SelectedSeat = {
+		// 				...seat,
+		// 				price: this.getSeatPrice(seat),
+		// 				selected: true,
+		// 				status: 'selected',
+		// 			};
+		// 			this.selectedSeats.push(selectedSeatObj);
+		// 		}
+		// 	});
+		// 	console.log(
+		// 		`Synchronized ${this.selectedSeats.length} selected seats with server`
+		// 	);
+		// }
+	}
+
+	/**
+	 * Update hall layout from seat availability
+	 */
+	private updateHallLayoutFromAvailability(): void {
+		if (!this.hallLayout || !this.hall) {
+			console.log('Cannot update hall layout: missing hallLayout or hall data');
+			return;
+		}
+
+		console.log('Updating hall layout from seat availability');
+		let updatedSeats = 0;
+
+		for (let rowIndex = 0; rowIndex < this.hall.rows; rowIndex++) {
+			for (let colIndex = 0; colIndex < this.hall.columns; colIndex++) {
+				const seatAtPosition = this.hallLayout[rowIndex][colIndex];
+				if (seatAtPosition) {
+					const availability =
+						this.seatAvailability[seatAtPosition.id.toString()];
+
+					// Only update if the status has changed
+					if (seatAtPosition.status !== availability) {
+						console.log(
+							`Updating seat ${seatAtPosition.id} from ${seatAtPosition.status} to ${availability}`
+						);
+						seatAtPosition.status = availability as
+							| 'available'
+							| 'booked'
+							| 'selected';
+						seatAtPosition.selected = availability === 'selected';
+						updatedSeats++;
+					}
+				}
+			}
+		}
+
+		console.log(`Updated ${updatedSeats} seats in hall layout`);
+	}
+
+	/**
+	 * Clear all current seat selections
+	 */
+	private clearAllSelections(): void {
+		console.log('Clearing all seat selections');
+
+		// Update each selected seat
+		this.selectedSeats.forEach((seat) => {
+			seat.status = 'available';
+			seat.selected = false;
+			this.seatAvailability[seat.id.toString()] = 'available';
+			this.updateSeatInHallLayout(seat);
+		});
+
+		// Clear the array
+		this.selectedSeats = [];
+
+		// // Clear any running timer
+		// if (this.selectionTimer) {
+		// 	clearTimeout(this.selectionTimer);
+		// 	this.selectionTimer = null;
+		// }
+
+		console.log('All selections cleared');
+	}
+
+	/**
+	 * Periodically refresh occupied seats to handle concurrent user selections
+	 */
+	private startPeriodicRefresh(): void {
+		// Refresh every 30 seconds
+		setInterval(() => {
+			if (this.screeningId && !this.loading) {
+				this.refreshOccupiedSeats();
+				// Also validate our current selections
+				this.validateSeatSelections();
+			}
+		}, 30000);
+	}
+
+	/**
+	 * Refresh occupied seats without affecting current selections
+	 */
+	private refreshOccupiedSeats(): void {
+		this.bookingService
+			.getOccupiedSeatsBySession(this.screeningId, this.sessionId)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe(
+				(seatAvailabilityResponses: OccupiedSeatResponse) => {
+					// Assuming the API returns an array, use the first element
+					const seatAvailabilityResponse = seatAvailabilityResponses;
+					console.log(
+						'Refreshed occupied seats:',
+						seatAvailabilityResponse?.occupiedSeats
+					);
+					if (seatAvailabilityResponse) {
+						this.updateSeatAvailabilityFromResponse(seatAvailabilityResponse);
+					}
+				},
+				(error) => {
+					console.error('Error refreshing occupied seats:', error);
+					// Silently fail - don't disrupt user experience
+				}
+			);
+	}
+
+	/**
+	 * Validate current seat selections against server state
+	 */
+	private validateSeatSelections(): void {
+		if (this.selectedSeats.length === 0) return;
+
+		// this.publicDataService
+		// 	.getOccupiedSeats(this.screeningId)
+		// 	.pipe(takeUntil(this.destroy$))
+		// 	.subscribe({
+		// 		next: (occupiedSeatResponse: OccupiedSeatResponse) => {
+		// 			const occupiedSeatIds = occupiedSeatResponse.occupiedSeats.map(
+		// 				(os) => os.seatId
+		// 			);
+		// 			const conflictedSeats = this.selectedSeats.filter((seat) =>
+		// 				occupiedSeatIds.includes(seat.id)
+		// 			);
+
+		// 			if (conflictedSeats.length > 0) {
+		// 				console.log(
+		// 					'Found conflicted seats during validation:',
+		// 					conflictedSeats
+		// 				);
+		// 				this.handleValidationConflicts(conflictedSeats, occupiedSeatIds);
+		// 			}
+		// 		},
+		// 		error: (error) => {
+		// 			console.error('Error validating seat selections:', error);
+		// 		},
+		// 	});
+	}
+
+	// Helper methods for template
+	getRows(): number[] {
+		if (!this.hall) return [];
+		return Array.from({ length: this.hall.rows }, (_, i) => i);
+	}
+
+	getColumns(): number[] {
+		if (!this.hall) return [];
+		return Array.from({ length: this.hall.columns }, (_, i) => i);
+	}
+
+	getSeatsByRow(): { [row: string]: SelectedSeat[] } {
+		const seatsByRow: { [row: string]: SelectedSeat[] } = {};
+
+		this.seats.forEach((seat) => {
+			const rowLabel = this.getRowLabel(seat.rowId - 1);
+			if (!seatsByRow[rowLabel]) {
+				seatsByRow[rowLabel] = [];
+			}
+
+			const price = this.getSeatPrice(seat);
+			const status = this.seatAvailability[seat.id.toString()] || 'available';
+
+			seatsByRow[rowLabel].push({
+				...seat,
+				price,
+				selected: status === 'selected',
+				status: status as 'available' | 'booked' | 'selected',
+			} as SelectedSeat);
+		});
+
+		// Sort seats within each row by column
+		Object.keys(seatsByRow).forEach((row) => {
+			seatsByRow[row].sort((a, b) => a.colId - b.colId);
+		});
+
+		return seatsByRow;
+	}
+
+	getRowLabel(rowIndex: number): string {
+		return String.fromCharCode(65 + rowIndex); // A, B, C, etc.
+	}
+
+	getSeatClass(seat: SelectedSeat): string {
+		const baseClass =
+			'seat cursor-pointer transition-all duration-200 hover:transform hover:scale-105';
+
+		switch (seat.status) {
+			case 'selected':
+				return `${baseClass} seat-selected ring-2 ring-pink-600 bg-pink-600`;
+			case 'booked':
+				return `${baseClass} seat-unavailable bg-gray-500 cursor-not-allowed`;
+			default:
+				// Available seat - color by category
+				if (seat.category?.name?.toLowerCase().includes('premium')) {
+					return `${baseClass} seat-premium bg-purple-600 hover:bg-purple-500`;
+				}
+				return `${baseClass} seat-basic bg-blue-600 hover:bg-blue-500`;
+		}
+	}
+
+	getTotalAmount(): number {
+		return this.selectedSeats.reduce((total, seat) => total + seat.price, 0);
+	}
+
+	formatCurrency(amount: number): string {
+		return `Nu. ${amount}`;
+	}
+
+	formatTime(timeInput: string | number): string {
+		if (!timeInput && timeInput !== 0) return '';
+
+		// Convert to string if it's a number
+		const timeString = timeInput.toString();
+
+		// Handle 4-digit time format (e.g., "0730" or 730 -> "7:30 AM")
+		if (/^\d{4}$/.test(timeString)) {
+			const hours = parseInt(timeString.substring(0, 2), 10);
+			const minutes = parseInt(timeString.substring(2, 4), 10);
+			const date = new Date();
+			date.setHours(hours, minutes, 0, 0);
+			return date.toLocaleTimeString('en-US', {
+				hour: 'numeric',
+				minute: '2-digit',
+				hour12: true,
+			});
+		}
+
+		// Handle 3-digit time format (e.g., "730" or 730 -> "7:30 AM")
+		if (/^\d{3}$/.test(timeString)) {
+			const hours = parseInt(timeString.substring(0, 1), 10);
+			const minutes = parseInt(timeString.substring(1, 3), 10);
+			const date = new Date();
+			date.setHours(hours, minutes, 0, 0);
+			return date.toLocaleTimeString('en-US', {
+				hour: 'numeric',
+				minute: '2-digit',
+				hour12: true,
+			});
+		}
+
+		return timeString;
+	}
+
+	// Navigation methods
+	goBack(): void {
+		// Clear any pending selections before navigating away
+		this.clearAllSelections();
+		this.router.navigate(['/movie', this.movie?.id || 'schedule']);
+	}
+
+	processPayment(): void {
+		if (this.selectedSeats.length === 0) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Seats Selected',
+				detail: 'Please select at least one seat to proceed.',
+			});
+			return;
+		}
+
+		// Validate selections before proceeding to payment
+		this.validateSeatSelections();
+
+		// Wait a moment for validation, then proceed if seats are still selected
+		setTimeout(() => {
+			if (this.selectedSeats.length === 0) {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Selection Invalid',
+					detail:
+						'Your selected seats are no longer available. Please select again.',
+				});
+				return;
+			}
+
+			// Call proceedToPayment API to update booking status and extend timeout
+			this.processing = true;
+			this.bookingService
+				.proceedToPayment(this.sessionId, this.screeningId)
+				.pipe(takeUntil(this.destroy$))
+				.subscribe({
+					next: (response) => {
+						console.log('Proceed to payment response:', response);
+
+						if (response.success) {
+							// Update session timeout with new payment window (15 minutes)
+							this.sessionTimeout = response.timeoutSeconds;
+							this.sessionExpiresAt = response.expiresAt;
+							this.startSessionTimeoutTimer();
+
+							// Prepare booking data for payment component
+							const bookingData = {
+								movie: this.movie,
+								screening: this.screening,
+								hall: this.hall,
+								selectedSeats: this.selectedSeats,
+								totalAmount: this.getTotalAmount(),
+								screeningId: this.screeningId,
+								sessionId: this.sessionId,
+								booking: response.booking, // Include server booking details
+								expiresAt: response.expiresAt,
+								timeoutSeconds: response.timeoutSeconds,
+							};
+
+							this.ref = this.dialogService.open(PaymentComponent, {
+								modal: true,
+								closable: false,
+								dismissableMask: false,
+								data: bookingData,
+							});
+
+							// Listen for booking completion
+							this.ref.onClose.subscribe((result) => {
+								if (result && result.success) {
+									// Clear selections after successful booking
+									this.clearAllSelections();
+									// Refresh seat availability after successful booking
+									this.refreshOccupiedSeats();
+
+									this.messageService.add({
+										severity: 'success',
+										summary: 'Booking Successful',
+										detail: 'Your tickets have been booked successfully!',
+									});
+								}
+								this.processing = false;
+							});
+						} else {
+							this.processing = false;
+							this.messageService.add({
+								severity: 'error',
+								summary: 'Payment Error',
+								detail: 'Failed to proceed to payment. Please try again.',
+							});
+						}
+					},
+					error: (error) => {
+						console.error('Error proceeding to payment:', error);
+						this.processing = false;
+
+						this.messageService.add({
+							severity: 'error',
+							summary: 'Payment Error',
+							detail:
+								error.error?.message ||
+								'Failed to proceed to payment. Please try again.',
+						});
+					},
+				});
+		}, 500); // Small delay to allow validation to complete
+	}
+
+	/**
+	 * Start session timeout timer for payment window
+	 */
+	private startSessionTimeoutTimer(): void {
+		// Clear existing timer
+		if (this.timeoutTimer) {
+			clearTimeout(this.timeoutTimer);
+		}
+
+		if (this.sessionTimeout > 0) {
+			console.log(
+				`Starting session timeout timer: ${this.sessionTimeout} seconds`
+			);
+
+			this.timeoutTimer = setTimeout(() => {
+				this.handleSessionTimeout();
+			}, this.sessionTimeout * 1000);
+		}
+	}
+
+	/**
+	 * Handle session timeout
+	 */
+	private handleSessionTimeout(): void {
+		this.messageService.add({
+			severity: 'warn',
+			summary: 'Session Expired',
+			detail: 'Your session has expired. Please start again.',
+		});
+
+		// Clear all selections and navigate back
+		this.clearAllSelections();
+
+		// Close any open payment dialog
+		if (this.ref) {
+			this.ref.close();
+		}
+
+		// Navigate back to movie selection or refresh
+		this.router.navigate(['/movies']);
+	}
+}

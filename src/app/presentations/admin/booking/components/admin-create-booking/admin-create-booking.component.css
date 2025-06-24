@@ -1,0 +1,273 @@
+/* Admin Create Booking Component Styles */
+
+/* Step Progress Indicator */
+.step-connector {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  margin: 0 1rem;
+}
+
+.step-connector::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: currentColor;
+  transition: all 0.3s ease;
+}
+
+/* Seat Layout Styles */
+.seat-grid {
+  display: grid;
+  gap: 0.25rem;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+.seat-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.seat-row-label {
+  width: 2rem;
+  text-align: center;
+  font-weight: 500;
+  color: #6b7280;
+  margin-right: 0.5rem;
+}
+
+.seat-button {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem 0.375rem 0.125rem 0.125rem;
+  border: 2px solid;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  min-width: 2rem;
+}
+
+.seat-button:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.seat-button.seat-available {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #2563eb;
+}
+
+.seat-button.seat-selected {
+  background-color: #10b981;
+  color: white;
+  border-color: #059669;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.seat-button.seat-booked {
+  background-color: #ef4444;
+  color: white;
+  border-color: #dc2626;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.seat-button:disabled {
+  cursor: not-allowed;
+}
+
+/* Screen styling */
+.screen {
+  background: linear-gradient(90deg, #d1d5db 0%, #9ca3af 50%, #d1d5db 100%);
+  border-radius: 0.5rem 0.5rem 0 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .seat-button {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.625rem;
+    min-width: 1.75rem;
+  }
+  
+  .seat-row-label {
+    width: 1.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .seat-button {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.5rem;
+    min-width: 1.5rem;
+  }
+  
+  .seat-row-label {
+    width: 1.25rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Loading and empty states */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  color: #d1d5db;
+  margin-bottom: 1rem;
+}
+
+/* Card hover effects */
+.screening-card {
+  transition: all 0.2s ease;
+}
+
+.screening-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.screening-card.selected {
+  border-color: #3b82f6 !important;
+  background-color: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Form field spacing */
+.field {
+  margin-bottom: 1.5rem;
+}
+
+.field:last-child {
+  margin-bottom: 0;
+}
+
+/* Button loading state */
+.p-button.p-button-loading {
+  pointer-events: none;
+}
+
+/* Custom PrimeNG overrides */
+:host ::ng-deep .p-card .p-card-body {
+  padding: 1.5rem;
+}
+
+:host ::ng-deep .p-card .p-card-header {
+  padding: 0;
+}
+
+:host ::ng-deep .p-progressspinner {
+  width: 2rem;
+  height: 2rem;
+}
+
+:host ::ng-deep .p-chip {
+  font-size: 0.875rem;
+}
+
+:host ::ng-deep .p-chip .p-chip-remove-icon {
+  margin-left: 0.5rem;
+}
+
+/* Toast positioning */
+:host ::ng-deep .p-toast {
+  z-index: 9999;
+}
+
+/* Confirm dialog styling */
+:host ::ng-deep .p-confirm-dialog {
+  max-width: 90vw;
+}
+
+/* Input validation styles */
+:host ::ng-deep .ng-invalid.ng-touched {
+  border-left: 4px solid #ef4444;
+}
+
+:host ::ng-deep .p-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* Step content min height */
+.step-content {
+  min-height: 400px;
+}
+
+/* Responsive grid adjustments */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .md\\:grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .md\\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Accessibility improvements */
+.seat-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.screening-card:focus-within {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Animation for step transitions */
+.step-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

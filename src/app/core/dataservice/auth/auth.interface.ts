@@ -13,7 +13,7 @@ export interface LoginResponse {
 }
 
 export interface User {
-	id: string;
+	id: number;
 	email: string;
 	phoneNumber: number;
 	firstName: string;
@@ -38,8 +38,9 @@ export interface UserJwtPayload {
 
 export enum UserRole {
 	ADMIN = 'ADMIN',
-	MANAGER = 'MANAGER',
-	USER = 'USER',
+	THEATRE_MANAGER = 'THEATRE_MANAGER',
+	EXECUTIVE_PRODUCER = 'EXECUTIVE_PRODUCER',
+	COUNTER_STAFF = 'COUNTER_STAFF',
 	CUSTOMER = 'CUSTOMER',
 }
 
@@ -53,4 +54,22 @@ export interface ApiError {
 	statusCode: number;
 	message: string;
 	error?: string;
+}
+
+export interface AdminSignupDto {
+	firstName: string;
+	lastName: string;
+	email: string;
+	phoneNumber?: string;
+	password: string;
+	role: UserRole;
+	isVerified?: boolean;
+	hasLoginAccess?: boolean;
+	profileImage?: string;
+}
+
+export interface AdminSignupResponse {
+	statusCode: number;
+	message: string;
+	user: User;
 }

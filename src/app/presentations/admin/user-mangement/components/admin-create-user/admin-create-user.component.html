@@ -1,0 +1,164 @@
+<!-- User Create Component -->
+<div class="p-6 max-w-lg mx-auto">
+	<form (ngSubmit)="createUser()" class="space-y-6">
+		<!-- Form Fields -->
+		<div class="space-y-4">
+			<!-- First Name -->
+			<div>
+				<label
+					for="firstName"
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+				>
+					First Name <span class="text-red-500">*</span>
+				</label>
+				<input
+					pInputText
+					id="firstName"
+					[(ngModel)]="userForm.firstName"
+					name="firstName"
+					required
+					class="w-full"
+					placeholder="Enter first name"
+					[disabled]="loading"
+				/>
+			</div>
+
+			<!-- Last Name -->
+			<div>
+				<label
+					for="lastName"
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+				>
+					Last Name <span class="text-red-500">*</span>
+				</label>
+				<input
+					pInputText
+					id="lastName"
+					[(ngModel)]="userForm.lastName"
+					name="lastName"
+					required
+					class="w-full"
+					placeholder="Enter last name"
+					[disabled]="loading"
+				/>
+			</div>
+
+			<!-- Email -->
+			<div>
+				<label
+					for="email"
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+				>
+					Email
+				</label>
+				<input
+					pInputText
+					id="email"
+					[(ngModel)]="userForm.email"
+					name="email"
+					type="email"
+					class="w-full"
+					placeholder="Enter email address"
+					[disabled]="loading"
+				/>
+			</div>
+
+			<!-- Phone Number -->
+			<div>
+				<label
+					for="phoneNumber"
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+				>
+					Phone Number <span class="text-red-500">*</span>
+				</label>
+				<input
+					pInputText
+					id="phoneNumber"
+					[(ngModel)]="userForm.phoneNumber"
+					name="phoneNumber"
+					required
+					class="w-full"
+					placeholder="Enter phone number"
+					[disabled]="loading"
+				/>
+			</div>
+
+			<!-- Password -->
+			<div>
+				<label
+					for="password"
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+				>
+					Password <span class="text-red-500">*</span>
+				</label>
+				<p-password
+					[(ngModel)]="userForm.password"
+					name="password"
+					[feedback]="false"
+					[toggleMask]="true"
+					placeholder="Enter password"
+					styleClass="w-full"
+					[disabled]="loading"
+				></p-password>
+			</div>
+
+			<!-- Role -->
+			<div>
+				<label
+					for="role"
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+				>
+					Role <span class="text-red-500">*</span>
+				</label>
+				<p-dropdown
+					[options]="userRoleOptions"
+					[(ngModel)]="userForm.role"
+					name="role"
+					optionLabel="label"
+					optionValue="value"
+					placeholder="Select Role"
+					class="w-full"
+					[disabled]="loading"
+					appendTo="body"
+				></p-dropdown>
+			</div>
+		</div>
+
+		<!-- Form Actions -->
+		<div
+			class="flex justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700"
+		>
+			<p-button
+				label="Cancel"
+				icon="pi pi-times"
+				severity="secondary"
+				[outlined]="true"
+				(onClick)="onCancel()"
+				[disabled]="loading"
+				type="button"
+			></p-button>
+
+			<p-button
+				label="Reset"
+				icon="pi pi-refresh"
+				severity="warn"
+				[outlined]="true"
+				(onClick)="resetForm()"
+				[disabled]="loading"
+				type="button"
+			></p-button>
+
+			<p-button
+				label="Create User"
+				icon="pi pi-check"
+				severity="primary"
+				type="submit"
+				[loading]="loading"
+				[disabled]="!isValidForm() || loading"
+			></p-button>
+		</div>
+	</form>
+</div>
+
+<!-- Toast Messages -->
+<p-toast position="top-right"></p-toast>

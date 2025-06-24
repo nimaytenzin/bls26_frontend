@@ -1,0 +1,268 @@
+/* Counter Staff Dashboard Styles */
+.dashboard-container {
+    min-height: 100vh;
+    background-color: #f8fafc;
+}
+
+.stat-card {
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow:
+            0 10px 25px -5px rgba(0, 0, 0, 0.1),
+            0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+}
+
+.show-card {
+    transition: background-color 0.2s ease-in-out;
+
+    &:hover {
+        background-color: #f9fafb;
+    }
+
+    .occupancy-bar {
+        .progress-bar {
+            transition: width 0.3s ease-in-out;
+        }
+    }
+}
+
+.transaction-item {
+    transition: background-color 0.2s ease-in-out;
+
+    &:hover {
+        background-color: #f9fafb;
+    }
+
+    .transaction-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &.sale {
+            background-color: #d1fae5;
+            color: #059669;
+        }
+
+        &.refund {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        &.cancellation {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+    }
+
+    .transaction-amount {
+        &.positive {
+            color: #059669;
+        }
+
+        &.negative {
+            color: #d97706;
+        }
+    }
+}
+
+.quick-actions {
+    .action-button {
+        height: 3rem;
+        transition: all 0.2s ease-in-out;
+
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+    }
+}
+
+.current-shows {
+    .show-status {
+        &.selling {
+            background-color: #10b981;
+            color: white;
+        }
+
+        &.upcoming {
+            background-color: #f59e0b;
+            color: white;
+        }
+
+        &.sold-out {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        &.completed {
+            background-color: #6b7280;
+            color: white;
+        }
+    }
+
+    .occupancy-indicator {
+        .occupancy-bar {
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+
+            .progress {
+                height: 100%;
+                background: linear-gradient(90deg, #10b981, #3b82f6);
+                transition: width 0.3s ease-in-out;
+            }
+        }
+
+        .occupancy-text {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+    }
+}
+
+/* Real-time updates indicator */
+.live-indicator {
+    position: relative;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(45deg, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6);
+        background-size: 400% 400%;
+        border-radius: 8px;
+        animation: gradient 3s ease infinite;
+        z-index: -1;
+    }
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .main-content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .show-details {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Loading states */
+.loading-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Time-based styling */
+.timestamp {
+    color: #6b7280;
+    font-size: 0.75rem;
+
+    &.recent {
+        color: #059669;
+        font-weight: 500;
+    }
+}
+
+/* Payment method indicators */
+.payment-method {
+    &.cash {
+        color: #059669;
+    }
+
+    &.card {
+        color: #3b82f6;
+    }
+
+    &.digital {
+        color: #8b5cf6;
+    }
+}
+
+/* Action buttons styling */
+.action-buttons {
+    .p-button {
+        &.p-button-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        &:not(:last-child) {
+            margin-right: 0.25rem;
+        }
+    }
+}
+
+/* Daily report highlight */
+.daily-summary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+
+    .summary-stat {
+        text-align: center;
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+    }
+}

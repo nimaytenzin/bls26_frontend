@@ -1,0 +1,364 @@
+<!-- Create Movie Form -->
+<div class="p-6 max-w-4xl mx-auto">
+	<form [formGroup]="movieForm" (ngSubmit)="onSubmit()" class="space-y-6">
+		<!-- Basic Information Section -->
+		<div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+			<h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+				Basic Information
+			</h2>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<!-- Movie Name -->
+				<div class="space-y-2">
+					<label
+						for="name"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+					>
+						Movie Name <span class="text-red-500">*</span>
+					</label>
+					<input
+						pInputText
+						id="name"
+						formControlName="name"
+						placeholder="Enter movie name"
+						[class.p-invalid]="isFieldInvalid('name')"
+						class="w-full"
+					/>
+					<small *ngIf="isFieldInvalid('name')" class="p-error block">
+						{{ getFieldError("name") }}
+					</small>
+				</div>
+
+				<!-- Production House -->
+				<div class="space-y-2">
+					<label
+						for="productionHouse"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+					>
+						Production House
+					</label>
+					<input
+						pInputText
+						id="productionHouse"
+						formControlName="productionHouse"
+						placeholder="Enter production house"
+						[class.p-invalid]="isFieldInvalid('productionHouse')"
+						class="w-full"
+					/>
+					<small
+						*ngIf="isFieldInvalid('productionHouse')"
+						class="p-error block"
+					>
+						{{ getFieldError("productionHouse") }}
+					</small>
+				</div>
+
+				<!-- Producer -->
+				<div class="space-y-2">
+					<label
+						for="producerId"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+					>
+						Producer <span class="text-red-500">*</span>
+					</label>
+					<p-dropdown
+						id="producerId"
+						formControlName="producerId"
+						[options]="producerOptions"
+						placeholder="Select a producer"
+						[class.p-invalid]="isFieldInvalid('producerId')"
+						class="w-full"
+						optionLabel="label"
+						optionValue="value"
+					></p-dropdown>
+					<small *ngIf="isFieldInvalid('producerId')" class="p-error block">
+						{{ getFieldError("producerId") }}
+					</small>
+				</div>
+			</div>
+
+			<!-- Description -->
+			<div class="space-y-2 mt-6">
+				<label
+					for="description"
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+				>
+					Description
+				</label>
+				<textarea
+					pTextarea
+					id="description"
+					formControlName="description"
+					placeholder="Enter movie description"
+					[class.p-invalid]="isFieldInvalid('description')"
+					rows="4"
+					class="w-full"
+				></textarea>
+				<small *ngIf="isFieldInvalid('description')" class="p-error block">
+					{{ getFieldError("description") }}
+				</small>
+			</div>
+
+			<div class="space-y-2">
+				<label
+					for="casts"
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+				>
+					Movie Casts <span>ex: CAST1,CAST2,CAST3.. </span>
+				</label>
+				<input
+					pInputText
+					id="casts"
+					formControlName="casts"
+					placeholder="Enter movie casts"
+					[class.p-invalid]="isFieldInvalid('casts')"
+					class="w-full"
+				/>
+				<small *ngIf="isFieldInvalid('casts')" class="p-error block">
+					{{ getFieldError("casts") }}
+				</small>
+			</div>
+		</div>
+
+		<!-- Movie Details Section -->
+		<div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+			<h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+				Movie Details
+			</h2>
+
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+				<!-- PG Rating -->
+				<div class="space-y-2">
+					<label
+						for="pgRating"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+					>
+						PG Rating <span class="text-red-500">*</span>
+					</label>
+					<p-dropdown
+						id="pgRating"
+						formControlName="pgRating"
+						[options]="pgRatingOptions"
+						optionLabel="label"
+						optionValue="value"
+						placeholder="Select PG Rating"
+						[class.p-invalid]="isFieldInvalid('pgRating')"
+						styleClass="w-full"
+					></p-dropdown>
+					<small *ngIf="isFieldInvalid('pgRating')" class="p-error block">
+						{{ getFieldError("pgRating") }}
+					</small>
+				</div>
+
+				<!-- Duration -->
+				<div class="space-y-2">
+					<label
+						for="durationMin"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+					>
+						Duration (minutes) <span class="text-red-500">*</span>
+					</label>
+					<p-inputNumber
+						id="durationMin"
+						formControlName="durationMin"
+						placeholder="120"
+						[min]="0"
+						[max]="600"
+						suffix=" min"
+						[class.p-invalid]="isFieldInvalid('durationMin')"
+						styleClass="w-full"
+					></p-inputNumber>
+					<small *ngIf="isFieldInvalid('durationMin')" class="p-error block">
+						{{ getFieldError("durationMin") }}
+					</small>
+				</div>
+
+				<!-- Release Date -->
+				<div class="space-y-2">
+					<label
+						for="releaseDate"
+						class="block text-sm mb-2 font-medium text-gray-700 dark:text-gray-300"
+					>
+						Release Date <span class="text-red-500">*</span>
+					</label>
+					<p-calendar
+						id="releaseDate"
+						formControlName="releaseDate"
+						placeholder="Select release date"
+						[class.p-invalid]="isFieldInvalid('releaseDate')"
+						styleClass="w-full"
+						dateFormat="yy-mm-dd"
+						appendTo="body"
+					></p-calendar>
+					<small *ngIf="isFieldInvalid('releaseDate')" class="p-error block">
+						{{ getFieldError("releaseDate") }}
+					</small>
+				</div>
+			</div>
+
+			<!-- Trailer URL -->
+			<div class="space-y-2 mt-6">
+				<label
+					for="trailerURL"
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+				>
+					Trailer URL
+				</label>
+				<input
+					pInputText
+					id="trailerURL"
+					formControlName="trailerURL"
+					placeholder="https://www.youtube.com/watch?v=..."
+					[class.p-invalid]="isFieldInvalid('trailerURL')"
+					class="w-full"
+				/>
+				<small *ngIf="isFieldInvalid('trailerURL')" class="p-error block">
+					{{ getFieldError("trailerURL") }}
+				</small>
+			</div>
+		</div>
+
+		<!-- Screening & Language Section -->
+		<div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+			<h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+				Screening & Language
+			</h2>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<!-- Screening Status -->
+				<div class="space-y-2">
+					<label
+						for="screeningStatus"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+					>
+						Screening Status <span class="text-red-500">*</span>
+					</label>
+					<p-dropdown
+						id="screeningStatus"
+						formControlName="screeningStatus"
+						[options]="screeningStatusOptions"
+						optionLabel="label"
+						optionValue="value"
+						placeholder="Select screening status"
+						[class.p-invalid]="isFieldInvalid('screeningStatus')"
+						styleClass="w-full"
+						appendTo="body"
+					></p-dropdown>
+					<small
+						*ngIf="isFieldInvalid('screeningStatus')"
+						class="p-error block"
+					>
+						{{ getFieldError("screeningStatus") }}
+					</small>
+				</div>
+			</div>
+
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+				<!-- Genres -->
+				<div class="space-y-2">
+					<label
+						for="genreIds"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+					>
+						Genres <span class="text-red-500">*</span>
+					</label>
+					<p-multiSelect
+						id="genreIds"
+						formControlName="genreIds"
+						[options]="genreOptions"
+						optionLabel="label"
+						optionValue="value"
+						placeholder="Select genres"
+						[class.p-invalid]="isFieldInvalid('genreIds')"
+						styleClass="w-full"
+						display="chip"
+						appendTo="body"
+					></p-multiSelect>
+					<small *ngIf="isFieldInvalid('genreIds')" class="p-error block">
+						{{ getFieldError("genreIds") }}
+					</small>
+				</div>
+
+				<!-- Languages -->
+				<div class="space-y-2">
+					<label
+						for="languageIds"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+					>
+						Languages <span class="text-red-500">*</span>
+					</label>
+					<p-multiSelect
+						id="languageIds"
+						formControlName="languageIds"
+						[options]="languageOptions"
+						optionLabel="label"
+						optionValue="value"
+						placeholder="Select languages"
+						[class.p-invalid]="isFieldInvalid('languageIds')"
+						styleClass="w-full"
+						display="chip"
+						appendTo="body"
+					></p-multiSelect>
+					<small *ngIf="isFieldInvalid('languageIds')" class="p-error block">
+						{{ getFieldError("languageIds") }}
+					</small>
+				</div>
+
+				<!-- Subtitle Languages -->
+				<div class="space-y-2">
+					<label
+						for="subtitleLanguageIds"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+					>
+						Subtitle Languages
+					</label>
+					<p-multiSelect
+						id="subtitleLanguageIds"
+						formControlName="subtitleLanguageIds"
+						[options]="languageOptions"
+						optionLabel="label"
+						optionValue="value"
+						placeholder="Select subtitle languages"
+						[class.p-invalid]="isFieldInvalid('subtitleLanguageIds')"
+						styleClass="w-full"
+						display="chip"
+						appendTo="body"
+					></p-multiSelect>
+					<small
+						*ngIf="isFieldInvalid('subtitleLanguageIds')"
+						class="p-error block"
+					>
+						{{ getFieldError("subtitleLanguageIds") }}
+					</small>
+				</div>
+			</div>
+		</div>
+
+		<!-- Form Actions -->
+		<div class="flex justify-end space-x-4 pt-6">
+			<p-button
+				label="Cancel"
+				severity="secondary"
+				[outlined]="true"
+				(onClick)="onCancel()"
+				type="button"
+			></p-button>
+
+			<p-button
+				label="Reset"
+				severity="warn"
+				[outlined]="true"
+				(onClick)="onReset()"
+				type="button"
+			></p-button>
+
+			<p-button
+				label="Create Movie"
+				severity="success"
+				type="submit"
+				[loading]="loading"
+				[disabled]="loading"
+			></p-button>
+		</div>
+	</form>
+</div>
