@@ -1,0 +1,371 @@
+<div
+	class="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900"
+>
+	<!-- Header -->
+	<div class="bg-black/20 backdrop-blur-md border-b border-gray-700/50">
+		<div class="container mx-auto px-4 py-4">
+			<div class="flex items-center justify-between">
+				<h1 class="text-2xl md:text-3xl font-bold text-white flex items-center">
+					<i class="pi pi-video mr-3 text-purple-400"></i>
+					Premium Cinema Hall
+				</h1>
+				<div class="flex items-center gap-4">
+					<p-chip
+						[label]="availableSeats + ' Available'"
+						styleClass="bg-green-600 text-white"
+						icon="pi pi-check-circle"
+					>
+					</p-chip>
+					<p-chip
+						[label]="occupiedSeats + ' Occupied'"
+						styleClass="bg-red-600 text-white"
+						icon="pi pi-times-circle"
+					>
+					</p-chip>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="container mx-auto px-4 py-6">
+		<div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+			<!-- Main Seating Area -->
+			<div class="xl:col-span-3">
+				<div
+					class="bg-black/30 backdrop-blur-md rounded-2xl p-6 border border-gray-700/50"
+				>
+					<!-- Controls -->
+					<div class="flex flex-wrap items-center justify-between mb-6 gap-4">
+						<div class="flex items-center gap-3">
+							<p-button
+								icon="pi pi-search-plus"
+								(onClick)="zoomIn()"
+								pTooltip="Zoom In"
+								styleClass="p-button-sm p-button-outlined"
+							>
+							</p-button>
+							<p-button
+								icon="pi pi-search-minus"
+								(onClick)="zoomOut()"
+								pTooltip="Zoom Out"
+								styleClass="p-button-sm p-button-outlined"
+							>
+							</p-button>
+							<p-button
+								icon="pi pi-refresh"
+								(onClick)="resetView()"
+								pTooltip="Reset View"
+								styleClass="p-button-sm p-button-outlined"
+							>
+							</p-button>
+						</div>
+
+						<div class="flex items-center gap-3">
+							<p-button
+								label="Best Seats"
+								icon="pi pi-star"
+								(onClick)="selectBestSeats()"
+								pTooltip="Auto-select best available seats"
+								styleClass="p-button-sm p-button-success"
+							>
+							</p-button>
+							<p-button
+								[icon]="showMiniMap ? 'pi pi-eye-slash' : 'pi pi-eye'"
+								(onClick)="toggleMiniMap()"
+								[pTooltip]="showMiniMap ? 'Hide Mini Map' : 'Show Mini Map'"
+								styleClass="p-button-sm p-button-outlined"
+							>
+							</p-button>
+						</div>
+					</div>
+
+					<!-- Seating Layout -->
+					<div
+						class="seat-layout-container overflow-auto"
+						[style.transform]="'scale(' + zoomLevel + ')'"
+					>
+						<div class="seat-grid mx-auto max-w-6xl">
+							<!-- Screen -->
+							<div class="text-center mb-12">
+								<div class="screen-container mx-auto max-w-4xl">
+									<div class="screen-arc"></div>
+									<div
+										class="text-center text-gray-300 text-sm mt-4 font-medium tracking-wider"
+									>
+										<i class="pi pi-desktop mr-2 text-purple-400"></i>
+										DOLBY ATMOS SCREEN
+									</div>
+								</div>
+							</div>
+							<!-- Row by Row Layout -->
+							<div
+								*ngFor="
+									let rowIndex of [].constructor(layout.totalRows);
+									let i = index
+								"
+								class="seat-row flex items-center justify-center mb-3"
+							>
+								<!-- Row Label (Left) -->
+								<div
+									class="row-label w-8 text-center text-white font-bold text-lg"
+								>
+									{{ getRowLetter(i) }}
+								</div>
+
+								<!-- Seats -->
+								<div class="seats-container flex items-center gap-2 mx-4">
+									<ng-container
+										*ngFor="let seat of getRowSeats(i); let j = index"
+									>
+										<!-- Aisle Space -->
+										<div *ngIf="hasAisle(seat.number)" class="w-8"></div>
+
+										<!-- Seat -->
+										<div
+											class="seat-wrapper relative"
+											[class]="getSeatClass(seat)"
+											(click)="onSeatClick(seat)"
+											[pTooltip]="
+												seat.id + ' - ₹' + seat.price + ' (' + seat.type + ')'
+											"
+											tooltipPosition="top"
+										>
+											<div
+												class="seat-inner w-10 h-10 rounded-lg flex flex-col items-center justify-center text-xs font-bold relative overflow-hidden"
+											>
+												<span class="seat-number text-white drop-shadow-md">{{
+													seat.number
+												}}</span>
+
+												<!-- Seat Type Indicators -->
+												<i
+													*ngIf="seat.type === 'vip'"
+													class="pi pi-crown absolute top-0 right-0 text-yellow-400 text-xs"
+												></i>
+												<i
+													*ngIf="seat.type === 'premium'"
+													class="pi pi-star absolute top-0 right-0 text-blue-400 text-xs"
+												></i>
+												<i
+													*ngIf="seat.type === 'couple'"
+													class="pi pi-heart absolute top-0 right-0 text-pink-400 text-xs"
+												></i>
+												<i
+													*ngIf="seat.type === 'disabled'"
+													class="pi pi-wheelchair absolute top-0 right-0 text-green-400 text-xs"
+												></i>
+
+												<!-- Status Icons -->
+												<i
+													*ngIf="seat.status === 'selected'"
+													class="pi pi-check absolute inset-0 text-white text-lg flex items-center justify-center"
+												></i>
+												<i
+													*ngIf="seat.status === 'occupied'"
+													class="pi pi-times absolute inset-0 text-white text-lg flex items-center justify-center"
+												></i>
+											</div>
+										</div>
+									</ng-container>
+								</div>
+
+								<!-- Row Label (Right) -->
+								<div
+									class="row-label w-8 text-center text-white font-bold text-lg"
+								>
+									{{ getRowLetter(i) }}
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Seat Legend -->
+					<div class="mt-8 bg-black/20 rounded-xl p-4">
+						<h3 class="text-white font-semibold mb-4 text-center">
+							Seat Legend
+						</h3>
+						<div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+							<div class="flex items-center gap-2">
+								<div class="w-6 h-6 rounded seat-standard"></div>
+								<span class="text-gray-300 text-sm"
+									>Standard ₹{{ prices.standard }}</span
+								>
+							</div>
+
+							<div class="flex items-center gap-2">
+								<div class="w-6 h-6 rounded seat-premium relative">
+									<i
+										class="pi pi-star absolute top-0 right-0 text-blue-400 text-xs"
+									></i>
+								</div>
+								<span class="text-gray-300 text-sm"
+									>Premium ₹{{ prices.premium }}</span
+								>
+							</div>
+
+							<div class="flex items-center gap-2">
+								<div class="w-6 h-6 rounded seat-vip relative">
+									<i
+										class="pi pi-crown absolute top-0 right-0 text-yellow-400 text-xs"
+									></i>
+								</div>
+								<span class="text-gray-300 text-sm">VIP ₹{{ prices.vip }}</span>
+							</div>
+
+							<div class="flex items-center gap-2">
+								<div class="w-6 h-6 rounded seat-couple relative">
+									<i
+										class="pi pi-heart absolute top-0 right-0 text-pink-400 text-xs"
+									></i>
+								</div>
+								<span class="text-gray-300 text-sm"
+									>Couple ₹{{ prices.couple }}</span
+								>
+							</div>
+
+							<div class="flex items-center gap-2">
+								<div class="w-6 h-6 rounded seat-occupied"></div>
+								<span class="text-gray-300 text-sm">Occupied</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Mini Map -->
+				<div
+					*ngIf="showMiniMap"
+					class="fixed bottom-4 right-4 bg-black/80 backdrop-blur-md rounded-xl p-4 border border-gray-700/50 z-50"
+				>
+					<h4 class="text-white text-sm font-semibold mb-2">Mini Map</h4>
+					<div
+						class="mini-map-container"
+						[style.transform]="'scale(' + miniMapScale + ')'"
+					>
+						<div class="mini-screen bg-purple-500 h-2 rounded mb-2"></div>
+						<div
+							*ngFor="
+								let rowIndex of [].constructor(layout.totalRows);
+								let i = index
+							"
+							class="flex items-center justify-center mb-1"
+						>
+							<div
+								*ngFor="let seat of getRowSeats(i)"
+								class="w-1 h-1 mx-0.5 rounded-sm"
+								[class.bg-green-400]="seat.status === 'available'"
+								[class.bg-blue-500]="seat.status === 'selected'"
+								[class.bg-red-500]="seat.status === 'occupied'"
+								[class.bg-gray-600]="seat.status === 'blocked'"
+							></div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Booking Summary Sidebar -->
+			<div class="xl:col-span-1">
+				<div
+					class="bg-black/30 backdrop-blur-md rounded-2xl p-6 border border-gray-700/50 sticky top-6"
+				>
+					<!-- Selected Seats -->
+					<div class="mb-6">
+						<h3 class="text-white font-semibold mb-4 flex items-center">
+							<i class="pi pi-ticket mr-2 text-purple-400"></i>
+							Selected Seats
+						</h3>
+
+						<div *ngIf="selectedSeats.length === 0" class="text-center py-8">
+							<i class="pi pi-info-circle text-4xl text-gray-500 mb-3"></i>
+							<p class="text-gray-400">No seats selected</p>
+							<p class="text-gray-500 text-sm">
+								Click on available seats to select
+							</p>
+						</div>
+
+						<div *ngIf="selectedSeats.length > 0" class="space-y-3">
+							<div
+								*ngFor="let seat of selectedSeats"
+								class="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-lg p-3"
+							>
+								<div class="flex items-center justify-between">
+									<div>
+										<span class="text-white font-semibold">{{ seat.id }}</span>
+										<p class="text-gray-300 text-sm capitalize">
+											{{ seat.type }}
+										</p>
+									</div>
+									<div class="text-right">
+										<span class="text-green-400 font-bold"
+											>₹{{ seat.price }}</span
+										>
+									</div>
+								</div>
+							</div>
+
+							<div class="border-t border-gray-700 pt-3">
+								<div class="flex justify-between items-center">
+									<span class="text-white font-semibold">Total</span>
+									<span class="text-2xl font-bold text-green-400"
+										>₹{{ getTotalPrice() }}</span
+									>
+								</div>
+								<p class="text-gray-400 text-sm mt-1">
+									{{ selectedSeats.length }} seats selected
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Action Buttons -->
+					<div class="space-y-3">
+						<p-button
+							label="Proceed to Payment"
+							icon="pi pi-credit-card"
+							(onClick)="proceedToBooking()"
+							[disabled]="selectedSeats.length === 0"
+							styleClass="w-full p-button-lg p-button-success"
+						>
+						</p-button>
+
+						<p-button
+							label="Clear Selection"
+							icon="pi pi-times"
+							(onClick)="clearSelection()"
+							[disabled]="selectedSeats.length === 0"
+							styleClass="w-full p-button-outlined p-button-secondary"
+						>
+						</p-button>
+					</div>
+
+					<!-- Statistics -->
+					<div class="mt-6 pt-6 border-t border-gray-700">
+						<h4 class="text-white font-semibold mb-3">Hall Statistics</h4>
+						<div class="space-y-2 text-sm">
+							<div class="flex justify-between">
+								<span class="text-gray-400">Total Seats:</span>
+								<span class="text-white">{{ totalSeats }}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-400">Available:</span>
+								<span class="text-green-400">{{ availableSeats }}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-400">Occupied:</span>
+								<span class="text-red-400">{{ occupiedSeats }}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-400">Occupancy:</span>
+								<span class="text-white"
+									>{{ ((occupiedSeats / totalSeats) * 100).toFixed(1) }}%</span
+								>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Toast Messages -->
+	<p-toast></p-toast>
+</div>

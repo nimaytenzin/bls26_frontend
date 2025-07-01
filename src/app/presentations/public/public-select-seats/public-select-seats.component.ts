@@ -46,6 +46,7 @@ import { SessionService } from '../../../core/dataservice/session.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { PaymentComponent } from '../payment/payment.component';
 import { BookingDataService } from '../../../core/dataservice/booking/booking.dataservice';
+import { SeatCategory } from '../../../core/dataservice/seat-category/seat-category.interface';
 
 interface SelectedSeat extends Seat {
 	price: number;
@@ -89,6 +90,7 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 	hall: Hall | null = null;
 	seats: Seat[] = [];
 	screeningPrices: ScreeningSeatPrice[] = [];
+	seatCategories: SeatCategory[] = [];
 
 	// Session-based seat management
 	sessionId: string = '';
@@ -233,7 +235,7 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 					this.screening = screening;
 					this.hall = screening.hall || null;
 					this.screeningPrices = screening.screeningSeatPrices || [];
-
+					this.seatCategories = screening.hall?.seatCategories || [];
 					// Load movie details
 					if (screening.movieId) {
 						this.loadMovieDetails(screening.movieId);
@@ -253,6 +255,15 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 					this.error = 'Failed to load screening information.';
 				},
 			});
+	}
+
+	getSeatCategoryById(id: number): SeatCategory | null {
+		for (let item of this.seatCategories) {
+			if (item.id === id) {
+				return item;
+			}
+		}
+		return null;
 	}
 
 	private loadMovieDetails(movieId: number): void {
@@ -287,6 +298,7 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 					console.log('Loaded occupied seats:', result.occupiedSeatResponse);
 
 					this.seats = result.seats;
+					console.log;
 
 					// If there are session seats, map them to SelectedSeat and add to selectedSeats
 					if (Array.isArray(result.occupiedSeatResponse.sessionSeats)) {
@@ -974,31 +986,6 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 	 */
 	private validateSeatSelections(): void {
 		if (this.selectedSeats.length === 0) return;
-
-		// this.publicDataService
-		// 	.getOccupiedSeats(this.screeningId)
-		// 	.pipe(takeUntil(this.destroy$))
-		// 	.subscribe({
-		// 		next: (occupiedSeatResponse: OccupiedSeatResponse) => {
-		// 			const occupiedSeatIds = occupiedSeatResponse.occupiedSeats.map(
-		// 				(os) => os.seatId
-		// 			);
-		// 			const conflictedSeats = this.selectedSeats.filter((seat) =>
-		// 				occupiedSeatIds.includes(seat.id)
-		// 			);
-
-		// 			if (conflictedSeats.length > 0) {
-		// 				console.log(
-		// 					'Found conflicted seats during validation:',
-		// 					conflictedSeats
-		// 				);
-		// 				this.handleValidationConflicts(conflictedSeats, occupiedSeatIds);
-		// 			}
-		// 		},
-		// 		error: (error) => {
-		// 			console.error('Error validating seat selections:', error);
-		// 		},
-		// 	});
 	}
 
 	// Helper methods for template
@@ -1046,19 +1033,17 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 
 	getSeatClass(seat: SelectedSeat): string {
 		const baseClass =
-			'seat cursor-pointer transition-all duration-200 hover:transform hover:scale-105';
+			'w-10 h-10   cursor-pointer transition-all duration-200 flex items-center justify-center text-xs border';
 
 		switch (seat.status) {
 			case 'selected':
-				return `${baseClass} seat-selected ring-2 ring-pink-600 bg-pink-600`;
+				return `${baseClass} bg-green-500 border-green-400 text-white`;
 			case 'booked':
-				return `${baseClass} seat-unavailable bg-gray-500 cursor-not-allowed`;
+				return `${baseClass} bg-gray-800 border-gray-100 text-white cursor-not-allowed opacity-60`;
 			default:
-				// Available seat - color by category
-				if (seat.category?.name?.toLowerCase().includes('premium')) {
-					return `${baseClass} seat-premium bg-purple-600 hover:bg-purple-500`;
-				}
-				return `${baseClass} seat-basic bg-blue-600 hover:bg-blue-500`;
+				const categoryClass =
+					seat.category?.className || 'bg-blue-500 border-blue-400';
+				return `${baseClass} ${categoryClass} text-white hover:opacity-80`;
 		}
 	}
 
@@ -1254,5 +1239,65 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 
 		// Navigate back to movie selection or refresh
 		this.router.navigate(['/movies']);
+	}
+
+	getScreenCenter(): number {
+		if (!this.hall) return 0;
+		return Math.floor(this.hall.screenStart - 1 + this.hall.screenSpan / 2);
+	}
+
+	getRowSummary(): {
+		[row: string]: {
+			total: number;
+			available: number;
+			selected: number;
+			booked: number;
+			percentage: number;
+		};
+	} {
+		const seatsByRow = this.getSeatsByRow();
+		const rowSummary: {
+			[row: string]: {
+				total: number;
+				available: number;
+				selected: number;
+				booked: number;
+				percentage: number;
+			};
+		} = {};
+
+		Object.keys(seatsByRow).forEach((row) => {
+			const seats = seatsByRow[row];
+			const total = seats.length;
+			const available = seats.filter(
+				(seat) => seat.status === 'available'
+			).length;
+			const selected = seats.filter(
+				(seat) => seat.status === 'selected'
+			).length;
+			const booked = seats.filter((seat) => seat.status === 'booked').length;
+			const percentage = total > 0 ? Math.round((available / total) * 100) : 0;
+
+			rowSummary[row] = {
+				total,
+				available,
+				selected,
+				booked,
+				percentage,
+			};
+		});
+
+		return rowSummary;
+	}
+
+	getRowSummaryKeys(): string[] {
+		return Object.keys(this.getRowSummary());
+	}
+
+	getRowAvailabilityClass(percentage: number): string {
+		if (percentage >= 80) return 'bg-green-500';
+		if (percentage >= 50) return 'bg-yellow-500';
+		if (percentage >= 20) return 'bg-orange-500';
+		return 'bg-red-500';
 	}
 }

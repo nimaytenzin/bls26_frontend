@@ -5,6 +5,7 @@ import { PublicSelectSeatsComponent } from './public-select-seats/public-select-
 import { PublicLayoutComponentComponent } from './public-layout-component/public-layout-component.component';
 import { PublicBookingConfirmationComponent } from './public-booking-confirmation/public-booking-confirmation.component';
 import { PaymentComponent } from './payment/payment.component';
+import { BestSeatComponent } from './best-seat/best-seat.component';
 
 export const publicRoutes: Routes = [
 	{
@@ -27,6 +28,10 @@ export const publicRoutes: Routes = [
 			{
 				path: 'booking-confirmation',
 				component: PublicBookingConfirmationComponent,
+			},
+			{
+				path: 'best-seat-layout',
+				component: BestSeatComponent,
 			},
 			// Legacy routes for backward compatibility
 			{

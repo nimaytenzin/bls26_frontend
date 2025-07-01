@@ -1,16 +1,16 @@
-<div class="min-h-screen bg-gradient-to-b from-gray-900 to-black">
+<div class="min-h-screen bg-gray-900">
 	<div class="container mx-auto px-4 py-8">
 		<!-- Loading State -->
 		<div *ngIf="loading" class="flex items-center justify-center min-h-[60vh]">
-			<div class="p-4 rounded-lg bg-gray-800/50 text-white text-center">
-				<i class="pi pi-spin pi-spinner text-4xl mb-2"></i>
+			<div class="p-6 rounded-lg bg-gray-800 text-white text-center">
+				<i class="pi pi-spin pi-spinner text-4xl mb-4"></i>
 				<p>Loading seat layout...</p>
 			</div>
 		</div>
 
 		<!-- Error State -->
 		<div *ngIf="error" class="flex items-center justify-center min-h-[60vh]">
-			<div class="p-6 rounded-lg bg-red-900/50 text-white text-center max-w-md">
+			<div class="p-6 rounded-lg bg-red-800 text-white text-center max-w-md">
 				<i class="pi pi-exclamation-triangle text-4xl mb-4 text-red-400"></i>
 				<p class="mb-4">{{ error }}</p>
 				<button
@@ -25,7 +25,7 @@
 		<!-- Main Content -->
 		<div *ngIf="!loading && !error && movie && screening">
 			<!-- Header -->
-			<div class="mb-8">
+			<div class="mb-6">
 				<button
 					pButton
 					icon="pi pi-arrow-left"
@@ -34,15 +34,14 @@
 					class="p-button-outlined p-button-secondary mb-4"
 				></button>
 
-				<div class="bg-gray-800/50 backdrop-blur rounded-xl p-6">
-					<h1 class="text-3xl font-bold text-white mb-4">Select Your Seats</h1>
-
+				<div class="bg-gray-800 rounded-lg p-6">
+					<h1 class="text-2xl font-bold text-white mb-4">Select Your Seats</h1>
 					<div class="grid md:grid-cols-2 gap-6">
 						<div>
 							<h3 class="text-xl font-semibold text-white mb-2">
 								{{ movie.name }}
 							</h3>
-							<div class="space-y-2 text-gray-300">
+							<div class="space-y-1 text-gray-300">
 								<p><strong>Theatre:</strong> {{ hall?.theatre?.name }}</p>
 								<p><strong>Hall:</strong> {{ hall?.name }}</p>
 								<p>
@@ -64,151 +63,178 @@
 				</div>
 			</div>
 
-			<!-- Seat Legend -->
-			<div class="mb-8">
-				<div class="bg-gray-800/50 backdrop-blur rounded-xl p-6">
-					<h4 class="text-lg font-bold text-white mb-4">
-						Seat Legend & Pricing
-					</h4>
+			<!-- Row-by-Row Availability Summary -->
+			<div class="bg-gray-800 rounded-lg p-6 mb-6">
+				<h3 class="text-lg font-bold text-white mb-4 flex items-center">
+					<i class="pi pi-chart-bar mr-2 text-blue-400"></i>
+					Row Availability Summary
+				</h3>
+				<div
+					class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
+				>
 					<div
-						class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 justify-items-center"
+						*ngFor="let row of getRowSummaryKeys()"
+						class="bg-gray-700 rounded-lg p-3 text-center"
 					>
-						<div class="flex flex-col items-center gap-3">
-							<div class="seat seat-basic w-10 h-10 flex flex-col">
-								<span class="seat-number">A1</span>
-								<span class="seat-price text-xs">399</span>
-							</div>
-							<div class="text-center">
-								<div class="text-white font-medium">Basic</div>
-								<div class="text-gray-400 text-sm">Standard seats</div>
-							</div>
+						<div class="text-white font-semibold mb-2">Row {{ row }}</div>
+						<div class="flex items-center justify-center mb-2">
+							<div
+								class="w-6 h-2 rounded-full mr-2"
+								[class]="
+									getRowAvailabilityClass(getRowSummary()[row].percentage)
+								"
+							></div>
+							<span class="text-sm text-gray-300"
+								>{{ getRowSummary()[row].percentage }}%</span
+							>
 						</div>
-						<div class="flex flex-col items-center gap-3">
-							<div class="seat seat-premium w-10 h-10 flex flex-col">
-								<span class="seat-number">B1</span>
-								<span class="seat-price text-xs">499</span>
-							</div>
-							<div class="text-center">
-								<div class="text-white font-medium">Premium</div>
-								<div class="text-gray-400 text-sm">Premium seats</div>
-							</div>
+						<div class="text-xs text-gray-400">
+							{{ getRowSummary()[row].available }}/{{
+								getRowSummary()[row].total
+							}}
+							available
 						</div>
-						<div class="flex flex-col items-center gap-3">
-							<div class="seat seat-selected w-10 h-10 flex flex-col">
-								<span class="seat-number">C1</span>
-								<span class="seat-price text-xs">399</span>
-							</div>
-							<div class="text-center">
-								<div class="text-white font-medium">Selected</div>
-								<div class="text-gray-400 text-sm">Your Choice</div>
-							</div>
+						<div
+							class="text-xs text-gray-500 mt-1"
+							*ngIf="getRowSummary()[row].selected > 0"
+						>
+							{{ getRowSummary()[row].selected }} selected
 						</div>
-						<div class="flex flex-col items-center gap-3">
-							<div class="seat seat-unavailable w-10 h-10 flex flex-col">
-								<span class="seat-number">D1</span>
-								<span class="seat-price text-xs">---</span>
-							</div>
-							<div class="text-center">
-								<div class="text-white font-medium">Unavailable</div>
-								<div class="text-gray-400 text-sm">Booked</div>
-							</div>
+					</div>
+				</div>
+				<div class="flex justify-center mt-4 text-xs text-gray-400">
+					<div class="flex items-center space-x-4">
+						<div class="flex items-center">
+							<div class="w-3 h-2 bg-green-500 rounded-full mr-1"></div>
+							<span>80%+ available</span>
+						</div>
+						<div class="flex items-center">
+							<div class="w-3 h-2 bg-yellow-500 rounded-full mr-1"></div>
+							<span>50-79% available</span>
+						</div>
+						<div class="flex items-center">
+							<div class="w-3 h-2 bg-orange-500 rounded-full mr-1"></div>
+							<span>20-49% available</span>
+						</div>
+						<div class="flex items-center">
+							<div class="w-3 h-2 bg-red-500 rounded-full mr-1"></div>
+							<span>&lt;20% available</span>
 						</div>
 					</div>
 				</div>
 			</div>
 
 			<!-- Seat Layout -->
-			<div class="bg-gray-800/50 backdrop-blur rounded-xl p-8 mb-6">
-				<!-- Screen -->
-				<div class="text-center mb-12">
-					<div class="screen-container">
-						<div class="screen-arc"></div>
-						<div
-							class="text-center text-gray-300 text-sm mt-3 font-medium tracking-wider"
-						>
-							<i class="pi pi-desktop mr-2"></i>
-							SCREEN
+			<div class="bg-gray-800 rounded-lg p-6 mb-6">
+				<div class="overflow-x-auto">
+					<div class="min-w-full flex flex-col items-center justify-center">
+						<!-- Screen Row -->
+						<div class="flex items-center mb-8">
+							<div class="w-14 h-14"></div>
+							<!-- Empty space for row label -->
+							<div class="flex ml-2">
+								<div *ngFor="let colIndex of getColumns()" class="w-14 h-14">
+									<div
+										*ngIf="
+											hall &&
+											colIndex >= hall.screenStart - 1 &&
+											colIndex < hall.screenStart - 1 + hall.screenSpan
+										"
+										class="w-full h-full border-b flex items-center justify-center"
+										[class.rounded-l-lg]="colIndex === hall.screenStart - 1"
+										[class.rounded-r-lg]="
+											colIndex === hall.screenStart - 1 + hall.screenSpan - 1
+										"
+									>
+										<span
+											*ngIf="colIndex === getScreenCenter()"
+											class="text-white text-xs font-bold"
+										>
+											Screen
+										</span>
+									</div>
+								</div>
+							</div>
 						</div>
-					</div>
-				</div>
 
-				<!-- Mobile Scroll Hint -->
-				<div class="seat-layout-scroll-hint">
-					<div class="scroll-icon"></div>
-					<span class="ml-2">Swipe left and right to view all seats</span>
-				</div>
-
-				<!-- Seats Grid -->
-				<div class="seat-layout-grid">
-					<div class="seats-container">
-						<div
-							*ngFor="let rowIndex of getRows(); let i = index"
-							class="seat-row"
-							[attr.data-row]="getRowLabel(rowIndex)"
-						>
-							<!-- Row Label (Left) -->
-							<div class="row-label-left">{{ getRowLabel(rowIndex) }}</div>
-
-							<!-- Seats with aisles -->
-							<div class="seats-grid">
-								<ng-container
-									*ngFor="let colIndex of getColumns(); let j = index"
+						<!-- Seat Rows -->
+						<div>
+							<div *ngFor="let rowIndex of getRows()" class="flex items-center">
+								<!-- Row Label -->
+								<div
+									class="w-14 h-14 flex items-center justify-center text-white font-bold bg-gray-800 sticky left-0 z-10"
 								>
-									<div class="seat-wrapper">
-										<!-- Seat exists at this position -->
+									{{ getRowLabel(rowIndex) }}
+								</div>
+
+								<!-- Seats -->
+								<div class="flex ml-2">
+									<div
+										*ngFor="let colIndex of getColumns()"
+										class="w-14 h-14 p-1 rounded-t"
+									>
 										<div
-											*ngIf="getSeatAtPosition(rowIndex, colIndex); let seat"
+											*ngIf="
+												getSeatAtPosition(rowIndex, colIndex) as seat;
+												else emptySeat
+											"
+											class="w-full h-full cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-bold"
 											[class]="getSeatClass(seat)"
 											(click)="onSeatClick(seat)"
 											[title]="
 												seat.seatNumber + ' - ' + formatCurrency(seat.price)
 											"
-											[attr.aria-label]="
-												'Seat ' +
-												seat.seatNumber +
-												', ' +
-												seat.category?.name +
-												', ' +
-												(seat.status === 'available'
-													? 'available'
-													: seat.status) +
-												', price ' +
-												formatCurrency(seat.price)
-											"
 										>
-											<span class="seat-number">{{ seat.seatNumber }}</span>
-											<span class="seat-price text-xs">{{ seat.price }}</span>
+											<span class="text-white">{{ seat.seatNumber }}</span>
 										</div>
-
-										<!-- Empty position (no seat) -->
-
-										<div
-											*ngIf="!getSeatAtPosition(rowIndex, colIndex)"
-											class="notseat"
-										></div>
+										<ng-template #emptySeat>
+											<div class="w-full h-full"></div>
+										</ng-template>
 									</div>
-								</ng-container>
+								</div>
+							</div>
+						</div>
+
+						<!-- Legend -->
+						<div class="flex flex-wrap justify-center gap-4 mt-8 text-sm">
+							<!-- Status Legend -->
+							<div class="flex items-center space-x-2">
+								<div
+									class="w-6 h-6 bg-green-500 border-2 border-green-400 rounded-t-lg"
+								></div>
+								<span class="text-white">Selected</span>
+							</div>
+							<div class="flex items-center space-x-2">
+								<div
+									class="w-6 h-6 bg-red-500 border-2 border-red-400 rounded-t-lg"
+								></div>
+								<span class="text-white">Occupied</span>
 							</div>
 
-							<!-- Row Label (Right) -->
-							<div class="row-label-right">{{ getRowLabel(rowIndex) }}</div>
+							<!-- Seat Categories -->
+							<div
+								*ngFor="let category of seatCategories"
+								class="flex items-center space-x-2"
+							>
+								<div
+									class="w-6 h-6 rounded-t-lg border-2"
+									[class]="category.className || 'bg-blue-500 border-blue-400'"
+								></div>
+								<span class="text-white">{{ category.name }}</span>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 
 			<!-- Booking Summary -->
-			<div
-				class="bg-gray-800/50 backdrop-blur rounded-xl p-4 sm:p-6 booking-summary"
-			>
-				<div class="flex items-center justify-between mb-4 sm:mb-6">
-					<h3 class="text-lg sm:text-xl font-bold text-white">
-						Booking Summary
-					</h3>
-					<div class="text-xs sm:text-sm text-gray-400">Step 2 of 3</div>
+			<div class="bg-gray-800 rounded-lg p-6">
+				<div class="flex items-center justify-between mb-6">
+					<h3 class="text-xl font-bold text-white">Booking Summary</h3>
+					<div class="text-sm text-gray-400">Step 2 of 3</div>
 				</div>
 
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 					<!-- Selected Seats -->
 					<div class="space-y-4">
 						<h4 class="text-lg font-semibold text-white mb-3 flex items-center">
@@ -228,12 +254,7 @@
 							<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
 								<div
 									*ngFor="let seat of selectedSeats"
-									class="seat-chip"
-									[class.premium-chip]="
-										(seat.category?.name ?? '')
-											.toLowerCase()
-											.includes('premium')
-									"
+									class="bg-blue-600 border border-blue-500 rounded-lg p-3 text-white"
 								>
 									<div class="flex items-center justify-between">
 										<span class="font-medium">{{ seat.seatNumber }}</span>
@@ -246,7 +267,7 @@
 							</div>
 
 							<div
-								class="flex items-center justify-between text-sm text-gray-400 bg-gray-700/50 rounded-lg p-3"
+								class="flex items-center justify-between text-sm text-gray-400 bg-gray-700 rounded-lg p-3"
 							>
 								<span>Seats Selected:</span>
 								<span class="font-medium"
@@ -272,7 +293,7 @@
 							<div class="space-y-2">
 								<div
 									*ngFor="let seat of selectedSeats"
-									class="flex justify-between items-center text-gray-300 py-2 border-b border-gray-600/50"
+									class="flex justify-between items-center text-gray-300 py-2 border-b border-gray-600"
 								>
 									<div class="flex items-center gap-2">
 										<div
@@ -292,8 +313,8 @@
 												(seat.category?.name ?? '')
 													.toLowerCase()
 													.includes('premium')
-													? 'bg-purple-900/50 text-purple-300'
-													: 'bg-blue-900/50 text-blue-300'
+													? 'bg-purple-900 text-purple-300'
+													: 'bg-blue-900 text-blue-300'
 											"
 										>
 											{{ seat.category?.name || "Basic" }}
@@ -305,12 +326,10 @@
 								</div>
 							</div>
 
-							<div
-								class="bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-lg p-4 border border-green-700/50"
-							>
+							<div class="bg-green-900 rounded-lg p-4 border border-green-700">
 								<div class="flex justify-between items-center">
 									<span class="text-lg font-bold text-white">Total Amount</span>
-									<span class="text-2xl font-bold total-amount">{{
+									<span class="text-2xl font-bold text-green-400">{{
 										formatCurrency(getTotalAmount())
 									}}</span>
 								</div>
@@ -324,7 +343,7 @@
 
 				<!-- Action Buttons -->
 				<div
-					class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-600/50"
+					class="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t border-gray-600"
 				>
 					<button
 						pButton
@@ -349,11 +368,8 @@
 					></button>
 				</div>
 
-				<div
-					*ngIf="selectedSeats.length === 0"
-					class="text-center mt-3 sm:mt-4"
-				>
-					<p class="text-xs sm:text-sm text-gray-500">
+				<div *ngIf="selectedSeats.length === 0" class="text-center mt-4">
+					<p class="text-sm text-gray-500">
 						Select at least one seat to continue
 					</p>
 				</div>

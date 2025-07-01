@@ -6,6 +6,7 @@ import { MenuItem } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { PrimeNgModules } from '../../../primeng.modules';
 import { Router } from '@angular/router';
+import { APPNAME } from '../../../core/constants/constants';
 
 @Component({
 	selector: 'app-navbar',
@@ -16,6 +17,7 @@ import { Router } from '@angular/router';
 })
 export class NavbarComponent {
 	items: MenuItem[];
+	APPNAME = APPNAME;
 
 	constructor(private router: Router) {
 		this.items = [
