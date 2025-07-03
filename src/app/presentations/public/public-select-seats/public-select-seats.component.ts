@@ -115,6 +115,9 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 	timeoutTimer: any = null;
 	refreshTimer: any = null;
 
+	// Floating summary panel state
+	showExpandedSummary = false;
+
 	// Booking modal properties
 	showBookingModal = false;
 	currentBookingStep = 1;
@@ -1033,17 +1036,17 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 
 	getSeatClass(seat: SelectedSeat): string {
 		const baseClass =
-			'w-10 h-10   cursor-pointer transition-all duration-200 flex items-center justify-center text-xs border';
+			'w-10 h-10  rounded-lg  cursor-pointer transition-all duration-200 flex items-center justify-center text-xs border';
 
 		switch (seat.status) {
 			case 'selected':
 				return `${baseClass} bg-green-500 border-green-400 text-white`;
 			case 'booked':
-				return `${baseClass} bg-gray-800 border-gray-100 text-white cursor-not-allowed opacity-60`;
+				return `${baseClass}  bg-gray-100 border-gray-100 cursor-disabled text-gray-900 cursor-not-allowed opacity-60`;
 			default:
-				const categoryClass =
-					seat.category?.className || 'bg-blue-500 border-blue-400';
-				return `${baseClass} ${categoryClass} text-white hover:opacity-80`;
+				const categoryClass = '';
+				// 	seat.category?.className || 'bg-blue-500 border-blue-400';
+				return `${baseClass} ${categoryClass} text-white text-xs  hover:opacity-80`;
 		}
 	}
 

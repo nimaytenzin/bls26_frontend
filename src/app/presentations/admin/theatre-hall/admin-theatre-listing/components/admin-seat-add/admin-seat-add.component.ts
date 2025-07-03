@@ -230,7 +230,8 @@ export class AdminSeatAddComponent implements OnInit, OnDestroy {
 				baseClass +=
 					'bg-red-400 text-white border-red-600 opacity-50 animate-pulse';
 			} else {
-				const categoryClass = seat?.category?.className || 'bg-green-500';
+				const categoryClass =
+					seat?.category?.baseColorHexCode || 'bg-green-500';
 				baseClass += `${categoryClass} text-white border-gray-700 hover:opacity-80`;
 			}
 		} else if (this.isCellSelected(row, col)) {
@@ -408,7 +409,7 @@ export class AdminSeatAddComponent implements OnInit, OnDestroy {
 				} else {
 					categoryMap.set(key, {
 						name: seat.category.name,
-						className: seat.category.className,
+						className: seat.category.baseColorHexCode,
 						count: 1,
 					});
 				}
@@ -434,6 +435,6 @@ export class AdminSeatAddComponent implements OnInit, OnDestroy {
 			'platinum-seat': '#64748b',
 			'diamond-seat': '#06b6d4',
 		};
-		return colorMap[category.className] || '#6b7280';
+		return colorMap[category.baseColorHexCode] || '#6b7280';
 	}
 }

@@ -30,7 +30,7 @@ export interface Booking {
 	paymentMethod?: string;
 
 	bookingSeats?: BookingSeat[]; // List of booked seats
-	screening?: any; // Reference to Screening entity
+	screening?: Screening; // Reference to Screening entity
 	createdAt?: Date;
 	updatedAt?: Date;
 }

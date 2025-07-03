@@ -153,7 +153,7 @@
 								<div class="flex gap-2 items-center">
 									<div
 										class="w-12 h-12 rounded-t-xl border-2 border-white shadow-sm"
-										[class]="item.className"
+										[class]="item.baseColorHexCode"
 									></div>
 									<div>
 										<p
@@ -165,7 +165,7 @@
 											{{ item.description }}
 										</p>
 										<p class="text-xs text-gray-500 dark:text-gray-400">
-											Class: {{ item.className }}
+											Class: {{ item.baseColorHexCode }}
 										</p>
 									</div>
 								</div>
@@ -337,7 +337,7 @@
 										>
 											<div
 												class="w-4 h-4 rounded-t-md border border-white shadow-sm"
-												[class]="category.className"
+												[class]="category.baseColorHexCode"
 											></div>
 											<span class="text-gray-600 dark:text-gray-400">
 												{{ category.name }}

@@ -6,6 +6,7 @@ import { PublicLayoutComponentComponent } from './public-layout-component/public
 import { PublicBookingConfirmationComponent } from './public-booking-confirmation/public-booking-confirmation.component';
 import { PaymentComponent } from './payment/payment.component';
 import { BestSeatComponent } from './best-seat/best-seat.component';
+import { PublicEticketComponent } from './public-eticket/public-eticket.component';
 
 export const publicRoutes: Routes = [
 	{
@@ -25,6 +26,7 @@ export const publicRoutes: Routes = [
 				path: 'payment',
 				component: PaymentComponent,
 			},
+
 			{
 				path: 'booking-confirmation',
 				component: PublicBookingConfirmationComponent,
@@ -43,5 +45,10 @@ export const publicRoutes: Routes = [
 				redirectTo: 'select-seats/:movieId',
 			},
 		],
+	},
+
+	{
+		path: 'eticket',
+		component: PublicEticketComponent,
 	},
 ];

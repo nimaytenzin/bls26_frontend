@@ -33,14 +33,14 @@ export class AdminSeatCategoryAddComponent implements OnInit, OnDestroy {
 
 	// Predefined seat category types
 	seatCategoryTypes = [
-		{ name: 'Standard', className: 'standard-seat', color: '#6b7280' },
-		{ name: 'Premium', className: 'premium-seat', color: '#3b82f6' },
-		{ name: 'VIP', className: 'vip-seat', color: '#8b5cf6' },
-		{ name: 'Deluxe', className: 'deluxe-seat', color: '#10b981' },
-		{ name: 'Executive', className: 'executive-seat', color: '#f59e0b' },
-		{ name: 'Gold', className: 'gold-seat', color: '#eab308' },
-		{ name: 'Platinum', className: 'platinum-seat', color: '#64748b' },
-		{ name: 'Diamond', className: 'diamond-seat', color: '#06b6d4' },
+		{ name: 'Standard', baseColorHexCode: '#6b7280', color: '#6b7280' },
+		{ name: 'Premium', baseColorHexCode: '#3b82f6', color: '#3b82f6' },
+		{ name: 'VIP', baseColorHexCode: '#8b5cf6', color: '#8b5cf6' },
+		{ name: 'Deluxe', baseColorHexCode: '#10b981', color: '#10b981' },
+		{ name: 'Executive', baseColorHexCode: '#f59e0b', color: '#f59e0b' },
+		{ name: 'Gold', baseColorHexCode: '#eab308', color: '#eab308' },
+		{ name: 'Platinum', baseColorHexCode: '#64748b', color: '#64748b' },
+		{ name: 'Diamond', baseColorHexCode: '#06b6d4', color: '#06b6d4' },
 	];
 
 	constructor(
@@ -81,14 +81,14 @@ export class AdminSeatCategoryAddComponent implements OnInit, OnDestroy {
 				],
 			],
 			description: ['', [Validators.maxLength(200)]],
-			className: ['', [Validators.required]],
+			baseColorHexCode: ['', [Validators.required]],
 		});
 	}
 
 	onSeatCategoryTypeSelect(type: any): void {
 		this.seatCategoryForm.patchValue({
 			name: type.name,
-			className: type.className,
+			baseColorHexCode: type.baseColorHexCode,
 			description: `${type.name} seating category`,
 		});
 	}
@@ -106,7 +106,7 @@ export class AdminSeatCategoryAddComponent implements OnInit, OnDestroy {
 			hallId: this.hall.id,
 			name: formValue.name.trim(),
 			description: formValue.description?.trim() || undefined,
-			className: formValue.className.trim(),
+			baseColorHexCode: formValue.baseColorHexCode.trim(),
 		};
 		console.log('Creating seat category with data:', seatCategoryData);
 
@@ -177,5 +177,45 @@ export class AdminSeatCategoryAddComponent implements OnInit, OnDestroy {
 
 	onClose(): void {
 		this.ref.close();
+	}
+
+	// Utility methods for generating CSS styles from hex codes
+	generateSeatStyles(hexCode: string): { [key: string]: string } {
+		if (!hexCode) return {};
+
+		return {
+			'background-color': hexCode,
+			'border-color': this.adjustBrightness(hexCode, -20),
+			color: this.getContrastTextColor(hexCode),
+		};
+	}
+
+	// Adjust brightness of a hex color
+	adjustBrightness(hex: string, percent: number): string {
+		const num = parseInt(hex.replace('#', ''), 16);
+		const amt = Math.round(2.55 * percent);
+		const R = (num >> 16) + amt;
+		const G = ((num >> 8) & 0x00ff) + amt;
+		const B = (num & 0x0000ff) + amt;
+		return (
+			'#' +
+			(
+				0x1000000 +
+				(R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+				(G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+				(B < 255 ? (B < 1 ? 0 : B) : 255)
+			)
+				.toString(16)
+				.slice(1)
+		);
+	}
+
+	// Get contrasting text color (white or black) based on background color
+	getContrastTextColor(hexColor: string): string {
+		const r = parseInt(hexColor.slice(1, 3), 16);
+		const g = parseInt(hexColor.slice(3, 5), 16);
+		const b = parseInt(hexColor.slice(5, 7), 16);
+		const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+		return brightness > 128 ? '#000000' : '#ffffff';
 	}
 }

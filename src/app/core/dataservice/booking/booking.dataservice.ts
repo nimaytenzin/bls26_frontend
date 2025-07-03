@@ -454,4 +454,25 @@ export class BookingDataService {
 				})
 			);
 	}
+
+	/**
+	 * Get booking details by session and screening ID
+	 * Used to retrieve current booking state during seat selection and payment flow
+	 * Returns only paid bookings, throws error if booking is not confirmed/paid
+	 */
+	getBookingBySession(
+		sessionId: string,
+		bookingId: number
+	): Observable<Booking> {
+		return this.http
+			.get<Booking>(
+				`${BASEAPI_URL}/booking/session/${sessionId}/screening/${bookingId}`
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error getting booking by session:', error);
+					return throwError(() => error);
+				})
+			);
+	}
 }

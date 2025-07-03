@@ -38,6 +38,8 @@ import { TabsModule } from 'primeng/tabs';
 import { TabViewModule } from 'primeng/tabview';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { InputOtpModule } from 'primeng/inputotp';
+import { DatePickerModule } from 'primeng/datepicker';
+import { ColorPickerModule } from 'primeng/colorpicker';
 
 const PRIME_NG_MODULES = [
 	CardModule,
@@ -79,6 +81,8 @@ const PRIME_NG_MODULES = [
 	TabViewModule,
 	ProgressSpinnerModule,
 	InputOtpModule,
+	DatePickerModule,
+	ColorPickerModule,
 ];
 
 @NgModule({

@@ -370,7 +370,7 @@ export class AdminHallListComponent implements OnInit, OnDestroy {
 		const seat = this.getSeatAt(rowIndex, colIndex, hall);
 
 		if (seat && seat.category) {
-			return seat.category.className || 'bg-blue-500';
+			return seat.category.baseColorHexCode || 'bg-blue-500';
 		}
 
 		// Empty seat position

@@ -815,8 +815,8 @@ export class AdminSeatSelectionComponent implements OnChanges, OnDestroy {
 		}
 
 		// Available seat - color by category
-		if (seat.category?.className) {
-			return `${baseClass} ${seat.category.className} border-white hover:scale-105`;
+		if (seat.category?.baseColorHexCode) {
+			return `${baseClass} ${seat.category.baseColorHexCode} border-white hover:scale-105`;
 		}
 
 		return `${baseClass} bg-blue-500 text-white border-blue-600 hover:scale-105`;

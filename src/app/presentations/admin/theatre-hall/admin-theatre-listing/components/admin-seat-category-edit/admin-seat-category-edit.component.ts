@@ -86,7 +86,7 @@ export class AdminSeatCategoryEditComponent implements OnInit, OnDestroy {
 				],
 			],
 			description: ['', [Validators.maxLength(200)]],
-			className: ['', [Validators.required]],
+			baseColorHexCode: ['', [Validators.required]],
 		});
 	}
 
@@ -94,7 +94,7 @@ export class AdminSeatCategoryEditComponent implements OnInit, OnDestroy {
 		this.seatCategoryForm.patchValue({
 			name: this.seatCategory.name,
 			description: this.seatCategory.description || '',
-			className: this.seatCategory.className,
+			className: this.seatCategory.baseColorHexCode,
 		});
 	}
 
@@ -118,7 +118,7 @@ export class AdminSeatCategoryEditComponent implements OnInit, OnDestroy {
 		const updateData: UpdateSeatCategoryDto = {
 			name: formValue.name.trim(),
 			description: formValue.description?.trim() || undefined,
-			className: formValue.className.trim(),
+			baseColorHexCode: formValue.baseColorHexCode.trim(),
 		};
 
 		this.seatCategoryService

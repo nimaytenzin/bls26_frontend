@@ -3,18 +3,18 @@ export interface SeatCategory {
 	hallId: number;
 	name: string;
 	description?: string;
-	className: string;
+	baseColorHexCode: string;
 }
 
 export interface CreateSeatCategoryDto {
 	hallId: number;
 	name: string;
 	description?: string;
-	className: string;
+	baseColorHexCode: string;
 }
 
 export interface UpdateSeatCategoryDto {
 	name?: string;
 	description?: string;
-	className?: string;
+	baseColorHexCode?: string;
 }

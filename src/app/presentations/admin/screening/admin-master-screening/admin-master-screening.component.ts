@@ -19,6 +19,7 @@ import { HallDataService } from '../../../../core/dataservice/hall/hall.dataserv
 import { TheatreDataService } from '../../../../core/dataservice/theatre/theatre.dataservice';
 import { LanguageDataService } from '../../../../core/dataservice/language/language.dataservice';
 import { BASEAPI_URL } from '../../../../core/constants/constants';
+import { AdminScreeningCreateComponent } from '../components/admin-screening-create/admin-screening-create.component';
 
 import {
 	Screening,
@@ -268,7 +269,7 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 	}
 
 	private updateCalendarEvents(): void {
-		// Helper function to convert 4-digit time to Date object
+		// Helper function to convert TIME format to Date object
 		const parseTimeToDate = (dateStr: string, timeStr: any): Date => {
 			const baseDate = new Date(dateStr);
 
@@ -276,16 +277,23 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 			const timeString =
 				typeof timeStr === 'string' ? timeStr : String(timeStr || '');
 
-			if (timeString && timeString.length === 4 && /^\d{4}$/.test(timeString)) {
-				// Handle 4-digit format (HHMM)
+			if (timeString && timeString.includes(':')) {
+				// Handle TIME format (HH:MM:SS or HH:MM)
+				const timeParts = timeString.split(':');
+				if (timeParts.length >= 2) {
+					const hours = parseInt(timeParts[0], 10);
+					const minutes = parseInt(timeParts[1], 10);
+					const seconds = timeParts[2] ? parseInt(timeParts[2], 10) : 0;
+					baseDate.setHours(hours, minutes, seconds, 0);
+				}
+			} else if (
+				timeString &&
+				timeString.length === 4 &&
+				/^\d{4}$/.test(timeString)
+			) {
+				// Handle legacy 4-digit format (HHMM)
 				const hours = parseInt(timeString.substring(0, 2), 10);
 				const minutes = parseInt(timeString.substring(2, 4), 10);
-				baseDate.setHours(hours, minutes, 0, 0);
-			} else if (timeString && timeString.includes(':')) {
-				// Handle standard format (HH:MM)
-				const [hours, minutes] = timeString
-					.split(':')
-					.map((t) => parseInt(t, 10));
 				baseDate.setHours(hours, minutes, 0, 0);
 			}
 
@@ -309,10 +317,21 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 
 	// Public methods for template
 	openCreateDialog(): void {
-		this.selectedScreening = null;
-		this.currentStep = 1;
-		this.resetForms();
-		this.showCreateDialog = true;
+		const ref = this.dialogService.open(AdminScreeningCreateComponent, {
+			header: 'Create New Screening',
+
+			maximizable: true,
+			modal: true,
+			closable: true,
+			styleClass: '!rounded-3xl !border-none !shadow-2xl',
+		});
+
+		ref.onClose.subscribe((result) => {
+			if (result) {
+				// Reload screenings if screening was created successfully
+				this.loadInitialData();
+			}
+		});
 	}
 
 	openEditDialog(screening: Screening): void {
@@ -322,22 +341,27 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 	}
 
 	private populateFormForEdit(screening: Screening): void {
-		// Convert 4-digit time format back to Date objects for the form
+		// Convert TIME format to Date objects for the form
 		const convertTimeToDate = (timeStr: string): Date | null => {
 			if (!timeStr) return null;
 
-			// Handle 4-digit format (HHMM)
+			// Handle TIME format (HH:MM:SS)
+			if (timeStr.includes(':')) {
+				const timeParts = timeStr.split(':');
+				if (timeParts.length >= 2) {
+					const hours = parseInt(timeParts[0], 10);
+					const minutes = parseInt(timeParts[1], 10);
+					const seconds = timeParts[2] ? parseInt(timeParts[2], 10) : 0;
+					const date = new Date();
+					date.setHours(hours, minutes, seconds, 0);
+					return date;
+				}
+			}
+
+			// Handle legacy 4-digit format (HHMM)
 			if (timeStr.length === 4 && /^\d{4}$/.test(timeStr)) {
 				const hours = parseInt(timeStr.substring(0, 2), 10);
 				const minutes = parseInt(timeStr.substring(2, 4), 10);
-				const date = new Date();
-				date.setHours(hours, minutes, 0, 0);
-				return date;
-			}
-
-			// Handle standard format (HH:MM)
-			if (timeStr.includes(':')) {
-				const [hours, minutes] = timeStr.split(':').map((t) => parseInt(t, 10));
 				const date = new Date();
 				date.setHours(hours, minutes, 0, 0);
 				return date;
@@ -432,33 +456,57 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 			})
 		);
 
-		// Convert start and end times to 4-digit 24-hour format (e.g., 7pm = "1900", 9pm = "2100")
-		const formatTimeTo24Hour = (timeValue: any): string => {
+		// Convert start and end times to MySQL TIME format (HH:MM:SS)
+		const formatTimeToMySQLTime = (timeValue: any): string => {
 			if (!timeValue) return '';
 
-			let timeString = '';
-			if (typeof timeValue === 'string') {
-				timeString = timeValue;
-			} else if (timeValue instanceof Date) {
-				timeString = timeValue.toTimeString();
-			} else {
-				return '';
+			// Handle Date objects (from p-datepicker)
+			if (timeValue instanceof Date) {
+				const hours = timeValue.getHours().toString().padStart(2, '0');
+				const minutes = timeValue.getMinutes().toString().padStart(2, '0');
+				const seconds = timeValue.getSeconds().toString().padStart(2, '0');
+				return `${hours}:${minutes}:${seconds}`;
 			}
 
-			// Extract hours and minutes from time string (format: HH:MM or HH:MM:SS)
-			const timeParts = timeString.split(':');
-			if (timeParts.length >= 2) {
-				const hours = timeParts[0].padStart(2, '0');
-				const minutes = timeParts[1].padStart(2, '0');
-				return hours + minutes; // Return as HHMM format
+			// Handle string values
+			if (typeof timeValue === 'string') {
+				// Handle ISO date strings (e.g., "2024-01-01T14:30:00.000Z")
+				if (timeValue.includes('T') || timeValue.includes('Z')) {
+					const date = new Date(timeValue);
+					if (!isNaN(date.getTime())) {
+						const hours = date.getHours().toString().padStart(2, '0');
+						const minutes = date.getMinutes().toString().padStart(2, '0');
+						const seconds = date.getSeconds().toString().padStart(2, '0');
+						return `${hours}:${minutes}:${seconds}`;
+					}
+				}
+
+				// Handle existing time string formats (HH:MM or HH:MM:SS)
+				if (timeValue.includes(':')) {
+					const timeParts = timeValue.split(':');
+					if (timeParts.length >= 2) {
+						const hours = timeParts[0].padStart(2, '0');
+						const minutes = timeParts[1].padStart(2, '0');
+						const seconds = timeParts[2] ? timeParts[2].padStart(2, '0') : '00';
+						return `${hours}:${minutes}:${seconds}`;
+					}
+				}
+
+				// Handle 4-digit format (HHMM) - legacy support
+				if (timeValue.length === 4 && /^\d{4}$/.test(timeValue)) {
+					const hours = timeValue.substring(0, 2);
+					const minutes = timeValue.substring(2, 4);
+					return `${hours}:${minutes}:00`;
+				}
 			}
+
 			return '';
 		};
 
 		const screeningData: CreateScreeningWithPricesDto = {
 			...formData,
-			startTime: formatTimeTo24Hour(formData.startTime),
-			endTime: formatTimeTo24Hour(formData.endTime),
+			startTime: formatTimeToMySQLTime(formData.startTime),
+			endTime: formatTimeToMySQLTime(formData.endTime),
 			seatCategoryPrices,
 		};
 
@@ -598,20 +646,23 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 				? screening.startTime
 				: String(screening.startTime || '');
 
-		// Handle 4-digit time format
-		if (
+		// Handle TIME format (HH:MM:SS or HH:MM)
+		if (startTimeString && startTimeString.includes(':')) {
+			const timeParts = startTimeString.split(':');
+			if (timeParts.length >= 2) {
+				const hours = parseInt(timeParts[0], 10);
+				const minutes = parseInt(timeParts[1], 10);
+				const seconds = timeParts[2] ? parseInt(timeParts[2], 10) : 0;
+				screeningDate.setHours(hours, minutes, seconds, 0);
+			}
+		} else if (
 			startTimeString &&
 			startTimeString.length === 4 &&
 			/^\d{4}$/.test(startTimeString)
 		) {
+			// Handle legacy 4-digit time format
 			const hours = parseInt(startTimeString.substring(0, 2), 10);
 			const minutes = parseInt(startTimeString.substring(2, 4), 10);
-			screeningDate.setHours(hours, minutes, 0, 0);
-		} else if (startTimeString && startTimeString.includes(':')) {
-			// Handle standard time format
-			const [hours, minutes] = startTimeString
-				.split(':')
-				.map((t) => parseInt(t, 10));
 			screeningDate.setHours(hours, minutes, 0, 0);
 		}
 
@@ -624,15 +675,31 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 	formatTime(time: string): string {
 		if (!time) return '';
 
-		// Handle 4-digit time format (HHMM) like "1900" or "2100"
-		if (time.length === 4 && /^\d{4}$/.test(time)) {
-			const hours = time.substring(0, 2);
-			const minutes = time.substring(2, 4);
-			return `${hours}:${minutes}`;
+		// Handle HH:MM:SS format (preferred format)
+		if (time.includes(':')) {
+			const timeParts = time.split(':');
+			if (timeParts.length >= 2) {
+				const hours = parseInt(timeParts[0], 10);
+				const minutes = timeParts[1];
+
+				// Convert to 12-hour format for display
+				const period = hours >= 12 ? 'PM' : 'AM';
+				const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+				return `${displayHours}:${minutes} ${period}`;
+			}
 		}
 
-		// Handle standard time format (HH:MM or HH:MM:SS)
-		return time.substring(0, 5) || '';
+		// Handle legacy 4-digit format (HHMM)
+		if (time.length === 4 && /^\d{4}$/.test(time)) {
+			const hours = parseInt(time.substring(0, 2), 10);
+			const minutes = time.substring(2, 4);
+			const period = hours >= 12 ? 'PM' : 'AM';
+			const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+			return `${displayHours}:${minutes} ${period}`;
+		}
+
+		// Fallback: return as-is
+		return time;
 	}
 
 	formatDate(date: string): string {

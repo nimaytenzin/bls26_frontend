@@ -35,13 +35,16 @@
 					type="button"
 					class="flex items-center gap-2 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-primary-500 dark:hover:border-primary-400 transition-colors duration-200 bg-white dark:bg-gray-800 hover:bg-primary-50 dark:hover:bg-primary-900"
 					[class.border-primary-500]="
-						seatCategoryForm.get('className')?.value === type.className
+						seatCategoryForm.get('baseColorHexCode')?.value ===
+						type.baseColorHexCode
 					"
 					[class.bg-primary-50]="
-						seatCategoryForm.get('className')?.value === type.className
+						seatCategoryForm.get('baseColorHexCode')?.value ===
+						type.baseColorHexCode
 					"
 					[class.dark:bg-primary-900]="
-						seatCategoryForm.get('className')?.value === type.className
+						seatCategoryForm.get('baseColorHexCode')?.value ===
+						type.baseColorHexCode
 					"
 					(click)="onSeatCategoryTypeSelect(type)"
 				>
@@ -105,29 +108,33 @@
 				</small>
 			</div>
 
-			<!-- CSS Class Name -->
+			<!-- Base Color -->
 			<div class="field">
 				<label
-					for="className"
+					for="cp-hex"
 					class="text-sm font-medium text-gray-900 dark:text-white block mb-2"
 				>
-					CSS Class Name <span class="text-red-500">*</span>
+					Base Color <span class="text-red-500">*</span>
 				</label>
-				<input
-					id="className"
-					pInputText
-					fluid="true"
-					formControlName="className"
-					placeholder="CSS class for styling (e.g., premium-seat)"
-					styleClass="w-full"
-					[class]="isFieldInvalid('className') ? 'ng-invalid ng-dirty' : ''"
-				/>
+				<div class="flex gap-3 items-center">
+					<p-colorpicker
+						formControlName="baseColorHexCode"
+						inputId="cp-hex"
+						styleClass="mr-2"
+					/>
+					<p>
+						{{ seatCategoryForm.get("baseColorHexCode")?.value }}
+					</p>
+				</div>
 				<small class="text-xs text-gray-500 dark:text-gray-400 block mt-1">
-					This class will be used for styling the seat category in the booking
-					interface.
+					This color will be used for styling the seat category. Click the color
+					picker or enter a hex code manually.
 				</small>
-				<small class="p-error block mt-1" *ngIf="isFieldInvalid('className')">
-					{{ getFieldError("className") }}
+				<small
+					class="p-error block mt-1"
+					*ngIf="isFieldInvalid('baseColorHexCode')"
+				>
+					{{ getFieldError("baseColorHexCode") || "Select base color" }}
 				</small>
 			</div>
 
@@ -141,8 +148,12 @@
 				<div class="p-4 rounded-lg border">
 					<div class="flex items-center gap-3">
 						<div
-							class="w-12 h-12 rounded-t-xl border-2 border-white shadow-sm"
-							[class]="seatCategoryForm.get('className')?.value"
+							class="w-12 h-12 rounded-t-xl border-2 shadow-sm"
+							[ngStyle]="
+								generateSeatStyles(
+									seatCategoryForm.get('baseColorHexCode')?.value
+								)
+							"
 						></div>
 						<div>
 							<p class="font-medium text-gray-900 dark:text-white">
@@ -155,7 +166,7 @@
 								{{ seatCategoryForm.get("description")?.value }}
 							</p>
 							<p class="text-xs text-gray-500 dark:text-gray-400">
-								Class: {{ seatCategoryForm.get("className")?.value }}
+								Color: {{ seatCategoryForm.get("baseColorHexCode")?.value }}
 							</p>
 						</div>
 					</div>
