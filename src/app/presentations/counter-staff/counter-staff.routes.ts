@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 import { CounterStaffDashboardComponent } from './dashboard/counter-staff-dashboard.component';
 import { LayoutComponent } from '../../layout/layout.component';
+import { AuthGuard } from '../../core/guards/auth.guard';
+import { CounterStaffSellTicketsComponent } from './ticket-operations/counter-staff-sell-tickets/counter-staff-sell-tickets.component';
+import { CounterStaffCheckBookingsComponent } from './ticket-operations/counter-staff-check-bookings/counter-staff-check-bookings.component';
 
 export const counterStaffRoutes: Routes = [
 	{
@@ -13,10 +16,14 @@ export const counterStaffRoutes: Routes = [
 				path: '',
 				component: CounterStaffDashboardComponent,
 			},
-			//   {
-			//     path: 'sell-tickets',
-			//     loadComponent: () => import('./sell-tickets/counter-staff-sell-tickets.component').then(m => m.CounterStaffSellTicketsComponent),
-			//   },
+			{
+				path: 'sell-tickets',
+				loadComponent: () => CounterStaffSellTicketsComponent,
+			},
+			{
+				path: 'check-bookings',
+				loadComponent: () => CounterStaffCheckBookingsComponent,
+			},
 			//   {
 			//     path: 'check-bookings',
 			//     loadComponent: () => import('./check-bookings/counter-staff-check-bookings.component').then(m => m.CounterStaffCheckBookingsComponent),

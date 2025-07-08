@@ -22,24 +22,41 @@ export class RoleBasedMenuService {
 	 * Get menu items based on user role
 	 */
 	getMenuByRole(role: USERROLESENUM): any[] {
+		console.log('getMenuByRole called with role:', role);
+
+		let menu: any[] = [];
+
 		switch (role) {
 			case USERROLESENUM.ADMIN:
 			case USERROLESENUM.SUPERADMIN:
-				return ADMINSIDEBARITEMS;
+				menu = ADMINSIDEBARITEMS;
+				console.log('Returning ADMINSIDEBARITEMS');
+				break;
 
 			case USERROLESENUM.THEATRE_MANAGER:
 			case USERROLESENUM.MANAGER:
-				return THEATREMANAGERSIDEBARITEMS;
+				menu = THEATREMANAGERSIDEBARITEMS;
+				console.log('Returning THEATREMANAGERSIDEBARITEMS');
+				break;
 
 			case USERROLESENUM.EXECUTIVE_PRODUCER:
-				return EXECUTIVEPRODUCERSIDEBARITEMS;
+				menu = EXECUTIVEPRODUCERSIDEBARITEMS;
+				console.log('Returning EXECUTIVEPRODUCERSIDEBARITEMS');
+				break;
 
 			case USERROLESENUM.COUNTER_STAFF:
-				return COUNTERSTAFFSIDEBARITEMS;
+				menu = COUNTERSTAFFSIDEBARITEMS;
+				console.log('Returning COUNTERSTAFFSIDEBARITEMS');
+				break;
 
 			default:
-				return [];
+				console.warn('Unknown role, returning empty menu:', role);
+				menu = [];
+				break;
 		}
+
+		console.log('Menu items count:', menu.length);
+		return menu;
 	}
 
 	/**
@@ -48,6 +65,35 @@ export class RoleBasedMenuService {
 	setMenuForRole(role: USERROLESENUM): void {
 		const menu = this.getMenuByRole(role);
 		this.currentMenuSubject.next(menu);
+	}
+
+	/**
+	 * Convert UserRole to USERROLESENUM and set menu
+	 */
+	setMenuForUserRole(userRole: UserRole): void {
+		console.log('setMenuForUserRole called with:', userRole);
+
+		// Convert UserRole to USERROLESENUM - they should have the same string values
+		const roleString = userRole as string;
+		const userroleEnum = roleString as USERROLESENUM;
+
+		console.log('Role string:', roleString);
+		console.log('Converted to USERROLESENUM:', userroleEnum);
+		console.log(
+			'Available USERROLESENUM values:',
+			Object.values(USERROLESENUM)
+		);
+
+		// Verify the role exists in USERROLESENUM
+		if (Object.values(USERROLESENUM).includes(userroleEnum)) {
+			console.log('Role found, setting menu for:', userroleEnum);
+			this.setMenuForRole(userroleEnum);
+		} else {
+			console.warn(
+				`UserRole ${userRole} not found in USERROLESENUM, defaulting to ADMIN`
+			);
+			this.setMenuForRole(USERROLESENUM.ADMIN);
+		}
 	}
 
 	/**

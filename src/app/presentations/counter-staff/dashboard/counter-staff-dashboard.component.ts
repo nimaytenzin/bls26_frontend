@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModules } from '../../../primeng.modules';
+import { MessageService } from 'primeng/api';
 
 interface DailyStats {
 	ticketsSold: number;
@@ -36,6 +37,7 @@ interface RecentTransaction {
 	styleUrls: ['./counter-staff-dashboard.component.scss'],
 	standalone: true,
 	imports: [CommonModule, PrimeNgModules],
+	providers: [MessageService],
 })
 export class CounterStaffDashboardComponent implements OnInit {
 	loading = false;

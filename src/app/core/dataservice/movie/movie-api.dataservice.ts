@@ -33,6 +33,18 @@ export class MovieApiDataService {
 		);
 	}
 
+	// Get All Now Showing Movies
+
+	findAllMoviesScreeningNow(): Observable<Movie[]> {
+		return this.http.get<Movie[]>(`${this.apiUrl}/screening/now`).pipe(
+			map((response) => response),
+			catchError((error) => {
+				console.error('Error fetching now showing movies:', error);
+				return throwError(() => error);
+			})
+		);
+	}
+
 	/**
 	 * Get movie by ID
 	 */

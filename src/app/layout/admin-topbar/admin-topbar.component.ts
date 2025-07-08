@@ -17,7 +17,6 @@ import { PasswordModule } from 'primeng/password';
 import { AvatarModule } from 'primeng/avatar';
 import { AuthService } from '../../core/dataservice/auth/auth.service';
 import { User } from '../../core/dataservice/auth/auth.interface';
-import { RoleSwitcherComponent } from '../../shared/components/role-switcher.component';
 
 @Component({
 	selector: 'app-admin-topbar',
@@ -37,7 +36,6 @@ import { RoleSwitcherComponent } from '../../shared/components/role-switcher.com
 		FormsModule,
 		InputTextModule,
 		AvatarModule,
-		RoleSwitcherComponent,
 	],
 	providers: [ConfirmationService, MessageService],
 })

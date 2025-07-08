@@ -48,7 +48,7 @@ export const publicRoutes: Routes = [
 	},
 
 	{
-		path: 'eticket',
+		path: 'eticket/:sessionId/:bookingId',
 		component: PublicEticketComponent,
 	},
 ];

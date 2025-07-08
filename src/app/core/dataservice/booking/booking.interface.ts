@@ -66,6 +66,7 @@ export interface CustomerBookingDto {
 
 // Counter Staff Booking DTO
 export interface CounterStaffCreateBookingDto {
+	sessionId: string;
 	screeningId: number;
 	customerName: string;
 	phoneNumber: string;
@@ -80,11 +81,9 @@ export interface CounterStaffCreateBookingDto {
 
 // Create Booking Response
 export interface CreateBookingResponse {
-	id: number;
-	uuid: string;
-	bookingStatus: BookingStatusEnum;
-	amount: number;
-	message?: string;
+	success: boolean;
+	message: string;
+	booking: Booking;
 }
 
 // Update Booking DTO

@@ -11,6 +11,7 @@ import {
 	UpdateScreeningDto,
 	ScreeningFilter,
 	ApiResponse,
+	SeatAvailabilityByScreeningDto,
 } from './screening.interface';
 import { SeatCategory } from '../seat-category/seat-category.interface';
 
@@ -59,6 +60,35 @@ export class ScreeningDataService {
 				return throwError(() => error);
 			})
 		);
+	}
+	/**
+	 * Get Valid Screening by MovieId
+	 */
+	findAllValidScreeningByMovieId(id: number): Observable<Screening[]> {
+		return this.http.get<Screening[]>(`${this.apiUrl}/movie/${id}/valid`).pipe(
+			catchError((error) => {
+				console.error('Error fetching valid screenings:', error);
+				return throwError(() => error);
+			})
+		);
+	}
+
+	/**
+	 * Get available seat counts by screening ID
+	 */
+	findSeatsAvailableByScreening(
+		screeningId: number
+	): Observable<SeatAvailabilityByScreeningDto> {
+		return this.http
+			.get<SeatAvailabilityByScreeningDto>(
+				`${this.apiUrl}/seats-available/${screeningId}`
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching seat availability:', error);
+					return throwError(() => error);
+				})
+			);
 	}
 
 	/**

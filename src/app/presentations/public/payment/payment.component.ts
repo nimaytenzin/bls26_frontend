@@ -100,7 +100,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
 	initializingPayment = false;
 	paymentConnected = false;
 	sendingAERequest = false;
-	showSuccessDialog = false;
 	currentStep = 1; // 1: Customer Info, 2: Payment, 3: E-Ticket
 
 	// Stepper active step
@@ -533,7 +532,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
 						if (successResponse.statusCode === '00') {
 							// Success - payment completed
 							this.bookingResponse = successResponse.booking;
-							this.showSuccessDialog = true;
 
 							// Generate QR code for the booking
 							this.generateETicket();
@@ -543,6 +541,11 @@ export class PaymentComponent implements OnInit, OnDestroy {
 								summary: 'Payment Successful',
 								detail: 'Your booking has been confirmed!',
 							});
+
+							// Navigate to e-ticket after a short delay
+							setTimeout(() => {
+								this.navigateToETicket();
+							}, 2000);
 						} else {
 							// Payment failed or invalid status code
 							this.messageService.add({
@@ -628,6 +631,11 @@ export class PaymentComponent implements OnInit, OnDestroy {
 								response.message ||
 								'Your payment has been processed successfully!',
 						});
+
+						// Navigate to e-ticket after a short delay
+						setTimeout(() => {
+							this.navigateToETicket();
+						}, 2000);
 					} else {
 						this.processing = false;
 						this.messageService.add({
@@ -861,12 +869,37 @@ export class PaymentComponent implements OnInit, OnDestroy {
 	}
 
 	closeDialog() {
-		// Return success result to parent component
-		this.ref.close({ success: true, booking: this.bookingResponse });
+		// Navigate to e-ticket if payment was successful
+		if (this.bookingResponse) {
+			this.navigateToETicket();
+		} else {
+			// Just close dialog if no successful booking
+			this.ref.close({ success: false });
+		}
 	}
 
 	goHome() {
-		this.ref.close({ success: true, booking: this.bookingResponse });
-		this.router.navigate(['/']);
+		// Navigate to e-ticket if payment was successful, otherwise go home
+		if (this.bookingResponse) {
+			this.navigateToETicket();
+		} else {
+			this.ref.close({ success: false });
+			this.router.navigate(['/']);
+		}
+	}
+
+	// Navigation methods
+	navigateToETicket() {
+		if (this.bookingResponse && this.sessionId) {
+			// Close the dialog first
+			this.ref.close({ success: true, booking: this.bookingResponse });
+
+			// Navigate to e-ticket route
+			this.router.navigate([
+				'/eticket',
+				this.sessionId,
+				this.bookingResponse.id,
+			]);
+		}
 	}
 }

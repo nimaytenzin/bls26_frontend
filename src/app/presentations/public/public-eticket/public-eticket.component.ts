@@ -10,6 +10,7 @@ import { MessageService } from 'primeng/api';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import * as QRCode from 'qrcode';
+import html2canvas from 'html2canvas';
 
 // Services and Interfaces
 import { BookingDataService } from '../../../core/dataservice/booking/booking.dataservice';
@@ -42,9 +43,9 @@ export class PublicEticketComponent implements OnInit, OnDestroy {
 	loading = true;
 	error: string | null = null;
 
-	// Static values for demo
-	private readonly STATIC_SESSION_ID = 'session_mckd7s91_7lsloarqq_9il3s';
-	private readonly STATIC_SCREENING_ID = 11;
+	// Route parameters
+	sessionId: string | null = null;
+	bookingId: number | null = null;
 
 	// Booking data
 	bookingData: Booking | null = null; // Full booking details
@@ -63,6 +64,20 @@ export class PublicEticketComponent implements OnInit, OnDestroy {
 	) {}
 
 	ngOnInit() {
+		// Extract route parameters
+		this.sessionId = this.route.snapshot.paramMap.get('sessionId');
+		const bookingIdParam = this.route.snapshot.paramMap.get('bookingId');
+		this.bookingId = bookingIdParam ? parseInt(bookingIdParam, 10) : null;
+
+		// Validate required parameters
+		if (!this.sessionId || !this.bookingId) {
+			this.error =
+				'Invalid booking link. Missing session or booking information.';
+			this.loading = false;
+			this.showErrorMessage('Invalid booking link');
+			return;
+		}
+
 		this.loadBookingData();
 	}
 
@@ -72,14 +87,15 @@ export class PublicEticketComponent implements OnInit, OnDestroy {
 	}
 
 	/**
-	 * Load booking data using the static session ID and screening ID
+	 * Load booking data using route parameters
 	 */
 	private loadBookingData(): void {
 		this.loading = true;
 		this.error = null;
 
 		this.bookingService
-			.getBookingBySession(this.STATIC_SESSION_ID, this.STATIC_SCREENING_ID)
+			.getBookingBySession(this.sessionId!, this.bookingId!)
+
 			.pipe(takeUntil(this.destroy$))
 			.subscribe({
 				next: (response) => {
@@ -126,27 +142,148 @@ export class PublicEticketComponent implements OnInit, OnDestroy {
 	 * Download e-ticket as image
 	 */
 	downloadTicket(): void {
-		window.print();
+		if (!this.bookingData) {
+			this.showErrorMessage('No booking data available to download');
+			return;
+		}
+
+		// Get the e-ticket element by ID
+		const eTicketElement = document.getElementById(
+			'eticket-card'
+		) as HTMLElement;
+
+		if (!eTicketElement) {
+			this.showErrorMessage('Unable to capture e-ticket for download');
+			return;
+		}
+
+		// Show loading message
+		this.showSuccessMessage('Preparing your e-ticket for download...');
+
+		// Capture the e-ticket as image
+		html2canvas(eTicketElement, {
+			scale: 2, // Higher quality
+			useCORS: true,
+			allowTaint: true,
+			backgroundColor: '#000000',
+			width: eTicketElement.scrollWidth,
+			height: eTicketElement.scrollHeight,
+			logging: false, // Disable logging for production
+		})
+			.then((canvas) => {
+				// Convert canvas to blob
+				canvas.toBlob(
+					(blob) => {
+						if (blob) {
+							// Create download link
+							const url = URL.createObjectURL(blob);
+							const link = document.createElement('a');
+							link.href = url;
+							link.download = `movie-ticket-${
+								this.bookingData?.uuid || 'eticket'
+							}.png`;
+
+							// Trigger download
+							document.body.appendChild(link);
+							link.click();
+							document.body.removeChild(link);
+
+							// Clean up
+							URL.revokeObjectURL(url);
+
+							this.showSuccessMessage('E-ticket downloaded successfully!');
+						} else {
+							this.showErrorMessage('Failed to generate e-ticket image');
+						}
+					},
+					'image/png',
+					1.0
+				);
+			})
+			.catch((error) => {
+				console.error('Error capturing e-ticket:', error);
+				this.showErrorMessage('Failed to capture e-ticket for download');
+			});
 	}
 
 	/**
 	 * Share e-ticket
 	 */
 	shareTicket(): void {
-		if (navigator.share && this.bookingData) {
+		if (!this.bookingData) {
+			this.showErrorMessage('No booking data available to share');
+			return;
+		}
+
+		const shareUrl = window.location.href;
+		const shareTitle = `My Movie Ticket - ${this.bookingData.screening?.movie?.name}`;
+		const shareText = `Check out my movie ticket for "${this.bookingData.screening?.movie?.name}" at ${this.bookingData.screening?.hall?.theatre?.name}`;
+
+		// Try native sharing first (mobile devices)
+		if (navigator.share) {
 			navigator
 				.share({
-					title: 'My Movie Ticket',
-					text: `${this.bookingData.screening?.movie?.name}`,
-					url: window.location.href,
+					title: shareTitle,
+					text: shareText,
+					url: shareUrl,
 				})
-				.catch((err) => console.log('Error sharing:', err));
+				.then(() => {
+					this.showSuccessMessage('E-ticket shared successfully!');
+				})
+				.catch((error) => {
+					console.log('Native sharing failed:', error);
+					// Fallback to clipboard
+					this.copyToClipboard(shareUrl);
+				});
 		} else {
 			// Fallback: copy to clipboard
-			navigator.clipboard.writeText(window.location.href).then(() => {
-				this.showSuccessMessage('Ticket link copied to clipboard!');
-			});
+			this.copyToClipboard(shareUrl);
 		}
+	}
+
+	/**
+	 * Copy link to clipboard
+	 */
+	private copyToClipboard(text: string): void {
+		if (navigator.clipboard && navigator.clipboard.writeText) {
+			navigator.clipboard
+				.writeText(text)
+				.then(() => {
+					this.showSuccessMessage('E-ticket link copied to clipboard!');
+				})
+				.catch((error) => {
+					console.error('Failed to copy to clipboard:', error);
+					this.fallbackCopyToClipboard(text);
+				});
+		} else {
+			this.fallbackCopyToClipboard(text);
+		}
+	}
+
+	/**
+	 * Fallback method to copy text to clipboard
+	 */
+	private fallbackCopyToClipboard(text: string): void {
+		const textArea = document.createElement('textarea');
+		textArea.value = text;
+		textArea.style.position = 'fixed';
+		textArea.style.left = '-999999px';
+		textArea.style.top = '-999999px';
+		document.body.appendChild(textArea);
+		textArea.focus();
+		textArea.select();
+
+		try {
+			document.execCommand('copy');
+			this.showSuccessMessage('E-ticket link copied to clipboard!');
+		} catch (error) {
+			console.error('Fallback copy failed:', error);
+			this.showErrorMessage(
+				'Unable to copy link. Please copy the URL manually.'
+			);
+		}
+
+		document.body.removeChild(textArea);
 	}
 
 	getMovieImage(movie: Movie): string {

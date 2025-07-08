@@ -163,6 +163,14 @@ export class AuthService {
 	}
 
 	/**
+	 * Check if user is customer
+	 * @returns boolean
+	 */
+	isCounterStaff(): boolean {
+		return this.hasRole(UserRole.COUNTER_STAFF);
+	}
+
+	/**
 	 * Refresh authentication token
 	 * @returns Observable<LoginResponse>
 	 */

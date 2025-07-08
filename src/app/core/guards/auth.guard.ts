@@ -80,7 +80,7 @@ export class AdminGuard implements CanActivate {
 					return false;
 				}
 
-				if (!this.authService.hasAnyRole([UserRole.ADMIN, UserRole.MANAGER])) {
+				if (!this.authService.hasAnyRole([UserRole.ADMIN])) {
 					this.router.navigate(['/']);
 					return false;
 				}

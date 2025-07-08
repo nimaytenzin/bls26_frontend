@@ -93,10 +93,10 @@ export class BookingDataService {
 	 */
 	createCounterStaffBooking(
 		bookingData: CounterStaffCreateBookingDto
-	): Observable<ApiResponse<CreateBookingResponse>> {
+	): Observable<CreateBookingResponse> {
 		return this.http
-			.post<ApiResponse<CreateBookingResponse>>(
-				`${this.staffApiUrl}/counter`,
+			.post<CreateBookingResponse>(
+				`${this.apiUrl}/counter/confirm`,
 				bookingData
 			)
 			.pipe(
@@ -471,6 +471,28 @@ export class BookingDataService {
 			.pipe(
 				catchError((error) => {
 					console.error('Error getting booking by session:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Search bookings by customer phone number or email
+	 */
+	searchBookings(phoneNumber?: string, email?: string): Observable<Booking[]> {
+		let params = new URLSearchParams();
+		if (phoneNumber) {
+			params.append('phoneNumber', phoneNumber);
+		}
+		if (email) {
+			params.append('email', email);
+		}
+
+		return this.http
+			.get<Booking[]>(`${this.apiUrl}/search/params?${params.toString()}`)
+			.pipe(
+				catchError((error) => {
+					console.error('Error searching bookings:', error);
 					return throwError(() => error);
 				})
 			);

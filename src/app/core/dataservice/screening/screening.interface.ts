@@ -70,3 +70,10 @@ export interface ApiResponse<T> {
 	message?: string;
 	success?: boolean;
 }
+
+export interface SeatAvailabilityByScreeningDto {
+	seatsAvailable: number;
+	seatsBooked: number;
+	totalSeats: number;
+	occupancyPercent: number;
+}

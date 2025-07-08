@@ -93,6 +93,8 @@ export class LoginComponent implements OnInit {
 		if (user) {
 			if (this.authService.isAdmin()) {
 				this.router.navigate(['/admin']);
+			} else if (this.authService.isCounterStaff()) {
+				this.router.navigate(['/counter-staff']);
 			} else {
 				this.router.navigate(['/']);
 			}

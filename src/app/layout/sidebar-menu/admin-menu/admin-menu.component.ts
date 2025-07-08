@@ -34,17 +34,17 @@ export class AdminMenuComponent implements OnInit, OnDestroy {
 			});
 
 		// Get current user role and set appropriate menu
-		// TODO: Uncomment when AuthService is available
-		// const currentUser = this.authService.getCurrentUser();
-		// if (currentUser && currentUser.role) {
-		//   this.roleBasedMenuService.setMenuForRole(currentUser.role as USERROLESENUM);
-		// } else {
-		//   // Default to admin menu for now
-		//   this.roleBasedMenuService.setMenuForRole(USERROLESENUM.ADMIN);
-		// }
+		const currentUser = this.authService.getCurrentUser();
+		console.log('Current User:', currentUser);
+		console.log('Current User Role:', currentUser?.role);
 
-		// Temporary: Set admin menu as default
-		this.roleBasedMenuService.setMenuForRole(USERROLESENUM.ADMIN);
+		if (currentUser && currentUser.role) {
+			// Use the new service method to handle role conversion
+			this.roleBasedMenuService.setMenuForUserRole(currentUser.role);
+		} else {
+			console.warn('No user or role found, defaulting to ADMIN');
+			this.roleBasedMenuService.setMenuForRole(USERROLESENUM.ADMIN);
+		}
 	}
 
 	ngOnDestroy() {

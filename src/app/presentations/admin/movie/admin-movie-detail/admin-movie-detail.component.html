@@ -183,9 +183,7 @@
 							</div>
 						</div>
 
-						<!-- Genres, Languages, Subtitles -->
-						<div class="space-y-4">
-							<!-- Genres -->
+						<div class="flex flex-wrap gap-6">
 							<div *ngIf="movie.genres?.length">
 								<h3 class="text-sm font-medium text-blue-200 mb-2">Genres</h3>
 								<div class="flex flex-wrap gap-2">
@@ -199,7 +197,6 @@
 								</div>
 							</div>
 
-							<!-- Languages -->
 							<div *ngIf="movie.languages?.length">
 								<h3 class="text-sm font-medium text-blue-200 mb-2">
 									Languages
@@ -215,7 +212,6 @@
 								</div>
 							</div>
 
-							<!-- Subtitle Languages -->
 							<div *ngIf="movie.subtitleLanguages?.length">
 								<h3 class="text-sm font-medium text-blue-200 mb-2">
 									Subtitles
@@ -231,6 +227,57 @@
 								</div>
 							</div>
 						</div>
+
+						<!-- STATS -->
+						<div class="mt-2">
+							<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+								<div
+									class="bg-white dark:bg-gray-800 rounded-lg p-6 text-center"
+								>
+									<div class="text-3xl font-bold text-blue-600 mb-2">
+										{{ movieStatisticsSummary.totalScreenings || 0 }}
+									</div>
+									<div class="text-sm text-gray-600 dark:text-gray-400">
+										Total Screenings
+									</div>
+								</div>
+								<div
+									class="bg-white dark:bg-gray-800 rounded-lg p-6 text-center"
+								>
+									<div class="text-3xl font-bold text-green-600 mb-2">
+										{{ movieStatisticsSummary.totalTicketsSold || 0 }}
+									</div>
+									<div class="text-sm text-gray-600 dark:text-gray-400">
+										Total tickets Sold
+									</div>
+								</div>
+								<div
+									class="bg-white dark:bg-gray-800 rounded-lg p-6 text-center"
+								>
+									<div
+										class="text-3xl text-nowrap font-bold text-orange-600 mb-2"
+									>
+										{{
+											movieStatisticsSummary.totalRevenue
+												| currency : "Nu." : "symbol" : "1.0-0"
+										}}
+									</div>
+									<div class="text-sm text-gray-600 dark:text-gray-400">
+										Total Revenue
+									</div>
+								</div>
+								<div
+									class="bg-white dark:bg-gray-800 rounded-lg p-6 text-center"
+								>
+									<div class="text-3xl font-bold text-gray-600 mb-2">
+										{{ movieStatisticsSummary.averageOccupancyRate || 0 }}%
+									</div>
+									<div class="text-sm text-gray-600 dark:text-gray-400">
+										Avg Occupancy Rate
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -239,22 +286,7 @@
 		<!-- Tab View for Movie Details & Screenings -->
 		<div class="max-w-7xl mx-auto px-6 py-8">
 			<p-tabView [(activeIndex)]="activeTabIndex" styleClass="custom-tabview">
-				<!-- Movie Details & Media Tab -->
-				<p-tabPanel header="Movie Details & Media">
-					<ng-template pTemplate="header">
-						<div class="flex items-center gap-2">
-							<i class="pi pi-film text-lg"></i>
-							<span class="font-medium">Media</span>
-							<p-tag
-								*ngIf="movie?.media && movie.media.length > 0"
-								[value]="movie.media.length + ' media'"
-								severity="info"
-								styleClass="text-xs ml-2"
-							>
-							</p-tag>
-						</div>
-					</ng-template>
-
+				<p-tabPanel header="Statistics">
 					<!-- Media Tab Component -->
 					<app-admin-movie-details-media-tab
 						[movie]="movie"
@@ -262,173 +294,26 @@
 					></app-admin-movie-details-media-tab>
 				</p-tabPanel>
 
-				<!-- Screening Details Tab -->
-				<p-tabPanel header="Statistics">
-					<ng-template pTemplate="header">
-						<div class="flex items-center gap-2">
-							<i class="pi pi-file text-lg"></i>
-							<span class="font-medium">Statistics</span>
-							<!-- <p-tag
-								[value]="screeningStats.total + ' screenings'"
-								severity="success"
-								styleClass="text-xs ml-2"
-							>
-							</p-tag> -->
-						</div>
-					</ng-template>
+				<!-- Movie Details & Media Tab -->
+				<p-tabPanel header="Media">
+					<!-- Media Tab Component -->
+					<app-admin-movie-details-media-tab
+						[movie]="movie"
+						[loading]="loading"
+					></app-admin-movie-details-media-tab>
+				</p-tabPanel>
 
-					<!-- Screening Overview Section -->
-					<div class="space-y-8">
-						<!-- Screening Stats -->
-						<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-							<div
-								class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center"
-							>
-								<div class="text-3xl font-bold text-blue-600 mb-2">12</div>
-								<div class="text-sm text-gray-600 dark:text-gray-400">
-									Total Screenings
-								</div>
-							</div>
-							<div
-								class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center"
-							>
-								<div class="text-3xl font-bold text-green-600 mb-2">3722</div>
-								<div class="text-sm text-gray-600 dark:text-gray-400">
-									Total tickets Sold
-								</div>
-							</div>
-							<div
-								class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center"
-							>
-								<div class="text-3xl font-bold text-orange-600 mb-2">
-									Nu. 14,85,078
-								</div>
-								<div class="text-sm text-gray-600 dark:text-gray-400">
-									Total Revenue till Date
-								</div>
-							</div>
-							<div
-								class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-center"
-							>
-								<div class="text-3xl font-bold text-gray-600 mb-2">72.3%</div>
-								<div class="text-sm text-gray-600 dark:text-gray-400">
-									Average Occupancy Rate
-								</div>
-							</div>
-						</div>
-
-						<!-- Recent Screenings -->
-						<div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-							<div class="flex items-center justify-between mb-6">
-								<h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-									Recent Screenings
-								</h3>
-								<p-button
-									label="View All Screenings"
-									icon="pi pi-external-link"
-									[outlined]="true"
-									size="small"
-									(onClick)="navigateToScreenings()"
-								>
-								</p-button>
-							</div>
-
-							<!-- Screenings Table/List -->
-							<div
-								*ngIf="screenings && screenings.length > 0"
-								class="space-y-4"
-							>
-								<div
-									*ngFor="let screening of screenings.slice(0, 5)"
-									class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-								>
-									<div class="flex-1">
-										<div class="flex items-center gap-4">
-											<div>
-												<h4 class="font-medium text-gray-900 dark:text-white">
-													{{ screening.theatre?.name || "Unknown Theatre" }}
-												</h4>
-												<p class="text-sm text-gray-600 dark:text-gray-400">
-													{{ formatDate(screening.showDate) }} at
-													{{ screening.showTime }}
-												</p>
-											</div>
-										</div>
-									</div>
-									<div class="flex items-center gap-4">
-										<p-tag
-											[value]="getStatusText(screening.status)"
-											[severity]="getStatusSeverity(screening.status)"
-										>
-										</p-tag>
-										<span class="text-sm text-gray-600 dark:text-gray-400">
-											{{ screening.bookedSeats || 0 }}/{{
-												screening.totalSeats || 0
-											}}
-											seats
-										</span>
-									</div>
-								</div>
-							</div>
-
-							<!-- Empty State -->
-							<div
-								*ngIf="!screenings || screenings.length === 0"
-								class="text-center py-12 text-gray-500 dark:text-gray-400"
-							>
-								<div class="mb-4">
-									<i
-										class="pi pi-calendar-times text-6xl text-gray-300 dark:text-gray-600"
-									></i>
-								</div>
-								<h3 class="text-lg font-medium mb-2">No Screenings Found</h3>
-								<p class="text-sm mb-4">
-									This movie doesn't have any scheduled screenings yet.
-								</p>
-								<p-button
-									label="Schedule Screening"
-									icon="pi pi-plus"
-									[outlined]="true"
-									(onClick)="navigateToScreenings()"
-								>
-								</p-button>
-							</div>
-						</div>
-
-						<!-- Quick Actions -->
-						<div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-							<h3
-								class="text-xl font-semibold text-gray-900 dark:text-white mb-6"
-							>
-								Quick Actions
-							</h3>
-							<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-								<p-button
-									label="Schedule New Screening"
-									icon="pi pi-plus"
-									class="w-full"
-									(onClick)="navigateToScreenings()"
-								>
-								</p-button>
-								<p-button
-									label="View Analytics"
-									icon="pi pi-chart-line"
-									[outlined]="true"
-									class="w-full"
-									(onClick)="navigateToScreenings()"
-								>
-								</p-button>
-								<p-button
-									label="Manage Bookings"
-									icon="pi pi-ticket"
-									[outlined]="true"
-									class="w-full"
-									(onClick)="navigateToScreenings()"
-								>
-								</p-button>
-							</div>
-						</div>
-					</div>
+				<!-- Screenings Tab -->
+				<p-tabPanel header="Screenings">
+					<app-admin-movie-statistics
+						[movie]="movie"
+					></app-admin-movie-statistics>
+				</p-tabPanel>
+				<!-- Bookings Tab -->
+				<p-tabPanel header="Bookings">
+					<app-admin-movie-statistics
+						[movie]="movie"
+					></app-admin-movie-statistics>
 				</p-tabPanel>
 			</p-tabView>
 		</div>

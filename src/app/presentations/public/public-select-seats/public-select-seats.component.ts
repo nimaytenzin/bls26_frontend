@@ -47,6 +47,7 @@ import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { PaymentComponent } from '../payment/payment.component';
 import { BookingDataService } from '../../../core/dataservice/booking/booking.dataservice';
 import { SeatCategory } from '../../../core/dataservice/seat-category/seat-category.interface';
+import { generateSeatStyle } from '../../../core/utility/utility.service';
 
 interface SelectedSeat extends Seat {
 	price: number;
@@ -1034,20 +1035,63 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 		return String.fromCharCode(65 + rowIndex); // A, B, C, etc.
 	}
 
-	getSeatClass(seat: SelectedSeat): string {
-		const baseClass =
-			'w-10 h-10  rounded-lg  cursor-pointer transition-all duration-200 flex items-center justify-center text-xs border';
+	getSeatStyles(hexCode: string, seat?: SelectedSeat): any {
+		const baseStyle = generateSeatStyle(hexCode || '#000000');
 
-		switch (seat.status) {
-			case 'selected':
-				return `${baseClass} bg-green-500 border-green-400 text-white`;
-			case 'booked':
-				return `${baseClass}  bg-gray-100 border-gray-100 cursor-disabled text-gray-900 cursor-not-allowed opacity-60`;
-			default:
-				const categoryClass = '';
-				// 	seat.category?.className || 'bg-blue-500 border-blue-400';
-				return `${baseClass} ${categoryClass} text-white text-xs  hover:opacity-80`;
+		// Handle different seat statuses
+		if (seat?.status === 'selected') {
+			return {
+				backgroundColor: '#10b981', // green-500
+				border: '2px solid #059669', // green-600
+				color: '#ffffff',
+				borderRadius: '6px',
+				cursor: 'pointer',
+				transition: 'all 0.3s ease',
+			};
+		} else if (seat?.status === 'booked') {
+			return {
+				backgroundColor: '#f3f4f6', // gray-100
+				border: '2px solid #e5e7eb', // gray-200
+				color: '#6b7280', // gray-500
+				borderRadius: '6px',
+				cursor: 'not-allowed',
+				opacity: '0.6',
+				transition: 'all 0.3s ease',
+			};
 		}
+
+		// Default available seat style
+		return {
+			...baseStyle,
+			':hover': {
+				opacity: '0.8',
+			},
+		};
+	}
+
+	// Legend helper methods for consistent styling
+	getSelectedLegendStyles(): any {
+		return {
+			backgroundColor: '#10b981', // green-500
+			border: '2px solid #059669', // green-600
+			borderRadius: '6px',
+		};
+	}
+
+	getOccupiedLegendStyles(): any {
+		return {
+			backgroundColor: '#f3f4f6', // gray-100
+			border: '2px solid #e5e7eb', // gray-200
+			borderRadius: '6px',
+		};
+	}
+
+	getCategoryLegendStyles(hexCode: string): any {
+		const baseStyle = generateSeatStyle(hexCode || '#000000');
+		return {
+			...baseStyle,
+			borderRadius: '6px',
+		};
 	}
 
 	getTotalAmount(): number {
@@ -1174,6 +1218,15 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 										summary: 'Booking Successful',
 										detail: 'Your tickets have been booked successfully!',
 									});
+
+									// Navigate to e-ticket with sessionId and bookingId
+									if (result.booking && result.booking.id) {
+										this.router.navigate([
+											'/eticket',
+											this.sessionId,
+											result.booking.id,
+										]);
+									}
 								}
 								this.processing = false;
 							});

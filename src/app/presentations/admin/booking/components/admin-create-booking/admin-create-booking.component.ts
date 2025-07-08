@@ -334,6 +334,7 @@ export class AdminCreateBookingComponent implements OnInit, OnDestroy {
 		console.log('Booking data - totalAmount:', totalAmount);
 
 		const bookingData: CounterStaffCreateBookingDto = {
+			sessionId: '11',
 			screeningId: this.selectedScreening!.id,
 			customerName: formData.customerName,
 			phoneNumber: formData.phoneNumber,
@@ -359,7 +360,7 @@ export class AdminCreateBookingComponent implements OnInit, OnDestroy {
 					this.messageService.add({
 						severity: 'success',
 						summary: 'Booking Created',
-						detail: `Booking created successfully! Booking ID: ${response.data?.id}`,
+						detail: `Booking created successfully! Booking ID: ${response.booking?.id}`,
 					});
 
 					// Reset the form for next booking

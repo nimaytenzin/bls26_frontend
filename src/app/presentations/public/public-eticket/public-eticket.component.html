@@ -59,9 +59,9 @@
 		</div>
 
 		<!-- Main E-Ticket Card -->
-		<div class="max-w-4xl mx-auto">
+		<div class="max-w-3xl mx-auto rounded-3xl" id="eticket-card">
 			<div
-				class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden"
+				class="bg-white/95 border border-white backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden"
 			>
 				<!-- Ticket Header -->
 
@@ -150,12 +150,12 @@
 				<div class="flex gap-8 px-12 py-6 -mt-[5rem]">
 					<!-- QR Code Section -->
 					<div #leftQRCode class="w-1/3 flex flex-col items-center">
-						<div class="qr-code-container mb-2">
+						<div class="relative mb-2">
 							<img
 								*ngIf="qrCodeDataURL"
 								[src]="qrCodeDataURL"
 								alt="Ticket QR Code"
-								class="qr-code-rounded w-full mx-auto rounded-3xl border-4 border-white bg-white p-4"
+								class="w-full mx-auto rounded-3xl border-4 border-white bg-white p-4 contrast-110 brightness-105"
 							/>
 							<div
 								*ngIf="!qrCodeDataURL"
@@ -224,11 +224,12 @@
 								<div
 									*ngFor="let seat of bookingData.bookingSeats"
 									class="p-4 border border-primary text-center rounded-xl"
+									[ngStyle]="{ 'border-color': getSeatCategoryColor(seat) }"
 								>
 									<p class="font-bold text-2xl m-0 p-0">
 										{{ seat.seat?.seatNumber }}
 									</p>
-									<p class="text-xsfont-medium m-0 p-0">
+									<p class="text-xs font-medium m-0 p-0">
 										{{ seat.seat?.category?.name }}
 									</p>
 								</div>

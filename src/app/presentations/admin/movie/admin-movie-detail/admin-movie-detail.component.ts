@@ -10,6 +10,9 @@ import { Movie } from '../../../../core/dataservice/movie/movie.interface';
 import { BASEAPI_URL } from '../../../../core/constants/constants';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AdminMovieDetailsMediaTabComponent } from '../components/admin-movie-details-media-tab/admin-movie-details-media-tab.component';
+import { AdminMovieStatisticsComponent } from '../components/admin-movie-statistics/admin-movie-statistics.component';
+import { MovieStatistics } from '../../../../core/dataservice/statistics/statistics.interface';
+import { StatisticsDataService } from '../../../../core/dataservice/statistics/statistics.dataservice';
 
 @Component({
 	selector: 'app-admin-movie-detail',
@@ -22,6 +25,7 @@ import { AdminMovieDetailsMediaTabComponent } from '../components/admin-movie-de
 		ReactiveFormsModule,
 		PrimeNgModules,
 		AdminMovieDetailsMediaTabComponent,
+		AdminMovieStatisticsComponent,
 	],
 })
 export class AdminMovieDetailComponent implements OnInit {
@@ -46,16 +50,31 @@ export class AdminMovieDetailComponent implements OnInit {
 		completed: 0,
 	};
 
+	movieStatisticsSummary: MovieStatistics = {
+		movieId: 0,
+		movieTitle: '',
+		totalScreenings: 0,
+		totalTicketsSold: 0,
+		totalRevenue: 0,
+		averageOccupancyRate: 0,
+	};
+
 	constructor(
 		private route: ActivatedRoute,
 		private router: Router,
 		private movieApiService: MovieApiDataService,
-		private sanitizer: DomSanitizer
+		private sanitizer: DomSanitizer,
+		private statisticsDataService: StatisticsDataService
 	) {}
 
 	ngOnInit() {
 		// Get movie ID from route
 		const movieId = this.route.snapshot.paramMap.get('id');
+		this.statisticsDataService.getMovieStatistics(Number(movieId!)).subscribe({
+			next: (res) => {
+				this.movieStatisticsSummary = res.statistics;
+			},
+		});
 		if (movieId) {
 			this.loadMovieDetails(parseInt(movieId));
 		} else {
@@ -125,15 +144,6 @@ export class AdminMovieDetailComponent implements OnInit {
 	 */
 	goBack() {
 		this.router.navigate(['/admin/master-movies']);
-	}
-
-	/**
-	 * Navigate to screenings management
-	 */
-	navigateToScreenings() {
-		// TODO: Navigate to screenings management page
-		// this.router.navigate(['/admin/screenings', this.movie?.id]);
-		console.log('Navigate to screenings for movie:', this.movie?.id);
 	}
 
 	/**

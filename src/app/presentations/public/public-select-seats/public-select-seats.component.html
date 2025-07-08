@@ -64,13 +64,15 @@
 									<!-- Status Legend -->
 									<div class="flex items-center space-x-2">
 										<div
-											class="w-10 h-10 bg-green-500 border-2 border-green-400 rounded-lg"
+											class="w-10 h-10 rounded-lg"
+											[ngStyle]="getSelectedLegendStyles()"
 										></div>
 										<span class="text-white">Selected</span>
 									</div>
 									<div class="flex items-center space-x-2">
 										<div
-											class="w-10 h-10 border-2 bg-gray-200 rounded-lg"
+											class="w-10 h-10 rounded-lg"
+											[ngStyle]="getOccupiedLegendStyles()"
 										></div>
 										<span class="text-white">Occupied</span>
 									</div>
@@ -81,10 +83,9 @@
 										class="flex items-center space-x-2"
 									>
 										<div
-											class="w-10 h-10 rounded-lg border-2"
-											[class]="
-												category.baseColorHexCode ||
-												'bg-blue-500 border-blue-400'
+											class="w-10 h-10 rounded-lg"
+											[ngStyle]="
+												getCategoryLegendStyles(category.baseColorHexCode)
 											"
 										></div>
 										<span class="text-white">{{ category.name }}</span>
@@ -115,8 +116,13 @@
 														getSeatAtPosition(rowIndex, colIndex) as seat;
 														else emptySeat
 													"
-													class="w-full h-full cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-bold"
-													[class]="getSeatClass(seat)"
+													class="w-full h-full rounded-lg cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-bold"
+													[ngStyle]="
+														getSeatStyles(
+															seat.category?.baseColorHexCode!,
+															seat
+														)
+													"
 													(click)="onSeatClick(seat)"
 													[title]="
 														seat.seatNumber + ' - ' + formatCurrency(seat.price)
