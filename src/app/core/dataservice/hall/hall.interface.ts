@@ -12,7 +12,7 @@ export interface Hall {
 	screenStart: number;
 	screenSpan: number;
 	theatreId: number;
-	theatre?: Theatre; // Theatre interface reference
+	theatre: Theatre; // Theatre interface reference
 	createdAt?: Date;
 	updatedAt?: Date;
 	seatCategories?: SeatCategory[];

@@ -1,0 +1,116 @@
+<!-- Ticket View Modal -->
+<div>
+	<div *ngIf="booking" class="ticket-content" id="ticket-content">
+		<!-- Ticket Header -->
+		<div class="text-center mb-6 pb-4 border-b-2 border-dashed border-gray-300">
+			<h2 class="text-2xl font-bold text-gray-800 mb-2">
+				Digital Movie Ticket
+			</h2>
+			<p class="text-gray-600">
+				{{ booking.screening?.hall?.theatre?.name }}
+			</p>
+		</div>
+
+		<!-- Movie Information -->
+		<div class="mb-6">
+			<h3 class="text-xl font-bold text-gray-800 mb-2">
+				{{ booking.screening?.movie?.name }}
+			</h3>
+			<div class="grid grid-cols-2 gap-4 text-sm">
+				<div>
+					<p class="font-medium text-gray-700">Date:</p>
+					<p class="text-gray-600">
+						{{ booking.screening?.date | date : "fullDate" }}
+					</p>
+				</div>
+				<div>
+					<p class="font-medium text-gray-700">Time:</p>
+					<p class="text-gray-600">
+						{{ booking.screening?.startTime }} -
+						{{ booking.screening?.endTime }}
+					</p>
+				</div>
+				<div>
+					<p class="font-medium text-gray-700">Hall:</p>
+					<p class="text-gray-600">
+						{{ booking.screening?.hall?.name }}
+					</p>
+				</div>
+				<div>
+					<p class="font-medium text-gray-700">Seats:</p>
+					<p class="text-gray-600">
+						{{ getBookingSeatsText(booking) }}
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Customer Information -->
+		<div class="mb-6">
+			<h4 class="font-bold text-gray-800 mb-2">Customer Details</h4>
+			<div class="grid grid-cols-2 gap-4 text-sm">
+				<div>
+					<p class="font-medium text-gray-700">Name:</p>
+					<p class="text-gray-600">{{ booking.name }}</p>
+				</div>
+				<div>
+					<p class="font-medium text-gray-700">Phone:</p>
+					<p class="text-gray-600">{{ booking.phoneNumber }}</p>
+				</div>
+				<div *ngIf="booking.email">
+					<p class="font-medium text-gray-700">Email:</p>
+					<p class="text-gray-600">{{ booking.email }}</p>
+				</div>
+				<div>
+					<p class="font-medium text-gray-700">Booking ID:</p>
+					<p class="text-gray-600">{{ booking.uuid }}</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Payment Information -->
+		<div class="mb-6">
+			<h4 class="font-bold text-gray-800 mb-2">Payment Details</h4>
+			<div class="grid grid-cols-2 gap-4 text-sm">
+				<div>
+					<p class="font-medium text-gray-700">Total Amount:</p>
+					<p class="text-gray-600 font-bold">
+						{{ formatCurrency(booking.amount || 0) }}
+					</p>
+				</div>
+				<div>
+					<p class="font-medium text-gray-700">Status:</p>
+					<span
+						class="px-2 py-1 rounded-full text-xs font-medium"
+						[class]="getStatusClass(booking.bookingStatus)"
+					>
+						{{ booking.bookingStatus }}
+					</span>
+				</div>
+				<div>
+					<p class="font-medium text-gray-700">Booked On:</p>
+					<p class="text-gray-600">
+						{{ booking.createdAt | date : "medium" }}
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Ticket Footer -->
+		<div class="text-center pt-4 border-t-2 border-dashed border-gray-300">
+			<p class="text-xs text-gray-500">
+				Please present this ticket at the theatre entrance.<br />
+				Valid only for the specified date and time.
+			</p>
+		</div>
+	</div>
+
+	<!-- Modal Actions -->
+	<div class="flex justify-end gap-3 mt-12">
+		<p-button type="button">
+			<i class="pi pi-envelope mr-1"></i>
+			Send E-ticket
+		</p-button>
+		<p-button> Print Ticket </p-button>
+	</div>
+</div>

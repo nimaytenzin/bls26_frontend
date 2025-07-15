@@ -8,6 +8,8 @@ import { MessageService } from 'primeng/api';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import { BookingDataService } from '../../../../core/dataservice/booking/booking.dataservice';
 import { Booking } from '../../../../core/dataservice/booking/booking.interface';
+import { StaffEticketComponent } from '../shared-components/staff-eticket/staff-eticket.component';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
 	selector: 'app-counter-staff-check-bookings',
@@ -15,23 +17,32 @@ import { Booking } from '../../../../core/dataservice/booking/booking.interface'
 	styleUrls: ['./counter-staff-check-bookings.component.css'],
 	standalone: true,
 	imports: [CommonModule, FormsModule, PrimeNgModules],
-	providers: [MessageService],
+	providers: [MessageService, DialogService],
 })
 export class CounterStaffCheckBookingsComponent implements OnInit, OnDestroy {
 	private destroy$ = new Subject<void>();
-
+	ref: DynamicDialogRef | undefined;
 	// Search form data
 	searchPhoneNumber: string = '';
 	searchEmail: string = '';
 
 	// Results
 	bookings: Booking[] = [];
+	filteredBookings: Booking[] = [];
 	searchPerformed: boolean = false;
 	loading: boolean = false;
 
+	// Filter options
+	screeningStatusFilter: 'all' | 'valid' | 'expired' = 'all';
+
+	// Modal properties
+	showTicketModal: boolean = false;
+	selectedBooking: Booking | null = null;
+
 	constructor(
 		private bookingService: BookingDataService,
-		private messageService: MessageService
+		private messageService: MessageService,
+		private dialogService: DialogService
 	) {}
 
 	ngOnInit(): void {
@@ -70,6 +81,7 @@ export class CounterStaffCheckBookingsComponent implements OnInit, OnDestroy {
 				next: (bookings: Booking[]) => {
 					this.loading = false;
 					this.bookings = bookings;
+					this.applyFilters();
 					this.searchPerformed = true;
 
 					if (bookings.length === 0) {
@@ -102,7 +114,75 @@ export class CounterStaffCheckBookingsComponent implements OnInit, OnDestroy {
 		this.searchPhoneNumber = '';
 		this.searchEmail = '';
 		this.bookings = [];
+		this.filteredBookings = [];
 		this.searchPerformed = false;
+		this.screeningStatusFilter = 'all';
+	}
+
+	/**
+	 * Apply filters to bookings
+	 */
+	applyFilters(): void {
+		if (this.screeningStatusFilter === 'all') {
+			// Sort to show expired bookings first for better visibility
+			this.filteredBookings = [...this.bookings].sort((a, b) => {
+				const aExpired = this.isScreeningExpired(a);
+				const bExpired = this.isScreeningExpired(b);
+
+				// If one is expired and the other isn't, expired comes first
+				if (aExpired && !bExpired) return -1;
+				if (!aExpired && bExpired) return 1;
+
+				// If both are expired or both are valid, sort by screening date/time (newest first)
+				const aDateTime = this.getScreeningDateTime(a);
+				const bDateTime = this.getScreeningDateTime(b);
+				return bDateTime.getTime() - aDateTime.getTime();
+			});
+		} else if (this.screeningStatusFilter === 'valid') {
+			this.filteredBookings = this.bookings
+				.filter((booking) => !this.isScreeningExpired(booking))
+				.sort((a, b) => {
+					const aDateTime = this.getScreeningDateTime(a);
+					const bDateTime = this.getScreeningDateTime(b);
+					return aDateTime.getTime() - bDateTime.getTime(); // Upcoming screenings first
+				});
+		} else if (this.screeningStatusFilter === 'expired') {
+			this.filteredBookings = this.bookings
+				.filter((booking) => this.isScreeningExpired(booking))
+				.sort((a, b) => {
+					const aDateTime = this.getScreeningDateTime(a);
+					const bDateTime = this.getScreeningDateTime(b);
+					return bDateTime.getTime() - aDateTime.getTime(); // Most recently expired first
+				});
+		}
+	}
+
+	/**
+	 * Helper method to get screening date/time as Date object
+	 */
+	private getScreeningDateTime(booking: Booking): Date {
+		if (!booking.screening?.date || !booking.screening?.startTime) {
+			return new Date(0); // Return epoch for invalid dates
+		}
+
+		try {
+			const screeningDate = new Date(booking.screening.date);
+			const [startHours, startMinutes] = booking.screening.startTime
+				.split(':')
+				.map(Number);
+			screeningDate.setHours(startHours, startMinutes, 0, 0);
+			return screeningDate;
+		} catch (error) {
+			console.error('Error parsing screening date/time:', error);
+			return new Date(0);
+		}
+	}
+
+	/**
+	 * Handle filter change
+	 */
+	onFilterChange(): void {
+		this.applyFilters();
 	}
 
 	/**
@@ -139,5 +219,80 @@ export class CounterStaffCheckBookingsComponent implements OnInit, OnDestroy {
 			.map((bs) => bs.seat?.seatNumber)
 			.filter((seatNumber) => seatNumber)
 			.join(', ');
+	}
+
+	/**
+	 * Check if screening has expired (past end time)
+	 */
+	isScreeningExpired(booking: Booking): boolean {
+		if (!booking.screening?.date || !booking.screening?.endTime) {
+			return false;
+		}
+
+		try {
+			// Parse the screening date and end time
+			const screeningDate = new Date(booking.screening.date);
+			const [endHours, endMinutes] = booking.screening.endTime
+				.split(':')
+				.map(Number);
+
+			// Set the end time on the screening date
+			const screeningEndDateTime = new Date(screeningDate);
+			screeningEndDateTime.setHours(endHours, endMinutes, 0, 0);
+
+			// Compare with current time
+			const now = new Date();
+			return now > screeningEndDateTime;
+		} catch (error) {
+			console.error('Error parsing screening date/time:', error);
+			return false;
+		}
+	}
+
+	/**
+	 * Get screening status class
+	 */
+	getScreeningStatusClass(booking: Booking): string {
+		return this.isScreeningExpired(booking)
+			? 'bg-red-100 text-red-800'
+			: 'bg-green-100 text-green-800';
+	}
+
+	/**
+	 * Get screening status text
+	 */
+	getScreeningStatusText(booking: Booking): string {
+		return this.isScreeningExpired(booking) ? 'Expired' : 'Valid';
+	}
+
+	/**
+	 * Get count of expired bookings
+	 */
+	getExpiredBookingsCount(): number {
+		return this.bookings.filter((booking) => this.isScreeningExpired(booking))
+			.length;
+	}
+
+	/**
+	 * Get count of valid bookings
+	 */
+	getValidBookingsCount(): number {
+		return this.bookings.filter((booking) => !this.isScreeningExpired(booking))
+			.length;
+	}
+
+	/**
+	 * Open ticket view modal
+	 */
+	viewTicket(booking: Booking): void {
+		this.selectedBooking = booking;
+		this.ref = this.dialogService.open(StaffEticketComponent, {
+			data: {
+				booking: this.selectedBooking,
+			},
+			header: 'E Ticket',
+			closable: true,
+			dismissableMask: true,
+		});
 	}
 }

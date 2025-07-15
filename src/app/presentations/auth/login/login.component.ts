@@ -94,7 +94,7 @@ export class LoginComponent implements OnInit {
 			if (this.authService.isAdmin()) {
 				this.router.navigate(['/admin']);
 			} else if (this.authService.isCounterStaff()) {
-				this.router.navigate(['/counter-staff']);
+				this.router.navigate(['/counter-staff/sell-tickets']);
 			} else {
 				this.router.navigate(['/']);
 			}

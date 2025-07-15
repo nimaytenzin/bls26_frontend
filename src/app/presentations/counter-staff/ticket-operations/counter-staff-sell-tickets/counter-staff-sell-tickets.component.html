@@ -7,9 +7,7 @@
 			<h1 class="text-3xl font-bold text-gray-900 mb-2">
 				Counter Ticket Sales
 			</h1>
-			<p class="text-gray-600">
-				Complete ticket booking process for walk-in customers
-			</p>
+			<p>Complete ticket booking process for walk-in customers</p>
 		</div>
 
 		<!-- Step 1: Movie Selection -->
@@ -171,11 +169,11 @@
 							<div class="text-sm text-gray-600 space-y-1">
 								<p>
 									<i class="pi pi-building mr-2"></i>
-									Theatre: {{ screening.hall?.theatre?.name || "N/A" }}
+									Theatre: {{ screening.hall.theatre.name || "N/A" }}
 								</p>
 								<p>
 									<i class="pi pi-th-large mr-2"></i>
-									Hall: {{ screening.hall?.name || "N/A" }}
+									Hall: {{ screening.hall.name || "N/A" }}
 								</p>
 								<p *ngIf="screening.audioLanguage?.name">
 									<i class="pi pi-volume-up mr-2"></i>
@@ -231,7 +229,7 @@
 
 			<!-- Self-contained Seat Selection Component -->
 			<app-seat-selection
-				[screening]="selectedScreening"
+				[screeningId]="selectedScreening.id"
 				[sessionId]="sessionId"
 			></app-seat-selection>
 		</div>

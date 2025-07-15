@@ -361,17 +361,6 @@ export const EXECUTIVEPRODUCERSIDEBARITEMS = [
 // Counter Staff Sidebar Menu - Basic operations
 export const COUNTERSTAFFSIDEBARITEMS = [
 	{
-		label: 'Dashboard',
-		items: [
-			{
-				label: "Today's Overview",
-				icon: 'pi pi-fw pi-chart-bar',
-				routerLink: ['/counter-staff'],
-				roles: [USERROLESENUM.COUNTER_STAFF],
-			},
-		],
-	},
-	{
 		label: 'Ticket Operations',
 		items: [
 			{
@@ -384,57 +373,6 @@ export const COUNTERSTAFFSIDEBARITEMS = [
 				label: 'Check Bookings',
 				icon: 'pi pi-fw pi-search',
 				routerLink: ['/counter-staff/check-bookings'],
-				roles: [USERROLESENUM.COUNTER_STAFF],
-			},
-			{
-				label: 'Print Tickets',
-				icon: 'pi pi-fw pi-print',
-				routerLink: ['/counter-staff/print-tickets'],
-				roles: [USERROLESENUM.COUNTER_STAFF],
-			},
-		],
-	},
-	{
-		label: 'Customer Service',
-		items: [
-			{
-				label: 'Refunds & Cancellations',
-				icon: 'pi pi-fw pi-undo',
-				routerLink: ['/counter-staff/refunds'],
-				roles: [USERROLESENUM.COUNTER_STAFF],
-			},
-			{
-				label: 'Customer Support',
-				icon: 'pi pi-fw pi-question-circle',
-				routerLink: ['/counter-staff/support'],
-				roles: [USERROLESENUM.COUNTER_STAFF],
-			},
-		],
-	},
-	{
-		label: 'Daily Operations',
-		items: [
-			{
-				label: 'Current Shows',
-				icon: 'pi pi-fw pi-calendar',
-				routerLink: ['/counter-staff/current-shows'],
-				roles: [USERROLESENUM.COUNTER_STAFF],
-			},
-			{
-				label: 'Cash Register',
-				icon: 'pi pi-fw pi-calculator',
-				routerLink: ['/counter-staff/cash-register'],
-				roles: [USERROLESENUM.COUNTER_STAFF],
-			},
-		],
-	},
-	{
-		label: 'Profile',
-		items: [
-			{
-				label: 'My Profile',
-				icon: 'pi pi-fw pi-user',
-				routerLink: ['/counter-staff/profile'],
 				roles: [USERROLESENUM.COUNTER_STAFF],
 			},
 		],

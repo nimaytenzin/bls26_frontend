@@ -110,7 +110,7 @@
 									[src]="
 										getMediaUrl(getFirstPortraitImage(screening.movie!).uri)
 									"
-									[alt]="screening.movie?.name"
+									[alt]="screening.movie.name"
 									class="w-16 h-24 object-cover rounded-lg shadow-sm"
 								/>
 								<ng-template #moviePlaceholder>
@@ -126,10 +126,10 @@
 							<div class="flex-1">
 								<div class="flex justify-between items-start mb-2">
 									<h3 class="text-lg font-semibold text-gray-900">
-										{{ screening.movie?.name }}
+										{{ screening.movie.name }}
 									</h3>
 									<p-tag
-										[value]="screening.movie?.durationMin + ' min'"
+										[value]="screening.movie.durationMin + ' min'"
 										severity="info"
 									></p-tag>
 								</div>
@@ -140,11 +140,11 @@
 									<div class="space-y-2">
 										<div class="flex items-center gap-2">
 											<i class="pi pi-building text-blue-600"></i>
-											<span>{{ screening.hall?.theatre?.name }}</span>
+											<span>{{ screening.hall.theatre.name }}</span>
 										</div>
 										<div class="flex items-center gap-2">
 											<i class="pi pi-home text-blue-600"></i>
-											<span>{{ screening.hall?.name }}</span>
+											<span>{{ screening.hall.name }}</span>
 										</div>
 									</div>
 									<div class="space-y-2">
@@ -244,7 +244,7 @@
 							[src]="
 								getMediaUrl(getFirstPortraitImage(selectedScreening.movie!).uri)
 							"
-							[alt]="selectedScreening.movie?.name"
+							[alt]="selectedScreening.movie.name"
 							class="w-12 h-16 object-cover rounded shadow-sm"
 						/>
 						<ng-template #moviePlaceholder>
@@ -256,11 +256,11 @@
 						</ng-template>
 						<div>
 							<h3 class="font-semibold text-gray-900">
-								{{ selectedScreening.movie?.name }}
+								{{ selectedScreening.movie.name }}
 							</h3>
 							<p class="text-sm text-gray-600">
-								{{ selectedScreening.hall?.theatre?.name }} -
-								{{ selectedScreening.hall?.name }}
+								{{ selectedScreening.hall.theatre.name }} -
+								{{ selectedScreening.hall.name }}
 							</p>
 							<p class="text-sm text-gray-600">
 								{{ formatDate(selectedScreening.date) }} at
@@ -271,12 +271,12 @@
 				</div>
 
 				<!-- Seat Selection Component -->
-				<app-admin-seat-selection
+				<!-- <app-admin-seat-selection
 					*ngIf="selectedScreening"
 					[screeningId]="selectedScreening.id"
 					(seatsSelected)="onSeatsSelected($event)"
 					(totalAmountChange)="onTotalAmountChange($event)"
-				></app-admin-seat-selection>
+				></app-admin-seat-selection> -->
 
 				<!-- Empty State -->
 				<div *ngIf="!selectedScreening" class="text-center py-16">
@@ -550,7 +550,7 @@
 											getFirstPortraitImage(selectedScreening.movie!).uri
 										)
 									"
-									[alt]="selectedScreening.movie?.name"
+									[alt]="selectedScreening.movie.name"
 									class="w-16 h-24 object-cover rounded-lg shadow-sm"
 								/>
 								<ng-template #moviePlaceholder>
@@ -562,19 +562,19 @@
 								</ng-template>
 								<div>
 									<h4 class="text-lg font-semibold text-gray-900">
-										{{ selectedScreening.movie?.name }}
+										{{ selectedScreening.movie.name }}
 									</h4>
 									<p class="text-sm text-gray-600 mb-2">
-										{{ selectedScreening.movie?.durationMin }} min
+										{{ selectedScreening.movie.durationMin }} min
 									</p>
 									<div class="space-y-1 text-sm text-gray-600">
 										<p>
 											<i class="pi pi-building mr-2"></i>
-											{{ selectedScreening.hall?.theatre?.name }}
+											{{ selectedScreening.hall.theatre.name }}
 										</p>
 										<p>
 											<i class="pi pi-home mr-2"></i>
-											{{ selectedScreening.hall?.name }}
+											{{ selectedScreening.hall.name }}
 										</p>
 										<p>
 											<i class="pi pi-calendar mr-2"></i>

@@ -93,13 +93,51 @@
 		<div *ngIf="searchPerformed">
 			<!-- Results Header -->
 			<div class="mb-4">
-				<h3 class="text-lg font-semibold text-gray-900">
-					Search Results
-					<span class="text-sm font-normal text-gray-600 ml-2">
-						({{ bookings.length }} booking{{ bookings.length !== 1 ? "s" : "" }}
-						found)
+				<div class="flex justify-between items-start mb-2">
+					<h3 class="text-lg font-semibold text-gray-900">
+						Search Results
+						<span class="text-sm font-normal text-gray-600 ml-2">
+							({{ filteredBookings.length }} of {{ bookings.length }} booking{{
+								bookings.length !== 1 ? "s" : ""
+							}}
+							{{
+								filteredBookings.length !== bookings.length ? "shown" : "found"
+							}})
+						</span>
+					</h3>
+
+					<!-- Filter Controls -->
+					<div *ngIf="bookings.length > 0" class="flex items-center space-x-3">
+						<label class="text-sm font-medium text-gray-700"
+							>Filter by screening:</label
+						>
+						<select
+							[(ngModel)]="screeningStatusFilter"
+							(ngModelChange)="onFilterChange()"
+							class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						>
+							<option value="all">All Screenings</option>
+							<option value="valid">Valid Only</option>
+							<option value="expired">Expired Only</option>
+						</select>
+					</div>
+				</div>
+
+				<!-- Screening Status Summary -->
+				<div *ngIf="bookings.length > 0" class="flex space-x-4 text-sm">
+					<span class="flex items-center">
+						<i class="pi pi-check-circle text-green-500 mr-1"></i>
+						<span class="text-green-700"
+							>{{ getValidBookingsCount() }} Valid</span
+						>
 					</span>
-				</h3>
+					<span class="flex items-center">
+						<i class="pi pi-exclamation-triangle text-red-500 mr-1"></i>
+						<span class="text-red-700"
+							>{{ getExpiredBookingsCount() }} Expired</span
+						>
+					</span>
+				</div>
 			</div>
 
 			<!-- No Results -->
@@ -116,14 +154,31 @@
 				</p>
 			</div>
 
+			<!-- No Filtered Results -->
+			<div
+				*ngIf="bookings.length > 0 && filteredBookings.length === 0 && !loading"
+				class="text-center py-12 bg-white rounded-lg border border-gray-200"
+			>
+				<i class="pi pi-filter text-gray-400 text-4xl mb-4"></i>
+				<h3 class="text-lg font-medium text-gray-900 mb-2">
+					No
+					{{ screeningStatusFilter === "valid" ? "Valid" : "Expired" }} Bookings
+				</h3>
+				<p class="text-gray-600">
+					No
+					{{ screeningStatusFilter === "valid" ? "valid" : "expired" }}
+					screenings found in the search results.
+				</p>
+			</div>
+
 			<!-- Bookings List -->
-			<div *ngIf="bookings.length > 0" class="space-y-4">
+			<div *ngIf="filteredBookings.length > 0" class="space-y-4">
 				<div
-					*ngFor="let booking of bookings"
+					*ngFor="let booking of filteredBookings"
 					class="bg-white rounded-lg border border-gray-200 shadow-sm p-6"
 				>
 					<div class="flex justify-between items-start mb-4">
-						<div>
+						<div class="flex-1">
 							<h4 class="text-lg font-semibold text-gray-900 mb-1">
 								{{ booking.screening?.movie?.name }}
 							</h4>
@@ -131,12 +186,22 @@
 								Booking ID: {{ booking.uuid }}
 							</p>
 						</div>
-						<span
-							class="px-3 py-1 rounded-full text-sm font-medium"
-							[class]="getStatusClass(booking.bookingStatus)"
-						>
-							{{ booking.bookingStatus }}
-						</span>
+						<div class="flex space-x-2">
+							<!-- Screening Status Badge -->
+							<span
+								class="px-3 py-1 rounded-full text-sm font-medium"
+								[class]="getScreeningStatusClass(booking)"
+							>
+								{{ getScreeningStatusText(booking) }}
+							</span>
+							<!-- Booking Status Badge -->
+							<span
+								class="px-3 py-1 rounded-full text-sm font-medium"
+								[class]="getStatusClass(booking.bookingStatus)"
+							>
+								{{ booking.bookingStatus }}
+							</span>
+						</div>
 					</div>
 
 					<div
@@ -165,8 +230,23 @@
 
 						<!-- Screening Information -->
 						<div>
-							<h5 class="text-sm font-medium text-gray-700 mb-2">
+							<h5
+								class="text-sm font-medium text-gray-700 mb-2 flex items-center"
+							>
 								Screening Details
+								<i
+									class="ml-2 text-xs"
+									[class]="
+										isScreeningExpired(booking)
+											? 'pi pi-exclamation-triangle text-red-500'
+											: 'pi pi-check-circle text-green-500'
+									"
+									[title]="
+										isScreeningExpired(booking)
+											? 'Screening has expired'
+											: 'Screening is still valid'
+									"
+								></i>
 							</h5>
 							<div class="text-sm text-gray-600 space-y-1">
 								<p>
@@ -177,6 +257,12 @@
 									<i class="pi pi-clock mr-2"></i>
 									{{ booking.screening?.startTime }} -
 									{{ booking.screening?.endTime }}
+									<span
+										class="ml-2 px-2 py-1 text-xs rounded-full"
+										[class]="getScreeningStatusClass(booking)"
+									>
+										{{ getScreeningStatusText(booking) }}
+									</span>
 								</p>
 								<p>
 									<i class="pi pi-building mr-2"></i>
@@ -205,7 +291,7 @@
 								</p>
 								<p>
 									<i class="pi pi-calendar-plus mr-2"></i>
-									Booked: {{ booking.createdAt | date : "short" }}
+									Booked: {{ booking.createdAt | date : "medium" }}
 								</p>
 							</div>
 						</div>
@@ -215,10 +301,11 @@
 					<div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
 						<button
 							type="button"
-							class="px-4 py-2 text-green-600 hover:text-green-700 text-sm font-medium"
+							class="px-4 py-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+							(click)="viewTicket(booking)"
 						>
-							<i class="pi pi-print mr-1"></i>
-							Print Ticket
+							<i class="pi pi-eye mr-1"></i>
+							View Ticket
 						</button>
 					</div>
 				</div>

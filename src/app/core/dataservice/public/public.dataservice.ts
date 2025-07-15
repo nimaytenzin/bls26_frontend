@@ -11,7 +11,7 @@ import {
 	CustomerBookingDto,
 	CreateBookingResponse,
 	BookedSeatDto,
-	OccupiedSeatResponse,
+	SessionSeatOccupancyResponse,
 	SeatSelectionDto,
 	SeatSelectionResponse,
 } from '../booking/booking.interface';
@@ -123,9 +123,11 @@ export class PublicDataService {
 	 * Get all occupied seats for a screening (CONFIRMED + active PENDING)
 	 * Used when user enters screening page to render seat map
 	 */
-	getOccupiedSeats(screeningId: number): Observable<OccupiedSeatResponse[]> {
+	getOccupiedSeats(
+		screeningId: number
+	): Observable<SessionSeatOccupancyResponse[]> {
 		return this.http
-			.get<OccupiedSeatResponse[]>(
+			.get<SessionSeatOccupancyResponse[]>(
 				`${BASEAPI_URL}/booking/screening/${screeningId}/occupied-seats`
 			)
 			.pipe(

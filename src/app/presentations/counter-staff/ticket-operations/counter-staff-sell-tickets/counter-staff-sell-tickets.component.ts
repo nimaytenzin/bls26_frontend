@@ -6,7 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 import { MessageService } from 'primeng/api';
 
 import { PrimeNgModules } from '../../../../primeng.modules';
-import { SeatSelectionComponent } from '../../../../shared/components/seat-selection';
+import { SeatSelectionComponent } from '../../../shared/components/seat-selection';
 import { ScreeningDataService } from '../../../../core/dataservice/screening/screening.dataservice';
 import { MovieApiDataService } from '../../../../core/dataservice/movie/movie-api.dataservice';
 import { SessionService } from '../../../../core/dataservice/session.service';

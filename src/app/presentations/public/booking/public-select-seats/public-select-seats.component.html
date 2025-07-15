@@ -1,0 +1,262 @@
+<div class="min-h-screen w-full bg-gray-900">
+	<div class="container mx-auto px-4 py-8">
+		<!-- Loading State -->
+		<div *ngIf="loading" class="flex items-center justify-center min-h-[60vh]">
+			<div class="p-6 rounded-lg bg-gray-800 text-white text-center">
+				<i class="pi pi-spin pi-spinner text-4xl mb-4"></i>
+				<p>Loading seat layout...</p>
+			</div>
+		</div>
+
+		<!-- Error State -->
+		<div *ngIf="error" class="flex items-center justify-center min-h-[60vh]">
+			<div class="p-6 rounded-lg bg-red-800 text-white text-center max-w-md">
+				<i class="pi pi-exclamation-triangle text-4xl mb-4 text-red-400"></i>
+				<p class="mb-4">{{ error }}</p>
+				<button
+					pButton
+					label="Go Back"
+					(click)="goBack()"
+					class="p-button-outlined p-button-danger"
+				></button>
+			</div>
+		</div>
+
+		<!-- Main Content -->
+
+		<div *ngIf="!loading && !error && movie && screening">
+			<!-- Sticky Header -->
+			<div class="sticky top-0 z-20 mb-6">
+				<div
+					class="bg-gray-800 rounded-lg p-4 text-white shadow-lg border-b border-gray-700"
+				>
+					<div class="flex items-center justify-between">
+						<div>
+							<h3 class="text-lg font-semibold text-white mb-1">
+								{{ movie.name }}
+							</h3>
+							<p class="text-sm text-gray-300">
+								<strong>{{ hall?.theatre?.name }}</strong> - {{ hall?.name }} |
+								{{ screening.date | date : "MMM d, y" }} at
+								{{ formatTime(screening.startTime) }}
+							</p>
+						</div>
+						<button
+							pButton
+							icon="pi pi-arrow-left"
+							label="Back"
+							(click)="goBack()"
+							class="p-button-outlined p-button-secondary p-button-sm"
+						></button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Main Layout: Single Column for Seats -->
+			<div class="pb-32">
+				<!-- Add bottom padding for floating panel -->
+				<!-- Seat Layout - Full width -->
+				<div class="w-full">
+					<div class="bg-gray-800 rounded-lg p-6">
+						<div class="overflow-x-auto">
+							<div class="min-w-full flex flex-col items-center justify-center">
+								<!-- Legend -->
+								<div class="flex flex-wrap justify-center gap-4 mb-8 text-sm">
+									<!-- Status Legend -->
+									<div class="flex items-center space-x-2">
+										<div
+											class="w-10 h-10 rounded-lg"
+											[ngStyle]="getSelectedLegendStyles()"
+										></div>
+										<span class="text-white">Selected</span>
+									</div>
+									<div class="flex items-center space-x-2">
+										<div
+											class="w-10 h-10 rounded-lg"
+											[ngStyle]="getOccupiedLegendStyles()"
+										></div>
+										<span class="text-white">Occupied</span>
+									</div>
+
+									<!-- Seat Categories -->
+									<div
+										*ngFor="let category of seatCategories"
+										class="flex items-center space-x-2"
+									>
+										<div
+											class="w-10 h-10 rounded-lg"
+											[ngStyle]="
+												getCategoryLegendStyles(category.baseColorHexCode)
+											"
+										></div>
+										<span class="text-white">{{ category.name }}</span>
+									</div>
+								</div>
+
+								<!-- Seat Rows -->
+								<div>
+									<div
+										*ngFor="let rowIndex of getRows()"
+										class="flex items-center"
+									>
+										<!-- Row Label -->
+										<div
+											class="w-14 h-14 flex items-center justify-center text-white font-bold bg-gray-800 sticky left-0 z-10"
+										>
+											{{ getRowLabel(rowIndex) }}
+										</div>
+
+										<!-- Seats -->
+										<div class="flex ml-2">
+											<div
+												*ngFor="let colIndex of getColumns()"
+												class="w-14 h-14 p-1 rounded-t"
+											>
+												<div
+													*ngIf="
+														getSeatAtPosition(rowIndex, colIndex) as seat;
+														else emptySeat
+													"
+													class="w-full h-full rounded-lg cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-bold"
+													[ngStyle]="
+														getSeatStyles(
+															seat.category?.baseColorHexCode!,
+															seat
+														)
+													"
+													(click)="onSeatClick(seat)"
+													[title]="
+														seat.seatNumber + ' - ' + formatCurrency(seat.price)
+													"
+												>
+													<span class="text-white">{{ seat.seatNumber }}</span>
+												</div>
+												<ng-template #emptySeat>
+													<div class="w-full h-full"></div>
+												</ng-template>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Screen -->
+								<div class="flex items-center my-8">
+									<div class="w-14 h-14"></div>
+									<!-- Empty space for row label -->
+									<div class="flex ml-2">
+										<div
+											*ngFor="let colIndex of getColumns()"
+											class="w-14 h-14"
+										>
+											<div
+												*ngIf="
+													hall &&
+													colIndex >= hall.screenStart - 1 &&
+													colIndex < hall.screenStart - 1 + hall.screenSpan
+												"
+												class="w-full h-full border-b-[0.4rem] border-white flex items-center justify-center"
+												[class.rounded-l-lg]="colIndex === hall.screenStart - 1"
+												[class.rounded-r-lg]="
+													colIndex ===
+													hall.screenStart - 1 + hall.screenSpan - 1
+												"
+											>
+												<span
+													*ngIf="colIndex === getScreenCenter()"
+													class="text-white text-xl font-bold"
+												>
+													Screen
+												</span>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Floating Booking Summary - Always visible at bottom -->
+					<div
+						*ngIf="!loading && !error && movie && screening"
+						class="fixed bottom-0 left-0 right-0 z-30 bg-gray-900 border-t border-gray-700 shadow-2xl"
+					>
+						<div class="container mx-auto px-4 py-4">
+							<!-- Simple Summary View -->
+							<div class="flex items-center justify-between">
+								<div class="flex items-center gap-4">
+									<div class="flex items-center gap-2">
+										<!-- Display individual seat numbers when seats are selected -->
+										<div
+											*ngIf="selectedSeats.length > 0"
+											class="flex items-center gap-2 flex-wrap"
+										>
+											<div
+												class="w-14 h-14 p-1 rounded-t flex items-center justify-center"
+												*ngFor="let seat of selectedSeats"
+												[ngStyle]="
+													getSeatStylesForFloatingBar(
+														seat.category?.baseColorHexCode!,
+														seat
+													)
+												"
+												[title]="
+													seat.seatNumber + ' - ' + formatCurrency(seat.price)
+												"
+											>
+												{{ seat.seatNumber }}
+											</div>
+										</div>
+										<span
+											*ngIf="selectedSeats.length === 0"
+											class="text-gray-400 text-sm"
+										>
+											No seats selected
+										</span>
+									</div>
+									<div *ngIf="selectedSeats.length > 0" class="text-right">
+										<div class="text-white font-bold text-lg">
+											{{ formatCurrency(getTotalAmount()) }}
+										</div>
+										<div class="text-gray-400 text-xs">Total Amount</div>
+									</div>
+								</div>
+
+								<div class="flex items-center gap-3">
+									<button
+										pButton
+										[label]="
+											selectedSeats.length === 0
+												? 'Select Seats'
+												: 'Continue to Payment'
+										"
+										[icon]="
+											selectedSeats.length === 0
+												? 'pi pi-info-circle'
+												: 'pi pi-credit-card'
+										"
+										iconPos="right"
+										(click)="
+											selectedSeats.length === 0 ? null : processPayment()
+										"
+										[disabled]="selectedSeats.length === 0"
+										class="p-button-lg"
+										[class]="
+											selectedSeats.length === 0
+												? 'p-button-secondary'
+												: 'p-button-success'
+										"
+									></button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Toast Messages -->
+			<p-toast></p-toast>
+		</div>
+	</div>
+</div>
+
+<p-confirmdialog />

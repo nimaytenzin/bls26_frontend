@@ -1,12 +1,12 @@
 import { Routes } from '@angular/router';
 import { PublicHomeComponent } from './public-home/public-home.component';
-import { PublicSelectMovieScheduleComponent } from './public-select-movie-schedule/public-select-movie-schedule.component';
-import { PublicSelectSeatsComponent } from './public-select-seats/public-select-seats.component';
-import { PublicLayoutComponentComponent } from './public-layout-component/public-layout-component.component';
-import { PublicBookingConfirmationComponent } from './public-booking-confirmation/public-booking-confirmation.component';
-import { PaymentComponent } from './payment/payment.component';
-import { BestSeatComponent } from './best-seat/best-seat.component';
-import { PublicEticketComponent } from './public-eticket/public-eticket.component';
+import { PublicSelectSeatsComponent } from './booking/public-select-seats/public-select-seats.component';
+import { PublicLayoutComponentComponent } from './layout/public-layout-component/public-layout-component.component';
+import { PaymentComponent } from './booking/payment/payment.component';
+import { PublicEticketComponent } from './booking/public-eticket/public-eticket.component';
+import { PublicMoviesComponent } from './public-movies/public-movies.component';
+import { PublicHowToGuideComponent } from './public-how-to-guide/public-how-to-guide.component';
+import { PublicSelectMovieScheduleComponent } from './booking/public-select-movie-schedule/public-select-movie-schedule.component';
 
 export const publicRoutes: Routes = [
 	{
@@ -15,6 +15,14 @@ export const publicRoutes: Routes = [
 		children: [
 			{ path: '', component: PublicHomeComponent },
 			{
+				path: 'movies',
+				component: PublicMoviesComponent,
+			},
+			{
+				path: 'guide',
+				component: PublicHowToGuideComponent,
+			},
+			{
 				path: 'select-schedule/:id',
 				component: PublicSelectMovieScheduleComponent,
 			},
@@ -22,19 +30,12 @@ export const publicRoutes: Routes = [
 				path: 'select-seats/:id',
 				component: PublicSelectSeatsComponent,
 			},
+
 			{
 				path: 'payment',
 				component: PaymentComponent,
 			},
 
-			{
-				path: 'booking-confirmation',
-				component: PublicBookingConfirmationComponent,
-			},
-			{
-				path: 'best-seat-layout',
-				component: BestSeatComponent,
-			},
 			// Legacy routes for backward compatibility
 			{
 				path: 'movie/schedule/:movieId',

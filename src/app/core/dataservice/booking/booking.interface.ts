@@ -111,7 +111,7 @@ export interface BookingListResponse {
 }
 
 // Session-based Seat Selection Interfaces
-export interface OccupiedSeatResponse {
+export interface SessionSeatOccupancyResponse {
 	occupiedSeats: BookingSeat[]; // Confirmed bookings and other sessions' selections
 	sessionSeats: BookingSeat[]; // Current session's selected seats
 }
@@ -157,7 +157,7 @@ export interface SeatConflictResponse {
 export interface SessionInitResponse {
 	sessionId: string;
 	screeningId: number;
-	occupiedSeats: OccupiedSeatResponse;
+	occupiedSeats: SessionSeatOccupancyResponse;
 	timeoutSeconds: number;
 	message: string;
 }

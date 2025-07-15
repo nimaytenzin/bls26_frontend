@@ -207,12 +207,30 @@ export class PublicHomeComponent implements OnInit, OnDestroy {
 		return `${BASEAPI_URL}${uri}`;
 	}
 
-	getMovieImage(movie: Movie): string {
+	getMovieLandscapeImage(movie: Movie): string {
 		// Get the first landscape image from media array, fallback to any image, or default
 		const landscapeImage = this.getFirstLandscapePosterImage(movie);
 
 		if (landscapeImage) {
 			return this.getMediaUrl(landscapeImage.uri);
+		}
+
+		// Fallback to first image
+		const firstImage = movie.media?.find((m) => m.type === 'IMAGE');
+		if (firstImage) {
+			return this.getMediaUrl(firstImage.uri);
+		}
+
+		// Default fallback image
+		return 'assets/images/default-movie-poster.jpg';
+	}
+
+	getMoviePotraitImage(movie: Movie): string {
+		// Get the first landscape image from media array, fallback to any image, or default
+		const portaitImage = this.getFirstPortraitImage(movie);
+
+		if (portaitImage) {
+			return this.getMediaUrl(portaitImage.uri);
 		}
 
 		// Fallback to first image

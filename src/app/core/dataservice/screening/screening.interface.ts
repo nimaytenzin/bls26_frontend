@@ -14,8 +14,8 @@ export interface Screening {
 	subtitleLanguageId?: number;
 	createdAt?: Date;
 	updatedAt?: Date;
-	movie?: Movie;
-	hall?: Hall;
+	movie: Movie;
+	hall: Hall;
 	audioLanguage?: Language;
 	subtitleLanguage?: Language;
 	screeningSeatPrices?: ScreeningSeatPrice[];

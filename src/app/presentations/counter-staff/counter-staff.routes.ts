@@ -12,9 +12,15 @@ export const counterStaffRoutes: Routes = [
 		// canActivate: [AuthGuard],
 		// data: { roles: ['COUNTER_STAFF'] },
 		children: [
+			// {
+			// 	path: '',
+			// 	component: CounterStaffDashboardComponent,
+			// },
 			{
 				path: '',
-				component: CounterStaffDashboardComponent,
+
+				redirectTo: 'sell-tickets',
+				pathMatch: 'full',
 			},
 			{
 				path: 'sell-tickets',

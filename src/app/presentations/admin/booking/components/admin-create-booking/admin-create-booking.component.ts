@@ -51,13 +51,7 @@ interface BookingStep {
 	templateUrl: './admin-create-booking.component.html',
 	styleUrls: ['./admin-create-booking.component.css'],
 	standalone: true,
-	imports: [
-		CommonModule,
-		ReactiveFormsModule,
-		FormsModule,
-		PrimeNgModules,
-		AdminSeatSelectionComponent,
-	],
+	imports: [CommonModule, ReactiveFormsModule, FormsModule, PrimeNgModules],
 	providers: [MessageService, ConfirmationService],
 })
 export class AdminCreateBookingComponent implements OnInit, OnDestroy {
