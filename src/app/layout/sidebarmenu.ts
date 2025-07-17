@@ -83,12 +83,12 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin/master-transactions'],
 				roles: [USERROLESENUM.ADMIN],
 			},
-			{
-				label: 'Payouts',
-				icon: 'pi pi-fw pi-credit-card',
-				routerLink: ['/admin/master-payout-settings'],
-				roles: [USERROLESENUM.ADMIN],
-			},
+			// {
+			// 	label: 'Payouts',
+			// 	icon: 'pi pi-fw pi-credit-card',
+			// 	routerLink: ['/admin/master-payout-settings'],
+			// 	roles: [USERROLESENUM.ADMIN],
+			// },
 		],
 	},
 	{
@@ -321,6 +321,12 @@ export const COUNTERSTAFFSIDEBARITEMS = [
 				label: 'Check Bookings',
 				icon: 'pi pi-fw pi-search',
 				routerLink: ['/counter-staff/check-bookings'],
+				roles: [USERROLESENUM.COUNTER_STAFF],
+			},
+			{
+				label: 'Scan Ticket',
+				icon: 'pi pi-fw pi-barcode',
+				routerLink: ['/counter-staff/scan-ticket'],
 				roles: [USERROLESENUM.COUNTER_STAFF],
 			},
 		],

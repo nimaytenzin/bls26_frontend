@@ -35,6 +35,7 @@ export const counterStaffRoutes: Routes = [
 				path: 'scan-ticket',
 				loadComponent: () => CounterStaffScanTicketComponent,
 			},
+
 			//   {
 			//     path: 'check-bookings',
 			//     loadComponent: () => import('./check-bookings/counter-staff-check-bookings.component').then(m => m.CounterStaffCheckBookingsComponent),

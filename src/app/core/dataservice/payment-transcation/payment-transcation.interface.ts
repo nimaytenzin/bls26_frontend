@@ -36,3 +36,13 @@ export interface PaymentTranscation {
 	updatedAt: Date;
 	deletedAt: Date; // For soft delete
 }
+
+export interface PaymentTransactionStatistics {
+	date: string;
+	totalTransactions: number;
+	totalAmount: number;
+	totalOnline: number;
+	totalOnlineAmount: number;
+	totalCounter: number;
+	totalCounterAmount: number;
+}

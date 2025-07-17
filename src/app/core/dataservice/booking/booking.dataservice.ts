@@ -350,4 +350,13 @@ export class BookingDataService {
 				})
 			);
 	}
+
+	scanTicket(uuid: string): Observable<Booking> {
+		return this.http.get<Booking>(`${this.apiUrl}/scan/ticket/${uuid}`).pipe(
+			catchError((error) => {
+				console.error(`Error scanning ticket`, error);
+				return throwError(() => error);
+			})
+		);
+	}
 }

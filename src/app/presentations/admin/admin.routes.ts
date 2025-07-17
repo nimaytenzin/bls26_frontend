@@ -13,7 +13,7 @@ import { AdminCreateBookingComponent } from './booking/components/admin-create-b
 import { AdminUserManagementComponent } from './user-mangement/admin-user-management/admin-user-management.component';
 
 import { AdminMasterPayoutSettingsComponent } from './payouts/admin-master-payout-settings/admin-master-payout-settings.component';
-import { AdminMasterTranscationsComponent } from './transactions/admin-master-transcations/admin-master-transcations.component';
+import { AdminMasterTransactionComponent } from './transactions/admin-master-transaction/admin-master-transaction.component';
 
 export const adminRoutes: Routes = [
 	{
@@ -64,7 +64,7 @@ export const adminRoutes: Routes = [
 			},
 			{
 				path: 'master-transactions',
-				component: AdminMasterTranscationsComponent,
+				component: AdminMasterTransactionComponent,
 			},
 
 			// User Management Routes
