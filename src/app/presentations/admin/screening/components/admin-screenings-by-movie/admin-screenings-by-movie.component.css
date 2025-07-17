@@ -1,0 +1,72 @@
+/* Screenings by Movie Component Styles */
+
+/* Tab View Customization */
+:host ::ng-deep .screenings-tabs {
+	@apply shadow-none border-0;
+}
+
+:host ::ng-deep .screenings-tabs .p-tabview-nav {
+	@apply bg-slate-50 rounded-t-lg border-b border-slate-200;
+}
+
+:host ::ng-deep .screenings-tabs .p-tabview-nav li .p-tabview-nav-link {
+	@apply bg-transparent border-0 text-slate-600 hover:text-slate-800 transition-colors duration-200;
+}
+
+:host ::ng-deep .screenings-tabs .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+	@apply bg-white text-blue-600 border-b-2 border-blue-600 font-medium;
+}
+
+:host ::ng-deep .screenings-tabs .p-tabview-panels {
+	@apply bg-white border-0 rounded-b-lg shadow-none p-0;
+}
+
+/* Table Customizations */
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+	@apply bg-slate-50 text-slate-700 font-medium text-sm border-b border-slate-200;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+	@apply border-b border-slate-100 text-slate-700;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
+	@apply bg-slate-50;
+}
+
+/* Paginator Styling */
+:host ::ng-deep .p-paginator {
+	@apply bg-white border-t border-slate-200 rounded-b-lg;
+}
+
+/* Loading State */
+.screenings-loading {
+	@apply flex items-center justify-center py-12;
+}
+
+/* Calendar Event Styling */
+.calendar-event {
+	@apply rounded-lg p-3 mb-2 border-l-4;
+}
+
+.calendar-event.upcoming {
+	@apply bg-blue-50 border-l-blue-500;
+}
+
+.calendar-event.today {
+	@apply bg-amber-50 border-l-amber-500;
+}
+
+.calendar-event.past {
+	@apply bg-gray-50 border-l-gray-500;
+}
+
+/* Card enhancements */
+.screening-card {
+	@apply transition-all duration-200 hover:shadow-md;
+}
+
+/* Language tags */
+.language-tag {
+	@apply inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium;
+}

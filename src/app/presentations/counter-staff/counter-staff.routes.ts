@@ -4,6 +4,7 @@ import { LayoutComponent } from '../../layout/layout.component';
 import { AuthGuard } from '../../core/guards/auth.guard';
 import { CounterStaffSellTicketsComponent } from './ticket-operations/counter-staff-sell-tickets/counter-staff-sell-tickets.component';
 import { CounterStaffCheckBookingsComponent } from './ticket-operations/counter-staff-check-bookings/counter-staff-check-bookings.component';
+import { CounterStaffScanTicketComponent } from './ticket-operations/counter-staff-scan-ticket/counter-staff-scan-ticket.component';
 
 export const counterStaffRoutes: Routes = [
 	{
@@ -29,6 +30,10 @@ export const counterStaffRoutes: Routes = [
 			{
 				path: 'check-bookings',
 				loadComponent: () => CounterStaffCheckBookingsComponent,
+			},
+			{
+				path: 'scan-ticket',
+				loadComponent: () => CounterStaffScanTicketComponent,
 			},
 			//   {
 			//     path: 'check-bookings',

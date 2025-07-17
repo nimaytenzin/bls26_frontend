@@ -51,6 +51,10 @@ import { generateSeatStyle } from '../../../../core/utility/utility.service';
 import { SeatSelectionDataService } from '../../../../core/dataservice/booking/seat-selection.dataservice';
 import { SeatDataService } from '../../../../core/dataservice/seat/seat.dataservice';
 import { SEATSELECTIONCONFIG_PUBLIC } from '../../../../core/dataservice/config.service';
+import {
+	DeviceInfo,
+	UserAgentService,
+} from '../../../../core/utility/useragent.service';
 
 interface SelectedSeat extends Seat {
 	price: number;
@@ -136,6 +140,9 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 	otpSent = false;
 	countdown = 0;
 
+	//Device Information
+	deviceInfo: DeviceInfo | null = null;
+
 	// Bank options for RMA Payment Gateway
 	banks = [
 		{ name: 'Bank of Bhutan', code: 'BOB', logo: '/assets/banks/bob.png' },
@@ -170,7 +177,8 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 		private bookingService: BookingDataService,
 		private seatSelectionService: SeatSelectionDataService,
 		private seatService: SeatDataService,
-		private confirmationService: ConfirmationService
+		private confirmationService: ConfirmationService,
+		private userAgentService: UserAgentService
 	) {
 		// Initialize forms
 		this.bookingForm = this.fb.group({
@@ -201,6 +209,7 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 		if (this.sessionTimeOutSeconds > 0) {
 			this.startSessionTimeoutTimer();
 		}
+		this.getDeviceInformation();
 
 		console.log('Using session ID:', this.sessionId);
 		console.log('Session timeout:', this.sessionTimeOutSeconds, 'seconds');
@@ -239,6 +248,12 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 
 		// End session when component is destroyed
 		this.sessionService.endSession();
+	}
+
+	getDeviceInformation() {
+		this.userAgentService.getDeviceInfo().then((info) => {
+			this.deviceInfo = info;
+		});
 	}
 
 	private loadScreeningData(): void {
@@ -563,10 +578,10 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 		const seatSelectionDto: SeatSelectionDto = {
 			seatId: seat.id,
 			screeningId: this.screeningId,
-			userMetadata: {
-				userAgent: navigator.userAgent,
-				ipAddress: '', // Will be populated by backend
-			},
+			deviceType: this.deviceInfo?.deviceType || 'unknown',
+			operatingSystem: this.deviceInfo?.operatingSystem || 'unknown',
+			country: this.deviceInfo?.country || 'unknown',
+			city: this.deviceInfo?.city || 'unknown',
 		};
 
 		this.seatSelectionService
@@ -618,10 +633,10 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 		const seatSelectionDto: SeatSelectionDto = {
 			seatId: seat.id,
 			screeningId: this.screeningId,
-			userMetadata: {
-				userAgent: navigator.userAgent,
-				ipAddress: '', // Will be populated by backend
-			},
+			deviceType: this.deviceInfo?.deviceType || 'unknown',
+			operatingSystem: this.deviceInfo?.operatingSystem || 'unknown',
+			country: this.deviceInfo?.country || 'unknown',
+			city: this.deviceInfo?.city || 'unknown',
 		};
 
 		this.seatSelectionService

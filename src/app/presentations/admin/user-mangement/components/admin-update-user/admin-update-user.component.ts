@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+	Component,
+	EventEmitter,
+	Input,
+	OnInit,
+	OnDestroy,
+	Output,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
@@ -19,7 +26,7 @@ import { PrimeNgModules } from '../../../../../primeng.modules';
 	imports: [CommonModule, FormsModule, PrimeNgModules],
 	providers: [MessageService],
 })
-export class AdminUpdateUserComponent implements OnInit {
+export class AdminUpdateUserComponent implements OnInit, OnDestroy {
 	private destroy$ = new Subject<void>();
 
 	@Input() user: User | null = null;
@@ -74,13 +81,49 @@ export class AdminUpdateUserComponent implements OnInit {
 				email: this.user.email || '',
 				phoneNumber: Number(this.user.phoneNumber),
 				role: this.user.role,
-
 				profileImage: this.user.profileImage,
 			};
 		}
 	}
 
-	updateUser() {}
+	updateUser() {
+		if (!this.user || !this.isValidForm()) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Please fill in all required fields',
+			});
+			return;
+		}
+
+		this.loading = true;
+
+		this.userDataService
+			.updateUser(this.user.id, this.userForm)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (response) => {
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: 'User updated successfully',
+					});
+					this.userUpdated.emit();
+					if (this.ref) {
+						this.ref.close(true); // Pass true to indicate success
+					}
+				},
+				error: (error) => {
+					console.error('Error updating user:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: error.error?.message || 'Failed to update user',
+					});
+					this.loading = false;
+				},
+			});
+	}
 
 	onClose() {
 		if (this.ref) {

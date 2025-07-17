@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { BASEAPI_URL } from '../../constants/constants';
@@ -10,7 +10,9 @@ import {
 	UpdateMovieDto,
 	MovieMediaUploadResponse,
 	CreateMovieMediaDto,
+	ScreeningStatusEnum,
 } from './movie.interface';
+import { PaginatedData } from '../../utility/pagination.interface';
 
 @Injectable({
 	providedIn: 'root',
@@ -220,5 +222,132 @@ export class MovieApiDataService {
 			);
 	}
 
-	//ADD ROUTES FOR MOVIE MEDIA UPLOAD AND DELETE
+	// Paginated routes for movie by screening status
+
+	/**
+	 * Get upcoming movies paginated
+	 * @param page - Page number
+	 * @param pageSize - Number of items per page
+	 */
+	getUpcomingMoviesPaginated(
+		page: number = 1,
+		pageSize: number = 10
+	): Observable<PaginatedData<Movie>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('pageSize', pageSize.toString());
+
+		return this.http
+			.get<PaginatedData<Movie>>(`${this.apiUrl}/upcoming/paginated`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching upcoming movies:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get Movies Screening now paginated
+	 * @param page - Page number
+	 * @param pageSize - Number of items per page
+	 */
+	getMoviesScreeningNowPaginated(
+		page: number = 1,
+		pageSize: number = 10
+	): Observable<PaginatedData<Movie>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('pageSize', pageSize.toString());
+
+		return this.http
+			.get<PaginatedData<Movie>>(`${this.apiUrl}/now-showing/paginated`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching movies showing now:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get ended movies paginated
+	 * @param page - Page number
+	 * @param pageSize - Number of items per page
+	 */
+	getEndedMoviesPaginated(
+		page: number = 1,
+		pageSize: number = 10
+	): Observable<PaginatedData<Movie>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('pageSize', pageSize.toString());
+
+		return this.http
+			.get<PaginatedData<Movie>>(`${this.apiUrl}/ended/paginated`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching ended movies:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get cancelled movies paginated
+	 * @param page - Page number
+	 * @param pageSize - Number of items per page
+	 */
+	getCancelledMoviesPaginated(
+		page: number = 1,
+		pageSize: number = 10
+	): Observable<PaginatedData<Movie>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('pageSize', pageSize.toString());
+
+		return this.http
+			.get<PaginatedData<Movie>>(`${this.apiUrl}/cancelled/paginated`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching cancelled movies:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get movies by screening status paginated
+	 * @param status - Screening status (UPCOMING, NOW_SHOWING, ENDED, CANCELLED)
+	 * @param page - Page number
+	 * @param pageSize - Number of items per page
+	 */
+	getMoviesByStatusPaginated(
+		status: ScreeningStatusEnum,
+		page: number = 1,
+		pageSize: number = 10
+	): Observable<PaginatedData<Movie>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('pageSize', pageSize.toString());
+
+		return this.http
+			.get<PaginatedData<Movie>>(`${this.apiUrl}/status/${status}/paginated`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error fetching movies with status ${status}:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
 }

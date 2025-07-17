@@ -176,7 +176,7 @@ export class TheatreDataService {
 		}
 
 		// Otherwise, prepend base API URL
-		return `${BASEAPI_URL}/${imageUrl}`;
+		return `${BASEAPI_URL}${imageUrl}`;
 	}
 
 	/**

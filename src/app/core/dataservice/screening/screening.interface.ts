@@ -2,6 +2,7 @@ import { Movie } from '../movie/movie.interface';
 import { Hall } from '../hall/hall.interface';
 import { Language } from '../language/language.interface';
 import { SeatCategory } from '../seat-category/seat-category.interface';
+import { Booking } from '../booking/booking.interface';
 
 export interface Screening {
 	id: number;
@@ -19,6 +20,7 @@ export interface Screening {
 	audioLanguage?: Language;
 	subtitleLanguage?: Language;
 	screeningSeatPrices?: ScreeningSeatPrice[];
+	bookings?: Booking[];
 }
 
 export interface ScreeningSeatPrice {

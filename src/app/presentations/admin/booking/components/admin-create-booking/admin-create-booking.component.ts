@@ -140,7 +140,7 @@ export class AdminCreateBookingComponent implements OnInit, OnDestroy {
 			email: ['', [Validators.email]],
 			notes: [''],
 			paymentMethod: ['CASH', [Validators.required]],
-			bookingStatus: [BookingStatusEnum.SUCCESS, [Validators.required]],
+			bookingStatus: [BookingStatusEnum.CONFIRMED, [Validators.required]],
 			entryStatus: [EntryStatusEnum.VALID, [Validators.required]],
 		});
 	}
@@ -339,6 +339,7 @@ export class AdminCreateBookingComponent implements OnInit, OnDestroy {
 			entryStatus: formData.entryStatus,
 			notes: formData.notes || undefined,
 			paymentMethod: formData.paymentMethod,
+			bookedBy: 1,
 		};
 
 		console.log('Final booking data to send:', bookingData);

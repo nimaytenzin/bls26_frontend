@@ -8,8 +8,11 @@ import {
 	ApiError,
 	AdminSignupDto,
 	AdminSignupResponse,
+	AdminResetPassword,
+	User,
 } from './auth.interface';
 import { BASEAPI_URL } from '../../constants/constants';
+import { ApiResponse } from '../genre/genre.interface';
 
 @Injectable({
 	providedIn: 'root',
@@ -91,13 +94,35 @@ export class AuthDataService {
 	 * @param resetData - Reset password data
 	 * @returns Observable<any>
 	 */
-	resetPassword(resetData: {
-		token: string;
-		newPassword: string;
-	}): Observable<any> {
+	adminResetPassword(
+		userId: number,
+		resetData: AdminResetPassword
+	): Observable<any> {
 		return this.http
-			.post(`${this.apiUrl}/reset-password`, resetData)
+			.patch(`${this.apiUrl}/admin/reset-password/${userId}`, resetData)
 			.pipe(catchError(this.handleError));
+	}
+
+	/**
+	 * Toggle user login access
+	 */
+	adminToggleLoginAccess(userId: number): Observable<{
+		statusCode: number;
+		message: string;
+	}> {
+		return this.http
+			.patch<
+				ApiResponse<{
+					statusCode: number;
+					message: string;
+				}>
+			>(`${this.apiUrl}/admin/toggle-login-access/${userId}`, {})
+			.pipe(
+				catchError((error) => {
+					console.error('Error toggling login access:', error);
+					return throwError(() => error);
+				})
+			);
 	}
 
 	/**

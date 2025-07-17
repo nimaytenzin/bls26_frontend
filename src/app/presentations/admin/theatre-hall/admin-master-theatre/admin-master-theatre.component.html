@@ -1,99 +1,90 @@
-<!-- Theater Management Interface -->
-<div class="font-inter bg-slate-50 min-h-screen">
+<!-- Admin Master Theatre Component -->
+<div class="min-h-screen bg-slate-50/50 p-4 sm:p-6">
 	<!-- Header Section -->
-	<div
-		class="bg-gradient-to-br rounded-lg from-indigo-500 via-purple-500 to-purple-600 text-white py-8 mb-8"
-	>
-		<div class="max-w-7xl mx-auto px-6">
-			<div class="mb-8">
-				<h1 class="text-4xl font-bold mb-2 flex items-center gap-4">
-					<i class="fas fa-film text-3xl opacity-90"></i>
-					Theater Management
-				</h1>
-				<p class="text-lg opacity-90">
-					Manage theaters and halls across Bhutan
-				</p>
-			</div>
+	<div class="mb-6 sm:mb-8">
+		<div
+			class="bg-white rounded-2xl border border-slate-200/60 overflow-hidden"
+		>
+			<!-- Gradient Header Bar -->
+			<div class="h-1 bg-blue-400"></div>
 
-			<!-- Statistics Cards -->
-			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-				<p-card
-					styleClass="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-0.5"
+			<div class="p-6 sm:p-8">
+				<div
+					class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6"
 				>
-					<div class="flex items-center gap-4">
-						<div
-							class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center text-xl"
+					<!-- Title Section -->
+					<div class="flex-1 space-y-2">
+						<div class="flex items-center gap-3 mb-2">
+							<div
+								class="w-10 h-10 bg-blue-400 rounded-xl flex items-center justify-center"
+							>
+								<i class="pi pi-building text-white text-lg"></i>
+							</div>
+							<h1 class="text-3xl sm:text-4xl font-bold text-slate-800">
+								Theatre & Hall Management
+							</h1>
+						</div>
+						<p
+							class="text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl"
 						>
-							<i class="fas fa-building"></i>
-						</div>
-						<div>
-							<h3 class="text-2xl font-bold mb-1">
-								{{ statistics.totalTheatres }}
-							</h3>
-							<p class="text-sm opacity-90">Active Theaters</p>
-						</div>
+							Manage theatres, halls, and seating configurations across all
+							locations
+						</p>
 					</div>
-				</p-card>
 
-				<p-card
-					styleClass="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-0.5"
-				>
-					<div class="flex items-center gap-4">
-						<div
-							class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center text-xl"
-						>
-							<i class="fas fa-door-open"></i>
-						</div>
-						<div>
-							<h3 class="text-2xl font-bold mb-1">
-								{{ statistics.totalHalls }}
-							</h3>
-							<p class="text-sm opacity-90">Total Halls</p>
-						</div>
+					<!-- Action Buttons -->
+					<div class="flex-shrink-0 flex gap-3">
+						<!-- <p-button
+							label="Add Theatre"
+							icon="pi pi-plus"
+							styleClass="!bg-blue-500 !border-none !text-white !font-semibold !px-6 !py-3 !rounded-xl hover:!shadow-xl !hover:scale-101 !transition-all !duration-200"
+						></p-button> -->
 					</div>
-				</p-card>
-
-				<p-card
-					styleClass="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-0.5"
-				>
-					<div class="flex items-center gap-4">
-						<div
-							class="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center text-xl"
-						>
-							<i class="fas fa-chair"></i>
-						</div>
-						<div>
-							<h3 class="text-2xl font-bold mb-1">
-								{{ statistics.totalSeats }}
-							</h3>
-							<p class="text-sm opacity-90">Total Seats</p>
-						</div>
-					</div>
-				</p-card>
-
-				<p-card
-					styleClass="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-0.5"
-				>
-					<div class="flex items-center gap-4">
-						<div
-							class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center text-xl"
-						>
-							<i class="fas fa-chart-line"></i>
-						</div>
-						<div>
-							<h3 class="text-2xl font-bold mb-1">
-								{{ statistics.averageRating | number : "1.1-1" }}
-							</h3>
-							<p class="text-sm opacity-90">Avg Rating</p>
-						</div>
-					</div>
-				</p-card>
+				</div>
 			</div>
 		</div>
 	</div>
 
-	<!-- Content Area -->
-	<div class="max-w-7xl mx-auto px-6">
-		<app-admin-theatre-listing></app-admin-theatre-listing>
+	<!-- Main Content Area -->
+	<div>
+		<!-- Loading State -->
+		<div
+			*ngIf="loading"
+			class="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-8 sm:p-12"
+		>
+			<div class="flex flex-col items-center justify-center space-y-6">
+				<!-- Animated Background -->
+				<div class="relative">
+					<div
+						class="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-purple-600/10 rounded-full animate-pulse"
+					></div>
+					<p-progressSpinner
+						strokeWidth="3"
+						styleClass="!w-16 !h-16 relative z-10"
+					></p-progressSpinner>
+				</div>
+				<div class="text-center space-y-2">
+					<h3 class="text-xl font-bold text-slate-800">Loading Theatre Data</h3>
+					<p class="text-slate-600">
+						Please wait while we fetch the latest theatre and hall
+						information...
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Tabs Container -->
+		<div
+			*ngIf="!loading"
+			class="bg-white px-6 py-12 rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden"
+		>
+			<app-admin-theatre-listing></app-admin-theatre-listing>
+		</div>
+
+		<!-- Confirmation Dialog -->
+		<p-confirmDialog styleClass="!rounded-2xl"></p-confirmDialog>
+
+		<!-- Toast Messages -->
+		<p-toast></p-toast>
 	</div>
 </div>

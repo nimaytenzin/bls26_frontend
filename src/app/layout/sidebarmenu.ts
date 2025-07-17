@@ -10,40 +10,6 @@ export enum USERROLESENUM {
 	'SUPERADMIN' = 'SUPERADMIN',
 	'MANAGER' = 'MANAGER',
 }
-export const TENANTSIDEBARITEMS = [
-	{
-		label: 'Home',
-		items: [
-			{
-				label: 'Dashboard',
-				icon: 'pi pi-fw pi-home',
-				routerLink: ['/tenant'],
-			},
-			{
-				label: 'Lease',
-				icon: 'pi pi-fw pi-file-o',
-				routerLink: ['/tenant/lease'],
-			},
-			{
-				label: 'Payments',
-				icon: 'pi pi-fw pi-money-bill',
-				routerLink: ['/tenant/payments'],
-			},
-			{
-				label: 'Notifications',
-				icon: 'pi pi-fw pi-bell',
-				routerLink: ['/tenant/notifications'],
-			},
-
-			{
-				label: 'Profile',
-				icon: 'pi pi-fw pi-user',
-				routerLink: ['/tenant/profile'],
-			},
-		],
-	},
-];
-
 // Admin Sidebar Menu - Full system access
 export const ADMINSIDEBARITEMS = [
 	{
@@ -53,12 +19,6 @@ export const ADMINSIDEBARITEMS = [
 				label: 'Overview',
 				icon: 'pi pi-fw pi-chart-bar',
 				routerLink: ['/admin'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'Analytics',
-				icon: 'pi pi-fw pi-chart-line',
-				routerLink: ['/admin/analytics'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 		],
@@ -96,7 +56,7 @@ export const ADMINSIDEBARITEMS = [
 				roles: [USERROLESENUM.ADMIN],
 			},
 			{
-				label: 'Create Booking',
+				label: 'Sell Tickets',
 				icon: 'pi pi-fw pi-plus-circle',
 				routerLink: ['/admin/master-bookings/create'],
 				roles: [USERROLESENUM.ADMIN],
@@ -107,21 +67,9 @@ export const ADMINSIDEBARITEMS = [
 		label: 'User Management',
 		items: [
 			{
-				label: 'All Users',
+				label: 'User Management',
 				icon: 'pi pi-fw pi-users',
 				routerLink: ['/admin/user-management'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'Theatre Managers',
-				icon: 'pi pi-fw pi-user-edit',
-				routerLink: ['/admin/user-management/theatre-staffs'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'Executive Producers',
-				icon: 'pi pi-fw pi-briefcase',
-				routerLink: ['/admin/user-management/producers'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 		],
@@ -130,15 +78,15 @@ export const ADMINSIDEBARITEMS = [
 		label: 'Transactions',
 		items: [
 			{
-				label: 'Accounts',
+				label: 'Transactions',
 				icon: 'pi pi-fw pi-credit-card',
-				routerLink: ['/admin/payment-settings'],
+				routerLink: ['/admin/master-transactions'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 			{
-				label: 'System Settings',
-				icon: 'pi pi-fw pi-cog',
-				routerLink: ['/admin/system-settings'],
+				label: 'Payouts',
+				icon: 'pi pi-fw pi-credit-card',
+				routerLink: ['/admin/master-payout-settings'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 		],

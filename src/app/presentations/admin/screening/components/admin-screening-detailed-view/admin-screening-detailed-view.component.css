@@ -1,0 +1,32 @@
+/* Minimal CSS - Most styling handled by Tailwind classes in template */
+
+/* Custom scrollbar styles (can't be done with Tailwind) */
+.screening-detail-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.screening-detail-container::-webkit-scrollbar-track {
+  @apply bg-slate-100 rounded-full;
+}
+
+.screening-detail-container::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full hover:bg-slate-400;
+}
+
+/* PrimeNG component overrides */
+::ng-deep .p-dialog-content {
+  @apply !p-0;
+}
+
+::ng-deep .p-dialog-header {
+  @apply !bg-white !border-b !border-slate-200 !rounded-t-2xl;
+}
+
+::ng-deep .p-dialog {
+  @apply !rounded-2xl !shadow-2xl;
+}
+
+/* Ensure proper z-index for dialog */
+::ng-deep .p-dialog-mask {
+  @apply !backdrop-blur-sm;
+}

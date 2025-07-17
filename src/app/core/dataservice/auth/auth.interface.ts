@@ -12,6 +12,10 @@ export interface LoginResponse {
 	user: User;
 }
 
+export interface AdminResetPassword {
+	newPassword: string;
+	newPasswordAgain: string;
+}
 export interface User {
 	id: number;
 	email: string;

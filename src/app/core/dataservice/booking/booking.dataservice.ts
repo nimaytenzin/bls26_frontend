@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -13,6 +13,7 @@ import {
 	UpdateBookingDto,
 	UpdateUserDetailsDto,
 } from './booking.interface';
+import { PaginatedData } from '../../utility/pagination.interface';
 
 @Injectable({
 	providedIn: 'root',
@@ -53,6 +54,22 @@ export class BookingDataService {
 	findBookingsByScreeningId(screeningId: number): Observable<Booking[]> {
 		return this.http
 			.get<Booking[]>(`${this.apiUrl}/screening/${screeningId}`)
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching bookings by screening:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get all confirmed bookings by screening ID
+	 */
+	findAllConfirmedBookingsByScreeningId(
+		screeningId: number
+	): Observable<Booking[]> {
+		return this.http
+			.get<Booking[]>(`${this.apiUrl}/screening/${screeningId}/confirmed`)
 			.pipe(
 				catchError((error) => {
 					console.error('Error fetching bookings by screening:', error);
@@ -238,6 +255,97 @@ export class BookingDataService {
 			.pipe(
 				catchError((error) => {
 					console.error('Error searching bookings:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	//PAGINATED ROUTES BY BOOKING STATUS
+
+	/**
+	 * Get movies by screening status paginated
+	 * @param page - Page number
+	 * @param pageSize - Number of items per page
+	 */
+	getConfirmedBookingsPaginated(
+		page: number = 1,
+		pageSize: number = 10
+	): Observable<PaginatedData<Booking>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('pageSize', pageSize.toString());
+
+		return this.http
+			.get<PaginatedData<Booking>>(`${this.apiUrl}/confirmed/paginated`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error fetching confirmed bookings`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get processing bookings paginated
+	 * @param page - Page number
+	 * @param pageSize - Number of items per page
+	 */
+	getUnderProcessingBookingsPaginated(
+		page: number = 1,
+		pageSize: number = 10
+	): Observable<PaginatedData<Booking>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('pageSize', pageSize.toString());
+
+		return this.http
+			.get<PaginatedData<Booking>>(`${this.apiUrl}/under-process/paginated`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error fetching under process bookings`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get failed bookings paginated
+	 * @param page - Page number
+	 * @param pageSize - Number of items per page
+	 */
+	getFailedBookingsPaginated(
+		page: number = 1,
+		pageSize: number = 10
+	): Observable<PaginatedData<Booking>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('pageSize', pageSize.toString());
+
+		return this.http
+			.get<PaginatedData<Booking>>(`${this.apiUrl}/failed/paginated`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error fetching failed bookings`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	resendEticket(bookingId: number): Observable<{ success: boolean }> {
+		return this.http
+			.post<{ success: boolean }>(
+				`${this.apiUrl}/send-eticket/${bookingId}`,
+				{}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(`Error sending eticket`, error);
 					return throwError(() => error);
 				})
 			);

@@ -1,0 +1,590 @@
+<!-- Header with Movie Info -->
+<div class="flex gap-6 mb-8">
+	<!-- Movie Poster -->
+	<div class="flex-shrink-0">
+		<img
+			*ngIf="getFirstPortraitImage(movie)"
+			[src]="getMediaUrl(getFirstPortraitImage(movie).uri)"
+			[alt]="movie.name"
+			class="w-32 h-48 object-cover rounded-lg shadow-lg"
+			(error)="onImageError($event)"
+		/>
+		<div
+			*ngIf="!getFirstPortraitImage(movie)"
+			class="w-32 h-48 bg-slate-200 rounded-lg flex items-center justify-center"
+		>
+			<i class="pi pi-image text-slate-400 text-3xl"></i>
+		</div>
+	</div>
+
+	<!-- Movie & Screening Details -->
+	<div class="flex-1">
+		<h1 class="text-2xl font-bold text-slate-800 mb-2">
+			{{ movie.name }}
+		</h1>
+
+		<div class="flex items-center gap-4 text-slate-600 mb-4">
+			<span class="flex items-center gap-1">
+				<i class="pi pi-clock text-sm"></i>
+				{{ movie.durationMin }}min
+			</span>
+			<span class="flex items-center gap-1">
+				<i class="pi pi-star-fill text-yellow-500 text-sm"></i>
+				{{ movie.pgRating || "Not Rated" }}
+			</span>
+			<span
+				class="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm"
+			>
+				<i class="pi pi-ticket text-xs"></i>
+				{{ screenings.length }} Screening{{
+					screenings.length !== 1 ? "s" : ""
+				}}
+			</span>
+		</div>
+
+		<div class="space-y-2 text-sm">
+			<p class="text-slate-700">
+				{{ movie.description || "No description available." }}
+			</p>
+			<div class="flex flex-wrap gap-4 text-slate-600">
+				<span><strong>Cast:</strong> {{ movie.casts || "Not specified" }}</span>
+				<span
+					><strong>Production:</strong>
+					{{ movie.productionHouse || "Unknown" }}</span
+				>
+			</div>
+			<!-- Screening Locations -->
+			<div
+				*ngIf="!loading && screenings.length > 0"
+				class="flex flex-wrap items-center gap-2 mt-3"
+			>
+				<span class="text-slate-600 font-medium">Screening Locations:</span>
+				<div class="flex flex-wrap gap-1">
+					<span
+						*ngFor="let location of getScreeningLocations(); let last = last"
+						class="inline-flex items-center px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium"
+					>
+						<i class="pi pi-map-marker mr-1"></i>
+						{{ location }}
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Screenings Section -->
+<div class="bg-white rounded-lg shadow-sm border border-slate-200">
+	<!-- Loading State -->
+	<div *ngIf="loading" class="flex items-center justify-center py-12">
+		<p-progressSpinner
+			strokeWidth="3"
+			styleClass="!w-12 !h-12"
+		></p-progressSpinner>
+		<span class="ml-3 text-slate-600">Loading screenings...</span>
+	</div>
+
+	<!-- Content -->
+	<div *ngIf="!loading">
+		<!-- Header with Summary Stats -->
+		<div class="p-6 border-b border-slate-200">
+			<div class="flex justify-between items-start mb-4">
+				<div>
+					<h2 class="text-xl font-semibold text-slate-800">Movie Screenings</h2>
+				</div>
+			</div>
+
+			<!-- Summary Statistics Cards -->
+			<div
+				*ngIf="screenings.length > 0"
+				class="grid grid-cols-2 lg:grid-cols-5 gap-4 mt-4"
+			>
+				<!-- Total Screenings -->
+				<div
+					class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4"
+				>
+					<div class="flex items-center justify-between">
+						<div>
+							<p class="text-blue-600 text-xs font-medium mb-1">
+								Total Screenings
+							</p>
+							<p class="text-2xl font-bold text-blue-800">
+								{{ getMovieStatistics().totalScreenings }}
+							</p>
+						</div>
+						<div
+							class="w-10 h-10 bg-blue-200 rounded-lg flex items-center justify-center"
+						>
+							<i class="pi pi-calendar text-blue-600"></i>
+						</div>
+					</div>
+				</div>
+
+				<!-- Total Tickets Sold -->
+				<div
+					class="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-4"
+				>
+					<div class="flex items-center justify-between">
+						<div>
+							<p class="text-green-600 text-xs font-medium mb-1">
+								Tickets Sold
+							</p>
+							<p class="text-2xl font-bold text-green-800">
+								{{ getMovieStatistics().totalTicketsSold }}
+							</p>
+							<p class="text-xs text-green-600">
+								of {{ getMovieStatistics().totalCapacity }} total
+							</p>
+						</div>
+						<div
+							class="w-10 h-10 bg-green-200 rounded-lg flex items-center justify-center"
+						>
+							<i class="pi pi-ticket text-green-600"></i>
+						</div>
+					</div>
+				</div>
+
+				<!-- Total Revenue -->
+				<div
+					class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4"
+				>
+					<div class="flex items-center justify-between">
+						<div>
+							<p class="text-purple-600 text-xs font-medium mb-1">
+								Total Revenue
+							</p>
+							<p class="text-2xl font-bold text-purple-800">
+								{{
+									getMovieStatistics().totalRevenue
+										| currency : "Nu." : "symbol" : "1.0-0"
+								}}
+							</p>
+						</div>
+						<div
+							class="w-10 h-10 bg-purple-200 rounded-lg flex items-center justify-center"
+						>
+							<i class="pi pi-money-bill text-purple-600"></i>
+						</div>
+					</div>
+				</div>
+
+				<!-- Average Occupancy -->
+				<div
+					class="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4"
+				>
+					<div class="flex items-center justify-between">
+						<div>
+							<p class="text-orange-600 text-xs font-medium mb-1">
+								Avg. Occupancy
+							</p>
+							<p class="text-2xl font-bold text-orange-800">
+								{{ getMovieStatistics().averageOccupancy }}%
+							</p>
+						</div>
+						<div
+							class="w-10 h-10 bg-orange-200 rounded-lg flex items-center justify-center"
+						>
+							<i class="pi pi-chart-pie text-orange-600"></i>
+						</div>
+					</div>
+				</div>
+
+				<!-- Screening Locations -->
+				<div
+					class="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-lg p-4"
+				>
+					<div class="flex items-center justify-between">
+						<div class="flex-1">
+							<p class="text-emerald-600 text-xs font-medium mb-1">Locations</p>
+							<p class="text-2xl font-bold text-emerald-800">
+								{{ getScreeningLocations().length }}
+							</p>
+							<p class="text-xs text-emerald-600">
+								{{
+									getScreeningLocations().length === 1
+										? "dzongkhag"
+										: "dzongkhags"
+								}}
+							</p>
+						</div>
+						<div
+							class="w-10 h-10 bg-emerald-200 rounded-lg flex items-center justify-center"
+						>
+							<i class="pi pi-map-marker text-emerald-600"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Tab View -->
+		<p-tabView [(activeIndex)]="activeTabIndex" styleClass="screenings-tabs">
+			<!-- Table View Tab -->
+			<p-tabPanel header="Table View">
+				<div class="p-6">
+					<!-- Empty State -->
+					<div *ngIf="screenings.length === 0" class="text-center py-12">
+						<div
+							class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4"
+						>
+							<i class="pi pi-calendar text-slate-400 text-2xl"></i>
+						</div>
+						<h3 class="text-lg font-medium text-slate-700 mb-2">
+							No Screenings Found
+						</h3>
+						<p class="text-slate-500">
+							This movie doesn't have any scheduled screenings yet.
+						</p>
+					</div>
+
+					<!-- Screenings Table -->
+					<div *ngIf="screenings.length > 0">
+						<p-table
+							[value]="screenings"
+							[responsive]="true"
+							[paginator]="true"
+							[rows]="10"
+							[rowsPerPageOptions]="[5, 10, 25]"
+							[showCurrentPageReport]="true"
+							currentPageReportTemplate="Showing {first} to {last} of {totalRecords} screenings"
+							styleClass="!border-none"
+						>
+							<ng-template pTemplate="header">
+								<tr class="bg-slate-50">
+									<th
+										class="!p-3 !text-left !font-medium !text-slate-700 !text-sm"
+									>
+										Date
+									</th>
+									<th
+										class="!p-3 !text-left !font-medium !text-slate-700 !text-sm"
+									>
+										Time
+									</th>
+									<th
+										class="!p-3 !text-left !font-medium !text-slate-700 !text-sm"
+									>
+										Theatre & Hall
+									</th>
+									<th
+										class="!p-3 !text-left !font-medium !text-slate-700 !text-sm"
+									>
+										Languages
+									</th>
+									<th
+										class="!p-3 !text-left !font-medium !text-slate-700 !text-sm"
+									>
+										Sales & Revenue
+									</th>
+									<th
+										class="!p-3 !text-left !font-medium !text-slate-700 !text-sm"
+									>
+										Screening
+									</th>
+								</tr>
+							</ng-template>
+							<ng-template pTemplate="body" let-screening>
+								<tr class="border-b border-slate-100 hover:bg-slate-50/70">
+									<td class="!p-3 !border-none">
+										<div class="font-medium text-slate-800">
+											{{ formatDate(screening.date) }}
+										</div>
+										<div class="text-xs text-slate-500">
+											{{ screening.date | date : "EEEE" }}
+										</div>
+									</td>
+									<td class="!p-3 !border-none">
+										<div class="font-medium text-slate-800">
+											{{ formatTime(screening.startTime) }}
+										</div>
+										<div class="text-xs text-slate-500">
+											{{ formatTime(screening.endTime) }} end
+										</div>
+									</td>
+									<td class="!p-3 !border-none">
+										<div class="font-medium text-slate-800">
+											{{ screening.hall.theatre.name }}
+										</div>
+										<div class="text-xs text-slate-500">
+											{{ screening.hall.name }} •
+											{{ screening.hall.capacity }} seats
+										</div>
+										<div class="text-xs text-emerald-600 font-medium mt-1">
+											<i class="pi pi-map-marker mr-1"></i>
+											{{
+												screening.hall.theatre.dzongkhag?.name ||
+													"Unknown Location"
+											}}
+										</div>
+									</td>
+									<td class="!p-3 !border-none">
+										<div class="flex flex-col gap-1">
+											<span
+												*ngIf="screening.audioLanguage"
+												class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs"
+											>
+												<i class="pi pi-volume-up"></i>
+												{{ screening.audioLanguage.name }}
+											</span>
+											<span
+												*ngIf="screening.subtitleLanguage"
+												class="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs"
+											>
+												<i class="pi pi-file-o"></i>
+												{{ screening.subtitleLanguage.name }}
+											</span>
+										</div>
+									</td>
+									<td class="!p-3 !border-none">
+										<div class="space-y-1">
+											<!-- Tickets Sold -->
+											<div class="flex items-center gap-1">
+												<i class="pi pi-ticket text-green-600 text-xs"></i>
+												<span class="font-medium text-slate-800 text-sm">
+													{{ getTicketsSold(screening) }}/{{
+														screening.hall.capacity
+													}}
+												</span>
+												<span class="text-xs text-slate-500">tickets</span>
+											</div>
+											<!-- Revenue -->
+											<div class="flex items-center gap-1">
+												<i class="pi pi-money-bill text-purple-600 text-xs"></i>
+												<span class="font-semibold text-green-600 text-sm">
+													{{ getScreeningRevenue(screening) }}
+												</span>
+											</div>
+											<!-- Occupancy -->
+											<div class="flex items-center gap-1">
+												<i class="pi pi-chart-pie text-orange-600 text-xs"></i>
+												<span
+													class="text-xs font-medium"
+													[ngClass]="{
+														'text-green-600':
+															getOccupancyPercentage(screening) >= 80,
+														'text-amber-600':
+															getOccupancyPercentage(screening) >= 50 &&
+															getOccupancyPercentage(screening) < 80,
+														'text-red-600':
+															getOccupancyPercentage(screening) < 50
+													}"
+												>
+													{{ getOccupancyPercentage(screening) }}% full
+												</span>
+											</div>
+										</div>
+									</td>
+									<td class="!p-3 !border-none">
+										<p-tag
+											[value]="getScreeningStatus(screening).label"
+											[severity]="getScreeningStatus(screening).severity"
+											[icon]="getScreeningStatus(screening).icon"
+											styleClass="!px-2 !py-1 !text-xs !rounded-full"
+										></p-tag>
+									</td>
+								</tr>
+							</ng-template>
+						</p-table>
+					</div>
+				</div>
+			</p-tabPanel>
+
+			<!-- Calendar View Tab -->
+			<p-tabPanel header="Calendar View">
+				<div class="p-6">
+					<!-- Empty State -->
+					<div *ngIf="screenings.length === 0" class="text-center py-12">
+						<div
+							class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4"
+						>
+							<i class="pi pi-calendar text-slate-400 text-2xl"></i>
+						</div>
+						<h3 class="text-lg font-medium text-slate-700 mb-2">
+							No Screenings to Display
+						</h3>
+						<p class="text-slate-500">
+							This movie doesn't have any scheduled screenings to show on the
+							calendar.
+						</p>
+					</div>
+
+					<!-- Calendar Legend -->
+					<div *ngIf="screenings.length > 0" class="mb-6">
+						<h3 class="text-sm font-medium text-slate-700 mb-3">
+							Status Legend
+						</h3>
+						<div class="flex flex-wrap gap-4 text-xs">
+							<div class="flex items-center gap-2">
+								<div class="w-3 h-3 bg-blue-500 rounded"></div>
+								<span class="text-slate-600">Upcoming</span>
+							</div>
+							<div class="flex items-center gap-2">
+								<div class="w-3 h-3 bg-amber-500 rounded"></div>
+								<span class="text-slate-600">Today</span>
+							</div>
+							<div class="flex items-center gap-2">
+								<div class="w-3 h-3 bg-gray-500 rounded"></div>
+								<span class="text-slate-600">Past</span>
+							</div>
+						</div>
+					</div>
+
+					<!-- Simplified Calendar Display -->
+					<div *ngIf="screenings.length > 0" class="space-y-4">
+						<div
+							*ngFor="let screening of screenings"
+							class="p-4 rounded-lg border"
+							[ngClass]="{
+								'bg-blue-50 border-blue-200':
+									getScreeningStatus(screening).severity === 'info',
+								'bg-amber-50 border-amber-200':
+									getScreeningStatus(screening).severity === 'warning',
+								'bg-gray-50 border-gray-200':
+									getScreeningStatus(screening).severity === 'success'
+							}"
+						>
+							<div class="flex justify-between items-start">
+								<div class="flex-1">
+									<div class="flex items-center gap-3 mb-2">
+										<h4 class="font-medium text-slate-800">
+											{{ formatDate(screening.date) }}
+										</h4>
+										<p-tag
+											[value]="getScreeningStatus(screening).label"
+											[severity]="getScreeningStatus(screening).severity"
+											[icon]="getScreeningStatus(screening).icon"
+											styleClass="!px-2 !py-1 !text-xs !rounded-full"
+										></p-tag>
+									</div>
+									<div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+										<div>
+											<span class="text-slate-600">Time:</span>
+											<div class="font-medium text-slate-800">
+												{{ formatTime(screening.startTime) }} -
+												{{ formatTime(screening.endTime) }}
+											</div>
+										</div>
+										<div>
+											<span class="text-slate-600">Theatre:</span>
+											<div class="font-medium text-slate-800">
+												{{ screening.hall.theatre.name }}
+											</div>
+											<div class="text-xs text-emerald-600 font-medium">
+												<i class="pi pi-map-marker mr-1"></i>
+												{{
+													screening.hall.theatre.dzongkhag?.name || "Unknown"
+												}}
+											</div>
+										</div>
+										<div>
+											<span class="text-slate-600">Hall:</span>
+											<div class="font-medium text-slate-800">
+												{{ screening.hall.name }}
+											</div>
+										</div>
+										<div>
+											<span class="text-slate-600">Capacity:</span>
+											<div class="font-medium text-slate-800">
+												{{ screening.hall.capacity }} seats
+											</div>
+										</div>
+									</div>
+
+									<!-- Sales & Revenue Information -->
+									<div
+										class="mt-3 grid grid-cols-2 md:grid-cols-3 gap-4 p-3 bg-slate-50 rounded-lg"
+									>
+										<div class="text-center">
+											<div class="text-xs text-slate-600 mb-1">
+												Tickets Sold
+											</div>
+											<div class="font-semibold text-slate-800">
+												{{ getTicketsSold(screening) }}/{{
+													screening.hall.capacity
+												}}
+											</div>
+											<div class="text-xs text-slate-500">
+												{{ getOccupancyPercentage(screening) }}% full
+											</div>
+										</div>
+										<div class="text-center">
+											<div class="text-xs text-slate-600 mb-1">Revenue</div>
+											<div class="font-semibold text-green-600">
+												{{
+													getScreeningRevenue(screening)
+														| currency : "BTN" : "symbol" : "1.0-0"
+												}}
+											</div>
+											<div class="text-xs text-slate-500">
+												{{ getConfirmedBookings(screening) }} booking{{
+													getConfirmedBookings(screening) !== 1 ? "s" : ""
+												}}
+											</div>
+										</div>
+										<div class="text-center md:col-span-1 col-span-2">
+											<div class="text-xs text-slate-600 mb-1">Occupancy</div>
+											<div class="flex items-center justify-center gap-2">
+												<div
+													class="w-12 h-2 bg-slate-200 rounded-full overflow-hidden"
+												>
+													<div
+														class="h-full rounded-full transition-all duration-300"
+														[ngClass]="{
+															'bg-green-500':
+																getOccupancyPercentage(screening) >= 80,
+															'bg-amber-500':
+																getOccupancyPercentage(screening) >= 50 &&
+																getOccupancyPercentage(screening) < 80,
+															'bg-red-500':
+																getOccupancyPercentage(screening) < 50
+														}"
+														[style.width.%]="getOccupancyPercentage(screening)"
+													></div>
+												</div>
+												<span
+													class="text-xs font-medium"
+													[ngClass]="{
+														'text-green-600':
+															getOccupancyPercentage(screening) >= 80,
+														'text-amber-600':
+															getOccupancyPercentage(screening) >= 50 &&
+															getOccupancyPercentage(screening) < 80,
+														'text-red-600':
+															getOccupancyPercentage(screening) < 50
+													}"
+												>
+													{{ getOccupancyPercentage(screening) }}%
+												</span>
+											</div>
+										</div>
+									</div>
+									<div
+										*ngIf="
+											screening.audioLanguage || screening.subtitleLanguage
+										"
+										class="mt-3 flex gap-2"
+									>
+										<span
+											*ngIf="screening.audioLanguage"
+											class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs"
+										>
+											<i class="pi pi-volume-up"></i>
+											{{ screening.audioLanguage.name }}
+										</span>
+										<span
+											*ngIf="screening.subtitleLanguage"
+											class="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs"
+										>
+											<i class="pi pi-file-o"></i>
+											{{ screening.subtitleLanguage.name }}
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</p-tabPanel>
+		</p-tabView>
+	</div>
+</div>

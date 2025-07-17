@@ -14,6 +14,12 @@ import {
 	SeatAvailabilityByScreeningDto,
 } from './screening.interface';
 import { SeatCategory } from '../seat-category/seat-category.interface';
+import {
+	PaginatedData,
+	PaginationParams,
+	PaginatedScreeningFilter,
+	createPaginationParams,
+} from '../../utility/pagination.interface';
 
 @Injectable({
 	providedIn: 'root',
@@ -92,7 +98,7 @@ export class ScreeningDataService {
 	}
 
 	/**
-	 * Get screenings by movie ID
+	 * Get screenings by movie ID PUBLIC..
 	 */
 	findScreeningsByMovieId(movieId: number): Observable<Screening[]> {
 		return this.http.get<Screening[]>(`${this.apiUrl}/movie/${movieId}`).pipe(
@@ -101,6 +107,17 @@ export class ScreeningDataService {
 				return throwError(() => error);
 			})
 		);
+	}
+
+	findScreeningsByMovieIdDetailed(movieId: number): Observable<Screening[]> {
+		return this.http
+			.get<Screening[]>(`${this.apiUrl}/movie/${movieId}/detailed`)
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching detailed screenings by movie:', error);
+					return throwError(() => error);
+				})
+			);
 	}
 
 	/**
@@ -239,6 +256,79 @@ export class ScreeningDataService {
 			.pipe(
 				catchError((error) => {
 					console.error('Error checking time conflicts:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get current and upcoming screenings with pagination
+	 */
+	getCurrentScreeningsPaginated(
+		page: number = 1,
+		pageSize: number = 10
+	): Observable<PaginatedData<Screening>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('pageSize', pageSize.toString());
+
+		return this.http
+			.get<PaginatedData<Screening>>(`${this.apiUrl}/current/paginated`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching current screenings:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get past screenings with pagination
+	 */
+	getPastScreeningsPaginated(
+		page: number = 1,
+		pageSize: number = 10
+	): Observable<PaginatedData<Screening>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('pageSize', pageSize.toString());
+
+		return this.http
+			.get<PaginatedData<Screening>>(`${this.apiUrl}/past/paginated`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching past screenings:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get screenings by theatre ID with pagination
+	 */
+	getScreeningsByTheatrePaginated(
+		theatreId: number,
+		page: number = 1,
+		pageSize: number = 10
+	): Observable<PaginatedData<Screening>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('pageSize', pageSize.toString());
+
+		return this.http
+			.get<PaginatedData<Screening>>(
+				`${this.apiUrl}/theatre/${theatreId}/paginated`,
+				{
+					params,
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching screenings by theatre:', error);
 					return throwError(() => error);
 				})
 			);

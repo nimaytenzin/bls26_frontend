@@ -1,13 +1,14 @@
 import { Screening } from '../screening/screening.interface';
 import { Seat } from '../seat/seat.interface';
 
-// Booking Status Enum
 export enum BookingStatusEnum {
-	PROCESSING = 'PROCESSING',
-	FAILED = 'FAILED',
-	CANCELLED = 'CANCELLED',
-	SUCCESS = 'SUCCESS',
-	TIMEOUT = 'TIMEOUT',
+	PENDING = 'PENDING', // User selecting seats, payment not started
+	PAYMENT_PENDING = 'PAYMENT_PENDING', // Checkout complete, entering payment
+	CONFIRMED = 'CONFIRMED', // Payment succeeded, booking finalized
+	FAILED = 'FAILED', // Payment failed, seats released
+	CANCELLED = 'CANCELLED', // User cancelled, seats released
+	EXPIRED = 'EXPIRED', // Booking not completed in time, seats released
+	TIMEOUT = 'TIMEOUT', // Payment process timeout
 }
 
 // Entry Status Enum
@@ -77,6 +78,7 @@ export interface CounterStaffCreateBookingDto {
 	entryStatus?: EntryStatusEnum;
 	notes?: string;
 	paymentMethod?: string;
+	bookedBy: number;
 }
 
 // Create Booking Response
@@ -120,7 +122,10 @@ export interface SessionSeatInfo {
 	sessionId: string;
 	selectedAt: string;
 	expiresAt: string;
-	userMetadata?: UserMetadataDto;
+	deviceType?: string; // "mobile", "tablet", "desktop"
+	operatingSystem?: string; // "android", "ios", "windows", etc.
+	country?: string; // "United States", "India", etc.
+	city?: string; // "New York", "Mumbai", etc.
 }
 
 export interface SessionSeatResponse {
@@ -168,41 +173,20 @@ export interface CleanupResponse {
 	sessionId: string;
 }
 
-export interface UserMetadataDto {
-	userAgent?: string;
-	ipAddress?: string;
-	timestamp?: string;
-}
-
 export interface SeatSelectionDto {
 	seatId: number;
 	screeningId: number;
-	userMetadata?: UserMetadataDto;
+	deviceType: string; // "mobile", "tablet", "desktop"
+	operatingSystem: string; // "android", "ios", "windows", etc.
+	country: string; // "United States", "India", etc.
+	city: string; // "New York", "Mumbai", etc.
+	bookedBy?: number;
 }
 
 export interface UpdateUserDetailsDto {
 	name: string;
 	email: string;
 	phoneNumber: string;
-	notes?: string;
-}
-
-// Payment Mode Enum
-export enum PaymentMode {
-	ZPSS = 'ZPSS',
-	CASH = 'CASH',
-	CARD = 'CARD',
-	ONLINE = 'ONLINE',
-}
-
-// Mock Payment DTO
-export interface MockPaymentDto {
-	sessionId: string;
-	screeningId: number;
-	paymentMode?: PaymentMode;
-	gatewayTransactionId?: string;
-	paymentInstructionNumber?: string;
-	bfsTransactionId?: string;
 	notes?: string;
 }
 

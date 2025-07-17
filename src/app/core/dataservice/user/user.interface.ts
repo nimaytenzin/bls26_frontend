@@ -37,8 +37,6 @@ export interface CreateUserDto {
 	phoneNumber: number;
 	password: string;
 	role: string;
-	dateOfBirth?: Date;
-	address?: string;
 	profileImage?: string;
 }
 
@@ -50,8 +48,6 @@ export interface UpdateUserDto {
 	role?: string;
 	isVerified?: boolean;
 	hasLoginAccess?: boolean;
-	dateOfBirth?: Date;
-	address?: string;
 	profileImage?: string;
 }
 

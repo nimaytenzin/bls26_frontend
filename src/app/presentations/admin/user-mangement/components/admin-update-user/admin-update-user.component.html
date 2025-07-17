@@ -1,16 +1,6 @@
 <!-- User Update Component -->
 <div class="p-6 max-w-lg mx-auto">
 	<form (ngSubmit)="updateUser()" class="space-y-6">
-		<!-- Header -->
-		<div class="text-center mb-6">
-			<h2 class="text-2xl font-bold text-gray-800 dark:text-white">
-				Edit User
-			</h2>
-			<p class="text-gray-600 dark:text-gray-400 mt-2">
-				Update user information for <strong>{{ getFullName() }}</strong>
-			</p>
-		</div>
-
 		<!-- Form Fields -->
 		<div class="space-y-4">
 			<!-- First Name -->
@@ -111,44 +101,6 @@
 					class="w-full"
 					[disabled]="loading"
 				></p-dropdown>
-			</div>
-
-			<!-- Date of Birth -->
-			<div>
-				<label
-					for="dateOfBirth"
-					class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-				>
-					Date of Birth
-				</label>
-				<p-calendar
-					[(ngModel)]="userForm.dateOfBirth"
-					name="dateOfBirth"
-					[showIcon]="true"
-					dateFormat="yy-mm-dd"
-					placeholder="Select date of birth"
-					styleClass="w-full"
-					[disabled]="loading"
-				></p-calendar>
-			</div>
-
-			<!-- Address -->
-			<div>
-				<label
-					for="address"
-					class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-				>
-					Address
-				</label>
-				<textarea
-					pInputTextarea
-					[(ngModel)]="userForm.address"
-					name="address"
-					rows="3"
-					class="w-full"
-					placeholder="Enter address"
-					[disabled]="loading"
-				></textarea>
 			</div>
 
 			<!-- User Status Information -->

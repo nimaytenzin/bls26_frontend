@@ -73,7 +73,7 @@ export class AdminMovieMediaUploadComponent implements OnInit, OnDestroy {
 	 * Get media URL
 	 */
 	getMediaUrl(uri: string): string {
-		return `${BASEAPI_URL}/${uri}`;
+		return `${BASEAPI_URL}${uri}`;
 	}
 
 	/**

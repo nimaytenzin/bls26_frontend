@@ -11,8 +11,9 @@ import { AdminMasterScreeningComponent } from './screening/admin-master-screenin
 import { AdminMasterBookingsComponent } from './booking/admin-master-bookings/admin-master-bookings.component';
 import { AdminCreateBookingComponent } from './booking/components/admin-create-booking/admin-create-booking.component';
 import { AdminUserManagementComponent } from './user-mangement/admin-user-management/admin-user-management.component';
-import { AdminUserManagementTheatreStaffsComponent } from './user-mangement/admin-user-management-theatre-staffs/admin-user-management-theatre-staffs.component';
-import { AdminUserManagementExecutiveProducersComponent } from './user-mangement/admin-user-management-executive-producers/admin-user-management-executive-producers.component';
+
+import { AdminMasterPayoutSettingsComponent } from './payouts/admin-master-payout-settings/admin-master-payout-settings.component';
+import { AdminMasterTranscationsComponent } from './transactions/admin-master-transcations/admin-master-transcations.component';
 
 export const adminRoutes: Routes = [
 	{
@@ -35,6 +36,16 @@ export const adminRoutes: Routes = [
 				component: AdminMovieDetailComponent,
 			},
 			{
+				path: 'master-movies/:id/edit',
+				component: AdminMovieDetailComponent,
+				data: { editMode: true },
+			},
+			{
+				path: 'master-movies/:id/media',
+				component: AdminMovieDetailComponent,
+				data: { mediaMode: true },
+			},
+			{
 				path: 'master-theatres',
 				component: AdminMasterTheatreComponent,
 			},
@@ -51,19 +62,15 @@ export const adminRoutes: Routes = [
 				path: 'master-bookings/create',
 				component: AdminCreateBookingComponent,
 			},
+			{
+				path: 'master-transactions',
+				component: AdminMasterTranscationsComponent,
+			},
 
 			// User Management Routes
 			{
 				path: 'user-management',
 				component: AdminUserManagementComponent,
-			},
-			{
-				path: 'user-management/theatre-staffs',
-				component: AdminUserManagementTheatreStaffsComponent,
-			},
-			{
-				path: 'user-management/producers',
-				component: AdminUserManagementExecutiveProducersComponent,
 			},
 
 			//master tables
@@ -82,6 +89,11 @@ export const adminRoutes: Routes = [
 			{
 				path: 'master-casts',
 				component: AdminMasterLocationsComponent,
+			},
+			//Payout setttings
+			{
+				path: 'master-payout-settings',
+				component: AdminMasterPayoutSettingsComponent,
 			},
 		],
 	},

@@ -33,7 +33,7 @@ import { SeatCategory } from '../../../../../core/dataservice/seat-category/seat
 @Component({
 	selector: 'app-admin-screening-create',
 	templateUrl: './admin-screening-create.component.html',
-	styleUrls: [],
+	styleUrls: ['./admin-screening-create.component.css'],
 	standalone: true,
 	imports: [CommonModule, ReactiveFormsModule, FormsModule, PrimeNgModules],
 	providers: [MessageService],

@@ -43,9 +43,7 @@ export class AdminMasterGenreComponent implements OnInit, OnDestroy {
 	successMessage = '';
 
 	// UI State
-	viewMode: 'grid' | 'list' | 'table' = 'table';
 	showFilters = true;
-	showViewModeToggle = true;
 	showAddButton = true;
 	currentPage = 1;
 	totalRecords = 0;
@@ -63,12 +61,7 @@ export class AdminMasterGenreComponent implements OnInit, OnDestroy {
 		name: '',
 	};
 
-	// View Options
-	viewModeOptions = [
-		{ label: 'Grid', value: 'grid', icon: 'pi pi-th-large' },
-		{ label: 'List', value: 'list', icon: 'pi pi-list' },
-		{ label: 'Table', value: 'table', icon: 'pi pi-table' },
-	];
+	// View Options - removed, keeping only table view
 
 	// Filter options
 	filters: FilterOptions = {
@@ -191,13 +184,6 @@ export class AdminMasterGenreComponent implements OnInit, OnDestroy {
 	 */
 	toggleFilters() {
 		this.showFilters = !this.showFilters;
-	}
-
-	/**
-	 * Handle view mode change
-	 */
-	onViewModeChange() {
-		localStorage.setItem('genreViewMode', this.viewMode);
 	}
 
 	/**

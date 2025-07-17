@@ -34,13 +34,8 @@ import { Screening } from '../../../../core/dataservice/screening/screening.inte
 import {
 	Booking,
 	UpdateUserDetailsDto,
-	MockPaymentDto,
-	PaymentMode,
-	PaymentSuccessResponse,
 } from '../../../../core/dataservice/booking/booking.interface';
-import { PublicDataService } from '../../../../core/dataservice/public/public.dataservice';
 import { BookingDataService } from '../../../../core/dataservice/booking/booking.dataservice';
-import { QRCodeComponent } from 'angularx-qrcode';
 import {
 	PGBank,
 	AERequestDTO,
@@ -610,93 +605,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	// Process mock payment success
-	processMockPayment() {
-		if (!this.sessionId || !this.screeningId) {
-			this.processing = false;
-			this.messageService.add({
-				severity: 'error',
-				summary: 'Session Error',
-				detail: 'Invalid session or screening data. Please start over.',
-			});
-			return;
-		}
-
-		const mockPaymentData: MockPaymentDto = {
-			sessionId: this.sessionId,
-			screeningId: this.screeningId,
-			paymentMode: PaymentMode.ZPSS,
-			gatewayTransactionId: `RMA_TXN_${Date.now()}`,
-			paymentInstructionNumber: `PIN_${Date.now()}`,
-			bfsTransactionId: `BFS_${Date.now()}`,
-			notes: `Payment via RMA Gateway - ${
-				this.selectedBank?.name || 'ZPSS'
-			} - Account: ***${this.accountNumber.slice(-4)}`,
-		};
-
-		console.log('Processing mock payment with data:', mockPaymentData);
-
-		// this.bookingDataService
-		// 	.mockPaymentSuccess(this.sessionId, this.screeningId, mockPaymentData)
-		// 	.pipe(takeUntil(this.destroy$))
-		// 	.subscribe({
-		// 		next: (response: PaymentSuccessResponse) => {
-		// 			console.log('Mock payment processed successfully:', response);
-
-		// 			if (response.success) {
-		// 				this.bookingResponse = response.booking;
-		// 				this.processing = false;
-		// 				this.currentStep = 3;
-		// 				this.activeStepIndex = 2;
-		// 				this.generateETicket();
-
-		// 				this.messageService.add({
-		// 					severity: 'success',
-		// 					summary: 'Payment Successful',
-		// 					detail:
-		// 						response.message ||
-		// 						'Your payment has been processed successfully!',
-		// 				});
-
-		// 				// Navigate to e-ticket after a short delay
-		// 				setTimeout(() => {
-		// 					this.navigateToETicket();
-		// 				}, 2000);
-		// 			} else {
-		// 				this.processing = false;
-		// 				this.messageService.add({
-		// 					severity: 'error',
-		// 					summary: 'Payment Failed',
-		// 					detail: 'Payment processing failed. Please try again.',
-		// 				});
-		// 			}
-		// 		},
-		// 		error: (error) => {
-		// 			console.error('Error processing mock payment:', error);
-		// 			this.processing = false;
-
-		// 			let errorMessage = 'Payment processing failed. Please try again.';
-
-		// 			// Handle specific error cases
-		// 			if (error.status === 404) {
-		// 				errorMessage =
-		// 					'Booking session not found or has expired. Please start over.';
-		// 			} else if (error.status === 400) {
-		// 				errorMessage =
-		// 					'Invalid payment data. Please check your information.';
-		// 			} else if (error.error?.message) {
-		// 				errorMessage = error.error.message;
-		// 			}
-
-		// 			this.messageService.add({
-		// 				severity: 'error',
-		// 				summary: 'Payment Failed',
-		// 				detail: errorMessage,
-		// 			});
-		// 		},
-		// 	});
-	}
-
 	goBackToPaymentStep(step: number) {
 		this.paymentStep = step;
 	}
@@ -713,7 +621,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
 		}
 
 		this.processing = true;
-		this.processMockPayment();
 	}
 
 	// Generate e-ticket and QR code

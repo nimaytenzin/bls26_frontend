@@ -1,150 +1,98 @@
-// Admin Master Theatre Component - Tab Container for Theatre and Hall Management
-
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
-
+import {
+	FormBuilder,
+	FormGroup,
+	ReactiveFormsModule,
+	FormsModule,
+} from '@angular/forms';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { takeUntil, forkJoin } from 'rxjs';
+import { Subject } from 'rxjs';
+
 import { PrimeNgModules } from '../../../../primeng.modules';
+import { TheatreDataService } from '../../../../core/dataservice/theatre/theatre.dataservice';
+import { HallDataService } from '../../../../core/dataservice/hall/hall.dataservice';
+import { BASEAPI_URL } from '../../../../core/constants/constants';
+
+// Import component dialogs
+import { AdminTheatreAddWithImageComponent } from '../admin-theatre-listing/components/admin-theatre-add-with-image/admin-theatre-add-with-image.component';
+import { AdminTheatreEditComponent } from '../admin-theatre-listing/components/admin-theatre-edit/admin-theatre-edit.component';
+import { AdminHallAddComponent } from '../admin-theatre-listing/components/admin-hall-add/admin-hall-add.component';
+import { AdminHallEditComponent } from '../admin-theatre-listing/components/admin-hall-edit/admin-hall-edit.component';
+
+import { Theatre } from '../../../../core/dataservice/theatre/theatre.interface';
+import { Hall } from '../../../../core/dataservice/hall/hall.interface';
 import { AdminTheatreListingComponent } from '../admin-theatre-listing/admin-theatre-listing.component';
-import { AdminHallListingComponent } from '../admin-hall-listing/admin-hall-listing.component';
 
-interface ViewModeOption {
-	label: string;
-	value: 'grid' | 'list' | 'table';
-	icon: string;
-}
-
-interface SortOption {
-	label: string;
-	value: string;
+interface Statistics {
+	totalTheatres: number;
+	totalHalls: number;
+	totalSeats: number;
+	activeTheatres: number;
 }
 
 @Component({
 	selector: 'app-admin-master-theatre',
+	templateUrl: './admin-master-theatre.component.html',
+	styleUrls: ['./admin-master-theatre.component.scss'],
 	standalone: true,
 	imports: [
 		CommonModule,
+		ReactiveFormsModule,
 		FormsModule,
 		PrimeNgModules,
 		AdminTheatreListingComponent,
 	],
-	templateUrl: './admin-master-theatre.component.html',
-	styleUrls: ['./admin-master-theatre.component.scss'],
-	providers: [DialogService],
+	providers: [MessageService, ConfirmationService, DialogService],
 })
 export class AdminMasterTheatreComponent implements OnInit, OnDestroy {
+	private destroy$ = new Subject<void>();
 	ref: DynamicDialogRef | undefined;
 
-	private destroy$ = new Subject<void>();
-	private searchSubject = new Subject<string>();
+	// Data
+	theatres: Theatre[] = [];
+	halls: Hall[] = [];
+	filteredTheatres: Theatre[] = [];
+	filteredHalls: Hall[] = [];
 
 	// UI State
-	searchQuery = '';
-	viewMode: 'grid' | 'list' | 'table' = 'grid';
-	showFilters = false;
-	activeFiltersCount = 0;
+	loading = false;
+	activeTabIndex = 0; // 0 = Theatres, 1 = Halls
 
-	// View Options
-	viewModeOptions: ViewModeOption[] = [
-		{ label: 'Grid', value: 'grid', icon: 'pi pi-th-large' },
-		{ label: 'List', value: 'list', icon: 'pi pi-list' },
-		{ label: 'Table', value: 'table', icon: 'pi pi-table' },
-	];
+	// Forms
+	filterForm!: FormGroup;
 
-	tabOptions = [
-		{ label: 'Theaters', value: 'theatres', icon: 'fas fa-building' },
-		{ label: 'Halls', value: 'halls', icon: 'fas fa-door-open' },
-	];
+	// Statistics
+	statistics: Statistics = {
+		totalTheatres: 0,
+		totalHalls: 0,
+		totalSeats: 0,
+		activeTheatres: 0,
+	};
 
+	// Filter options
 	statusOptions = [
+		{ label: 'All Statuses', value: '' },
 		{ label: 'Active', value: 'ACTIVE' },
 		{ label: 'Inactive', value: 'INACTIVE' },
 		{ label: 'Maintenance', value: 'MAINTENANCE' },
 	];
 
-	locationOptions = [
-		{ label: 'Thimphu', value: 'Thimphu' },
-		{ label: 'Paro', value: 'Paro' },
-		{ label: 'Punakha', value: 'Punakha' },
-		{ label: 'Phuntsholing', value: 'Phuntsholing' },
-	];
+	dzongkhags: any[] = [];
 
-	sortOptions: SortOption[] = [
-		{ label: 'Name A-Z', value: 'name_asc' },
-		{ label: 'Name Z-A', value: 'name_desc' },
-		{ label: 'Location', value: 'location_asc' },
-		{ label: 'Newest', value: 'createdAt_desc' },
-		{ label: 'Oldest', value: 'createdAt_asc' },
-	];
-
-	selectedSort = 'name_asc';
-
-	// Dialog States
-	showTheatreDialog = false;
-	showHallDialog = false;
-	showTheatreDetail = false;
-	showHallDetail = false;
-	isEditMode = false;
-
-	// UI State Properties for template
-	searchTerm = '';
-	selectedStatus = '';
-	selectedLocation = '';
-	selectedTheatreId = '';
-	viewModeTemplate: 'grid' | 'list' | 'table' = 'grid';
-	selectedItems: string[] = [];
-	contextMenu = {
-		visible: false,
-		x: 0,
-		y: 0,
-		item: null as any,
-	};
-	showCreateEditDialog = false;
-	statistics = {
-		totalTheatres: 2,
-		totalHalls: 4,
-		totalSeats: 332,
-		averageRating: 3.2,
-	};
-
-	//
-
-	constructor() {}
+	constructor(
+		private fb: FormBuilder,
+		private messageService: MessageService,
+		private confirmationService: ConfirmationService,
+		private dialogService: DialogService
+	) {}
 
 	ngOnInit(): void {}
 
 	ngOnDestroy(): void {
 		this.destroy$.next();
 		this.destroy$.complete();
-	}
-
-	// Search Setup
-
-	onSearchChange(query: string): void {
-		this.searchSubject.next(query);
-	}
-
-	onViewModeChange(): void {
-		// Handle view mode change
-	}
-
-	toggleFilters(): void {
-		this.showFilters = !this.showFilters;
-	}
-
-	clearSearch(): void {
-		this.searchQuery = '';
-		this.searchSubject.next('');
-	}
-
-	onSearch(): void {
-		this.searchSubject.next(this.searchTerm);
-	}
-
-	clearSearchTemplate(): void {
-		this.searchTerm = '';
-		this.onSearch();
 	}
 }

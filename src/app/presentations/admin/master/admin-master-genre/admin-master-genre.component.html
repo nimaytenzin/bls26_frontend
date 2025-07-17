@@ -94,20 +94,6 @@
 				styleClass="min-w-[130px]"
 			></p-dropdown>
 
-			<!-- View Toggle -->
-			<p-selectButton
-				*ngIf="showViewModeToggle"
-				[options]="viewModeOptions"
-				[(ngModel)]="viewMode"
-				(onChange)="onViewModeChange()"
-				optionLabel="label"
-				optionValue="value"
-			>
-				<ng-template pTemplate="item" let-item>
-					<i [class]="item.icon"></i>
-				</ng-template>
-			</p-selectButton>
-
 			<!-- Add Button -->
 			<p-button
 				*ngIf="showAddButton"
@@ -129,129 +115,8 @@
 
 	<!-- Content Area -->
 	<div *ngIf="!loading && filteredGenres.length > 0">
-		<!-- Grid View -->
-		<div
-			class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 genres-grid"
-			*ngIf="viewMode === 'grid'"
-		>
-			<p-card
-				*ngFor="let genre of filteredGenres; trackBy: trackByGenreId"
-				styleClass="h-full hover:shadow-lg transition-shadow duration-300 cursor-pointer genre-card group"
-			>
-				<ng-template pTemplate="header">
-					<div class="relative p-4">
-						<!-- Genre Icon -->
-						<div class="flex justify-center mb-4">
-							<div
-								class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center"
-							>
-								<i class="pi pi-bookmark text-white text-2xl"></i>
-							</div>
-						</div>
-					</div>
-				</ng-template>
-
-				<div class="space-y-4">
-					<div class="text-center">
-						<h3
-							class="text-lg font-semibold text-slate-900 dark:text-white mb-1"
-						>
-							{{ genre.name }}
-						</h3>
-					</div>
-
-					<div
-						class="flex justify-center items-center text-sm text-slate-600 dark:text-slate-400"
-					>
-						<div class="flex items-center gap-1">
-							<i class="pi pi-calendar"></i>
-							<span>{{ genre.createdAt | date : "MMM dd, yyyy" }}</span>
-						</div>
-					</div>
-
-					<!-- Action Buttons -->
-					<div class="flex gap-2 pt-2">
-						<p-button
-							icon="pi pi-pencil"
-							severity="secondary"
-							size="small"
-							[text]="true"
-							(onClick)="editGenre(genre)"
-							pTooltip="Edit Genre"
-							class="flex-1"
-						></p-button>
-						<p-button
-							icon="pi pi-trash"
-							severity="danger"
-							size="small"
-							[text]="true"
-							(onClick)="deleteGenre(genre)"
-							pTooltip="Delete Genre"
-							class="flex-1"
-						></p-button>
-					</div>
-				</div>
-			</p-card>
-		</div>
-
-		<!-- List View -->
-		<div class="space-y-4" *ngIf="viewMode === 'list'">
-			<p-card
-				*ngFor="let genre of filteredGenres; trackBy: trackByGenreId"
-				styleClass="hover:shadow-md transition-shadow duration-200 cursor-pointer"
-			>
-				<div class="flex items-center gap-4">
-					<!-- Genre Icon -->
-					<div class="flex-shrink-0">
-						<div
-							class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center"
-						>
-							<i class="pi pi-bookmark text-white"></i>
-						</div>
-					</div>
-
-					<div class="flex-1">
-						<div class="mb-2">
-							<h4 class="text-lg font-medium text-slate-900 dark:text-white">
-								{{ genre.name }}
-							</h4>
-						</div>
-
-						<div class="flex flex-wrap gap-6 text-sm">
-							<div class="flex items-center gap-2">
-								<span class="text-slate-500">Created:</span>
-								<span class="text-slate-900 dark:text-white">{{
-									genre.createdAt | date : "MMM dd, yyyy"
-								}}</span>
-							</div>
-						</div>
-					</div>
-
-					<div class="flex gap-2">
-						<p-button
-							icon="pi pi-pencil"
-							severity="secondary"
-							size="small"
-							[text]="true"
-							(onClick)="editGenre(genre)"
-							pTooltip="Edit Genre"
-						></p-button>
-						<p-button
-							icon="pi pi-trash"
-							severity="danger"
-							size="small"
-							[text]="true"
-							(onClick)="deleteGenre(genre)"
-							pTooltip="Delete Genre"
-						></p-button>
-					</div>
-				</div>
-			</p-card>
-		</div>
-
 		<!-- Table View -->
 		<p-table
-			*ngIf="viewMode === 'table'"
 			[value]="filteredGenres"
 			dataKey="id"
 			[rowHover]="true"

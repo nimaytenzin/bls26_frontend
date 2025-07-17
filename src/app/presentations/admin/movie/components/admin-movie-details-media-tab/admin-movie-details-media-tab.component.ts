@@ -1,10 +1,17 @@
-import { Component, Input, OnDestroy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { PrimeNgModules } from '../../../../../primeng.modules';
-import { Movie } from '../../../../../core/dataservice/movie/movie.interface';
+import {
+	Movie,
+	MovieMedia,
+} from '../../../../../core/dataservice/movie/movie.interface';
 import { BASEAPI_URL } from '../../../../../core/constants/constants';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { AdminMovieMediaUploadComponent } from '../admin-movie-media-upload/admin-movie-media-upload.component';
+import { MovieApiDataService } from '../../../../../core/dataservice/movie/movie-api.dataservice';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 export type MediaTypeFilter = 'ALL' | 'IMAGE' | 'VIDEO';
 
@@ -20,10 +27,15 @@ interface FilterOption {
 	styleUrls: ['./admin-movie-details-media-tab.component.scss'],
 	standalone: true,
 	imports: [CommonModule, FormsModule, ReactiveFormsModule, PrimeNgModules],
+	providers: [DialogService, ConfirmationService, MessageService],
 })
-export class AdminMovieDetailsMediaTabComponent implements OnDestroy {
-	@Input() movie: Movie | null = null;
-	@Input() loading = false;
+export class AdminMovieDetailsMediaTabComponent implements OnDestroy, OnInit {
+	@Input() movieId!: number;
+	loading = false;
+
+	movie: Movie | null = null;
+
+	ref: DynamicDialogRef | null = null;
 
 	// Internal component state
 	selectedMedia: any = null;
@@ -34,18 +46,20 @@ export class AdminMovieDetailsMediaTabComponent implements OnDestroy {
 	modalMedia: any = null;
 
 	// Delete confirmation state
-	showDeleteConfirmation = false;
 	mediaToDelete: any = null;
 
 	// Static current date to prevent change detection issues
 	currentDate: Date = new Date();
 	private dateUpdateInterval: any;
 
-	constructor() {
-		// Update current date every minute to keep it relatively fresh
-		this.dateUpdateInterval = setInterval(() => {
-			this.currentDate = new Date();
-		}, 60000); // Update every minute
+	constructor(
+		private dialogService: DialogService,
+		private movieService: MovieApiDataService,
+		private confirmationService: ConfirmationService,
+		private messageService: MessageService
+	) {}
+	ngOnInit(): void {
+		this.loadMovieDetails();
 	}
 
 	// Filter options with proper typing
@@ -63,6 +77,17 @@ export class AdminMovieDetailsMediaTabComponent implements OnDestroy {
 		if (this.dateUpdateInterval) {
 			clearInterval(this.dateUpdateInterval);
 		}
+	}
+
+	loadMovieDetails() {
+		this.movieService.findMovieById(this.movieId).subscribe({
+			next: (movie) => {
+				this.movie = movie;
+			},
+			error: (error) => {
+				console.error('Error loading movie details:', error);
+			},
+		});
 	}
 
 	/**
@@ -92,13 +117,6 @@ export class AdminMovieDetailsMediaTabComponent implements OnDestroy {
 	}
 
 	/**
-	 * Select media for detailed view
-	 */
-	selectMedia(media: any) {
-		this.selectedMedia = media;
-	}
-
-	/**
 	 * Open media in modal viewer
 	 */
 	openMediaModal(media: any, event?: Event) {
@@ -119,52 +137,45 @@ export class AdminMovieDetailsMediaTabComponent implements OnDestroy {
 	}
 
 	/**
-	 * Handle global keydown events for modal - prevents video focus issues
-	 */
-
-	/**
 	 * Show delete confirmation dialog
 	 */
-	confirmDeleteMedia(media: any, event?: Event) {
-		if (event) {
-			event.stopPropagation();
-		}
-		this.mediaToDelete = media;
-		this.showDeleteConfirmation = true;
-	}
-
-	/**
-	 * Cancel delete operation
-	 */
-	cancelDelete() {
-		this.showDeleteConfirmation = false;
-		this.mediaToDelete = null;
-	}
-
-	/**
-	 * Delete media (implementation can be extended to call backend API)
-	 */
-	deleteMedia() {
-		if (this.mediaToDelete && this.movie?.media) {
-			// Remove media from local array (in real app, call backend API first)
-			const index = this.movie.media.findIndex(
-				(m) => m.id === this.mediaToDelete.id
-			);
-			if (index > -1) {
-				this.movie.media.splice(index, 1);
-			}
-
-			// Clear selected media if it was the deleted one
-			if (this.selectedMedia?.id === this.mediaToDelete.id) {
-				this.selectedMedia = null;
-			}
-
-			console.log('Media deleted:', this.mediaToDelete);
-			// TODO: Implement actual API call to delete media
-			// this.mediaService.deleteMedia(this.mediaToDelete.id).subscribe(...)
-		}
-
-		this.cancelDelete();
+	confirmDeleteMedia(media: MovieMedia, event?: Event) {
+		this.confirmationService.confirm({
+			target: event && event.target ? (event.target as EventTarget) : undefined,
+			message: 'Are you sure that you want to delete?',
+			header: 'Confirmation',
+			closable: true,
+			closeOnEscape: true,
+			icon: 'pi pi-exclamation-triangle',
+			rejectButtonProps: {
+				label: 'Cancel',
+				severity: 'secondary',
+				outlined: true,
+			},
+			acceptButtonProps: {
+				label: 'Save',
+			},
+			accept: () => {
+				this.movieService.deleteMovieMedia(media.id).subscribe({
+					next: (res) => {
+						if (res) {
+							this.messageService.add({
+								severity: 'info',
+								summary: 'Confirmed',
+								detail: 'Media delted',
+							});
+						}
+					},
+					error: (err) => {
+						this.messageService.add({
+							severity: 'error	',
+							summary: 'Confirmed',
+							detail: 'Failed to delete Media',
+						});
+					},
+				});
+			},
+		});
 	}
 
 	/**
@@ -221,12 +232,16 @@ export class AdminMovieDetailsMediaTabComponent implements OnDestroy {
 	}
 
 	/**
-	 * Navigate to media upload
+	 * Open upload modal
 	 */
-	navigateToMediaUpload() {
-		// Implementation for standalone component could be a dialog or navigation
-		console.log('Navigate to media upload for movie:', this.movie?.name);
-		// This could be extended to open a dialog or navigate to upload page
+	openUploadModal() {
+		this.ref = this.dialogService.open(AdminMovieMediaUploadComponent, {
+			header: `Upload Media - ${this.movie?.name}`,
+			data: { movie: this.movie },
+			dismissableMask: true,
+			closable: true,
+			width: '500px',
+		});
 	}
 
 	/**

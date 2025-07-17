@@ -40,41 +40,37 @@ export class AdminMovieDetailComponent implements OnInit {
 
 	// Tab properties
 	activeTabIndex = 0;
+	// Edit mode
+	showEditDialog = false;
+	editMovie: Movie | null = null;
+
+	// Media upload
+	isUploadingMedia = false;
+	selectedMediaFiles: File[] = [];
+	mediaUploadProgress = 0;
 
 	// Screening properties (for second tab)
 	screenings: any[] = [];
-	screeningStats = {
-		total: 0,
-		upcoming: 0,
-		ongoing: 0,
-		completed: 0,
-	};
-
-	movieStatisticsSummary: MovieStatistics = {
-		movieId: 0,
-		movieTitle: '',
-		totalScreenings: 0,
-		totalTicketsSold: 0,
-		totalRevenue: 0,
-		averageOccupancyRate: 0,
-	};
 
 	constructor(
 		private route: ActivatedRoute,
 		private router: Router,
 		private movieApiService: MovieApiDataService,
-		private sanitizer: DomSanitizer,
-		private statisticsDataService: StatisticsDataService
+		private sanitizer: DomSanitizer
 	) {}
 
 	ngOnInit() {
 		// Get movie ID from route
 		const movieId = this.route.snapshot.paramMap.get('id');
-		this.statisticsDataService.getMovieStatistics(Number(movieId!)).subscribe({
-			next: (res) => {
-				this.movieStatisticsSummary = res.statistics;
-			},
-		});
+
+		// Check for route data to determine initial mode
+		const routeData = this.route.snapshot.data;
+		if (routeData['editMode']) {
+			// Will open edit dialog after movie loads
+		} else if (routeData['mediaMode']) {
+			this.activeTabIndex = 2; // Media upload tab
+		}
+
 		if (movieId) {
 			this.loadMovieDetails(parseInt(movieId));
 		} else {
@@ -328,5 +324,138 @@ export class AdminMovieDetailComponent implements OnInit {
 		return this.movie.media.find(
 			(media) => media.type === 'IMAGE' && media.orientation === 'PORTRAIT'
 		);
+	}
+
+	/**
+	 * Toggle edit mode
+	 */
+	toggleEditMode(): void {
+		if (this.movie) {
+			// Create a copy for editing
+			this.editMovie = { ...this.movie };
+			this.showEditDialog = true;
+		}
+	}
+
+	/**
+	 * Cancel editing
+	 */
+	cancelEdit(): void {
+		this.showEditDialog = false;
+		this.editMovie = null;
+	}
+
+	/**
+	 * Save movie changes
+	 */
+	saveMovie(): void {
+		if (!this.editMovie) return;
+
+		this.loading = true;
+
+		// Convert Movie to UpdateMovieDto
+		const updateData: any = {
+			name: this.editMovie.name,
+			description: this.editMovie.description,
+			pgRating: this.editMovie.pgRating,
+			durationMin: this.editMovie.durationMin,
+			releaseDate: this.editMovie.releaseDate
+				? this.editMovie.releaseDate instanceof Date
+					? this.editMovie.releaseDate.toISOString().split('T')[0]
+					: this.editMovie.releaseDate
+				: undefined,
+			trailerURL: this.editMovie.trailerURL,
+			productionHouse: this.editMovie.productionHouse,
+			screeningStatus: this.editMovie.screeningStatus,
+			genreIds: this.editMovie.genres?.map((g) => g.id) || [],
+			languageIds: this.editMovie.languages?.map((l) => l.id) || [],
+			subtitleLanguageIds:
+				this.editMovie.subtitleLanguages?.map((s) => s.id) || [],
+		};
+
+		this.movieApiService.updateMovie(this.editMovie.id, updateData).subscribe({
+			next: (response: any) => {
+				this.movie = response.data || response;
+				this.showEditDialog = false;
+				this.editMovie = null;
+				this.loading = false;
+				// Show success message
+			},
+			error: (error: any) => {
+				console.error('Error updating movie:', error);
+				this.error = 'Failed to update movie. Please try again.';
+				this.loading = false;
+			},
+		});
+	}
+
+	/**
+	 * Handle media file selection
+	 */
+	onMediaFilesSelected(event: any): void {
+		const files = Array.from(event.target.files) as File[];
+		this.selectedMediaFiles = files;
+	}
+
+	/**
+	 * Upload selected media files
+	 */
+	uploadMedia(): void {
+		if (!this.movie || this.selectedMediaFiles.length === 0) return;
+
+		this.isUploadingMedia = true;
+		this.mediaUploadProgress = 0;
+
+		// Simulate upload progress (replace with actual upload logic)
+		const progressInterval = setInterval(() => {
+			this.mediaUploadProgress += 10;
+			if (this.mediaUploadProgress >= 100) {
+				clearInterval(progressInterval);
+				this.isUploadingMedia = false;
+				this.selectedMediaFiles = [];
+				this.mediaUploadProgress = 0;
+				// Reload movie details to get updated media
+				this.loadMovieDetails(this.movie!.id);
+			}
+		}, 500);
+	}
+
+	/**
+	 * Remove selected media file
+	 */
+	removeSelectedFile(index: number): void {
+		this.selectedMediaFiles.splice(index, 1);
+	}
+
+	/**
+	 * Navigate to movie edit page
+	 */
+	editMovieDetails(): void {
+		this.router.navigate(['/admin/master-movies', this.movie?.id, 'edit']);
+	}
+
+	/**
+	 * Navigate to media management page
+	 */
+	manageMedia(): void {
+		this.router.navigate(['/admin/master-movies', this.movie?.id, 'media']);
+	}
+
+	/**
+	 * Navigate to screenings page
+	 */
+	viewScreenings(): void {
+		this.router.navigate(['/admin/master-screenings'], {
+			queryParams: { movieId: this.movie?.id },
+		});
+	}
+
+	/**
+	 * Navigate to bookings page
+	 */
+	viewBookings(): void {
+		this.router.navigate(['/admin/master-bookings'], {
+			queryParams: { movieId: this.movie?.id },
+		});
 	}
 }

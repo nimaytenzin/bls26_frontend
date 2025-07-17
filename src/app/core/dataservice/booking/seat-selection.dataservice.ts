@@ -10,11 +10,7 @@ import {
 	SessionSeatOccupancyResponse,
 	SeatSelectionDto,
 	SeatSelectionResponse,
-	MockPaymentDto,
-	PaymentMode,
-	PaymentSuccessResponse,
 } from './booking.interface';
-import { Seat } from '../seat/seat.interface';
 
 @Injectable({
 	providedIn: 'root',
@@ -159,42 +155,6 @@ export class SeatSelectionDataService {
 			.pipe(
 				catchError((error) => {
 					console.error('Error updating user details:', error);
-					return throwError(() => error);
-				})
-			);
-	}
-
-	/**
-	 * Mock payment success - Simulate successful payment processing
-	 * This is for testing purposes to confirm booking without actual payment gateway
-	 */
-	mockPaymentSuccess(
-		sessionId: string,
-		screeningId: number,
-		mockPaymentDto: MockPaymentDto
-	): Observable<PaymentSuccessResponse> {
-		// Set default values if not provided
-		const paymentData: MockPaymentDto = {
-			sessionId,
-			screeningId,
-			paymentMode: mockPaymentDto.paymentMode || PaymentMode.ZPSS,
-			gatewayTransactionId:
-				mockPaymentDto.gatewayTransactionId || `MOCK_TXN_${Date.now()}`,
-			paymentInstructionNumber:
-				mockPaymentDto.paymentInstructionNumber || `MOCK_PIN_${Date.now()}`,
-			bfsTransactionId:
-				mockPaymentDto.bfsTransactionId || `MOCK_BFS_${Date.now()}`,
-			notes: mockPaymentDto.notes || 'Mock successful payment for testing',
-		};
-
-		return this.http
-			.post<PaymentSuccessResponse>(
-				`${BASEAPI_URL}/booking/session/${sessionId}/screening/${screeningId}/mock-payment-success`,
-				paymentData
-			)
-			.pipe(
-				catchError((error) => {
-					console.error('Error processing mock payment:', error);
 					return throwError(() => error);
 				})
 			);

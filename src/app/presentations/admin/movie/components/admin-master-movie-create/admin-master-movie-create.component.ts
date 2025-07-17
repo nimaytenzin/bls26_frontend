@@ -171,26 +171,6 @@ export class AdminMasterMovieCreateComponent implements OnInit, OnDestroy {
 			languageIds: [[], Validators.required],
 			subtitleLanguageIds: [[]],
 		});
-		this.addMockValues();
-	}
-
-	addMockValues() {
-		this.movieForm.patchValue({
-			name: 'With love from Bhutan',
-			description:
-				'A young girl embraks on a romantic journey to meet her lover from nepal.',
-			pgRating: 'PG-13',
-			casts: 'Yeshi Lhendup, Karma Choden, Tashi Dorji',
-			durationMin: 120,
-			releaseDate: '2025-01-01',
-			trailerURL: 'https://www.youtube.com/watch?v=mocktrailer',
-			productionHouse: 'Yeshi Lhendup Flims',
-			producerId: 1,
-			screeningStatus: ScreeningStatusEnum.UPCOMING,
-			genreIds: [1, 2],
-			languageIds: [1],
-			subtitleLanguageIds: [1],
-		});
 	}
 
 	get f() {

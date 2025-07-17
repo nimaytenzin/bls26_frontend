@@ -46,6 +46,11 @@ import { ScreeningDataService } from '../../../../core/dataservice/screening/scr
 import { Movie } from '../../../../core/dataservice/movie/movie.interface';
 import { SEATSELECTIONCONFIG } from '../../../../core/dataservice/config.service';
 import { SeatSelectionDataService } from '../../../../core/dataservice/booking/seat-selection.dataservice';
+import {
+	DeviceInfo,
+	UserAgentService,
+} from '../../../../core/utility/useragent.service';
+import { AuthService } from '../../../../core/dataservice/auth/auth.service';
 
 export interface SelectedSeat extends Seat {
 	price: number;
@@ -114,6 +119,9 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 	// Loading states
 	loadingSeats: boolean = false;
 
+	//device information
+	deviceInformation: DeviceInfo | null = null;
+
 	constructor(
 		private bookingService: BookingDataService,
 		private screeningService: ScreeningDataService,
@@ -123,7 +131,9 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 		private confirmationService: ConfirmationService,
 		private formBuilder: FormBuilder,
 		private cdr: ChangeDetectorRef,
-		private seatSelectionService: SeatSelectionDataService
+		private userAgentService: UserAgentService,
+		private seatSelectionService: SeatSelectionDataService,
+		private authService: AuthService
 	) {
 		this.initializeCustomerForm();
 	}
@@ -131,7 +141,20 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 	ngOnInit(): void {
 		if (this.screeningId) {
 			this.loadScreeningDetails();
+			this.getDeviceInformation();
 		}
+
+		console.log('AUTHETNCTED USER ID', this.getAuthenticatedUserId());
+	}
+
+	getDeviceInformation() {
+		this.userAgentService.getDeviceInfo().then((info) => {
+			this.deviceInformation = info;
+		});
+	}
+
+	getAuthenticatedUserId(): number {
+		return this.authService.getCurrentUser()?.id || 0;
 	}
 
 	/**
@@ -446,10 +469,11 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 		const seatSelectionDto: SeatSelectionDto = {
 			seatId: seat.id,
 			screeningId: this.screening.id,
-			userMetadata: {
-				userAgent: navigator.userAgent,
-				ipAddress: '',
-			},
+			deviceType: this.deviceInformation?.deviceType || 'unknown',
+			operatingSystem: this.deviceInformation?.operatingSystem || 'unknown',
+			country: this.deviceInformation?.country || 'unknown',
+			city: this.deviceInformation?.city || 'unknown',
+			bookedBy: this.getAuthenticatedUserId(),
 		};
 
 		this.seatSelectionService
@@ -493,10 +517,11 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 		const seatSelectionDto: SeatSelectionDto = {
 			seatId: seat.id,
 			screeningId: this.screening.id,
-			userMetadata: {
-				userAgent: navigator.userAgent,
-				ipAddress: '',
-			},
+			deviceType: this.deviceInformation?.deviceType || 'unknown',
+			operatingSystem: this.deviceInformation?.operatingSystem || 'unknown',
+			country: this.deviceInformation?.country || 'unknown',
+			city: this.deviceInformation?.city || 'unknown',
+			bookedBy: this.getAuthenticatedUserId(),
 		};
 
 		this.seatSelectionService
@@ -829,10 +854,11 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 			email: formValue.customerEmail || '',
 			seats: bookedSeats,
 			totalAmount: totalAmount,
-			bookingStatus: BookingStatusEnum.SUCCESS,
+			bookingStatus: BookingStatusEnum.CONFIRMED,
 			entryStatus: EntryStatusEnum.VALID,
 			paymentMethod: formValue.paymentMethod.toUpperCase(),
 			notes: formValue.notes || '',
+			bookedBy: this.getAuthenticatedUserId(),
 		};
 
 		this.bookingService

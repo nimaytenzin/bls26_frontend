@@ -20,18 +20,18 @@ import { TheatreDataService } from '../../../../core/dataservice/theatre/theatre
 import { LanguageDataService } from '../../../../core/dataservice/language/language.dataservice';
 import { BASEAPI_URL } from '../../../../core/constants/constants';
 import { AdminScreeningCreateComponent } from '../components/admin-screening-create/admin-screening-create.component';
+import { AdminScreeningEditComponent } from '../components/admin-screening-edit/admin-screening-edit.component';
+import { AdminScreeningDetailedViewComponent } from '../components/admin-screening-detailed-view/admin-screening-detailed-view.component';
 
-import {
-	Screening,
-	CreateScreeningWithPricesDto,
-	SeatCategoryPriceDto,
-	ScreeningFilter,
-} from '../../../../core/dataservice/screening/screening.interface';
+import { Screening } from '../../../../core/dataservice/screening/screening.interface';
 import { Movie } from '../../../../core/dataservice/movie/movie.interface';
 import { Hall } from '../../../../core/dataservice/hall/hall.interface';
 import { Theatre } from '../../../../core/dataservice/theatre/theatre.interface';
 import { Language } from '../../../../core/dataservice/language/language.interface';
 import { SeatCategory } from '../../../../core/dataservice/seat-category/seat-category.interface';
+import { PaginatedData } from '../../../../core/utility/pagination.interface';
+import { AdminScreeningsByMovieComponent } from '../components/admin-screenings-by-movie/admin-screenings-by-movie.component';
+import { AdminScreeningsByTheatreComponent } from '../components/admin-screenings-by-theatre/admin-screenings-by-theatre.component';
 
 @Component({
 	selector: 'app-admin-master-screening',
@@ -43,7 +43,7 @@ import { SeatCategory } from '../../../../core/dataservice/seat-category/seat-ca
 })
 export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 	private destroy$ = new Subject<void>();
-
+	ref: DynamicDialogRef | undefined;
 	// Data
 	screenings: Screening[] = [];
 	movies: Movie[] = [];
@@ -51,6 +51,10 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 	halls: Hall[] = [];
 	languages: Language[] = [];
 	seatCategories: SeatCategory[] = [];
+
+	//form
+	searchMovieId: number | null = null;
+	searchTheatreId: number | null = null;
 
 	// Form
 	screeningForm!: FormGroup;
@@ -71,9 +75,21 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 	filterForm!: FormGroup;
 	filteredScreenings: Screening[] = [];
 
+	// Tab management
+	activeTabIndex = 0; // 0 = Current & Upcoming, 1 = Past
+
+	// Pagination for current/upcoming screenings
+	currentScreeningsPagination: PaginatedData<Screening> | null = null;
+	currentScreeningsPage = 1;
+	currentScreeningsPageSize = 10;
+
+	// Pagination for past screenings
+	pastScreeningsPagination: PaginatedData<Screening> | null = null;
+	pastScreeningsPage = 1;
+	pastScreeningsPageSize = 10;
+
 	// View options
 	viewMode: 'list' | 'calendar' = 'list';
-	calendarEvents: any[] = [];
 
 	constructor(
 		private fb: FormBuilder,
@@ -153,22 +169,24 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 		this.loading = true;
 
 		forkJoin({
-			screenings: this.screeningService.findAllScreenings(),
-			movies: this.movieService.findAllMovies(),
+			movies: this.movieService.findAllMoviesScreeningNow(),
 			theatres: this.theatreService.findAllTheatres(),
 			languages: this.languageService.findAllLanguages(),
 		})
 			.pipe(takeUntil(this.destroy$))
 			.subscribe({
 				next: (data) => {
-					console.log('Initial data loaded:', data.screenings);
-					this.screenings = data.screenings;
+					console.log('Initial data loaded');
 					this.movies = data.movies;
 					this.theatres = data.theatres;
 					this.languages = data.languages;
-					this.filteredScreenings = [...this.screenings];
-					this.updateCalendarEvents();
-					this.loading = false;
+
+					// Load screenings based on active tab
+					if (this.activeTabIndex === 0) {
+						this.loadCurrentScreenings();
+					} else {
+						this.loadPastScreenings();
+					}
 				},
 				error: (error) => {
 					console.error('Error loading initial data:', error);
@@ -233,80 +251,167 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 	}
 
 	private applyFilters(): void {
-		const filters = this.filterForm.value;
-		let filtered = [...this.screenings];
+		// Reset page numbers when filters change
+		this.currentScreeningsPage = 1;
+		this.pastScreeningsPage = 1;
 
-		if (filters.movieId) {
-			filtered = filtered.filter(
-				(s) => s.movieId === parseInt(filters.movieId)
-			);
+		// Reload data based on active tab
+		if (this.activeTabIndex === 0) {
+			this.loadCurrentScreenings();
+		} else {
+			this.loadPastScreenings();
 		}
-
-		if (filters.theatreId) {
-			filtered = filtered.filter(
-				(s) => s.hall?.theatreId === parseInt(filters.theatreId)
-			);
-		}
-
-		if (filters.hallId) {
-			filtered = filtered.filter((s) => s.hallId === parseInt(filters.hallId));
-		}
-
-		if (filters.date) {
-			filtered = filtered.filter((s) => s.date === filters.date);
-		}
-
-		if (filters.searchTerm) {
-			const term = filters.searchTerm.toLowerCase();
-			filtered = filtered.filter(
-				(s) =>
-					s.movie?.name?.toLowerCase().includes(term) ||
-					s.hall?.name?.toLowerCase().includes(term)
-			);
-		}
-
-		this.filteredScreenings = filtered;
 	}
 
-	private updateCalendarEvents(): void {
-		// Helper function to convert TIME format to Date object
-		const parseTimeToDate = (dateStr: string, timeStr: any): Date => {
-			const baseDate = new Date(dateStr);
+	/**
+	 * Get current and upcoming screenings
+	 */
+	getCurrentAndUpcomingScreenings(): Screening[] {
+		return this.currentScreeningsPagination?.data || [];
+	}
 
-			// Ensure timeStr is a string
-			const timeString =
-				typeof timeStr === 'string' ? timeStr : String(timeStr || '');
+	/**
+	 * Get past screenings
+	 */
+	getPastScreenings(): Screening[] {
+		return this.pastScreeningsPagination?.data || [];
+	}
 
-			if (timeString && timeString.includes(':')) {
-				// Handle TIME format (HH:MM:SS or HH:MM)
-				const timeParts = timeString.split(':');
-				if (timeParts.length >= 2) {
-					const hours = parseInt(timeParts[0], 10);
-					const minutes = parseInt(timeParts[1], 10);
-					const seconds = timeParts[2] ? parseInt(timeParts[2], 10) : 0;
-					baseDate.setHours(hours, minutes, seconds, 0);
-				}
-			} else if (
-				timeString &&
-				timeString.length === 4 &&
-				/^\d{4}$/.test(timeString)
-			) {
-				// Handle legacy 4-digit format (HHMM)
-				const hours = parseInt(timeString.substring(0, 2), 10);
-				const minutes = parseInt(timeString.substring(2, 4), 10);
-				baseDate.setHours(hours, minutes, 0, 0);
+	/**
+	 * Load current screenings with pagination
+	 */
+	loadCurrentScreenings(): void {
+		this.loading = true;
+		this.screeningService
+			.getCurrentScreeningsPaginated(
+				this.currentScreeningsPage,
+				this.currentScreeningsPageSize
+			)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (response) => {
+					this.currentScreeningsPagination = response;
+					this.loading = false;
+				},
+				error: (error) => {
+					console.error('Error loading current screenings:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load current screenings.',
+					});
+					this.loading = false;
+				},
+			});
+	}
+
+	/**
+	 * Load past screenings with pagination
+	 */
+	loadPastScreenings(): void {
+		this.loading = true;
+		this.screeningService
+			.getPastScreeningsPaginated(
+				this.pastScreeningsPage,
+				this.pastScreeningsPageSize
+			)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (response) => {
+					this.pastScreeningsPagination = response;
+					this.loading = false;
+				},
+				error: (error) => {
+					console.error('Error loading past screenings:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load past screenings.',
+					});
+					this.loading = false;
+				},
+			});
+	}
+
+	/**
+	 * Handle page change for current screenings
+	 */
+	onCurrentPageChange(event: any): void {
+		this.currentScreeningsPage = event.page + 1; // PrimeNG uses 0-based index
+		this.currentScreeningsPageSize = event.rows;
+		this.loadCurrentScreenings();
+	}
+
+	/**
+	 * Handle page change for past screenings
+	 */
+	onPastPageChange(event: any): void {
+		this.pastScreeningsPage = event.page + 1; // PrimeNG uses 0-based index
+		this.pastScreeningsPageSize = event.rows;
+		this.loadPastScreenings();
+	}
+
+	/**
+	 * Handle tab change
+	 */
+	onTabChange(event: any): void {
+		this.activeTabIndex = event.index;
+
+		// Load appropriate data based on selected tab
+		if (this.activeTabIndex === 0) {
+			// Reset page and load current screenings if not already loaded
+			if (!this.currentScreeningsPagination) {
+				this.currentScreeningsPage = 1;
+				this.loadCurrentScreenings();
 			}
+		} else {
+			// Reset page and load past screenings if not already loaded
+			if (!this.pastScreeningsPagination) {
+				this.pastScreeningsPage = 1;
+				this.loadPastScreenings();
+			}
+		}
+	}
 
-			return baseDate;
-		};
+	/**
+	 * Handle movie filter change
+	 */
+	onMovieFilterChange(movieId: number | null): void {
+		this.searchMovieId = movieId;
 
-		this.calendarEvents = this.screenings.map((screening) => ({
-			title: `${screening.movie?.name} - ${screening.hall?.name}`,
-			start: parseTimeToDate(screening.date, screening.startTime),
-			end: parseTimeToDate(screening.date, screening.endTime),
-			backgroundColor: this.getScreeningColor(screening),
-			extendedProps: { screening },
-		}));
+		// If a movie is selected, you could filter the screenings
+		// For now, we'll just store the selection for the "View Screening by Movie" button
+		if (movieId) {
+			console.log('Selected movie ID:', movieId);
+			// TODO: Implement filtering logic if needed
+		}
+	}
+
+	/**
+	 * Combine date and time into a single Date object
+	 */
+	private combineDateTime(dateStr: string, timeStr: any): Date {
+		const date = new Date(dateStr);
+
+		// Handle different time formats
+		let timeString: string;
+		if (typeof timeStr === 'string') {
+			timeString = timeStr;
+		} else if (timeStr instanceof Date) {
+			timeString = timeStr.toTimeString().split(' ')[0];
+		} else {
+			timeString = '00:00:00';
+		}
+
+		const [hours, minutes, seconds = '00'] = timeString.split(':');
+		date.setHours(
+			parseInt(hours, 10),
+			parseInt(minutes, 10),
+			parseInt(seconds, 10),
+			0
+		);
+
+		return date;
 	}
 
 	private getScreeningColor(screening: Screening): string {
@@ -334,10 +439,40 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 		});
 	}
 
+	openDetailDialog(screening: Screening): void {
+		const ref = this.dialogService.open(AdminScreeningDetailedViewComponent, {
+			header: `${screening.movie.name} - Screening Details`,
+			data: { screening },
+			maximizable: true,
+			modal: true,
+			closable: true,
+			styleClass: '!rounded-2xl !border-none !shadow-2xl',
+		});
+
+		ref.onClose.subscribe((result) => {
+			if (result?.action === 'edit') {
+				// Open edit dialog if user clicked edit from detail view
+				this.openEditDialog(result.screening);
+			}
+		});
+	}
+
 	openEditDialog(screening: Screening): void {
-		this.selectedScreening = screening;
-		this.populateFormForEdit(screening);
-		this.showEditDialog = true;
+		const ref = this.dialogService.open(AdminScreeningEditComponent, {
+			header: `Edit ${screening.movie.name} Screening`,
+			data: { screeningId: screening.id },
+			maximizable: true,
+			modal: true,
+			closable: true,
+			styleClass: '!rounded-3xl !border-none !shadow-2xl',
+		});
+
+		ref.onClose.subscribe((result) => {
+			if (result) {
+				// Reload screenings if screening was updated successfully
+				this.loadInitialData();
+			}
+		});
 	}
 
 	private populateFormForEdit(screening: Screening): void {
@@ -406,173 +541,6 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	nextStep(): void {
-		if (this.currentStep < this.totalSteps) {
-			this.currentStep++;
-		}
-	}
-
-	previousStep(): void {
-		if (this.currentStep > 1) {
-			this.currentStep--;
-		}
-	}
-
-	canProceedToNextStep(): boolean {
-		switch (this.currentStep) {
-			case 1:
-				return !!(
-					this.screeningForm.get('movieId')?.valid &&
-					this.screeningForm.get('theatreId')?.valid &&
-					this.screeningForm.get('hallId')?.valid
-				);
-			case 2:
-				return !!(
-					this.screeningForm.get('date')?.valid &&
-					this.screeningForm.get('startTime')?.valid &&
-					this.screeningForm.get('endTime')?.valid
-				);
-			case 3:
-				return !!this.priceForm.valid;
-			default:
-				return false;
-		}
-	}
-
-	submitScreening(): void {
-		if (this.screeningForm.invalid || this.priceForm.invalid) {
-			this.markAllFormsAsTouched();
-			return;
-		}
-
-		this.isSubmitting = true;
-		const formData = this.screeningForm.value;
-		const priceData = this.priceForm.value;
-
-		const seatCategoryPrices: SeatCategoryPriceDto[] = this.seatCategories.map(
-			(category) => ({
-				seatCategoryId: category.id,
-				price: parseFloat(priceData[`price_${category.id}`]),
-			})
-		);
-
-		// Convert start and end times to MySQL TIME format (HH:MM:SS)
-		const formatTimeToMySQLTime = (timeValue: any): string => {
-			if (!timeValue) return '';
-
-			// Handle Date objects (from p-datepicker)
-			if (timeValue instanceof Date) {
-				const hours = timeValue.getHours().toString().padStart(2, '0');
-				const minutes = timeValue.getMinutes().toString().padStart(2, '0');
-				const seconds = timeValue.getSeconds().toString().padStart(2, '0');
-				return `${hours}:${minutes}:${seconds}`;
-			}
-
-			// Handle string values
-			if (typeof timeValue === 'string') {
-				// Handle ISO date strings (e.g., "2024-01-01T14:30:00.000Z")
-				if (timeValue.includes('T') || timeValue.includes('Z')) {
-					const date = new Date(timeValue);
-					if (!isNaN(date.getTime())) {
-						const hours = date.getHours().toString().padStart(2, '0');
-						const minutes = date.getMinutes().toString().padStart(2, '0');
-						const seconds = date.getSeconds().toString().padStart(2, '0');
-						return `${hours}:${minutes}:${seconds}`;
-					}
-				}
-
-				// Handle existing time string formats (HH:MM or HH:MM:SS)
-				if (timeValue.includes(':')) {
-					const timeParts = timeValue.split(':');
-					if (timeParts.length >= 2) {
-						const hours = timeParts[0].padStart(2, '0');
-						const minutes = timeParts[1].padStart(2, '0');
-						const seconds = timeParts[2] ? timeParts[2].padStart(2, '0') : '00';
-						return `${hours}:${minutes}:${seconds}`;
-					}
-				}
-
-				// Handle 4-digit format (HHMM) - legacy support
-				if (timeValue.length === 4 && /^\d{4}$/.test(timeValue)) {
-					const hours = timeValue.substring(0, 2);
-					const minutes = timeValue.substring(2, 4);
-					return `${hours}:${minutes}:00`;
-				}
-			}
-
-			return '';
-		};
-
-		const screeningData: CreateScreeningWithPricesDto = {
-			...formData,
-			startTime: formatTimeToMySQLTime(formData.startTime),
-			endTime: formatTimeToMySQLTime(formData.endTime),
-			seatCategoryPrices,
-		};
-
-		if (this.selectedScreening) {
-			// Update existing screening
-			this.updateScreening(screeningData);
-		} else {
-			// Create new screening
-			this.createScreening(screeningData);
-		}
-	}
-
-	private createScreening(screeningData: CreateScreeningWithPricesDto): void {
-		this.screeningService
-			.createScreeningWithPrices(screeningData)
-			.pipe(takeUntil(this.destroy$))
-			.subscribe({
-				next: (response) => {
-					this.messageService.add({
-						severity: 'success',
-						summary: 'Success',
-						detail: 'Screening created successfully!',
-					});
-					this.closeDialogs();
-					this.loadInitialData();
-				},
-				error: (error) => {
-					console.error('Error creating screening:', error);
-					this.isSubmitting = false;
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Error',
-						detail: error.error?.message || 'Failed to create screening.',
-					});
-				},
-			});
-	}
-
-	private updateScreening(screeningData: CreateScreeningWithPricesDto): void {
-		if (!this.selectedScreening) return;
-
-		this.screeningService
-			.updateScreening(this.selectedScreening.id, screeningData)
-			.pipe(takeUntil(this.destroy$))
-			.subscribe({
-				next: (response) => {
-					this.messageService.add({
-						severity: 'success',
-						summary: 'Success',
-						detail: 'Screening updated successfully!',
-					});
-					this.closeDialogs();
-					this.loadInitialData();
-				},
-				error: (error) => {
-					console.error('Error updating screening:', error);
-					this.isSubmitting = false;
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Error',
-						detail: error.error?.message || 'Failed to update screening.',
-					});
-				},
-			});
-	}
-
 	deleteScreening(screening: Screening, event: Event): void {
 		this.confirmationService.confirm({
 			target: event.target as EventTarget,
@@ -583,54 +551,52 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 			rejectIcon: 'none',
 			rejectButtonStyleClass: 'p-button-text',
 			acceptButtonStyleClass: 'p-button-danger',
-			accept: () => {
-				this.performDelete(screening);
+			accept: () => {},
+		});
+	}
+
+	openViewScreeningsByMovie(): void {
+		if (!this.searchMovieId) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Movie Selected',
+				detail: 'Please select a movie from the dropdown first.',
+			});
+			return;
+		}
+
+		this.ref = this.dialogService.open(AdminScreeningsByMovieComponent, {
+			header: `Screenings for Selected Movie`,
+			modal: true,
+			closable: true,
+			maximizable: true,
+			styleClass: '!rounded-2xl !border-none !shadow-2xl',
+			data: {
+				movieId: this.searchMovieId,
 			},
 		});
 	}
 
-	private performDelete(screening: Screening): void {
-		this.screeningService
-			.deleteScreening(screening.id)
-			.pipe(takeUntil(this.destroy$))
-			.subscribe({
-				next: () => {
-					this.messageService.add({
-						severity: 'success',
-						summary: 'Success',
-						detail: 'Screening deleted successfully!',
-					});
-					this.loadInitialData();
-				},
-				error: (error) => {
-					console.error('Error deleting screening:', error);
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Error',
-						detail: error.error?.message || 'Failed to delete screening.',
-					});
-				},
+	openViewScreeningsByTheatre(): void {
+		if (!this.searchTheatreId) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Theatre Selected',
+				detail: 'Please select a theatre from the dropdown first.',
 			});
-	}
+			return;
+		}
 
-	private closeDialogs(): void {
-		this.showCreateDialog = false;
-		this.showEditDialog = false;
-		this.isSubmitting = false;
-		this.resetForms();
-	}
-
-	private resetForms(): void {
-		this.screeningForm.reset();
-		this.priceForm = this.fb.group({});
-		this.seatCategories = [];
-		this.halls = [];
-		this.currentStep = 1;
-	}
-
-	private markAllFormsAsTouched(): void {
-		this.screeningForm.markAllAsTouched();
-		this.priceForm.markAllAsTouched();
+		this.ref = this.dialogService.open(AdminScreeningsByTheatreComponent, {
+			header: `Screenings for Selected Theatre`,
+			modal: true,
+			closable: true,
+			maximizable: true,
+			styleClass: '!rounded-2xl !border-none !shadow-2xl',
+			data: {
+				theatreId: this.searchTheatreId,
+			},
+		});
 	}
 
 	// Template helper methods
@@ -719,32 +685,6 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 			.join(', ');
 	}
 
-	isFieldInvalid(formGroup: FormGroup, fieldName: string): boolean {
-		const field = formGroup.get(fieldName);
-		return !!(field && field.invalid && field.touched);
-	}
-
-	getFieldError(formGroup: FormGroup, fieldName: string): string {
-		const field = formGroup.get(fieldName);
-		if (field?.errors && field.touched) {
-			if (field.errors['required']) return `${fieldName} is required`;
-			if (field.errors['min']) return `${fieldName} must be greater than 0`;
-		}
-		return '';
-	}
-
-	onCalendarEventClick(event: any): void {
-		if (event.extendedProps?.screening) {
-			this.openEditDialog(event.extendedProps.screening);
-		}
-	}
-
-	onViewModeChange(): void {
-		if (this.viewMode === 'calendar') {
-			this.updateCalendarEvents();
-		}
-	}
-
 	// Helper methods for template
 	Array = Array;
 	trackByScreeningId = (index: number, screening: Screening) => screening.id;
@@ -766,7 +706,7 @@ export class AdminMasterScreeningComponent implements OnInit, OnDestroy {
 	 * Get media URL
 	 */
 	getMediaUrl(uri: string): string {
-		return `${BASEAPI_URL}/${uri}`;
+		return `${BASEAPI_URL}${uri}`;
 	}
 
 	/**

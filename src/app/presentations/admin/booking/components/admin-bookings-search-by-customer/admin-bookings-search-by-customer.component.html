@@ -1,0 +1,465 @@
+<!-- Admin Booking Search by Customer Component -->
+<div>
+	<!-- Search Form -->
+	<div class="bg-white rounded-2xl border border-slate-200/60 p-6 sm:p-8">
+		<h2
+			class="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2"
+		>
+			<i class="pi pi-user text-blue-500"></i>
+			Customer Search
+		</h2>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+			<!-- Phone Number Search -->
+			<div>
+				<label
+					for="phoneNumber"
+					class="block text-sm font-medium text-slate-700 mb-2"
+				>
+					Phone Number
+				</label>
+				<div class="relative">
+					<input
+						type="tel"
+						id="phoneNumber"
+						[(ngModel)]="searchPhoneNumber"
+						placeholder="Enter phone number (e.g., 17123456)"
+						class="w-full px-4 py-3 pl-10 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+						[disabled]="loading"
+					/>
+					<i
+						class="pi pi-phone absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
+					></i>
+				</div>
+			</div>
+
+			<!-- Email Search -->
+			<div>
+				<label
+					for="email"
+					class="block text-sm font-medium text-slate-700 mb-2"
+				>
+					Email Address
+				</label>
+				<div class="relative">
+					<input
+						type="email"
+						id="email"
+						[(ngModel)]="searchEmail"
+						placeholder="Enter email address"
+						class="w-full px-4 py-3 pl-10 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+						[disabled]="loading"
+					/>
+					<i
+						class="pi pi-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
+					></i>
+				</div>
+			</div>
+		</div>
+
+		<!-- Search Actions -->
+		<div
+			class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+		>
+			<div
+				class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2"
+			>
+				<i class="pi pi-info-circle text-blue-600"></i>
+				<p class="text-sm text-blue-700">
+					Enter either phone number or email address to search for bookings
+				</p>
+			</div>
+			<div class="flex space-x-3">
+				<button
+					type="button"
+					class="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-medium"
+					(click)="clearSearch()"
+					[disabled]="loading"
+				>
+					<i class="pi pi-times mr-2"></i>
+					Clear
+				</button>
+				<button
+					type="button"
+					class="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+					(click)="searchBookings()"
+					[disabled]="loading"
+				>
+					<p-progressSpinner
+						*ngIf="loading"
+						strokeWidth="3"
+						[style]="{ width: '16px', height: '16px' }"
+						class="mr-2"
+					></p-progressSpinner>
+					<i *ngIf="!loading" class="pi pi-search mr-2"></i>
+					{{ loading ? "Searching..." : "Search Bookings" }}
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Search Results -->
+	<div *ngIf="searchPerformed">
+		<!-- Statistics Cards -->
+		<div
+			*ngIf="bookings.length > 0"
+			class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"
+		>
+			<!-- Total Bookings -->
+			<div class="bg-blue-50 rounded-xl p-6 border border-blue-100">
+				<div class="flex items-center gap-3">
+					<div
+						class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center"
+					>
+						<i class="pi pi-ticket text-blue-600 text-xl"></i>
+					</div>
+					<div>
+						<p class="text-blue-600 text-sm font-medium mb-1">Total Found</p>
+						<p class="text-2xl font-bold text-blue-800">
+							{{ bookings.length }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Confirmed Bookings -->
+			<div class="bg-green-50 rounded-xl p-6 border border-green-100">
+				<div class="flex items-center gap-3">
+					<div
+						class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center"
+					>
+						<i class="pi pi-check-circle text-green-600 text-xl"></i>
+					</div>
+					<div>
+						<p class="text-green-600 text-sm font-medium mb-1">Confirmed</p>
+						<p class="text-2xl font-bold text-green-800">
+							{{ getConfirmedBookingsCount() }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Valid Screenings -->
+			<div class="bg-amber-50 rounded-xl p-6 border border-amber-100">
+				<div class="flex items-center gap-3">
+					<div
+						class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center"
+					>
+						<i class="pi pi-clock text-amber-600 text-xl"></i>
+					</div>
+					<div>
+						<p class="text-amber-600 text-sm font-medium mb-1">Valid</p>
+						<p class="text-2xl font-bold text-amber-800">
+							{{ getValidBookingsCount() }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Expired Screenings -->
+			<div class="bg-red-50 rounded-xl p-6 border border-red-100">
+				<div class="flex items-center gap-3">
+					<div
+						class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center"
+					>
+						<i class="pi pi-times-circle text-red-600 text-xl"></i>
+					</div>
+					<div>
+						<p class="text-red-600 text-sm font-medium mb-1">Expired</p>
+						<p class="text-2xl font-bold text-red-800">
+							{{ getExpiredBookingsCount() }}
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Results Header with Filters -->
+		<div class="mb-6 bg-white rounded-2xl border border-slate-200/60 p-6">
+			<div
+				class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4"
+			>
+				<h3 class="text-lg font-semibold text-slate-800">
+					Search Results
+					<span class="text-sm font-normal text-slate-600 ml-2">
+						({{ filteredBookings.length }} of {{ bookings.length }} booking{{
+							bookings.length !== 1 ? "s" : ""
+						}}
+						{{
+							filteredBookings.length !== bookings.length ? "shown" : "found"
+						}})
+					</span>
+				</h3>
+
+				<!-- Filter Controls -->
+				<div
+					*ngIf="bookings.length > 0"
+					class="flex flex-col sm:flex-row gap-3"
+				>
+					<!-- Screening Status Filter -->
+					<div class="flex items-center gap-2">
+						<label class="text-sm font-medium text-slate-700">Screening:</label>
+						<p-dropdown
+							[(ngModel)]="screeningStatusFilter"
+							(ngModelChange)="onFilterChange()"
+							[options]="[
+								{ label: 'All Screenings', value: 'all' },
+								{ label: 'Valid Only', value: 'valid' },
+								{ label: 'Expired Only', value: 'expired' }
+							]"
+							optionLabel="label"
+							optionValue="value"
+							styleClass="!w-40"
+						></p-dropdown>
+					</div>
+
+					<!-- Booking Status Filter -->
+					<div class="flex items-center gap-2">
+						<label class="text-sm font-medium text-slate-700">Status:</label>
+						<p-dropdown
+							[(ngModel)]="bookingStatusFilter"
+							(ngModelChange)="onFilterChange()"
+							[options]="[
+								{ label: 'All Statuses', value: 'all' },
+								{ label: 'Confirmed', value: 'confirmed' },
+								{ label: 'Pending', value: 'pending' },
+								{ label: 'Failed', value: 'failed' },
+								{ label: 'Cancelled', value: 'cancelled' }
+							]"
+							optionLabel="label"
+							optionValue="value"
+							styleClass="!w-40"
+						></p-dropdown>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- No Results -->
+		<div
+			*ngIf="bookings.length === 0 && !loading"
+			class="text-center py-16 bg-white rounded-2xl border border-slate-200"
+		>
+			<div
+				class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6"
+			>
+				<i class="pi pi-search text-slate-400 text-3xl"></i>
+			</div>
+			<h3 class="text-xl font-semibold text-slate-700 mb-3">
+				No Bookings Found
+			</h3>
+			<p class="text-slate-500 max-w-md mx-auto">
+				No bookings were found for the provided search criteria. Please verify
+				the phone number or email address and try again.
+			</p>
+		</div>
+
+		<!-- No Filtered Results -->
+		<div
+			*ngIf="bookings.length > 0 && filteredBookings.length === 0 && !loading"
+			class="text-center py-16 bg-white rounded-2xl border border-slate-200"
+		>
+			<div
+				class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6"
+			>
+				<i class="pi pi-filter text-slate-400 text-3xl"></i>
+			</div>
+			<h3 class="text-xl font-semibold text-slate-700 mb-3">
+				No Results Match Filters
+			</h3>
+			<p class="text-slate-500 max-w-md mx-auto">
+				No bookings match the current filter criteria. Try adjusting your
+				filters to see more results.
+			</p>
+		</div>
+
+		<!-- Bookings List -->
+		<div *ngIf="filteredBookings.length > 0" class="space-y-6">
+			<div
+				*ngFor="let booking of filteredBookings"
+				class="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden"
+			>
+				<!-- Booking Header -->
+				<div class="p-6 border-b border-slate-100">
+					<div
+						class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+					>
+						<div class="flex items-center gap-4">
+							<div>
+								<h4 class="text-xl font-semibold text-slate-800 mb-1">
+									{{ getMovieTitle(booking) }}
+								</h4>
+								<p class="text-sm text-slate-600 font-mono">
+									Booking ID: #{{ booking.id }}
+								</p>
+								<p class="text-sm text-slate-500">UUID: {{ booking.uuid }}</p>
+							</div>
+						</div>
+
+						<div class="flex flex-wrap gap-2">
+							<!-- Screening Status Badge -->
+							<p-tag
+								[value]="getScreeningStatusText(booking)"
+								[severity]="getScreeningStatusSeverity(booking)"
+								styleClass="!text-sm !px-3 !py-1"
+							></p-tag>
+							<!-- Booking Status Badge -->
+							<p-tag
+								[value]="booking.bookingStatus"
+								[severity]="getBookingStatusSeverity(booking.bookingStatus)"
+								styleClass="!text-sm !px-3 !py-1"
+							></p-tag>
+						</div>
+					</div>
+				</div>
+
+				<!-- Booking Details -->
+				<div class="p-6">
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						<!-- Customer Information -->
+						<div class="space-y-3">
+							<h5
+								class="text-sm font-semibold text-slate-700 flex items-center gap-2"
+							>
+								<i class="pi pi-user text-blue-500"></i>
+								Customer Details
+							</h5>
+							<div class="space-y-2 text-sm text-slate-600">
+								<div class="flex items-center gap-2">
+									<i class="pi pi-user text-slate-400 w-4"></i>
+									<span>{{ booking.name }}</span>
+								</div>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-phone text-slate-400 w-4"></i>
+									<span>{{ booking.phoneNumber }}</span>
+								</div>
+								<div *ngIf="booking.email" class="flex items-center gap-2">
+									<i class="pi pi-envelope text-slate-400 w-4"></i>
+									<span>{{ booking.email }}</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Screening Information -->
+						<div class="space-y-3">
+							<h5
+								class="text-sm font-semibold text-slate-700 flex items-center gap-2"
+							>
+								<i class="pi pi-calendar text-green-500"></i>
+								Screening Details
+								<i
+									class="ml-1 text-xs"
+									[class]="
+										isScreeningExpired(booking)
+											? 'pi pi-exclamation-triangle text-red-500'
+											: 'pi pi-check-circle text-green-500'
+									"
+									[title]="
+										isScreeningExpired(booking)
+											? 'Screening has expired'
+											: 'Screening is still valid'
+									"
+								></i>
+							</h5>
+							<div class="space-y-2 text-sm text-slate-600">
+								<div class="flex items-center gap-2">
+									<i class="pi pi-calendar text-slate-400 w-4"></i>
+									<span>{{
+										booking.screening?.date | date : "mediumDate"
+									}}</span>
+								</div>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-clock text-slate-400 w-4"></i>
+									<span>
+										{{ formatTime(booking.screening?.startTime!) }} -
+										{{ formatTime(booking.screening?.endTime!) }}
+									</span>
+								</div>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-building text-slate-400 w-4"></i>
+									<span>{{ getTheatreInfo(booking) }}</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Booking Information -->
+						<div class="space-y-3">
+							<h5
+								class="text-sm font-semibold text-slate-700 flex items-center gap-2"
+							>
+								<i class="pi pi-ticket text-purple-500"></i>
+								Booking Details
+							</h5>
+							<div class="space-y-2 text-sm text-slate-600">
+								<div class="flex items-center gap-2">
+									<i class="pi pi-th-large text-slate-400 w-4"></i>
+									<span>Seats: {{ getBookingSeatsText(booking) }}</span>
+								</div>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-money-bill text-slate-400 w-4"></i>
+									<span class="font-semibold text-green-600">
+										{{ formatCurrency(booking.amount || 0) }}
+									</span>
+								</div>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-calendar-plus text-slate-400 w-4"></i>
+									<span>{{ formatDate(booking.createdAt) }}</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Actions Section -->
+					<div
+						*ngIf="canResendEticket(booking)"
+						class="mt-6 pt-6 border-t border-slate-100"
+					>
+						<div
+							class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+						>
+							<div class="flex items-center gap-3">
+								<div
+									class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"
+								>
+									<i class="pi pi-send text-blue-600"></i>
+								</div>
+								<div>
+									<h6 class="text-sm font-semibold text-slate-800">
+										Resend eTicket
+									</h6>
+									<p class="text-xs text-slate-500">
+										Send eTicket to customer's email or phone
+									</p>
+								</div>
+							</div>
+							<button
+								type="button"
+								class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm flex items-center gap-2"
+								(click)="resendEticket(booking)"
+								[disabled]="isResendingEticket(booking.id!)"
+							>
+								<p-progressSpinner
+									*ngIf="isResendingEticket(booking.id!)"
+									strokeWidth="3"
+									[style]="{ width: '14px', height: '14px' }"
+								></p-progressSpinner>
+								<i
+									*ngIf="!isResendingEticket(booking.id!)"
+									class="pi pi-send"
+								></i>
+								{{
+									isResendingEticket(booking.id!)
+										? "Sending..."
+										: "Resend eTicket"
+								}}
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Toast Messages -->
+<p-toast position="top-right"></p-toast>

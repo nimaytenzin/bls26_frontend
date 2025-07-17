@@ -1,0 +1,215 @@
+<!-- Screenings by Theatre -->
+<div class="p-4 sm:p-6">
+	<div>
+		<!-- Screenings Table -->
+		<div>
+			<!-- Table Header -->
+			<div class="p-6">
+				<div class="flex items-center gap-4">
+					<div
+						class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center"
+					>
+						<i class="pi pi-calendar text-white"></i>
+					</div>
+					<div>
+						<h2 class="text-xl font-semibold text-slate-800">Screenings at</h2>
+						<p class="text-slate-600">{{ totalRecords }} total screenings</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Loading State -->
+			<div
+				*ngIf="loading"
+				class="flex flex-col items-center justify-center py-16"
+			>
+				<p-progressSpinner
+					strokeWidth="3"
+					styleClass="!w-12 !h-12"
+				></p-progressSpinner>
+				<p class="text-slate-600 text-lg mt-4">Loading screenings...</p>
+			</div>
+
+			<!-- Table Content -->
+			<div *ngIf="!loading">
+				<p-table
+					[value]="screenings"
+					[loading]="loading"
+					styleClass="!border-none"
+					[tableStyle]="{ 'min-width': '50rem' }"
+				>
+					<!-- Table Header -->
+					<ng-template pTemplate="header">
+						<tr class="bg-slate-50">
+							<th
+								class="px-6 py-4 text-left text-sm font-semibold text-slate-700 border-b border-slate-200"
+							>
+								Movie
+							</th>
+							<th
+								class="px-6 py-4 text-left text-sm font-semibold text-slate-700 border-b border-slate-200"
+							>
+								Hall
+							</th>
+							<th
+								class="px-6 py-4 text-left text-sm font-semibold text-slate-700 border-b border-slate-200"
+							>
+								Date
+							</th>
+							<th
+								class="px-6 py-4 text-left text-sm font-semibold text-slate-700 border-b border-slate-200"
+							>
+								Time
+							</th>
+
+							<th
+								class="px-6 py-4 text-left text-sm font-semibold text-slate-700 border-b border-slate-200"
+							>
+								Languages
+							</th>
+						</tr>
+					</ng-template>
+
+					<!-- Table Body -->
+					<ng-template pTemplate="body" let-screening>
+						<tr class="hover:bg-slate-50 transition-colors duration-200">
+							<td class="px-6 py-4 border-b border-slate-100">
+								<div class="flex items-center gap-3">
+									<div
+										class="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0"
+									>
+										<i class="pi pi-video text-white text-sm"></i>
+									</div>
+									<div>
+										<div class="font-medium text-slate-800">
+											{{ screening.movie?.name || "N/A" }}
+										</div>
+										<div class="text-sm text-slate-500">
+											{{ screening.movie?.durationMin || 0 }}min
+										</div>
+									</div>
+								</div>
+							</td>
+							<td
+								class="px-6 py-4 text-sm text-slate-800 border-b border-slate-100"
+							>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-home text-blue-500"></i>
+									{{ screening.hall?.name || "N/A" }}
+								</div>
+							</td>
+							<td
+								class="px-6 py-4 text-sm text-slate-800 border-b border-slate-100"
+							>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-calendar text-amber-500"></i>
+									{{ formatDate(screening.date) }}
+								</div>
+							</td>
+							<td
+								class="px-6 py-4 text-sm text-slate-800 border-b border-slate-100"
+							>
+								<div class="space-y-1">
+									<div class="flex items-center gap-2">
+										<i class="pi pi-clock text-green-500 text-xs"></i>
+										<span class="font-medium">{{
+											formatTime(screening.startTime)
+										}}</span>
+									</div>
+									<div class="flex items-center gap-2">
+										<i class="pi pi-clock text-red-500 text-xs"></i>
+										<span class="text-slate-600">{{
+											formatTime(screening.endTime)
+										}}</span>
+									</div>
+								</div>
+							</td>
+
+							<td
+								class="px-6 py-4 text-sm text-slate-800 border-b border-slate-100"
+							>
+								<div class="space-y-1">
+									<div
+										*ngIf="screening.audioLanguage"
+										class="flex items-center gap-2"
+									>
+										<i class="pi pi-volume-up text-blue-500 text-xs"></i>
+										<span>{{ screening.audioLanguage.name }}</span>
+									</div>
+									<div
+										*ngIf="screening.subtitleLanguage"
+										class="flex items-center gap-2"
+									>
+										<i class="pi pi-file-o text-purple-500 text-xs"></i>
+										<span>{{ screening.subtitleLanguage.name }}</span>
+									</div>
+									<div
+										*ngIf="
+											!screening.audioLanguage && !screening.subtitleLanguage
+										"
+										class="text-slate-400"
+									>
+										Not specified
+									</div>
+								</div>
+							</td>
+						</tr>
+					</ng-template>
+
+					<!-- Empty State -->
+					<ng-template pTemplate="emptymessage">
+						<tr>
+							<td colspan="6" class="px-6 py-16 text-center">
+								<div
+									class="flex flex-col items-center justify-center space-y-4"
+								>
+									<div
+										class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center"
+									>
+										<i class="pi pi-calendar text-slate-400 text-2xl"></i>
+									</div>
+									<h3 class="text-xl font-semibold text-slate-700">
+										No Screenings Found
+									</h3>
+									<p class="text-slate-600 max-w-md">
+										There are no screenings scheduled for this theatre at the
+										moment.
+									</p>
+								</div>
+							</td>
+						</tr>
+					</ng-template>
+				</p-table>
+
+				<!-- Pagination -->
+				<div class="px-6 py-4 bg-slate-50 border-t border-slate-200">
+					<p-paginator
+						[rows]="pageSize"
+						[totalRecords]="totalRecords"
+						[rowsPerPageOptions]="[5, 10, 20, 50]"
+						(onPageChange)="onPageChange($event)"
+						styleClass="!border-none !bg-transparent"
+					></p-paginator>
+				</div>
+			</div>
+		</div>
+
+		<!-- No Theatre Selected -->
+		<div
+			*ngIf="!theatreId && !loading"
+			class="bg-white rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden"
+		>
+			<div class="flex flex-col items-center justify-center py-16 space-y-4">
+				<div
+					class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center"
+				>
+					<i class="pi pi-building text-slate-400 text-3xl"></i>
+				</div>
+				<h3 class="text-xl font-semibold text-slate-700">Select a Theatre</h3>
+				<p class="text-slate-600 text-center max-w-md">
+					Choose a theatre from the dropdown above to view its screenings.
+				</p>
+			</div>
+		</div>
+	</div>
+</div>

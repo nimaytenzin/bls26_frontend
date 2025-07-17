@@ -42,19 +42,34 @@
 	<!-- Movie Content -->
 	<div *ngIf="!loading && !error && movie" class="pb-8">
 		<!-- Header Section -->
-		<div class="bg-gradient-to-r from-blue-600 to-purple-700 text-white">
+		<div class="">
 			<div class="max-w-7xl mx-auto px-6 py-8">
 				<!-- Navigation -->
-				<div class="flex items-center mb-6">
-					<p-button
-						icon="pi pi-arrow-left"
-						[text]="true"
-						(onClick)="goBack()"
-						pTooltip="Back to Movies"
-					>
-					</p-button>
-					<span class="mx-3 text-white/60">|</span>
-					<span class="text-white/80">Movie Details</span>
+				<div class="flex items-center justify-between mb-6">
+					<div class="flex items-center">
+						<p-button
+							icon="pi pi-arrow-left"
+							(onClick)="goBack()"
+							pTooltip="Back to Movies"
+							label="Back to Movies"
+							[outlined]="true"
+						>
+						</p-button>
+						<span class="mx-3 text-white/60">|</span>
+						<span class="text-white/80">Movie Details</span>
+					</div>
+
+					<!-- Action Buttons -->
+					<div class="flex items-center gap-3">
+						<p-button
+							label="Edit Movie"
+							icon="pi pi-pencil"
+							[outlined]="true"
+							(onClick)="toggleEditMode()"
+							styleClass="text-white border-white hover:bg-white hover:text-blue-600"
+						>
+						</p-button>
+					</div>
 				</div>
 
 				<!-- Movie Header Info -->
@@ -63,19 +78,18 @@
 					<div class="md:col-span-1">
 						<div class="relative group">
 							<!-- Poster Image -->
-							<div class="relative overflow-hidden rounded-lg shadow-2xl">
+							<div class="relative overflow-hidden">
 								<img
 									*ngIf="getFirstPortraitImage()"
 									[src]="getMediaUrl(getFirstPortraitImage().uri)"
 									[alt]="movie.name"
-									class="w-full max-w-sm mx-auto aspect-[2/3] object-cover transform transition-transform duration-300 group-hover:scale-105"
+									class="w-full max-w-xs mx-auto aspect-[2/3] object-contain transform transition-transform duration-300 group-hover:scale-105"
 									(error)="onImageError($event)"
 								/>
-
 								<!-- Placeholder when no portrait media -->
 								<div
 									*ngIf="!getFirstPortraitImage()"
-									class="w-full max-w-sm mx-auto aspect-[2/3] bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 rounded-lg flex flex-col items-center justify-center text-gray-400"
+									class="w-full max-w-xs mx-auto aspect-[2/3] bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 rounded-lg flex flex-col items-center justify-center text-gray-400"
 								>
 									<i class="pi pi-film text-6xl mb-4"></i>
 									<p class="text-sm font-medium">
@@ -134,46 +148,41 @@
 
 					<!-- Movie Info -->
 					<div class="md:col-span-2 space-y-6">
+						<!-- Movie Title and Production House -->
 						<div>
 							<h1 class="text-4xl font-bold mb-2">{{ movie.name }}</h1>
-							<p class="text-xl text-blue-100" *ngIf="movie.productionHouse">
+							<p class="text-xl" *ngIf="movie.productionHouse">
 								{{ movie.productionHouse }}
 							</p>
 						</div>
 
-						<p class="text-lg text-blue-50 leading-relaxed">
+						<!-- Description -->
+						<p class="text-lg leading-relaxed">
 							{{ movie.description || "No description available" }}
 						</p>
+
 						<!-- Movie Details Grid -->
 						<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-							<div
-								class="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm stat-card"
-							>
-								<p class="text-sm text-blue-200">Duration</p>
+							<div class="text-center p-4">
+								<p class="text-sm">Duration</p>
 								<p class="text-xl font-semibold">
 									{{ formatDuration(movie.durationMin || 0) }}
 								</p>
 							</div>
-							<div
-								class="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm stat-card"
-							>
-								<p class="text-sm text-blue-200">Rating</p>
+							<div class="text-center p-4">
+								<p class="text-sm">Rating</p>
 								<p class="text-xl font-semibold">
 									{{ movie.pgRating || "N/A" }}
 								</p>
 							</div>
-							<div
-								class="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm stat-card"
-							>
-								<p class="text-sm text-blue-200">Release</p>
+							<div class="text-center p-4">
+								<p class="text-sm">Release</p>
 								<p class="text-xl font-semibold">
 									{{ formatDate(movie.releaseDate || "") }}
 								</p>
 							</div>
-							<div
-								class="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm stat-card"
-							>
-								<p class="text-sm text-blue-200">Status</p>
+							<div class="text-center p-4">
+								<p class="text-sm">Status</p>
 								<p-tag
 									[value]="getStatusText(movie.screeningStatus)"
 									[severity]="getStatusSeverity(movie.screeningStatus)"
@@ -185,7 +194,7 @@
 
 						<div class="flex flex-wrap gap-6">
 							<div *ngIf="movie.genres?.length">
-								<h3 class="text-sm font-medium text-blue-200 mb-2">Genres</h3>
+								<h3 class="text-sm font-medium mb-2">Genres</h3>
 								<div class="flex flex-wrap gap-2">
 									<p-tag
 										*ngFor="let genre of movie.genres"
@@ -198,9 +207,7 @@
 							</div>
 
 							<div *ngIf="movie.languages?.length">
-								<h3 class="text-sm font-medium text-blue-200 mb-2">
-									Languages
-								</h3>
+								<h3 class="text-sm font-medium mb-2">Languages</h3>
 								<div class="flex flex-wrap gap-2">
 									<p-tag
 										*ngFor="let language of movie.languages"
@@ -213,9 +220,7 @@
 							</div>
 
 							<div *ngIf="movie.subtitleLanguages?.length">
-								<h3 class="text-sm font-medium text-blue-200 mb-2">
-									Subtitles
-								</h3>
+								<h3 class="text-sm font-medium mb-2">Subtitles</h3>
 								<div class="flex flex-wrap gap-2">
 									<p-tag
 										*ngFor="let subtitle of movie.subtitleLanguages"
@@ -227,57 +232,6 @@
 								</div>
 							</div>
 						</div>
-
-						<!-- STATS -->
-						<div class="mt-2">
-							<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-								<div
-									class="bg-white dark:bg-gray-800 rounded-lg p-6 text-center"
-								>
-									<div class="text-3xl font-bold text-blue-600 mb-2">
-										{{ movieStatisticsSummary.totalScreenings || 0 }}
-									</div>
-									<div class="text-sm text-gray-600 dark:text-gray-400">
-										Total Screenings
-									</div>
-								</div>
-								<div
-									class="bg-white dark:bg-gray-800 rounded-lg p-6 text-center"
-								>
-									<div class="text-3xl font-bold text-green-600 mb-2">
-										{{ movieStatisticsSummary.totalTicketsSold || 0 }}
-									</div>
-									<div class="text-sm text-gray-600 dark:text-gray-400">
-										Total tickets Sold
-									</div>
-								</div>
-								<div
-									class="bg-white dark:bg-gray-800 rounded-lg p-6 text-center"
-								>
-									<div
-										class="text-3xl text-nowrap font-bold text-orange-600 mb-2"
-									>
-										{{
-											movieStatisticsSummary.totalRevenue
-												| currency : "Nu." : "symbol" : "1.0-0"
-										}}
-									</div>
-									<div class="text-sm text-gray-600 dark:text-gray-400">
-										Total Revenue
-									</div>
-								</div>
-								<div
-									class="bg-white dark:bg-gray-800 rounded-lg p-6 text-center"
-								>
-									<div class="text-3xl font-bold text-gray-600 mb-2">
-										{{ movieStatisticsSummary.averageOccupancyRate || 0 }}%
-									</div>
-									<div class="text-sm text-gray-600 dark:text-gray-400">
-										Avg Occupancy Rate
-									</div>
-								</div>
-							</div>
-						</div>
 					</div>
 				</div>
 			</div>
@@ -286,34 +240,22 @@
 		<!-- Tab View for Movie Details & Screenings -->
 		<div class="max-w-7xl mx-auto px-6 py-8">
 			<p-tabView [(activeIndex)]="activeTabIndex" styleClass="custom-tabview">
-				<p-tabPanel header="Statistics">
-					<!-- Media Tab Component -->
-					<app-admin-movie-details-media-tab
-						[movie]="movie"
-						[loading]="loading"
-					></app-admin-movie-details-media-tab>
+				<!-- Statistics Tab -->
+				<p-tabPanel header="Statistics & Analytics">
+					<div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+						<app-admin-movie-statistics
+							[movie]="movie"
+						></app-admin-movie-statistics>
+					</div>
 				</p-tabPanel>
 
-				<!-- Movie Details & Media Tab -->
-				<p-tabPanel header="Media">
-					<!-- Media Tab Component -->
-					<app-admin-movie-details-media-tab
-						[movie]="movie"
-						[loading]="loading"
-					></app-admin-movie-details-media-tab>
-				</p-tabPanel>
-
-				<!-- Screenings Tab -->
-				<p-tabPanel header="Screenings">
-					<app-admin-movie-statistics
-						[movie]="movie"
-					></app-admin-movie-statistics>
-				</p-tabPanel>
-				<!-- Bookings Tab -->
-				<p-tabPanel header="Bookings">
-					<app-admin-movie-statistics
-						[movie]="movie"
-					></app-admin-movie-statistics>
+				<!-- Media Gallery Tab -->
+				<p-tabPanel header="Media Gallery">
+					<div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+						<app-admin-movie-details-media-tab
+							[movieId]="movie.id"
+						></app-admin-movie-details-media-tab>
+					</div>
 				</p-tabPanel>
 			</p-tabView>
 		</div>
@@ -338,6 +280,146 @@
 				frameborder="0"
 				allowfullscreen
 			></iframe>
+		</div>
+	</p-dialog>
+
+	<!-- Edit Movie Dialog -->
+	<p-dialog
+		[(visible)]="showEditDialog"
+		[modal]="true"
+		[draggable]="false"
+		[resizable]="false"
+		[style]="{ width: '90vw', maxWidth: '800px' }"
+		header="Edit Movie Details"
+		[dismissableMask]="false"
+		[closable]="false"
+	>
+		<div *ngIf="editMovie" class="space-y-6">
+			<!-- Basic Information -->
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<div>
+					<label
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+					>
+						Movie Title <span class="text-red-500">*</span>
+					</label>
+					<input
+						type="text"
+						[(ngModel)]="editMovie.name"
+						class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+						placeholder="Enter movie title"
+						required
+					/>
+				</div>
+				<div>
+					<label
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+					>
+						Production House
+					</label>
+					<input
+						type="text"
+						[(ngModel)]="editMovie.productionHouse"
+						class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+						placeholder="Enter production house"
+					/>
+				</div>
+			</div>
+
+			<!-- Description -->
+			<div>
+				<label
+					class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+				>
+					Description
+				</label>
+				<textarea
+					[(ngModel)]="editMovie.description"
+					rows="4"
+					class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none dark:bg-gray-700 dark:text-white"
+					placeholder="Enter movie description"
+				></textarea>
+			</div>
+
+			<!-- Movie Details -->
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<div>
+					<label
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+					>
+						Duration (minutes)
+					</label>
+					<input
+						type="number"
+						[(ngModel)]="editMovie.durationMin"
+						min="1"
+						class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+						placeholder="Enter duration in minutes"
+					/>
+				</div>
+				<div>
+					<label
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+					>
+						PG Rating
+					</label>
+					<input
+						type="text"
+						[(ngModel)]="editMovie.pgRating"
+						class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+						placeholder="Enter PG rating (e.g., PG-13, R)"
+					/>
+				</div>
+			</div>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<div>
+					<label
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+					>
+						Release Date
+					</label>
+					<input
+						type="date"
+						[(ngModel)]="editMovie.releaseDate"
+						class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+					/>
+				</div>
+				<div>
+					<label
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+					>
+						Trailer URL
+					</label>
+					<input
+						type="url"
+						[(ngModel)]="editMovie.trailerURL"
+						class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+						placeholder="Enter YouTube trailer URL"
+					/>
+				</div>
+			</div>
+
+			<!-- Action Buttons -->
+			<div
+				class="flex justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700"
+			>
+				<p-button
+					label="Cancel"
+					icon="pi pi-times"
+					[outlined]="true"
+					severity="secondary"
+					(onClick)="cancelEdit()"
+				>
+				</p-button>
+				<p-button
+					label="Save Changes"
+					icon="pi pi-check"
+					[loading]="loading"
+					(onClick)="saveMovie()"
+				>
+				</p-button>
+			</div>
 		</div>
 	</p-dialog>
 </div>

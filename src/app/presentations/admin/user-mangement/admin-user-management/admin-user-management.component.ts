@@ -1,17 +1,24 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {
+	FormsModule,
+	FormBuilder,
+	FormGroup,
+	Validators,
+} from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import { UserDataService } from '../../../../core/dataservice/user/user.dataservice';
+import { AuthDataService } from '../../../../core/dataservice/auth/auth.api';
 import {
 	User,
 	UserRoleEnum,
 	UserQueryParams,
 } from '../../../../core/dataservice/user/user.interface';
+import { AdminResetPassword } from '../../../../core/dataservice/auth/auth.interface';
 import { AdminCreateUserComponent } from '../components/admin-create-user/admin-create-user.component';
 import { AdminUpdateUserComponent } from '../components/admin-update-user/admin-update-user.component';
 
@@ -32,8 +39,15 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy {
 	totalRecords = 0;
 
 	// Dialog states
-	deleteUserDialog = false;
+	resetPasswordDialog = false;
 	selectedUser: User | null = null;
+	resetPasswordLoading = false;
+
+	// Reset password form
+	resetPasswordForm: AdminResetPassword = {
+		newPassword: '',
+		newPasswordAgain: '',
+	};
 
 	// Filters
 	selectedRole: UserRoleEnum | null = null;
@@ -71,6 +85,7 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy {
 
 	constructor(
 		private userDataService: UserDataService,
+		private authDataService: AuthDataService,
 		private messageService: MessageService,
 		private confirmationService: ConfirmationService,
 		private dialogService: DialogService
@@ -164,18 +179,132 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	deleteUser(user: User) {
-		this.selectedUser = user;
-		this.deleteUserDialog = true;
+	toggleLoginAccess(user: User) {
+		const action = user.hasLoginAccess ? 'disable' : 'enable';
+		const message = `Are you sure you want to ${action} login access for ${this.getFullName(
+			user
+		)}?`;
+
+		this.confirmationService.confirm({
+			message: message,
+			header: 'Confirm Action',
+			icon: 'pi pi-exclamation-triangle',
+			accept: () => {
+				this.authDataService
+					.adminToggleLoginAccess(user.id)
+					.pipe(takeUntil(this.destroy$))
+					.subscribe({
+						next: (response: any) => {
+							this.messageService.add({
+								severity: 'success',
+								summary: 'Success',
+								detail: `Login access ${action}d successfully`,
+							});
+							this.loadUsers(); // Refresh the list
+						},
+						error: (error: any) => {
+							console.error('Error toggling login access:', error);
+							this.messageService.add({
+								severity: 'error',
+								summary: 'Error',
+								detail:
+									error.error?.message || `Failed to ${action} login access`,
+							});
+						},
+					});
+			},
+		});
 	}
 
-	confirmDelete() {}
+	resetPassword(user: User) {
+		this.openResetPasswordDialog(user);
+	}
 
-	toggleVerification(user: User) {}
+	openResetPasswordDialog(user: User) {
+		this.selectedUser = user;
+		this.resetPasswordForm = {
+			newPassword: '',
+			newPasswordAgain: '',
+		};
+		this.resetPasswordDialog = true;
+	}
 
-	toggleLoginAccess(user: User) {}
+	closeResetPasswordDialog() {
+		this.resetPasswordDialog = false;
+		this.selectedUser = null;
+		this.resetPasswordForm = {
+			newPassword: '',
+			newPasswordAgain: '',
+		};
+		this.resetPasswordLoading = false;
+	}
 
-	resetPassword(user: User) {}
+	confirmResetPassword() {
+		if (!this.selectedUser) {
+			return;
+		}
+
+		// Validate passwords
+		if (
+			!this.resetPasswordForm.newPassword ||
+			!this.resetPasswordForm.newPasswordAgain
+		) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Please fill in both password fields',
+			});
+			return;
+		}
+
+		if (
+			this.resetPasswordForm.newPassword !==
+			this.resetPasswordForm.newPasswordAgain
+		) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Passwords do not match',
+			});
+			return;
+		}
+
+		if (this.resetPasswordForm.newPassword.length < 6) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Password must be at least 6 characters long',
+			});
+			return;
+		}
+
+		this.resetPasswordLoading = true;
+
+		this.authDataService
+			.adminResetPassword(this.selectedUser.id, this.resetPasswordForm)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (response) => {
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: `Password reset successfully for ${this.getFullName(
+							this.selectedUser!
+						)}`,
+					});
+					this.closeResetPasswordDialog();
+				},
+				error: (error) => {
+					console.error('Error resetting password:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: error.error?.message || 'Failed to reset password',
+					});
+					this.resetPasswordLoading = false;
+				},
+			});
+	}
 
 	onRoleFilterChange() {
 		this.loadUsers();

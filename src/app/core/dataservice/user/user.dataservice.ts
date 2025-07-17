@@ -55,18 +55,6 @@ export class UserDataService {
 	}
 
 	/**
-	 * Get all producers
-	 */
-	findAllProducers(): Observable<User[]> {
-		return this.http.get<User[]>(`${this.apiUrl}/producers`).pipe(
-			catchError((error) => {
-				console.error('Error fetching users:', error);
-				return throwError(() => error);
-			})
-		);
-	}
-
-	/**
 	 * Get user by ID
 	 */
 	findUserById(id: number): Observable<ApiResponse<User>> {
@@ -88,5 +76,79 @@ export class UserDataService {
 				return throwError(() => error);
 			})
 		);
+	}
+
+	/**
+	 * Update user
+	 */
+	updateUser(
+		id: number,
+		userData: UpdateUserDto
+	): Observable<ApiResponse<User>> {
+		return this.http
+			.patch<ApiResponse<User>>(`${this.apiUrl}/${id}`, userData)
+			.pipe(
+				catchError((error) => {
+					console.error('Error updating user:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get all producers
+	 */
+	findAllProducers(): Observable<User[]> {
+		return this.http.get<User[]>(`${this.apiUrl}/producers`).pipe(
+			catchError((error) => {
+				console.error('Error fetching producers:', error);
+				return throwError(() => error);
+			})
+		);
+	}
+
+	/**
+	 * Upload user profile image
+	 */
+	uploadProfileImage(id: number, file: File): Observable<ApiResponse<User>> {
+		const formData = new FormData();
+		formData.append('file', file);
+
+		return this.http
+			.post<ApiResponse<User>>(`${this.apiUrl}/${id}/profile-image`, formData)
+			.pipe(
+				catchError((error) => {
+					console.error('Error uploading profile image:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get producers with pagination
+	 */
+	getProducersPaginated(
+		params?: UserQueryParams
+	): Observable<UserListResponse> {
+		let httpParams = new HttpParams();
+
+		if (params) {
+			if (params.page !== undefined)
+				httpParams = httpParams.set('page', params.page.toString());
+			if (params.limit !== undefined)
+				httpParams = httpParams.set('limit', params.limit.toString());
+			if (params.search) httpParams = httpParams.set('search', params.search);
+		}
+
+		return this.http
+			.get<UserListResponse>(`${this.apiUrl}/producers/paginated`, {
+				params: httpParams,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching producers:', error);
+					return throwError(() => error);
+				})
+			);
 	}
 }

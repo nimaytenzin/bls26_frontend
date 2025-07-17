@@ -10,8 +10,12 @@ import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { AdminMasterMovieCreateComponent } from '../components/admin-master-movie-create/admin-master-movie-create.component';
 import { AdminMasterMovieUpdateComponent } from '../components/admin-master-movie-update/admin-master-movie-update.component';
 import { AdminMovieMediaUploadComponent } from '../components/admin-movie-media-upload/admin-movie-media-upload.component';
-import { Movie } from '../../../../core/dataservice/movie/movie.interface';
+import {
+	Movie,
+	ScreeningStatusEnum,
+} from '../../../../core/dataservice/movie/movie.interface';
 import { BASEAPI_URL } from '../../../../core/constants/constants';
+import { PaginatedData } from '../../../../core/utility/pagination.interface';
 
 @Component({
 	selector: 'app-admin-master-movies',
@@ -25,24 +29,45 @@ export class AdminMasterMoviesComponent implements OnInit, OnDestroy {
 	private destroy$ = new Subject<void>();
 
 	ref: DynamicDialogRef = new DynamicDialogRef();
+
 	// Data properties
 	movies: Movie[] = [];
 	loading = false;
 	error: string | null = null;
 
-	// UI State
-	viewMode: 'grid' | 'list' | 'table' = 'table';
+	// Pagination properties
+	currentPage = 1;
+	pageSize = 10;
+	totalRecords = 0;
+	totalPages = 0;
+
+	// Tab properties
+	activeTabIndex = 1; // Default to "Now Showing" (index 1)
+	activeStatus: ScreeningStatusEnum = ScreeningStatusEnum.NOW_SHOWING;
+
+	// Tab configuration
+	statusTabs = [
+		{
+			label: 'Upcoming',
+			value: ScreeningStatusEnum.UPCOMING,
+		},
+		{
+			label: 'Now Showing',
+			value: ScreeningStatusEnum.NOW_SHOWING,
+		},
+		{
+			label: 'Ended',
+			value: ScreeningStatusEnum.ENDED,
+		},
+		{
+			label: 'Cancelled',
+			value: ScreeningStatusEnum.CANCELLED,
+		},
+	];
 
 	// Update dialog properties
 	showUpdateDialog = false;
 	selectedMovieForUpdate: Movie | null = null;
-
-	// View Options
-	viewModeOptions = [
-		{ label: 'Grid', value: 'grid', icon: 'pi pi-th-large' },
-		{ label: 'List', value: 'list', icon: 'pi pi-list' },
-		{ label: 'Table', value: 'table', icon: 'pi pi-table' },
-	];
 
 	constructor(
 		private movieApiService: MovieApiDataService,
@@ -51,7 +76,7 @@ export class AdminMasterMoviesComponent implements OnInit, OnDestroy {
 	) {}
 
 	ngOnInit() {
-		this.fetchMovies();
+		this.fetchMoviesByStatus();
 	}
 
 	ngOnDestroy() {
@@ -64,44 +89,92 @@ export class AdminMasterMoviesComponent implements OnInit, OnDestroy {
 	}
 
 	/**
-	 * Fetch movies from API
+	 * Fetch movies by status with pagination
 	 */
-	fetchMovies() {
+	fetchMoviesByStatus() {
 		this.loading = true;
 		this.error = null;
 
-		this.movieApiService
-			.findAllMovies()
-			.pipe(takeUntil(this.destroy$))
-			.subscribe({
-				next: (response: any) => {
-					console.log('Movies fetched successfully:', response);
-					// Handle API response structure
-					this.movies = response.data || response || [];
-					this.loading = false;
-				},
-				error: (error: any) => {
-					console.error('Error fetching movies:', error);
-					this.error = 'Failed to load movies. Please try again.';
-					this.movies = [];
-					this.loading = false;
-				},
-			});
+		// Choose the appropriate API method based on status
+		let apiCall;
+		switch (this.activeStatus) {
+			case ScreeningStatusEnum.UPCOMING:
+				apiCall = this.movieApiService.getUpcomingMoviesPaginated(
+					this.currentPage,
+					this.pageSize
+				);
+				break;
+			case ScreeningStatusEnum.NOW_SHOWING:
+				apiCall = this.movieApiService.getMoviesScreeningNowPaginated(
+					this.currentPage,
+					this.pageSize
+				);
+				break;
+			case ScreeningStatusEnum.ENDED:
+				apiCall = this.movieApiService.getEndedMoviesPaginated(
+					this.currentPage,
+					this.pageSize
+				);
+				break;
+			case ScreeningStatusEnum.CANCELLED:
+				apiCall = this.movieApiService.getCancelledMoviesPaginated(
+					this.currentPage,
+					this.pageSize
+				);
+				break;
+			default:
+				apiCall = this.movieApiService.getMoviesScreeningNowPaginated(
+					this.currentPage,
+					this.pageSize
+				);
+		}
+
+		apiCall.pipe(takeUntil(this.destroy$)).subscribe({
+			next: (response: PaginatedData<Movie>) => {
+				console.log('Movies fetched successfully:', response);
+				this.movies = response.data || [];
+				this.totalRecords = response.pagination?.totalCount || 0;
+				this.totalPages = response.pagination?.totalPages || 0;
+				this.loading = false;
+			},
+			error: (error: any) => {
+				console.error('Error fetching movies:', error);
+				this.error = 'Failed to load movies. Please try again.';
+				this.movies = [];
+				this.totalRecords = 0;
+				this.totalPages = 0;
+				this.loading = false;
+			},
+		});
 	}
 
 	/**
-	 * Refresh movie list
+	 * Handle tab change
 	 */
-	refreshMovies() {
-		this.fetchMovies();
+	onTabChange(event: any) {
+		this.activeTabIndex = event.index;
+		this.activeStatus = this.statusTabs[event.index].value;
+		this.currentPage = 1; // Reset to first page
+		this.fetchMoviesByStatus();
 	}
 
 	/**
-	 * Handle view mode change
+	 * Handle page change
 	 */
-	onViewModeChange() {
-		// Optional: Save preference to localStorage
-		localStorage.setItem('movieViewMode', this.viewMode);
+	onPageChange(event: any) {
+		// Handle PrimeNG Paginator event
+		if (event.first !== undefined && event.rows !== undefined) {
+			this.currentPage = Math.floor(event.first / event.rows) + 1;
+			this.pageSize = event.rows;
+			this.fetchMoviesByStatus();
+		}
+	}
+
+	/**
+	 * Fetch movies from API (legacy method for backward compatibility)
+	 */
+	fetchMovies() {
+		this.fetchMoviesByStatus();
 	}
 
 	/**
@@ -305,5 +378,20 @@ export class AdminMasterMoviesComponent implements OnInit, OnDestroy {
 		if (imgElement) {
 			imgElement.style.display = 'none';
 		}
+	}
+
+	/**
+	 * Refresh movie list
+	 */
+	refreshMovies() {
+		this.currentPage = 1; // Reset to first page
+		this.fetchMoviesByStatus();
+	}
+
+	/**
+	 * Get current tab label
+	 */
+	get currentTabLabel(): string {
+		return this.statusTabs[this.activeTabIndex]?.label || 'movies';
 	}
 }
