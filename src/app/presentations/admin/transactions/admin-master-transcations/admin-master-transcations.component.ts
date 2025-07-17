@@ -17,15 +17,12 @@ import { PrimeNgModules } from '../../../../primeng.modules';
 	providers: [MessageService, ConfirmationService],
 })
 export class AdminMasterTranscationsComponent implements OnInit {
-	private destroy$ = new Subject<void>();
-
 	// Data
-	loading = false;
 	isLoadingData = false; // Flag to prevent multiple simultaneous requests
 	private lastLoadTime = 0; // Track last load time to prevent rapid calls
 
 	// Date selection
-	selectedDate: Date | null = null;
+	selectedDate: Date = new Date();
 	maxDate: Date = new Date();
 
 	// Pagination
@@ -44,226 +41,58 @@ export class AdminMasterTranscationsComponent implements OnInit {
 
 	constructor(
 		private paymentTransactionService: PaymentTranscationDataService,
-		private messageService: MessageService,
-		private confirmationService: ConfirmationService
+		private messageService: MessageService
 	) {}
 
 	ngOnInit() {
-		this.selectedDate = new Date(); // Default to today
-		// Load today's transactions by default
-		this.loadTodaysTransactions();
-	}
-
-	ngOnDestroy() {
-		this.destroy$.next();
-		this.destroy$.complete();
+		this.loadTransactionsByDate(this.selectedDate);
 	}
 
 	/**
-	 * Load today's transactions
+	 * Load transactions for selected date
 	 */
-	loadTodaysTransactions() {
+	loadTransactionsByDate(date: Date) {
 		if (this.isLoadingData) return;
-
-		this.loading = true;
 		this.isLoadingData = true;
 
+		const dateString = this.formatDateForAPI(date);
+
 		this.paymentTransactionService
-			.getTodaysPaymentTransactionPaginated(this.currentPage, this.pageSize)
+			.getPaymentTransactionPaginatedByDate(
+				dateString,
+				this.currentPage,
+				this.pageSize
+			)
+			.pipe(
+				finalize(() => {
+					this.isLoadingData = false;
+				})
+			)
 			.subscribe({
 				next: (response) => {
-					console.log(
-						'Successfully loaded',
-						response.data.length,
-						'transactions'
-					);
 					this.transactionsPagination = response;
 					this.totalRecords = response.pagination.totalCount;
-					this.isLoadingData = false;
-					this.loading = false;
-					this.messageService.add({
-						severity: 'success',
-						summary: 'Success',
-						detail: `Loaded ${response.data.length} transactions for today`,
-						life: 3000,
-					});
 				},
 				error: (error) => {
-					console.error("Error loading today's transactions:", error);
 					this.messageService.add({
 						severity: 'error',
 						summary: 'Error',
-						detail: "Failed to load today's transactions",
+						detail: 'Failed to load transactions',
 						life: 5000,
 					});
 				},
 			});
 	}
 
-	/**
-	 * Load transactions for selected date
-	 */
-	loadTransactionsByDate() {
-		if (this.isLoadingData) {
-			return;
-		}
-		if (!this.selectedDate) {
-			this.messageService.add({
-				severity: 'warn',
-				summary: 'Date Required',
-				detail: 'Please select a date',
-				life: 3000,
-			});
-			return;
-		} else {
-			this.loading = true;
-			this.isLoadingData = true;
-			this.currentPage = 1; // Reset to first page
-
-			const dateString = this.formatDateForAPI(this.selectedDate ?? new Date());
-
-			this.paymentTransactionService
-				.getPaymentTransactionPaginatedByDate(
-					dateString,
-					this.currentPage,
-					this.pageSize
-				)
-
-				.subscribe({
-					next: (response) => {
-						this.transactionsPagination = response;
-						this.totalRecords = response.pagination.totalCount;
-
-						this.messageService.add({
-							severity: 'success',
-							summary: 'Success',
-							detail: `Loaded ${
-								response.data.length
-							} transactions for ${this.formatDate(
-								this.selectedDate ?? new Date()
-							)}`,
-							life: 3000,
-						});
-					},
-					error: (error) => {
-						console.error('Error loading transactions by date:', error);
-						this.messageService.add({
-							severity: 'error',
-							summary: 'Error',
-							detail: `Failed to load transactions for ${this.formatDate(
-								this.selectedDate ?? new Date()
-							)}`,
-							life: 5000,
-						});
-					},
-				});
-		}
-	}
-
-	/**
-	 * Handle pagination
-	 */
 	onPageChange(event: any) {
-		if (this.isLoadingData) {
-			return;
-		}
-
 		this.currentPage = event.page + 1;
 		this.pageSize = event.rows;
-
-		// Check if current date is today
-		const today = new Date();
-		const isToday = this.isSameDate(this.selectedDate!, today);
-
-		this.loading = true;
-		this.isLoadingData = true;
-
-		if (isToday) {
-			this.paymentTransactionService
-				.getTodaysPaymentTransactionPaginated(this.currentPage, this.pageSize)
-				.pipe(
-					takeUntil(this.destroy$),
-					finalize(() => {
-						this.loading = false;
-						this.isLoadingData = false;
-					})
-				)
-				.subscribe({
-					next: (response) => {
-						this.transactionsPagination = response;
-						this.totalRecords = response.pagination.totalCount;
-					},
-					error: (error) => {
-						console.error('Error loading paginated transactions:', error);
-						this.messageService.add({
-							severity: 'error',
-							summary: 'Error',
-							detail: 'Failed to load transactions',
-							life: 5000,
-						});
-					},
-				});
-		} else {
-			const dateString = this.formatDateForAPI(this.selectedDate ?? new Date());
-			this.paymentTransactionService
-				.getPaymentTransactionPaginatedByDate(
-					dateString,
-					this.currentPage,
-					this.pageSize
-				)
-				.pipe(
-					takeUntil(this.destroy$),
-					finalize(() => {
-						this.loading = false;
-						this.isLoadingData = false;
-					})
-				)
-				.subscribe({
-					next: (response) => {
-						this.transactionsPagination = response;
-						this.totalRecords = response.pagination.totalCount;
-					},
-					error: (error) => {
-						console.error('Error loading paginated transactions:', error);
-						this.messageService.add({
-							severity: 'error',
-							summary: 'Error',
-							detail: 'Failed to load transactions',
-							life: 5000,
-						});
-					},
-				});
-		}
+		this.loadTransactionsByDate(this.selectedDate);
 	}
 
-	/**
-	 * Handle date selection change
-	 */
 	onDateChange() {
-		console.log('onDateChange called');
-
-		// Prevent rapid calls (debounce)
-		const now = Date.now();
-		if (now - this.lastLoadTime < 1000) {
-			// 1 second cooldown
-			console.log('Skipping due to cooldown period');
-			return;
-		}
-		this.lastLoadTime = now;
-
-		if (!this.selectedDate) {
-			return;
-		}
-
-		// Check if selected date is today
-		const today = new Date();
-		const isToday = this.isSameDate(this.selectedDate, today);
-
-		if (isToday) {
-			this.loadTodaysTransactions();
-		} else {
-			this.loadTransactionsByDate();
-		}
+		this.currentPage = 1;
+		this.loadTransactionsByDate(this.selectedDate);
 	}
 
 	/**
@@ -313,46 +142,5 @@ export class AdminMasterTranscationsComponent implements OnInit {
 			default:
 				return 'info';
 		}
-	}
-
-	private isSameDate(date1: Date, date2: Date): boolean {
-		return (
-			date1.getFullYear() === date2.getFullYear() &&
-			date1.getMonth() === date2.getMonth() &&
-			date1.getDate() === date2.getDate()
-		);
-	}
-
-	private convertToCSV(transactions: PaymentTransaction[]): string {
-		const headers = [
-			'Transaction ID',
-			'Booking ID',
-			'Amount',
-			'Status',
-			'Payment Method',
-			'Gateway Transaction ID',
-			'Created At',
-			'Updated At',
-		];
-
-		const csvContent = [
-			headers.join(','),
-			...transactions.map((t) =>
-				[
-					t.id || '',
-					t.bookingId || '',
-					t.amount || 0,
-					t.status || '',
-					t.paymentMode || '',
-					t.gatewayTransactionId || '',
-					this.formatDateTime(t.createdAt || ''),
-					this.formatDateTime(t.updatedAt || ''),
-				]
-					.map((field) => `"${field}"`)
-					.join(',')
-			),
-		].join('\n');
-
-		return csvContent;
 	}
 }
