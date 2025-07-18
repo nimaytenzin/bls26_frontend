@@ -340,4 +340,15 @@ export class PublicHomeComponent implements OnInit, OnDestroy {
 		}
 		return `${minutes}min`;
 	}
+
+	getCarouselImage(movie: Movie): string {
+		// Use portrait image for small screens, landscape for larger screens
+		if (window.innerWidth < 768) {
+			// Mobile and tablet
+			return this.getMoviePotraitImage(movie);
+		} else {
+			// Desktop
+			return this.getMovieLandscapeImage(movie);
+		}
+	}
 }

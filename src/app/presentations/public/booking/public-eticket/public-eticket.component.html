@@ -147,48 +147,56 @@
 				</div>
 
 				<!-- QR AND DETAILS -->
-				<div class="flex gap-8 px-12 py-6 -mt-[5rem]">
-					<!-- QR Code Section -->
-					<div #leftQRCode class="w-1/3 flex flex-col items-center">
+				<div class="flex gap-4 sm:gap-6 px-6 sm:px-12 py-6 -mt-[1rem]">
+					<!-- QR Code Section - Bigger -->
+					<div #leftQRCode class="w-3/5 sm:w-1/2 flex flex-col items-center">
 						<div class="relative mb-2">
 							<img
 								*ngIf="qrCodeDataURL"
 								[src]="qrCodeDataURL"
 								alt="Ticket QR Code"
-								class="w-full mx-auto rounded-3xl border-4 border-white bg-white p-4 contrast-110 brightness-105"
+								class="w-full mx-auto rounded-2xl border-4 border-white bg-white p-2 sm:p-3 contrast-110 brightness-105 max-w-[300px] sm:max-w-[200px]"
 							/>
 							<div
 								*ngIf="!qrCodeDataURL"
-								class="w-32 h-32 bg-gray-200 rounded-3xl flex items-center justify-center shadow-xl border-4 border-white"
+								class="w-60 h-60 sm:w-48 sm:h-48 bg-gray-200 rounded-2xl flex items-center justify-center shadow-xl border-4 border-white mx-auto max-w-[300px] sm:max-w-[200px]"
 							>
-								<i class="pi pi-qrcode text-4xl text-gray-400"></i>
+								<i class="pi pi-qrcode text-6xl sm:text-6xl text-gray-400"></i>
 							</div>
 						</div>
-						<p class="text-sm text-gray-900 text-center font-medium">
+						<p class="text-xs text-gray-900 text-center font-medium">
 							Scan for verification
 						</p>
 					</div>
 
-					<!-- Details Section -->
-					<div #rightDetails class="w-2/3">
+					<!-- Details Section - Smaller Text -->
+					<div #rightDetails class="w-2/5 sm:w-1/2">
 						<!-- Date and Time -->
-						<div #screeningTime class="rounded-2xl px-6">
-							<div class="flex items-center gap-6">
-								<div class="flex items-center gap-2">
-									<div class="text-xl">
-										<p class="text-gray-500 font-medium p-0 m-0">Date</p>
-										<p class="text-gray-900 font-bold p-0 m-0">
+						<div #screeningTime class="rounded-xl px-2 sm:px-6">
+							<div class="flex items-center gap-2 sm:gap-6">
+								<div class="flex items-center gap-1 sm:gap-2">
+									<div class="text-xs sm:text-lg">
+										<p class="text-gray-500 font-medium p-0 m-0 text-xs">
+											Date
+										</p>
+										<p
+											class="text-gray-900 font-bold p-0 m-0 text-xs sm:text-base"
+										>
 											{{
 												formatDate(bookingData.screening?.date || currentDate)
 											}}
 										</p>
 									</div>
 								</div>
-								<div class="h-12 w-px bg-gray-200"></div>
-								<div class="flex items-center gap-2">
-									<div class="text-xl">
-										<p class="text-gray-500 font-medium p-0 m-0">Time</p>
-										<p class="text-gray-900 font-bold p-0 m-0">
+								<div class="h-6 sm:h-12 w-px bg-gray-200"></div>
+								<div class="flex items-center gap-1 sm:gap-2">
+									<div class="text-xs sm:text-lg">
+										<p class="text-gray-500 font-medium p-0 m-0 text-xs">
+											Time
+										</p>
+										<p
+											class="text-gray-900 font-bold p-0 m-0 text-xs sm:text-base"
+										>
 											{{
 												formatTime(
 													bookingData.screening?.startTime || "19:30:00"
@@ -201,11 +209,13 @@
 						</div>
 
 						<!-- Venue -->
-						<div #venue class="px-6">
-							<div class="flex items-start gap-3">
-								<div class="text-xl">
-									<p class="text-gray-500 font-medium p-0 m-0">Venue</p>
-									<p class="text-gray-900 font-bold p-0 m-0">
+						<div #venue class="px-2 sm:px-6">
+							<div class="flex items-start gap-2 sm:gap-3">
+								<div class="text-xs sm:text-lg">
+									<p class="text-gray-500 font-medium p-0 m-0 text-xs">Venue</p>
+									<p
+										class="text-gray-900 font-bold p-0 m-0 text-xs leading-tight"
+									>
 										{{ bookingData.screening?.hall?.theatre?.name }} |
 										{{ bookingData.screening?.hall?.name }} |
 										{{ bookingData.screening?.hall?.theatre?.address }}
@@ -217,16 +227,18 @@
 						<p-divider></p-divider>
 
 						<!-- Seats -->
-						<div #seats class="px-6">
-							<div class="flex gap-3 flex-wrap items-center">
-								<p class="font-bold text-2xl text-gray-900">Your Seats</p>
+						<div #seats class="px-2 sm:px-6">
+							<div class="flex gap-1 sm:gap-3 flex-wrap items-center">
+								<p class="font-bold text-sm sm:text-2xl text-gray-900 mb-2">
+									Your Seats
+								</p>
 
 								<div
 									*ngFor="let seat of bookingData.bookingSeats"
-									class="p-4 border border-primary text-center rounded-xl"
+									class="p-1 sm:p-4 border border-primary text-center rounded-md sm:rounded-xl"
 									[ngStyle]="{ 'border-color': getSeatCategoryColor(seat) }"
 								>
-									<p class="font-bold text-2xl m-0 p-0">
+									<p class="font-bold text-sm sm:text-2xl m-0 p-0">
 										{{ seat.seat?.seatNumber }}
 									</p>
 									<p class="text-xs font-medium m-0 p-0">

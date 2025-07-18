@@ -1262,6 +1262,26 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 											result.booking.id,
 										]);
 									}
+								} else if (result && result.retry) {
+									// Payment failed but user wants to retry
+									this.messageService.add({
+										severity: 'info',
+										summary: 'Retrying Payment',
+										detail: 'Restarting payment process...',
+									});
+
+									// Retrigger payment modal with same data
+									setTimeout(() => {
+										this.retriggerPaymentModal(result);
+									}, 1000);
+								} else {
+									// Payment failed or cancelled
+									this.messageService.add({
+										severity: 'warn',
+										summary: 'Payment Cancelled',
+										detail:
+											'Payment was cancelled. Your seats are still reserved.',
+									});
 								}
 								this.processing = false;
 							});
@@ -1399,5 +1419,68 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 		if (percentage >= 50) return 'bg-yellow-500';
 		if (percentage >= 20) return 'bg-orange-500';
 		return 'bg-red-500';
+	}
+
+	/**
+	 * Retrigger payment modal when payment fails but user wants to retry
+	 */
+	private retriggerPaymentModal(previousResult: any): void {
+		const bookingData = {
+			movie: previousResult.movie || this.movie,
+			screening: previousResult.screening || this.screening,
+			hall: previousResult.hall || this.hall,
+			selectedSeats: previousResult.selectedSeats || this.selectedSeats,
+			totalAmount: previousResult.totalAmount || this.getTotalAmount(),
+			screeningId: previousResult.screeningId || this.screeningId,
+			sessionId: previousResult.sessionId || this.sessionId,
+		};
+
+		this.ref = this.dialogService.open(PaymentComponent, {
+			modal: true,
+			closable: false,
+			dismissableMask: false,
+			data: bookingData,
+		});
+
+		// Listen for booking completion (recursive handling)
+		this.ref.onClose.subscribe((result) => {
+			if (result && result.success) {
+				// Clear selections after successful booking
+				this.clearAllSelections();
+				// Refresh seat availability after successful booking
+				this.refreshOccupiedSeats();
+
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Booking Successful',
+					detail: 'Your tickets have been booked successfully!',
+				});
+
+				// Navigate to e-ticket with sessionId and bookingId
+				if (result.booking && result.booking.id) {
+					this.router.navigate(['/eticket', this.sessionId, result.booking.id]);
+				}
+			} else if (result && result.retry) {
+				// Payment failed again but user wants to retry
+				this.messageService.add({
+					severity: 'info',
+					summary: 'Retrying Payment',
+					detail: 'Restarting payment process...',
+				});
+
+				// Retrigger payment modal again
+				setTimeout(() => {
+					this.retriggerPaymentModal(result);
+				}, 1000);
+			} else {
+				// Payment failed or cancelled
+				this.messageService.add({
+					severity: 'warn',
+					summary: 'Payment Cancelled',
+					detail: 'Payment was cancelled. Your seats are still reserved.',
+				});
+			}
+			this.processing = false;
+		});
 	}
 }

@@ -57,9 +57,9 @@
 				<!-- Add bottom padding for floating panel -->
 				<!-- Seat Layout - Full width -->
 				<div class="w-full">
-					<div class="bg-gray-800 rounded-lg p-6">
+					<div class="bg-gray-800 rounded-lg p-2 sm:p-6">
 						<div class="overflow-x-auto">
-							<div class="min-w-full flex flex-col items-center justify-center">
+							<div class="min-w-max flex flex-col items-center justify-center">
 								<!-- Legend -->
 								<div class="flex flex-wrap justify-center gap-4 mb-8 text-sm">
 									<!-- Status Legend -->
@@ -94,30 +94,30 @@
 								</div>
 
 								<!-- Seat Rows -->
-								<div>
+								<div class="min-w-max">
 									<div
 										*ngFor="let rowIndex of getRows()"
-										class="flex items-center"
+										class="flex items-center mb-2"
 									>
 										<!-- Row Label -->
 										<div
-											class="w-14 h-14 flex items-center justify-center text-white font-bold bg-gray-800 sticky left-0 z-10"
+											class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-white font-bold bg-gray-700 rounded mr-2 flex-shrink-0"
 										>
 											{{ getRowLabel(rowIndex) }}
 										</div>
 
 										<!-- Seats -->
-										<div class="flex ml-2">
+										<div class="flex gap-1 sm:gap-2">
 											<div
 												*ngFor="let colIndex of getColumns()"
-												class="w-14 h-14 p-1 rounded-t"
+												class="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0"
 											>
 												<div
 													*ngIf="
 														getSeatAtPosition(rowIndex, colIndex) as seat;
 														else emptySeat
 													"
-													class="w-full h-full rounded-lg cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-bold"
+													class="w-full h-full rounded-lg cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-bold hover:scale-110"
 													[ngStyle]="
 														getSeatStyles(
 															seat.category?.baseColorHexCode!,
@@ -140,13 +140,15 @@
 								</div>
 
 								<!-- Screen -->
-								<div class="flex items-center my-8">
-									<div class="w-14 h-14"></div>
+								<div class="flex items-center my-8 min-w-max">
+									<div
+										class="w-10 h-10 sm:w-14 sm:h-14 mr-2 flex-shrink-0"
+									></div>
 									<!-- Empty space for row label -->
-									<div class="flex ml-2">
+									<div class="flex gap-1 sm:gap-2">
 										<div
 											*ngFor="let colIndex of getColumns()"
-											class="w-14 h-14"
+											class="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0"
 										>
 											<div
 												*ngIf="
@@ -154,7 +156,7 @@
 													colIndex >= hall.screenStart - 1 &&
 													colIndex < hall.screenStart - 1 + hall.screenSpan
 												"
-												class="w-full h-full border-b-[0.4rem] border-white flex items-center justify-center"
+												class="w-full h-full border-b-[0.4rem] border-white flex items-center justify-center rounded-t-lg bg-gradient-to-b from-gray-600 to-gray-700"
 												[class.rounded-l-lg]="colIndex === hall.screenStart - 1"
 												[class.rounded-r-lg]="
 													colIndex ===
@@ -163,9 +165,9 @@
 											>
 												<span
 													*ngIf="colIndex === getScreenCenter()"
-													class="text-white text-xl font-bold"
+													class="text-white text-sm sm:text-xl font-bold"
 												>
-													Screen
+													SCREEN
 												</span>
 											</div>
 										</div>
@@ -181,8 +183,71 @@
 						class="fixed bottom-0 left-0 right-0 z-30 bg-gray-900 border-t border-gray-700 shadow-2xl"
 					>
 						<div class="container mx-auto px-4 py-4">
-							<!-- Simple Summary View -->
-							<div class="flex items-center justify-between">
+							<!-- Mobile Layout - Stack vertically -->
+							<div class="block sm:hidden">
+								<div class="flex items-center justify-between mb-3">
+									<div class="flex items-center gap-2 flex-1">
+										<!-- Display individual seat numbers when seats are selected -->
+										<div
+											*ngIf="selectedSeats.length > 0"
+											class="flex items-center gap-1 flex-wrap"
+										>
+											<div
+												class="w-8 h-8 p-1 rounded flex items-center justify-center text-xs font-bold"
+												*ngFor="let seat of selectedSeats"
+												[ngStyle]="
+													getSeatStylesForFloatingBar(
+														seat.category?.baseColorHexCode!,
+														seat
+													)
+												"
+												[title]="
+													seat.seatNumber + ' - ' + formatCurrency(seat.price)
+												"
+											>
+												{{ seat.seatNumber }}
+											</div>
+										</div>
+										<span
+											*ngIf="selectedSeats.length === 0"
+											class="text-gray-400 text-sm"
+										>
+											No seats selected
+										</span>
+									</div>
+									<div *ngIf="selectedSeats.length > 0" class="text-right ml-4">
+										<div class="text-white font-bold text-lg">
+											{{ formatCurrency(getTotalAmount()) }}
+										</div>
+										<div class="text-gray-400 text-xs">Total</div>
+									</div>
+								</div>
+								<button
+									pButton
+									[label]="
+										selectedSeats.length === 0
+											? 'Select Seats'
+											: 'Continue to Payment'
+									"
+									[icon]="
+										selectedSeats.length === 0
+											? 'pi pi-info-circle'
+											: 'pi pi-credit-card'
+									"
+									iconPos="right"
+									(click)="selectedSeats.length === 0 ? null : processPayment()"
+									[disabled]="selectedSeats.length === 0"
+									class="w-full p-button-lg"
+									[class]="
+										selectedSeats.length === 0
+											? 'p-button-secondary'
+											: 'p-button-success'
+									"
+								></button>
+							</div>
+
+							<!-- Desktop Layout - Horizontal -->
+							<div class="hidden sm:flex items-center justify-between">
 								<div class="flex items-center gap-4">
 									<div class="flex items-center gap-2">
 										<!-- Display individual seat numbers when seats are selected -->

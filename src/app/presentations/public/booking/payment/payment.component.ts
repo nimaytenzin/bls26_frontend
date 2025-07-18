@@ -542,6 +542,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
 								detail:
 									errorResponse.message || 'Payment could not be processed.',
 							});
+
+							// Restart payment process from AE request step
+							this.restartPaymentProcess();
 							return;
 						}
 
@@ -563,10 +566,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
 								detail: 'Your booking has been confirmed!',
 							});
 
-							// Navigate to e-ticket after a short delay
-							setTimeout(() => {
-								this.navigateToETicket();
-							}, 2000);
+							// Navigate to e-ticket immediately after successful payment
+							this.navigateToETicket();
 						} else {
 							// Payment failed or invalid status code
 							this.messageService.add({
@@ -574,6 +575,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
 								summary: 'Payment Failed',
 								detail: 'Invalid OTP or payment could not be processed.',
 							});
+
+							// Restart payment process from AE request step
+							this.restartPaymentProcess();
 						}
 					},
 					error: (error) => {
@@ -594,6 +598,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
 							summary: 'Payment Error',
 							detail: errorMessage,
 						});
+
+						// Restart payment process from AE request step
+						this.restartPaymentProcess();
 					},
 				});
 		} else {
@@ -603,6 +610,50 @@ export class PaymentComponent implements OnInit, OnDestroy {
 				detail: 'Please enter a valid 6-digit OTP.',
 			});
 		}
+	}
+
+	// Restart payment process from AE request step
+	restartPaymentProcess() {
+		// Clear any existing timers
+		if (this.countdownInterval) {
+			clearInterval(this.countdownInterval);
+		}
+
+		// Clear the payment session timer
+		this.clearPaymentSessionTimer();
+
+		// Show confirmation dialog to user
+		this.confirmationService.confirm({
+			message: 'Payment failed. Would you like to retry the payment process?',
+			header: 'Payment Failed',
+			icon: 'pi pi-exclamation-triangle',
+			acceptButtonProps: {
+				label: 'Retry Payment',
+				severity: 'info',
+			},
+			rejectButtonProps: {
+				label: 'Cancel',
+				severity: 'secondary',
+			},
+			accept: () => {
+				// Close the payment dialog and send failure response to parent
+				this.ref.close({
+					success: false,
+					retry: true,
+					sessionId: this.sessionId,
+					screeningId: this.screeningId,
+					selectedSeats: this.selectedSeats,
+					totalAmount: this.totalAmount,
+					movie: this.movie,
+					screening: this.screening,
+					hall: this.hall,
+				});
+			},
+			reject: () => {
+				// Close the payment dialog and don't retry
+				this.ref.close({ success: false, retry: false });
+			},
+		});
 	}
 
 	goBackToPaymentStep(step: number) {
@@ -646,8 +697,12 @@ export class PaymentComponent implements OnInit, OnDestroy {
 			};
 
 			const qrString = JSON.stringify(eTicketData);
+
+			// Generate larger QR code for mobile devices (easier scanning by counter staff)
+			const qrSize = this.isMobileDevice() ? 300 : 200;
+
 			this.qrCodeDataURL = await QRCode.toDataURL(qrString, {
-				width: 200,
+				width: qrSize,
 				margin: 2,
 				color: {
 					dark: '#000000',
@@ -659,8 +714,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
 			console.error('Error generating QR code:', error);
 			// Fallback to simple booking ID QR code
 			try {
+				const qrSize = this.isMobileDevice() ? 300 : 200;
 				this.qrCodeDataURL = await QRCode.toDataURL(this.bookingResponse.uuid, {
-					width: 200,
+					width: qrSize,
 					margin: 2,
 				});
 			} catch (fallbackError: any) {
@@ -678,6 +734,11 @@ export class PaymentComponent implements OnInit, OnDestroy {
 	// Utility methods
 	formatCurrency(amount: number): string {
 		return `Nu. ${amount}`;
+	}
+
+	// Check if device is mobile for responsive QR code sizing
+	isMobileDevice(): boolean {
+		return window.innerWidth <= 768;
 	}
 
 	formatTime(timeInput: string | number): string {

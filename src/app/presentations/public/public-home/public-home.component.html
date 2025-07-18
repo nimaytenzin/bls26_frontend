@@ -32,7 +32,7 @@
 		<ng-template let-movie pTemplate="item">
 			<div
 				class="relative shadow-lg shadow-purple-500 my-8 mx-4 overflow-hidden group rounded-xl"
-				[style.background-image]="'url(' + getMovieLandscapeImage(movie) + ')'"
+				[style.background-image]="'url(' + getCarouselImage(movie) + ')'"
 				style="
 					background-size: cover;
 					background-position: center;
@@ -62,19 +62,14 @@
 									text="true"
 									*ngIf="movie.trailerURL"
 									(onClick)="watchTrailer(movie.trailerURL)"
-									styleClass="p-button-lg p-button-outlined text-white border-white hover:bg-white hover:text-black"
+									styleClass="p-button-outlined !text-white !border-white hover:!bg-white hover:!text-black !text-xs sm:!text-sm !px-3 sm:!px-4 !py-1 sm:!py-2 !bg-black !bg-opacity-60"
 								></p-button>
-								<h2
+								<p
 									class="text-2xl sm:text-3xl lg:text-4xl font-bold drop-shadow-lg"
 								>
 									{{ movie.name }}
-								</h2>
+								</p>
 							</div>
-							<p
-								class="text-gray-200 mb-6 text-sm sm:text-base lg:text-lg max-w-3xl line-clamp-3 drop-shadow-md"
-							>
-								{{ movie.description }}
-							</p>
 
 							<!-- Movie Details Tags -->
 							<div class="flex flex-wrap items-center gap-2 mb-6">
@@ -102,10 +97,12 @@
 						<div class="flex-shrink-0">
 							<p-button
 								[label]="getMovieButtonText(movie.screeningStatus)"
-								[icon]="getMovieButtonIcon(movie.screeningStatus)"
 								(onClick)="buyTickets(movie.id)"
 								[disabled]="!isMovieBookable(movie.screeningStatus)"
-								[styleClass]="getMovieButtonClass(movie.screeningStatus)"
+								[styleClass]="
+									getMovieButtonClass(movie.screeningStatus) +
+									' !text-xs sm:!text-sm !px-3 sm:!px-4 !py-1 sm:!py-2'
+								"
 							></p-button>
 						</div>
 					</div>
@@ -115,8 +112,8 @@
 	</p-carousel>
 
 	<!-- Movie List Section -->
-	<div class="mt-16">
-		<div class="mb-8">
+	<div class="mt-16 px-0 sm:px-6">
+		<div class="mb-8 px-4 sm:px-0">
 			<h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
 				All Movies
 			</h2>
@@ -125,7 +122,7 @@
 			</p>
 		</div>
 		<!-- Status Tabs -->
-		<div class="flex gap-4 mb-8">
+		<div class="flex gap-4 mb-8 px-4 sm:px-0">
 			<button
 				*ngFor="let status of movieStatuses"
 				(click)="filterByStatus(status)"
@@ -141,7 +138,7 @@
 
 		<!-- Movie Grid -->
 		<div
-			class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
+			class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 px-4 sm:px-0"
 		>
 			<div
 				*ngFor="let movie of filteredMovies"
