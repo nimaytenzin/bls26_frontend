@@ -32,9 +32,6 @@ export class CounterStaffSellTicketsComponent implements OnInit, OnDestroy {
 	screenings: Screening[] = [];
 	selectedScreening: Screening | null = null;
 
-	// Session Management
-	sessionId: string = '';
-
 	// UI State
 	loading = false;
 	loadingSchedules = false;
@@ -55,19 +52,12 @@ export class CounterStaffSellTicketsComponent implements OnInit, OnDestroy {
 
 	ngOnInit(): void {
 		this.loadMovies();
-		this.generateSessionId();
 	}
 
 	ngOnDestroy(): void {
 		this.destroy$.next();
 		this.destroy$.complete();
 		this.sessionService.endSession();
-	}
-
-	private generateSessionId(): void {
-		this.sessionId =
-			this.sessionService.getSessionId() || this.sessionService.createSession();
-		console.log('Generated session ID:', this.sessionId);
 	}
 
 	private loadMovies(): void {
@@ -155,7 +145,6 @@ export class CounterStaffSellTicketsComponent implements OnInit, OnDestroy {
 		this.screenings = [];
 		this.selectedScreening = null;
 		this.currentStep = 'movie-selection';
-		this.generateSessionId(); // Generate new session for new booking
 	}
 
 	/**

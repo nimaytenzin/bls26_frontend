@@ -39,6 +39,9 @@ export class CounterStaffCheckBookingsComponent implements OnInit, OnDestroy {
 	showTicketModal: boolean = false;
 	selectedBooking: Booking | null = null;
 
+	// Add to class properties
+	resendingETicketId: number | null = null;
+
 	constructor(
 		private bookingService: BookingDataService,
 		private messageService: MessageService,
@@ -293,6 +296,32 @@ export class CounterStaffCheckBookingsComponent implements OnInit, OnDestroy {
 			header: 'E Ticket',
 			closable: true,
 			dismissableMask: true,
+		});
+	}
+
+	/**
+	 * Add method to class
+	 */
+	resendETicket(booking: Booking): void {
+		if (!booking?.id) return;
+		this.resendingETicketId = booking.id;
+		this.bookingService.resendEticket(booking.id).subscribe({
+			next: (res) => {
+				this.resendingETicketId = null;
+				this.messageService.add({
+					severity: 'success',
+					summary: 'eTicket Sent',
+					detail: 'eTicket has been resent to the customer.',
+				});
+			},
+			error: (err) => {
+				this.resendingETicketId = null;
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Failed',
+					detail: 'Failed to resend eTicket. Please try again.',
+				});
+			},
 		});
 	}
 }

@@ -307,6 +307,25 @@
 							<i class="pi pi-eye mr-1"></i>
 							View Ticket
 						</button>
+						<!-- Resend eTicket button, only for valid screenings -->
+						<button
+							type="button"
+							class="px-4 py-2 text-green-600 hover:text-green-700 text-sm font-medium"
+							*ngIf="getScreeningStatusText(booking) === 'Valid'"
+							(click)="resendETicket(booking)"
+							[disabled]="resendingETicketId === booking.id"
+						>
+							<i class="pi pi-send mr-1"></i>
+							<span *ngIf="resendingETicketId !== booking.id"
+								>Resend eTicket</span
+							>
+							<p-progressSpinner
+								*ngIf="resendingETicketId === booking.id"
+								strokeWidth="3"
+								[style]="{ width: '16px', height: '16px' }"
+								class="ml-2"
+							></p-progressSpinner>
+						</button>
 					</div>
 				</div>
 			</div>

@@ -9,6 +9,7 @@ import {
 	DynamicDialogConfig,
 	DynamicDialogRef,
 } from 'primeng/dynamicdialog';
+import { BookingDataService } from '../../../../../core/dataservice/booking/booking.dataservice';
 
 @Component({
 	selector: 'app-staff-eticket',
@@ -20,10 +21,13 @@ import {
 })
 export class StaffEticketComponent {
 	booking: Booking | undefined;
+	resendingETicket = false;
+
 	constructor(
 		private messageService: MessageService,
 		private config: DynamicDialogConfig,
-		private ref: DynamicDialogRef
+		private ref: DynamicDialogRef,
+		private bookingService: BookingDataService
 	) {
 		this.booking = this.config.data.booking;
 		console.log('Booking data:', this.booking);
@@ -31,6 +35,41 @@ export class StaffEticketComponent {
 
 	closeModal(): void {
 		this.ref.close();
+	}
+
+	canResendETicket(): boolean {
+		if (!this.booking) return false;
+		// Only allow for valid screenings
+		const now = new Date();
+		const screening = this.booking.screening;
+		if (!screening?.date || !screening?.endTime) return false;
+		const screeningDate = new Date(screening.date);
+		const [endHours, endMinutes] = screening.endTime.split(':').map(Number);
+		screeningDate.setHours(endHours, endMinutes, 0, 0);
+		return now <= screeningDate;
+	}
+
+	resendETicketHandler(): void {
+		if (!this.booking?.id) return;
+		this.resendingETicket = true;
+		this.bookingService.resendEticket(this.booking.id).subscribe({
+			next: () => {
+				this.resendingETicket = false;
+				this.messageService.add({
+					severity: 'success',
+					summary: 'eTicket Sent',
+					detail: 'eTicket has been resent to the customer.',
+				});
+			},
+			error: () => {
+				this.resendingETicket = false;
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Failed',
+					detail: 'Failed to resend eTicket. Please try again.',
+				});
+			},
+		});
 	}
 
 	getBookingSeatsText(booking: Booking): string {

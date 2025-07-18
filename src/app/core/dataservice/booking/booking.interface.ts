@@ -74,8 +74,6 @@ export interface CounterStaffCreateBookingDto {
 	email?: string;
 	seats: BookedSeatDto[];
 	totalAmount: number;
-	bookingStatus?: BookingStatusEnum;
-	entryStatus?: EntryStatusEnum;
 	notes?: string;
 	paymentMethod?: string;
 	bookedBy: number;

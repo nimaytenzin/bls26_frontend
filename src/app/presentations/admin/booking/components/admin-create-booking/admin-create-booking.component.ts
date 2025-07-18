@@ -335,8 +335,6 @@ export class AdminCreateBookingComponent implements OnInit, OnDestroy {
 			email: formData.email || undefined,
 			seats: bookedSeats,
 			totalAmount: totalAmount,
-			bookingStatus: formData.bookingStatus,
-			entryStatus: formData.entryStatus,
 			notes: formData.notes || undefined,
 			paymentMethod: formData.paymentMethod,
 			bookedBy: 1,
@@ -344,37 +342,37 @@ export class AdminCreateBookingComponent implements OnInit, OnDestroy {
 
 		console.log('Final booking data to send:', bookingData);
 
-		this.bookingService
-			.createCounterStaffBooking(bookingData)
-			.pipe(takeUntil(this.destroy$))
-			.subscribe({
-				next: (response) => {
-					this.isSubmitting = false;
-					this.steps[3].completed = true;
+		// this.bookingService
+		// 	.counterStaffConfirmBooking(bookingData)
+		// 	.pipe(takeUntil(this.destroy$))
+		// 	.subscribe({
+		// 		next: (response) => {
+		// 			this.isSubmitting = false;
+		// 			this.steps[3].completed = true;
 
-					this.messageService.add({
-						severity: 'success',
-						summary: 'Booking Created',
-						detail: `Booking created successfully! Booking ID: ${response.booking?.id}`,
-					});
+		// 			this.messageService.add({
+		// 				severity: 'success',
+		// 				summary: 'Booking Created',
+		// 				detail: `Booking created successfully! Booking ID: ${response.booking?.id}`,
+		// 			});
 
-					// Reset the form for next booking
-					setTimeout(() => {
-						this.resetBookingProcess();
-					}, 2000);
-				},
-				error: (error) => {
-					console.error('Error creating booking:', error);
-					this.isSubmitting = false;
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Booking Failed',
-						detail:
-							error.error?.message ||
-							'Failed to create booking. Please try again.',
-					});
-				},
-			});
+		// 			// Reset the form for next booking
+		// 			setTimeout(() => {
+		// 				this.resetBookingProcess();
+		// 			}, 2000);
+		// 		},
+		// 		error: (error) => {
+		// 			console.error('Error creating booking:', error);
+		// 			this.isSubmitting = false;
+		// 			this.messageService.add({
+		// 				severity: 'error',
+		// 				summary: 'Booking Failed',
+		// 				detail:
+		// 					error.error?.message ||
+		// 					'Failed to create booking. Please try again.',
+		// 			});
+		// 		},
+		// 	});
 	}
 
 	private resetBookingProcess(): void {

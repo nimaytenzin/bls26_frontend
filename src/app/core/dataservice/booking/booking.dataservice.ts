@@ -98,25 +98,6 @@ export class BookingDataService {
 	}
 
 	/**
-	 * Create counter staff booking (for admin/counter bookings)
-	 */
-	createCounterStaffBooking(
-		bookingData: CounterStaffCreateBookingDto
-	): Observable<CreateBookingResponse> {
-		return this.http
-			.post<CreateBookingResponse>(
-				`${this.apiUrl}/counter/confirm`,
-				bookingData
-			)
-			.pipe(
-				catchError((error) => {
-					console.error('Error creating counter staff booking:', error);
-					return throwError(() => error);
-				})
-			);
-	}
-
-	/**
 	 * Legacy method for compatibility
 	 */
 	createBooking(

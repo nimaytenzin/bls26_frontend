@@ -10,6 +10,8 @@ import {
 	SessionSeatOccupancyResponse,
 	SeatSelectionDto,
 	SeatSelectionResponse,
+	CounterStaffCreateBookingDto,
+	CreateBookingResponse,
 } from './booking.interface';
 
 @Injectable({
@@ -127,6 +129,25 @@ export class SeatSelectionDataService {
 			.pipe(
 				catchError((error) => {
 					console.error('Error proceeding to payment:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Create counter staff booking (for admin/counter bookings)
+	 */
+	counterStaffConfirmBooking(
+		bookingData: CounterStaffCreateBookingDto
+	): Observable<CreateBookingResponse> {
+		return this.http
+			.post<CreateBookingResponse>(
+				`${this.apiUrl}/counter/confirm`,
+				bookingData
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error creating counter staff booking:', error);
 					return throwError(() => error);
 				})
 			);

@@ -60,6 +60,11 @@ export class AdminMasterTransactionComponent implements OnInit {
 				},
 			});
 	}
+
+	loadDataByDate(date: Date) {
+		this.loadTransactionsByDate(date);
+		this.loadStatisticsByDate(date);
+	}
 	/**
 	 * Load transactions for selected date
 	 */
@@ -94,7 +99,10 @@ export class AdminMasterTransactionComponent implements OnInit {
 	}
 
 	formatDateForAPI(date: Date): string {
-		return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+		const year = date.getFullYear();
+		const month = (date.getMonth() + 1).toString().padStart(2, '0');
+		const day = date.getDate().toString().padStart(2, '0');
+		return `${year}-${month}-${day}`;
 	}
 
 	onPageChange(event: any) {

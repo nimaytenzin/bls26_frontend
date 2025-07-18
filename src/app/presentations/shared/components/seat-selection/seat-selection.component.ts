@@ -77,11 +77,11 @@ export interface SeatSelectionEvents {
 export class SeatSelectionComponent implements OnInit, OnDestroy {
 	// Inputs
 	@Input() screeningId!: number;
-	@Input() sessionId: string = '';
 	@Input() loading: boolean = false;
 
 	config = SEATSELECTIONCONFIG;
 	screening!: Screening;
+	sessionId: string = '';
 
 	// Booking Flow State
 	bookingStep:
@@ -136,6 +136,7 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 		private authService: AuthService
 	) {
 		this.initializeCustomerForm();
+		this.generateSessionId();
 	}
 
 	ngOnInit(): void {
@@ -171,6 +172,12 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 			paymentMethod: ['', [Validators.required]],
 			notes: ['', [Validators.maxLength(500)]],
 		});
+	}
+
+	private generateSessionId(): void {
+		this.sessionId =
+			this.sessionService.getSessionId() || this.sessionService.createSession();
+		console.log('Generated session ID:', this.sessionId);
 	}
 
 	ngOnDestroy(): void {
@@ -854,15 +861,13 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 			email: formValue.customerEmail || '',
 			seats: bookedSeats,
 			totalAmount: totalAmount,
-			bookingStatus: BookingStatusEnum.CONFIRMED,
-			entryStatus: EntryStatusEnum.VALID,
 			paymentMethod: formValue.paymentMethod.toUpperCase(),
 			notes: formValue.notes || '',
 			bookedBy: this.getAuthenticatedUserId(),
 		};
 
-		this.bookingService
-			.createCounterStaffBooking(bookingDto)
+		this.seatSelectionService
+			.counterStaffConfirmBooking(bookingDto)
 			.pipe(takeUntil(this.destroy$))
 			.subscribe({
 				next: (response: CreateBookingResponse) => {
