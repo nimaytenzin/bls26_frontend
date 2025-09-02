@@ -23,7 +23,7 @@ nav {
         content: "";
         position: absolute;
         width: 0;
-        height: 2px;
+        height: 1px;
         bottom: -4px;
         left: 50%;
         background: linear-gradient(90deg, #dc2626, #ef4444);
@@ -33,6 +33,15 @@ nav {
 
     &:hover::after {
         width: 100%;
+    }
+
+    // Active state for current route
+    &.active {
+        color: white;
+
+        &::after {
+            width: 100%;
+        }
     }
 }
 
@@ -78,6 +87,33 @@ nav {
             width: 4px;
             background: linear-gradient(180deg, #ef4444, #dc2626);
             border-radius: 2px 0 0 2px;
+        }
+    }
+
+    // Active state for mobile menu
+    &.active-mobile {
+        color: white;
+        background: linear-gradient(90deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
+
+        &::before {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #ef4444, #dc2626);
+            border-radius: 2px 0 0 2px;
+        }
+
+        &::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #dc2626, #ef4444);
         }
     }
 }

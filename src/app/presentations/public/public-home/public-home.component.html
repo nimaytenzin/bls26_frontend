@@ -20,8 +20,8 @@
 	</button>
 </div>
 
-<!-- Full Width Hero Carousel - Responsive Height -->
-<div class="w-full overflow-hidden">
+<!-- Full Width Hero Carousel - Enhanced Visual Design -->
+<div class="w-full overflow-hidden relative">
 	<p-carousel
 		[value]="movies"
 		[numVisible]="1"
@@ -30,10 +30,11 @@
 		[autoplayInterval]="6000"
 		[showIndicators]="false"
 		[showNavigators]="false"
+		styleClass="hero-carousel"
 	>
 		<ng-template let-movie pTemplate="item">
 			<div
-				class="relative w-full h-[80vh] p-0 m-0 md:h-[80vh]"
+				class="relative w-full h-[80vh] p-0 m-0 md:h-[80vh] group overflow-hidden"
 				[style.background-image]="'url(' + getCarouselImage(movie) + ')'"
 				style="
 					background-size: cover;
@@ -41,56 +42,99 @@
 					background-repeat: no-repeat;
 				"
 			>
-				<!-- Dark gradient overlay -->
+				<!-- Animated Particles Background -->
+				<div class="absolute inset-0 opacity-30">
+					<div class="floating-particles">
+						<div
+							class="particle"
+							*ngFor="let i of [1, 2, 3, 4, 5, 6, 7, 8]"
+						></div>
+					</div>
+				</div>
+
+				<!-- Enhanced gradient overlay with animation -->
 				<div
-					class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"
+					class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/40 group-hover:from-black/95 group-hover:via-black/70 group-hover:to-black/50 transition-all duration-1000"
+				></div>
+				<div
+					class="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-transparent"
 				></div>
 
-				<!-- Content positioned at bottom - No padding on mobile -->
-				<div class="absolute bottom-0 left-0 right-0 p-4 md:p-8 lg:p-16">
-					<div class="max-w-4xl">
-						<!-- Movie title -->
-						<h1
-							class="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
-						>
-							{{ movie.name }}
-						</h1>
+				<!-- Decorative Elements -->
+				<div
+					class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-600 via-red-500 to-red-400 opacity-80"
+				></div>
+				<div
+					class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 via-red-500 to-red-600 opacity-60"
+				></div>
 
-						<!-- Movie details -->
-						<div
-							class="flex flex-wrap items-center gap-4 mb-8 text-white/80 text-lg"
-						>
-							<span
-								class="bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm"
-								>{{ movie.pgRating }}</span
-							>
-							<span>•</span>
-							<span
-								class="bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm"
-								>{{ formatDuration(movie.durationMin) }}</span
-							>
-							<span>•</span>
-							<span
-								class="bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm"
-								>{{ getGenresText(movie) }}</span
-							>
+				<!-- Content positioned at bottom with enhanced styling -->
+				<div
+					class="absolute bottom-0 left-0 right-0 p-4 md:p-8 lg:p-16 transform transition-all duration-700 group-hover:translate-y-[-8px]"
+				>
+					<div class="max-w-5xl">
+						<!-- Movie title with enhanced effects -->
+						<div class="mb-6">
+							<div class="inline-block relative">
+								<h1
+									class="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-2 leading-tight tracking-tight movie-title-gradient"
+								>
+									{{ movie.name }}
+								</h1>
+								<div
+									class="absolute -bottom-2 left-0 w-24 h-1 bg-gradient-to-r from-red-600 to-red-400 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"
+								></div>
+							</div>
+							<p class="text-white">{{ movie.description }}</p>
 						</div>
 
-						<!-- Action buttons -->
+						<!-- Enhanced movie details with glassmorphism -->
+						<div
+							class="flex flex-wrap items-center gap-4 mb-8 text-white/90 text-lg backdrop-blur-md bg-white/5 rounded-2xl p-4 border border-white/10"
+						>
+							<div class="flex items-center space-x-2">
+								<i class="pi pi-star-fill text-yellow-400"></i>
+								<span
+									class="px-3 py-1 rounded-full text-white font-bold text-sm"
+									>{{ movie.pgRating }}</span
+								>
+							</div>
+							<span class="text-red-400">•</span>
+							<div class="flex items-center space-x-2">
+								<i class="pi pi-clock text-blue-400"></i>
+								<span
+									class="px-3 py-1 rounded-full text-white font-semibold text-sm"
+									>{{ formatDuration(movie.durationMin) }}</span
+								>
+							</div>
+							<span class="text-red-400">•</span>
+							<div class="flex items-center space-x-2">
+								<i class="pi pi-tags text-green-400"></i>
+								<span
+									class="px-3 py-1 rounded-full text-white font-semibold text-sm"
+									>{{ getGenresText(movie) }}</span
+								>
+							</div>
+						</div>
+
+						<!-- Enhanced action buttons -->
 						<div class="flex flex-col sm:flex-row gap-4">
 							<button
 								*ngIf="isMovieBookable(movie.screeningStatus)"
 								(click)="buyTickets(movie.id)"
-								class="px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-bold text-lg rounded-lg flex items-center gap-3 transition-all duration-300 hover:scale-105 shadow-xl"
+								class="group px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-lg rounded-xl flex items-center gap-3 transition-all duration-300 hover:scale-105 shadow-2xl hover:shadow-red-500/25 border-2 border-red-500/20 hover:border-red-400/40 relative overflow-hidden"
 							>
-								<i class="pi pi-ticket text-xl"></i>
-								BUY TICKETS
+								<div
+									class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+								></div>
+								<i class="pi pi-ticket text-xl relative z-10"></i>
+								<span class="relative z-10">BUY TICKETS NOW</span>
 							</button>
 
 							<button
 								*ngIf="!isMovieBookable(movie.screeningStatus)"
 								disabled
-								class="px-8 py-4 bg-gray-600 text-gray-300 font-bold text-lg rounded-lg cursor-not-allowed flex items-center gap-3"
+								class="px-8 py-4 bg-gradient-to-r from-gray-700 to-gray-800 text-gray-400 font-bold text-lg rounded-xl cursor-not-allowed flex items-center gap-3 border-2 border-gray-600/40"
 							>
 								<i class="pi pi-clock text-xl"></i>
 								{{ getMovieButtonText(movie.screeningStatus) }}
@@ -99,21 +143,40 @@
 							<button
 								*ngIf="movie.trailerURL"
 								(click)="watchTrailer(movie.trailerURL)"
-								class="px-6 py-4 bg-transparent border-2 border-white text-white hover:bg-white hover:text-black font-semibold rounded-lg flex items-center gap-2 transition-all duration-300"
+								class="group px-6 py-4 bg-transparent border-2 border-white/40 text-white hover:bg-white/10 hover:border-white/80 font-semibold rounded-xl flex items-center gap-3 transition-all duration-300 backdrop-blur-md relative overflow-hidden"
 							>
-								<i class="pi pi-play"></i>
-								Watch Trailer
+								<div
+									class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+								></div>
+								<i class="pi pi-play text-lg relative z-10"></i>
+								<span class="relative z-10">Watch Trailer</span>
 							</button>
 						</div>
 					</div>
 				</div>
 
-				<!-- Slide indicator (minimal) - Responsive positioning -->
-				<div class="absolute bottom-2 right-2 md:bottom-8 md:right-8">
+				<!-- Enhanced slide indicator -->
+				<div class="absolute bottom-4 right-4 md:bottom-8 md:right-8 z-20">
 					<div
-						class="bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full text-white text-sm"
+						class="backdrop-blur-md bg-black/30 border border-white/20 px-4 py-2 rounded-full text-white text-sm font-medium shadow-lg"
 					>
-						{{ movies.indexOf(movie) + 1 }} / {{ movies.length }}
+						<span class="text-red-400">{{ movies.indexOf(movie) + 1 }}</span>
+						<span class="text-white/60">of</span>
+						<span class="text-white">{{ movies.length }}</span>
+					</div>
+				</div>
+
+				<!-- Movie Rating Badge -->
+				<div class="absolute top-4 left-4 md:top-8 md:left-8 z-20">
+					<div
+						class="backdrop-blur-md bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/30 px-3 py-2 rounded-xl"
+					>
+						<div class="flex items-center space-x-2">
+							<i class="pi pi-star-fill text-yellow-400 text-sm"></i>
+							<span class="text-yellow-400 font-bold text-sm">{{
+								movie.pgRating
+							}}</span>
+						</div>
 					</div>
 				</div>
 			</div>

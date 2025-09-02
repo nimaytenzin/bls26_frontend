@@ -18,17 +18,14 @@ export class NavbarComponent {
 	navItems = [
 		{
 			label: 'Home',
-			icon: 'pi pi-home',
 			route: '/',
 		},
 		{
 			label: 'Movies',
-			icon: 'pi pi-video',
 			route: '/movies',
 		},
 		{
 			label: 'How to Book',
-			icon: 'pi pi-info-circle',
 			route: '/guide',
 		},
 	];
@@ -51,5 +48,12 @@ export class NavbarComponent {
 	goToLoginPage() {
 		this.router.navigate(['auth/login']);
 		this.closeMenu();
+	}
+
+	isActiveRoute(route: string): boolean {
+		if (route === '/') {
+			return this.router.url === '/';
+		}
+		return this.router.url.startsWith(route);
 	}
 }

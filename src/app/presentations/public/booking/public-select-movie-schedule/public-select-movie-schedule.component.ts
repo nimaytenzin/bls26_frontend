@@ -74,9 +74,6 @@ export class PublicSelectMovieScheduleComponent implements OnInit, OnDestroy {
 	// Date range for screening availability (next 7 days)
 	private readonly DAYS_AHEAD = 7;
 
-	// Selected items
-	selectedScreening: ScreeningDisplay | null = null;
-
 	// Trailer properties
 	showTrailerDialog = false;
 	safeTrailerUrl: SafeResourceUrl | null = null;
@@ -369,8 +366,6 @@ export class PublicSelectMovieScheduleComponent implements OnInit, OnDestroy {
 
 	// Event handlers
 	onDateChange() {
-		this.selectedScreening = null;
-
 		// Use already loaded screenings for the selected date
 		const dateStr = this.formatDateForAPI(this.selectedDate);
 		const screeningsForDate = this.allScreeningsForAllDates.get(dateStr);
@@ -384,13 +379,9 @@ export class PublicSelectMovieScheduleComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	selectScreening(screening: ScreeningDisplay) {
-		this.selectedScreening = screening;
-	}
-
-	proceedToBooking() {
-		if (this.selectedScreening && this.movie) {
-			this.router.navigate(['/select-seats', this.selectedScreening.id]);
+	proceedToBooking(screening: ScreeningDisplay) {
+		if (screening && this.movie) {
+			this.router.navigate(['/select-seats', screening.id]);
 		}
 	}
 
