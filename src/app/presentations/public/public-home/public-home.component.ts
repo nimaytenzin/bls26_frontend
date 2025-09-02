@@ -351,4 +351,14 @@ export class PublicHomeComponent implements OnInit, OnDestroy {
 			return this.getMovieLandscapeImage(movie);
 		}
 	}
+
+	getGenresText(movie: Movie): string {
+		if (!movie.genres || movie.genres.length === 0) {
+			return 'No genres';
+		}
+		return movie.genres
+			.slice(0, 2)
+			.map((g) => g.name)
+			.join(', ');
+	}
 }

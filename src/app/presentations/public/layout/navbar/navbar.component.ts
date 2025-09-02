@@ -1,10 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
-import { MenubarModule } from 'primeng/menubar';
-import { MenuItem } from 'primeng/api';
-import { AvatarModule } from 'primeng/avatar';
-import { PrimeNgModules } from '../../../../primeng.modules';
 import { Router } from '@angular/router';
 import { APPNAME } from '../../../../core/constants/constants';
 
@@ -13,37 +9,47 @@ import { APPNAME } from '../../../../core/constants/constants';
 	templateUrl: './navbar.component.html',
 	styleUrls: ['./navbar.component.scss'],
 	standalone: true,
-	imports: [CommonModule, PrimeNgModules],
+	imports: [CommonModule, ButtonModule],
 })
 export class NavbarComponent {
-	items: MenuItem[];
 	APPNAME = APPNAME;
+	isMenuOpen = false;
 
-	constructor(private router: Router) {
-		this.items = [
-			{
-				label: 'Home',
-				icon: 'pi pi-home',
-				styleClass: 'text-gray-300 hover:text-blue-500',
-				routerLink: ['/'],
-			},
-			{
-				label: 'Movies',
-				icon: 'pi pi-video',
-				styleClass: 'text-gray-300 hover:text-blue-500',
-				routerLink: ['/movies'],
-			},
+	navItems = [
+		{
+			label: 'Home',
+			icon: 'pi pi-home',
+			route: '/',
+		},
+		{
+			label: 'Movies',
+			icon: 'pi pi-video',
+			route: '/movies',
+		},
+		{
+			label: 'How to Book',
+			icon: 'pi pi-info-circle',
+			route: '/guide',
+		},
+	];
 
-			{
-				label: 'How to Book Tickets',
-				icon: 'pi pi-info-circle',
-				styleClass: 'text-gray-300 hover:text-blue-500',
-				routerLink: ['/guide'],
-			},
-		];
+	constructor(private router: Router) {}
+
+	toggleMenu() {
+		this.isMenuOpen = !this.isMenuOpen;
+	}
+
+	closeMenu() {
+		this.isMenuOpen = false;
+	}
+
+	navigateTo(route: string) {
+		this.router.navigate([route]);
+		this.closeMenu();
 	}
 
 	goToLoginPage() {
 		this.router.navigate(['auth/login']);
+		this.closeMenu();
 	}
 }

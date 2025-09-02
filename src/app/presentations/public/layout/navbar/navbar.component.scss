@@ -1,47 +1,231 @@
-:host ::ng-deep {
-    .p-menubar {
-        padding: 0.5rem 1rem;
-        background: transparent;
-        border: none;
+// Custom Navbar Styles
+nav {
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
 
-        .p-menubar-root-list {
-            gap: 1rem;
-
-            .p-menuitem {
-                .p-menuitem-link {
-                    padding: 0.5rem 1rem;
-
-                    .p-menuitem-icon {
-                        color: #d1d5db; /* text-gray-300 */
-                    }
-
-                    .p-menuitem-text {
-                        color: #d1d5db; /* text-gray-300 */
-                    }
-
-                    &:hover {
-                        background: transparent;
-
-                        .p-menuitem-icon,
-                        .p-menuitem-text {
-                            color: #3b82f6; /* text-blue-500 */
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    .p-menubar-button {
-        color: #d1d5db; /* text-gray-300 */
+// Logo animation
+.logo-container {
+    img {
+        transition: transform 0.3s ease;
 
         &:hover {
-            color: #3b82f6; /* text-blue-500 */
-            background: transparent;
+            transform: scale(1.05);
+        }
+    }
+}
+
+// Desktop nav links
+.nav-link {
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -4px;
+        left: 50%;
+        background: linear-gradient(90deg, #dc2626, #ef4444);
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+    }
+
+    &:hover::after {
+        width: 100%;
+    }
+}
+
+// Hamburger Menu Animation
+.hamburger-line {
+    transform-origin: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Mobile menu animations - Right to Left Slide
+.mobile-menu-panel {
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+
+    &.translate-x-0 {
+        transform: translateX(0);
+    }
+
+    &.translate-x-full {
+        transform: translateX(100%);
+    }
+}
+
+// Enhanced mobile menu item animations
+.mobile-nav-item {
+    position: relative;
+    transition: all 0.3s ease;
+    animation: slideInFromRight 0.6s ease-out forwards;
+    opacity: 0;
+    transform: translateX(30px);
+
+    &:hover {
+        transform: translateX(-8px);
+        background: linear-gradient(90deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.1));
+
+        &::before {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #ef4444, #dc2626);
+            border-radius: 2px 0 0 2px;
+        }
+    }
+}
+
+// Staggered animation for menu items
+.mobile-nav-item:nth-child(1) {
+    animation-delay: 0.1s;
+}
+.mobile-nav-item:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.mobile-nav-item:nth-child(3) {
+    animation-delay: 0.3s;
+}
+.mobile-nav-item:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+@keyframes slideInFromRight {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+// Custom Login Button Styling
+.login-button {
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    &:hover::before {
+        left: 100%;
+    }
+}
+
+// Enhanced button styling
+.nav-button {
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+    }
+}
+
+// Enhanced hamburger animation
+.hamburger-line {
+    &.rotate-45 {
+        transform: rotate(45deg);
+    }
+
+    &.-rotate-45 {
+        transform: rotate(-45deg);
+    }
+
+    &.top-3 {
+        top: 12px;
+    }
+}
+
+// Mobile menu backdrop
+.menu-backdrop {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: opacity 0.3s ease;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+    .mobile-menu-panel {
+        max-width: 340px;
+        width: 85vw;
+    }
+}
+
+@media (max-width: 480px) {
+    .mobile-menu-panel {
+        width: 90vw;
+        max-width: 300px;
+    }
+}
+
+// Mobile menu enhancements
+.mobile-menu-panel {
+    // Reset animation when menu closes
+    &.translate-x-full {
+        .mobile-nav-item {
+            animation: none;
+            opacity: 0;
+            transform: translateX(30px);
         }
     }
 
-    .p-button {
-        transition: all 0.2s;
+    // Apply animation when menu opens
+    &.translate-x-0 {
+        .mobile-nav-item {
+            animation: slideInFromRight 0.6s ease-out forwards;
+        }
+    }
+}
+
+// Smooth scrollbar for mobile menu
+.mobile-menu-panel::-webkit-scrollbar {
+    width: 4px;
+}
+
+.mobile-menu-panel::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.mobile-menu-panel::-webkit-scrollbar-thumb {
+    background: rgba(220, 38, 38, 0.5);
+    border-radius: 2px;
+}
+
+.mobile-menu-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(220, 38, 38, 0.7);
+}
+
+// Focus states for accessibility
+button:focus-visible,
+a:focus-visible {
+    outline: 2px solid #dc2626;
+    outline-offset: 2px;
+}
+
+// Brand text animation
+.brand-text {
+    background: linear-gradient(90deg, #ffffff, #ef4444);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: linear-gradient(90deg, #ef4444, #ffffff);
+        background-clip: text;
+        -webkit-background-clip: text;
     }
 }

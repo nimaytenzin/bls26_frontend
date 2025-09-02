@@ -1,7 +1,7 @@
 <!-- Loading State -->
 <div *ngIf="isLoading" class="flex justify-center items-center h-64">
 	<div
-		class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"
+		class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"
 	></div>
 	<span class="ml-3 text-white text-lg">Loading movies...</span>
 </div>
@@ -13,214 +13,223 @@
 		{{ error }}
 	</div>
 	<button
-		class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+		class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
 		(click)="loadMovies()"
 	>
 		Retry
 	</button>
 </div>
-<div class="max-w-7xl mx-auto">
+
+<!-- Full Width Hero Carousel - Responsive Height -->
+<div class="w-full overflow-hidden">
 	<p-carousel
 		[value]="movies"
 		[numVisible]="1"
 		[numScroll]="1"
 		[circular]="true"
-		[autoplayInterval]="5000"
-		[responsiveOptions]="responsiveOptions"
-		styleClass="custom-carousel"
+		[autoplayInterval]="6000"
+		[showIndicators]="false"
+		[showNavigators]="false"
 	>
 		<ng-template let-movie pTemplate="item">
 			<div
-				class="relative shadow-lg shadow-purple-500 my-8 mx-4 overflow-hidden group rounded-xl"
+				class="relative w-full h-[80vh] p-0 m-0 md:h-[80vh]"
 				[style.background-image]="'url(' + getCarouselImage(movie) + ')'"
 				style="
 					background-size: cover;
 					background-position: center;
-					height: 60vh;
-					min-height: 400px;
+					background-repeat: no-repeat;
 				"
 			>
-				<!-- Status Badge -->
-
-				<!-- Overlay Gradient -->
+				<!-- Dark gradient overlay -->
 				<div
-					class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
+					class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"
 				></div>
 
-				<!-- Content -->
-				<div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
-					<div
-						class="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
-					>
-						<div class="flex-1">
-							<div
-								class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4"
+				<!-- Content positioned at bottom - No padding on mobile -->
+				<div class="absolute bottom-0 left-0 right-0 p-4 md:p-8 lg:p-16">
+					<div class="max-w-4xl">
+						<!-- Movie title -->
+						<h1
+							class="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
+						>
+							{{ movie.name }}
+						</h1>
+
+						<!-- Movie details -->
+						<div
+							class="flex flex-wrap items-center gap-4 mb-8 text-white/80 text-lg"
+						>
+							<span
+								class="bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm"
+								>{{ movie.pgRating }}</span
 							>
-								<p-button
-									label="Watch Trailer"
-									icon="pi pi-play"
-									text="true"
-									*ngIf="movie.trailerURL"
-									(onClick)="watchTrailer(movie.trailerURL)"
-									styleClass="p-button-outlined !text-white !border-white hover:!bg-white hover:!text-black !text-xs sm:!text-sm !px-3 sm:!px-4 !py-1 sm:!py-2 !bg-black !bg-opacity-60"
-								></p-button>
-								<p
-									class="text-2xl sm:text-3xl lg:text-4xl font-bold drop-shadow-lg"
-								>
-									{{ movie.name }}
-								</p>
-							</div>
-
-							<!-- Movie Details Tags -->
-							<div class="flex flex-wrap items-center gap-2 mb-6">
-								<p-tag
-									[value]="movie.pgRating"
-									severity="warning"
-									styleClass="text-xs sm:text-sm"
-								></p-tag>
-								<p-tag
-									[value]="formatDuration(movie.durationMin)"
-									severity="info"
-									styleClass="text-xs sm:text-sm"
-								></p-tag>
-								<ng-container *ngFor="let genre of movie.genres?.slice(0, 3)">
-									<p-tag
-										[value]="genre.name"
-										severity="success"
-										styleClass="text-xs sm:text-sm"
-									></p-tag>
-								</ng-container>
-							</div>
+							<span>•</span>
+							<span
+								class="bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm"
+								>{{ formatDuration(movie.durationMin) }}</span
+							>
+							<span>•</span>
+							<span
+								class="bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm"
+								>{{ getGenresText(movie) }}</span
+							>
 						</div>
 
-						<!-- Action Button -->
-						<div class="flex-shrink-0">
-							<p-button
-								[label]="getMovieButtonText(movie.screeningStatus)"
-								(onClick)="buyTickets(movie.id)"
-								[disabled]="!isMovieBookable(movie.screeningStatus)"
-								[styleClass]="
-									getMovieButtonClass(movie.screeningStatus) +
-									' !text-xs sm:!text-sm !px-3 sm:!px-4 !py-1 sm:!py-2'
-								"
-							></p-button>
+						<!-- Action buttons -->
+						<div class="flex flex-col sm:flex-row gap-4">
+							<button
+								*ngIf="isMovieBookable(movie.screeningStatus)"
+								(click)="buyTickets(movie.id)"
+								class="px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-bold text-lg rounded-lg flex items-center gap-3 transition-all duration-300 hover:scale-105 shadow-xl"
+							>
+								<i class="pi pi-ticket text-xl"></i>
+								BUY TICKETS
+							</button>
+
+							<button
+								*ngIf="!isMovieBookable(movie.screeningStatus)"
+								disabled
+								class="px-8 py-4 bg-gray-600 text-gray-300 font-bold text-lg rounded-lg cursor-not-allowed flex items-center gap-3"
+							>
+								<i class="pi pi-clock text-xl"></i>
+								{{ getMovieButtonText(movie.screeningStatus) }}
+							</button>
+
+							<button
+								*ngIf="movie.trailerURL"
+								(click)="watchTrailer(movie.trailerURL)"
+								class="px-6 py-4 bg-transparent border-2 border-white text-white hover:bg-white hover:text-black font-semibold rounded-lg flex items-center gap-2 transition-all duration-300"
+							>
+								<i class="pi pi-play"></i>
+								Watch Trailer
+							</button>
 						</div>
+					</div>
+				</div>
+
+				<!-- Slide indicator (minimal) - Responsive positioning -->
+				<div class="absolute bottom-2 right-2 md:bottom-8 md:right-8">
+					<div
+						class="bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full text-white text-sm"
+					>
+						{{ movies.indexOf(movie) + 1 }} / {{ movies.length }}
 					</div>
 				</div>
 			</div>
 		</ng-template>
 	</p-carousel>
+</div>
 
-	<!-- Movie List Section -->
-	<div class="mt-16 px-0 sm:px-6">
-		<div class="mb-8 px-4 sm:px-0">
-			<h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
-				All Movies
-			</h2>
-			<p class="text-gray-400 text-lg">
-				Discover and book tickets for the latest movies
-			</p>
-		</div>
-		<!-- Status Tabs -->
-		<div class="flex gap-4 mb-8 px-4 sm:px-0">
-			<button
-				*ngFor="let status of movieStatuses"
-				(click)="filterByStatus(status)"
-				[class]="
-					selectedStatus === status
-						? 'px-6 py-2 rounded-md bg-purple-600 text-white'
-						: 'px-6 py-2 rounded-md bg-gray-800 text-gray-300 hover:bg-gray-700'
-				"
-			>
-				{{ status }}
-			</button>
-		</div>
-
-		<!-- Movie Grid -->
-		<div
-			class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 px-4 sm:px-0"
+<!-- Movie List Section -->
+<div class="mt-16 px-0 sm:px-6">
+	<div class="mb-8 px-4 sm:px-0">
+		<h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
+			All Movies
+		</h2>
+		<p class="text-gray-400 text-lg">
+			Discover and book tickets for the latest movies
+		</p>
+	</div>
+	<!-- Status Tabs -->
+	<div class="flex gap-4 mb-8 px-4 sm:px-0">
+		<button
+			*ngFor="let status of movieStatuses"
+			(click)="filterByStatus(status)"
+			[class]="
+				selectedStatus === status
+					? 'px-6 py-2 rounded-md bg-purple-600 text-white'
+					: 'px-6 py-2 rounded-md bg-gray-800 text-gray-300 hover:bg-gray-700'
+			"
 		>
-			<div
-				*ngFor="let movie of filteredMovies"
-				class="movie-card bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-			>
-				<div class="relative aspect-[2/3] overflow-hidden">
-					<div class="absolute top-2 left-2 z-10">
-						<span
-							class="px-2 py-1 rounded-full text-xs font-semibold shadow-md"
-							[ngClass]="getMovieStatusClass(movie.screeningStatus)"
-						>
-							<i
-								class="pi text-xs mr-1"
-								[ngClass]="getMovieStatusIcon(movie.screeningStatus)"
-							></i>
-							{{
-								getMovieStatusText(movie.screeningStatus) === "Screening Now"
-									? "Now"
-									: getMovieStatusText(movie.screeningStatus) === "Coming Soon"
-									? "Soon"
-									: getMovieStatusText(movie.screeningStatus) === "Ended"
-									? "Ended"
-									: "Cancelled"
-							}}
-						</span>
-					</div>
+			{{ status }}
+		</button>
+	</div>
 
-					<img
-						[src]="getMoviePotraitImage(movie)"
-						[alt]="movie.name"
-						class="movie-poster w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-					/>
-
-					<button
-						*ngIf="movie.trailerURL"
-						(click)="watchTrailer(movie.trailerURL)"
-						class="absolute inset-0 m-auto w-12 h-12 border bg-black bg-opacity-60 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center group-hover:opacity-100"
+	<!-- Movie Grid -->
+	<div
+		class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 px-4 sm:px-0"
+	>
+		<div
+			*ngFor="let movie of filteredMovies"
+			class="movie-card bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+		>
+			<div class="relative aspect-[2/3] overflow-hidden">
+				<div class="absolute top-2 left-2 z-10">
+					<span
+						class="px-2 py-1 rounded-full text-xs font-semibold shadow-md"
+						[ngClass]="getMovieStatusClass(movie.screeningStatus)"
 					>
-						<i class="pi pi-play text-white ml-1"></i>
-					</button>
+						<i
+							class="pi text-xs mr-1"
+							[ngClass]="getMovieStatusIcon(movie.screeningStatus)"
+						></i>
+						{{
+							getMovieStatusText(movie.screeningStatus) === "Screening Now"
+								? "Now"
+								: getMovieStatusText(movie.screeningStatus) === "Coming Soon"
+								? "Soon"
+								: getMovieStatusText(movie.screeningStatus) === "Ended"
+								? "Ended"
+								: "Cancelled"
+						}}
+					</span>
 				</div>
 
-				<div class="p-4">
-					<h3
-						class="text-base sm:text-lg font-semibold text-white mb-2 line-clamp-2 min-h-[3rem] sm:min-h-[3.5rem]"
+				<img
+					[src]="getMoviePotraitImage(movie)"
+					[alt]="movie.name"
+					class="movie-poster w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+				/>
+
+				<button
+					*ngIf="movie.trailerURL"
+					(click)="watchTrailer(movie.trailerURL)"
+					class="absolute inset-0 m-auto w-12 h-12 border bg-black bg-opacity-60 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center group-hover:opacity-100"
+				>
+					<i class="pi pi-play text-white ml-1"></i>
+				</button>
+			</div>
+
+			<div class="p-4">
+				<h3
+					class="text-base sm:text-lg font-semibold text-white mb-2 line-clamp-2 min-h-[3rem] sm:min-h-[3.5rem]"
+				>
+					{{ movie.name }}
+				</h3>
+
+				<div class="flex flex-wrap gap-1 mb-3">
+					<span
+						*ngFor="let genre of movie.genres?.slice(0, 2)"
+						class="px-2 py-1 bg-purple-600 text-white text-xs rounded-full"
 					>
-						{{ movie.name }}
-					</h3>
+						{{ genre.name }}
+					</span>
+				</div>
 
-					<div class="flex flex-wrap gap-1 mb-3">
-						<span
-							*ngFor="let genre of movie.genres?.slice(0, 2)"
-							class="px-2 py-1 bg-purple-600 text-white text-xs rounded-full"
-						>
-							{{ genre.name }}
-						</span>
+				<div class="flex items-center justify-between">
+					<div class="text-xs sm:text-sm text-gray-400">
+						<div>{{ formatDuration(movie.durationMin) }}</div>
+						<div>{{ movie.pgRating }}</div>
 					</div>
 
-					<div class="flex items-center justify-between">
-						<div class="text-xs sm:text-sm text-gray-400">
-							<div>{{ formatDuration(movie.durationMin) }}</div>
-							<div>{{ movie.pgRating }}</div>
-						</div>
-
-						<p-button
-							(click)="buyTickets(movie.id)"
-							[label]="
-								getMovieButtonText(movie.screeningStatus) === 'Buy Tickets'
-									? 'Book'
-									: getMovieButtonText(movie.screeningStatus) === 'Coming Soon'
-									? 'Soon'
-									: getMovieButtonText(movie.screeningStatus)
-							"
-							[disabled]="!isMovieBookable(movie.screeningStatus)"
-							size="small"
-							[styleClass]="
-								isMovieBookable(movie.screeningStatus)
-									? 'p-button-sm'
-									: 'p-button-sm p-button-secondary opacity-75'
-							"
-						></p-button>
-					</div>
+					<p-button
+						(click)="buyTickets(movie.id)"
+						[label]="
+							getMovieButtonText(movie.screeningStatus) === 'Buy Tickets'
+								? 'Book'
+								: getMovieButtonText(movie.screeningStatus) === 'Coming Soon'
+								? 'Soon'
+								: getMovieButtonText(movie.screeningStatus)
+						"
+						[disabled]="!isMovieBookable(movie.screeningStatus)"
+						size="small"
+						[styleClass]="
+							isMovieBookable(movie.screeningStatus)
+								? 'p-button-sm'
+								: 'p-button-sm p-button-secondary opacity-75'
+						"
+					></p-button>
 				</div>
 			</div>
 		</div>

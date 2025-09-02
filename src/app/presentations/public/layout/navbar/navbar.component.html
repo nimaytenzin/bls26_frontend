@@ -1,26 +1,162 @@
-<div
-	class="fixed w-full z-50 top-0 left-0 py-4 bg-black bg-opacity-95 border-b border-gray-800"
->
-	<div class="max-w-screen-xl mx-auto">
-		<p-menubar styleClass="bg-transparent border-none" [model]="items">
-			<ng-template pTemplate="start">
-				<div class="flex items-center justify-center gap-3">
-					<img src="logo.png" height="40" alt="Druk Cinema Logo" class="h-10" />
-					<p class="text-xl font-semibold text-white hidden sm:inline">
-						{{ APPNAME }}
-					</p>
-				</div>
-			</ng-template>
+<!-- Custom Navbar -->
+<nav class="fixed w-full z-50 top-0 left-0 bg-black border-b border-gray-800">
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+		<div class="flex items-center justify-between h-16">
+			<!-- Logo and Brand -->
+			<div class="flex items-center space-x-3 logo-container">
+				<img src="logo.png" alt="Logo" class="h-8 w-auto" />
+				<span class="brand-text text-white font-bold text-xl hidden sm:block">{{
+					APPNAME
+				}}</span>
+			</div>
 
-			<ng-template pTemplate="end">
-				<p-button
-					label="Login"
+			<!-- Desktop Navigation -->
+			<div class="hidden md:flex items-center space-x-8">
+				<a
+					*ngFor="let item of navItems"
+					(click)="navigateTo(item.route)"
+					class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors duration-300 cursor-pointer flex items-center space-x-2"
+				>
+					<i [class]="item.icon" class="text-sm"></i>
+					<span>{{ item.label }}</span>
+				</a>
+			</div>
+
+			<!-- Desktop Login Button -->
+			<div class="hidden md:flex">
+				<button
 					(click)="goToLoginPage()"
-					styleClass=" p-button-sm bg-blue-600 hover:bg-blue-700 border-none"
-				></p-button>
-			</ng-template>
-		</p-menubar>
-	</div>
-</div>
+					class="login-button nav-button px-6 py-2 bg-transparent border border-gray-600 text-gray-300 hover:border-red-500 hover:text-white font-medium rounded-lg transition-all duration-300 hover:bg-red-500/10"
+				>
+					Login
+				</button>
+			</div>
 
+			<!-- Mobile hamburger button -->
+			<div class="md:hidden">
+				<button
+					(click)="toggleMenu()"
+					class="relative w-10 h-10 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 rounded-md flex items-center justify-center"
+					[attr.aria-label]="isMenuOpen ? 'Close menu' : 'Open menu'"
+				>
+					<!-- Hamburger Lines -->
+					<div class="w-6 h-6 relative">
+						<span
+							class="hamburger-line absolute block w-6 h-0.5 bg-white top-2"
+							[class.rotate-45]="isMenuOpen"
+							[class.top-3]="isMenuOpen"
+						></span>
+						<span
+							class="hamburger-line absolute block w-6 h-0.5 bg-white top-3"
+							[class.opacity-0]="isMenuOpen"
+						></span>
+						<span
+							class="hamburger-line absolute block w-6 h-0.5 bg-white top-4"
+							[class.-rotate-45]="isMenuOpen"
+							[class.top-3]="isMenuOpen"
+						></span>
+					</div>
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Mobile Menu Overlay - Full Screen Left to Right -->
+	<div
+		class="md:hidden fixed inset-0 z-40"
+		[class.block]="isMenuOpen"
+		[class.hidden]="!isMenuOpen"
+	>
+		<!-- Backdrop -->
+		<div
+			class="menu-backdrop absolute inset-0 bg-black/90"
+			(click)="closeMenu()"
+		></div>
+
+		<!-- Menu Panel - Enhanced Mobile Design (Right to Left) -->
+		<div
+			class="mobile-menu-panel fixed top-0 right-0 h-full w-80 bg-black border-l border-red-500/30 shadow-2xl transition-transform duration-300 ease-in-out"
+			[class.translate-x-0]="isMenuOpen"
+			[class.translate-x-full]="!isMenuOpen"
+		>
+			<!-- Menu Header with Red Accent -->
+			<div
+				class="bg-gradient-to-r from-black to-red-900/20 p-4 border-b border-red-500/30"
+			>
+				<div class="flex items-center justify-between">
+					<div class="flex items-center space-x-3">
+						<img src="logo.png" alt="Logo" class="h-10 w-auto" />
+						<div class="flex flex-col">
+							<span class="text-white font-bold text-lg">{{ APPNAME }}</span>
+							<span class="text-red-400 text-xs">Movie Booking</span>
+						</div>
+					</div>
+					<button
+						(click)="closeMenu()"
+						class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-red-500/20 rounded-lg transition-all duration-300"
+					>
+						<i class="pi pi-times text-lg"></i>
+					</button>
+				</div>
+			</div>
+
+			<!-- Menu Content -->
+			<div class="flex flex-col h-full bg-black">
+				<!-- Navigation Items -->
+				<div class="flex-1 py-8 px-4 space-y-3">
+					<div class="mb-6">
+						<h3
+							class="text-gray-500 text-xs uppercase tracking-wider font-semibold mb-4 px-4"
+						>
+							Navigation
+						</h3>
+					</div>
+					<a
+						*ngFor="let item of navItems; let i = index"
+						(click)="navigateTo(item.route)"
+						class="mobile-nav-item flex items-center space-x-4 px-4 py-4 text-gray-300 hover:text-white rounded-xl cursor-pointer group relative overflow-hidden"
+						[style.animation-delay]="i * 0.1 + 's'"
+					>
+						<div
+							class="w-8 h-8 flex items-center justify-center bg-gray-800 group-hover:bg-red-500 rounded-lg transition-all duration-300"
+						>
+							<i
+								[class]="item.icon"
+								class="text-lg group-hover:text-white transition-colors"
+							></i>
+						</div>
+						<span class="font-medium text-lg">{{ item.label }}</span>
+						<div class="ml-auto">
+							<i
+								class="pi pi-chevron-left text-gray-600 group-hover:text-red-400 transition-colors"
+							></i>
+						</div>
+					</a>
+				</div>
+
+				<!-- User Section -->
+				<div
+					class="p-4 border-t border-gray-800 bg-gradient-to-r from-black to-gray-900"
+				>
+					<div class="mb-4">
+						<h3
+							class="text-gray-500 text-xs uppercase tracking-wider font-semibold mb-3 px-4"
+						>
+							Account
+						</h3>
+					</div>
+					<button
+						(click)="goToLoginPage()"
+						class="login-button nav-button w-full px-4 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl"
+					>
+						<i class="pi pi-sign-in text-lg"></i>
+						<span>Sign In / Register</span>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</nav>
+
+<!-- Spacer for fixed navbar -->
 <div class="h-16"></div>
