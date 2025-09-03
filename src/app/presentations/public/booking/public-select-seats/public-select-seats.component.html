@@ -23,7 +23,6 @@
 		</div>
 
 		<!-- Main Content -->
-
 		<div *ngIf="!loading && !error && movie && screening">
 			<!-- Sticky Header -->
 			<div class="sticky top-0 z-20 mb-6">
@@ -53,122 +52,283 @@
 			</div>
 
 			<!-- Main Layout: Single Column for Seats -->
-			<div class="pb-32">
+			<div class="pb-32 relative">
 				<!-- Add bottom padding for floating panel -->
+
+				<!-- Zoom Controls -->
+				<div
+					class="fixed bottom-20 left-4 z-40 bg-gray-800 rounded-lg p-2 shadow-xl border border-gray-700"
+				>
+					<div class="flex flex-col gap-2">
+						<button
+							pButton
+							icon="pi pi-plus"
+							class="p-button-sm p-button-outlined p-button-secondary"
+							(click)="zoomIn()"
+							[disabled]="currentZoom >= maxZoom"
+							pTooltip="Zoom In"
+							tooltipPosition="right"
+						></button>
+						<div class="text-white text-xs text-center px-1">
+							{{ currentZoom * 100 | number : "1.0-0" }}%
+						</div>
+						<button
+							pButton
+							icon="pi pi-minus"
+							class="p-button-sm p-button-outlined p-button-secondary"
+							(click)="zoomOut()"
+							[disabled]="currentZoom <= minZoom"
+							pTooltip="Zoom Out"
+							tooltipPosition="right"
+						></button>
+						<button
+							pButton
+							icon="pi pi-refresh"
+							class="p-button-sm p-button-outlined p-button-secondary"
+							(click)="resetZoom()"
+							pTooltip="Reset Zoom"
+							tooltipPosition="right"
+						></button>
+					</div>
+				</div>
+
+				<!-- Mini Map -->
+				<div
+					class="fixed bottom-20 right-4 z-40 bg-gray-800 bg-opacity-95 rounded-lg border border-gray-700 shadow-xl"
+					[style.width.px]="miniMapWidth"
+					[style.height.px]="miniMapHeight"
+				>
+					<!-- Mini Map Header -->
+					<div
+						class="flex items-center justify-center p-2 border-b border-gray-700"
+					>
+						<span class="text-white text-xs font-medium">Overview</span>
+					</div>
+
+					<!-- Mini Map Content -->
+					<div
+						class="p-2 overflow-hidden relative cursor-crosshair"
+						(click)="onMiniMapClick($event)"
+					>
+						<!-- Mini Map Screen (positioned at top) -->
+						<div class="flex justify-center mb-1">
+							<div
+								class="bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm border-b border-white shadow-sm"
+								[style.width.px]="getMiniMapScreenWidth()"
+								[style.height.px]="4"
+							>
+								<div
+									class="text-white text-[4px] text-center leading-[4px] font-bold opacity-80"
+								>
+									SCREEN
+								</div>
+							</div>
+						</div>
+
+						<!-- Mini Map Seats -->
+						<div
+							class="flex flex-col items-center"
+							[style.gap.px]="getMiniMapSeatDimensions().gap"
+						>
+							<div
+								*ngFor="let rowIndex of getRows(); trackBy: trackByRowIndex"
+								class="flex justify-center"
+								[style.gap.px]="getMiniMapSeatDimensions().gap"
+							>
+								<div
+									*ngFor="
+										let colIndex of getColumns();
+										trackBy: trackByColIndex
+									"
+									class="mini-map-seat rounded-sm"
+									[style.width.px]="getMiniMapSeatDimensions().width"
+									[style.height.px]="getMiniMapSeatDimensions().height"
+									[ngStyle]="getMiniMapSeatStyle(rowIndex, colIndex)"
+								></div>
+							</div>
+						</div>
+
+						<!-- Viewport Rectangle -->
+						<div
+							class="mini-map-viewport absolute"
+							[style.left.px]="viewportRect.x"
+							[style.top.px]="viewportRect.y + 16"
+							[style.width.px]="viewportRect.width"
+							[style.height.px]="viewportRect.height"
+						></div>
+					</div>
+				</div>
+
 				<!-- Seat Layout - Full width -->
 				<div class="w-full">
 					<div class="bg-gray-800 rounded-lg p-2 sm:p-6">
-						<div class="overflow-x-auto">
-							<div class="min-w-max flex flex-col items-center justify-center">
-								<!-- Legend -->
-								<div class="flex flex-wrap justify-center gap-4 mb-8 text-sm">
-									<!-- Status Legend -->
-									<div class="flex items-center space-x-2">
+						<!-- Main Viewport Container -->
+						<div
+							#seatViewport
+							class="viewport-container relative overflow-auto"
+							[style.max-height]="isMobileDevice() ? '65vh' : '70vh'"
+							(scroll)="onViewportScroll()"
+							(wheel)="onWheelZoom($event)"
+							(touchstart)="onTouchStart($event)"
+							(touchmove)="onTouchMove($event)"
+							(touchend)="onTouchEnd($event)"
+							(mousedown)="onPanStart($event)"
+							(mousemove)="onPanMove($event)"
+							(mouseup)="onPanEnd($event)"
+							(mouseleave)="onPanEnd($event)"
+						>
+							<div
+								#seatContainer
+								class="seat-layout-container"
+								[style.transform]="getTransformStyle()"
+								[style.transform-origin]="'top left'"
+								[style.width.px]="getContainerWidth()"
+								[style.height.px]="getContainerHeight()"
+							>
+								<!-- Screen Section (moved to top) -->
+								<div class="screen-section mb-6 sm:mb-8">
+									<div class="flex items-center justify-center w-full">
+										<!-- Empty space for row label alignment -->
 										<div
-											class="w-10 h-10 rounded-lg"
-											[ngStyle]="getSelectedLegendStyles()"
+											class="w-10 h-10 sm:w-14 sm:h-14 mr-2 flex-shrink-0"
 										></div>
-										<span class="text-white">Selected</span>
-									</div>
-									<div class="flex items-center space-x-2">
-										<div
-											class="w-10 h-10 rounded-lg"
-											[ngStyle]="getOccupiedLegendStyles()"
-										></div>
-										<span class="text-white">Occupied</span>
-									</div>
 
-									<!-- Seat Categories -->
-									<div
-										*ngFor="let category of seatCategories"
-										class="flex items-center space-x-2"
-									>
-										<div
-											class="w-10 h-10 rounded-lg"
-											[ngStyle]="
-												getCategoryLegendStyles(category.baseColorHexCode)
-											"
-										></div>
-										<span class="text-white">{{ category.name }}</span>
+										<!-- Screen Bar -->
+										<div class="flex justify-center items-center relative">
+											<div
+												class="screen-element relative"
+												[style.width.px]="getScreenWidth()"
+												[style.height.px]="isMobileDevice() ? 32 : 48"
+											>
+												<!-- Screen gradient background -->
+												<div
+													class="absolute inset-0 bg-gradient-to-b from-gray-400 via-gray-500 to-gray-600 rounded-t-lg"
+												></div>
+
+												<!-- Screen bottom border (like a TV screen) -->
+												<div
+													class="absolute bottom-0 left-0 right-0 h-1 bg-white shadow-lg"
+												></div>
+
+												<!-- Screen text -->
+												<div
+													class="absolute inset-0 flex items-center justify-center"
+												>
+													<span
+														class="text-white font-bold text-xs sm:text-lg tracking-wider drop-shadow-md"
+													>
+														SCREEN
+													</span>
+												</div>
+
+												<!-- Screen shine effect -->
+												<div
+													class="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-transparent rounded-t-lg"
+												></div>
+											</div>
+										</div>
 									</div>
 								</div>
 
-								<!-- Seat Rows -->
-								<div class="min-w-max">
+								<!-- Legend -->
+								<div class="legend-section mb-6 sm:mb-8">
 									<div
-										*ngFor="let rowIndex of getRows()"
-										class="flex items-center mb-2"
+										class="flex flex-wrap justify-center gap-3 sm:gap-4 text-xs sm:text-sm"
+									>
+										<!-- Status Legend -->
+										<div class="flex items-center space-x-1 sm:space-x-2">
+											<div
+												class="w-6 h-6 sm:w-8 sm:h-8 rounded-md"
+												[ngStyle]="getSelectedLegendStyles()"
+											></div>
+											<span class="text-white">Selected</span>
+										</div>
+										<div class="flex items-center space-x-1 sm:space-x-2">
+											<div
+												class="w-6 h-6 sm:w-8 sm:h-8 rounded-md"
+												[ngStyle]="getOccupiedLegendStyles()"
+											></div>
+											<span class="text-white">Occupied</span>
+										</div>
+
+										<!-- Seat Categories -->
+										<div
+											*ngFor="
+												let category of seatCategories;
+												trackBy: trackByCategory
+											"
+											class="flex items-center space-x-1 sm:space-x-2"
+										>
+											<div
+												class="w-6 h-6 sm:w-8 sm:h-8 rounded-md"
+												[ngStyle]="
+													getCategoryLegendStyles(category.baseColorHexCode)
+												"
+											></div>
+											<span class="text-white">{{ category.name }}</span>
+										</div>
+									</div>
+								</div>
+
+								<!-- Seat Grid -->
+								<div class="seat-grid-container">
+									<div
+										*ngFor="let rowIndex of getRows(); trackBy: trackByRowIndex"
+										class="seat-row flex items-center mb-1 sm:mb-2"
 									>
 										<!-- Row Label -->
 										<div
-											class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-white font-bold bg-gray-700 rounded mr-2 flex-shrink-0"
+											class="row-label w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center text-white font-bold bg-gray-700 rounded mr-1 sm:mr-2 flex-shrink-0 text-xs sm:text-sm"
 										>
 											{{ getRowLabel(rowIndex) }}
 										</div>
 
-										<!-- Seats -->
-										<div class="flex gap-1 sm:gap-2">
+										<!-- Seats in Row -->
+										<div class="seat-row-container flex gap-0.5 sm:gap-1">
 											<div
-												*ngFor="let colIndex of getColumns()"
-												class="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0"
+												*ngFor="
+													let colIndex of getColumns();
+													trackBy: trackByColIndex
+												"
+												class="seat-position"
+												[style.width.px]="getSeatSize()"
+												[style.height.px]="getSeatSize()"
 											>
 												<div
 													*ngIf="
 														getSeatAtPosition(rowIndex, colIndex) as seat;
 														else emptySeat
 													"
-													class="w-full h-full rounded-lg cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-bold hover:scale-110"
+													class="seat-element w-full h-full rounded cursor-pointer transition-all duration-200 flex items-center justify-center font-bold relative"
 													[ngStyle]="
 														getSeatStyles(
 															seat.category?.baseColorHexCode!,
 															seat
 														)
 													"
+													[class.seat-available]="seat.status === 'available'"
+													[class.seat-selected]="seat.status === 'selected'"
+													[class.seat-booked]="seat.status === 'booked'"
+													[style.font-size.px]="getSeatFontSize()"
 													(click)="onSeatClick(seat)"
-													[title]="
-														seat.seatNumber + ' - ' + formatCurrency(seat.price)
+													[title]="getSeatTooltip(seat)"
+													[attr.aria-label]="getSeatAriaLabel(seat)"
+													[attr.aria-selected]="seat.status === 'selected'"
+													[attr.aria-disabled]="seat.status === 'booked'"
+													role="button"
+													tabindex="0"
+													(keydown.enter)="onSeatClick(seat)"
+													(keydown.space)="
+														onSeatClick(seat); $event.preventDefault()
 													"
 												>
-													<span class="text-white">{{ seat.seatNumber }}</span>
+													<span class="seat-text text-white select-none">{{
+														seat.seatNumber
+													}}</span>
 												</div>
 												<ng-template #emptySeat>
 													<div class="w-full h-full"></div>
 												</ng-template>
-											</div>
-										</div>
-									</div>
-								</div>
-
-								<!-- Screen -->
-								<div class="flex items-center my-8 min-w-max">
-									<div
-										class="w-10 h-10 sm:w-14 sm:h-14 mr-2 flex-shrink-0"
-									></div>
-									<!-- Empty space for row label -->
-									<div class="flex gap-1 sm:gap-2">
-										<div
-											*ngFor="let colIndex of getColumns()"
-											class="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0"
-										>
-											<div
-												*ngIf="
-													hall &&
-													colIndex >= hall.screenStart - 1 &&
-													colIndex < hall.screenStart - 1 + hall.screenSpan
-												"
-												class="w-full h-full border-b-[0.4rem] border-white flex items-center justify-center rounded-t-lg bg-gradient-to-b from-gray-600 to-gray-700"
-												[class.rounded-l-lg]="colIndex === hall.screenStart - 1"
-												[class.rounded-r-lg]="
-													colIndex ===
-													hall.screenStart - 1 + hall.screenSpan - 1
-												"
-											>
-												<span
-													*ngIf="colIndex === getScreenCenter()"
-													class="text-white text-sm sm:text-xl font-bold"
-												>
-													SCREEN
-												</span>
 											</div>
 										</div>
 									</div>
@@ -186,26 +346,28 @@
 							<!-- Mobile Layout - Stack vertically -->
 							<div class="block sm:hidden">
 								<div class="flex items-center justify-between mb-3">
-									<div class="flex items-center gap-2 flex-1">
-										<!-- Display individual seat numbers when seats are selected -->
-										<div
-											*ngIf="selectedSeats.length > 0"
-											class="flex items-center gap-1 flex-wrap"
-										>
-											<div
-												class="w-8 h-8 p-1 rounded flex items-center justify-center text-xs font-bold"
-												*ngFor="let seat of selectedSeats"
-												[ngStyle]="
-													getSeatStylesForFloatingBar(
-														seat.category?.baseColorHexCode!,
-														seat
-													)
-												"
-												[title]="
-													seat.seatNumber + ' - ' + formatCurrency(seat.price)
-												"
-											>
-												{{ seat.seatNumber }}
+									<div class="flex-1">
+										<!-- Title and seats container -->
+										<div *ngIf="selectedSeats.length > 0">
+											<div class="text-white text-sm font-medium mb-2">
+												Your Selected Seats
+											</div>
+											<div class="flex items-center gap-1 flex-wrap">
+												<div
+													class="w-8 h-8 p-1 rounded flex items-center justify-center text-xs font-bold"
+													*ngFor="let seat of selectedSeats"
+													[ngStyle]="
+														getSeatStylesForFloatingBar(
+															seat.category?.baseColorHexCode!,
+															seat
+														)
+													"
+													[title]="
+														seat.seatNumber + ' - ' + formatCurrency(seat.price)
+													"
+												>
+													{{ seat.seatNumber }}
+												</div>
 											</div>
 										</div>
 										<span
@@ -249,26 +411,28 @@
 							<!-- Desktop Layout - Horizontal -->
 							<div class="hidden sm:flex items-center justify-between">
 								<div class="flex items-center gap-4">
-									<div class="flex items-center gap-2">
-										<!-- Display individual seat numbers when seats are selected -->
-										<div
-											*ngIf="selectedSeats.length > 0"
-											class="flex items-center gap-2 flex-wrap"
-										>
-											<div
-												class="w-14 h-14 p-1 rounded-t flex items-center justify-center"
-												*ngFor="let seat of selectedSeats"
-												[ngStyle]="
-													getSeatStylesForFloatingBar(
-														seat.category?.baseColorHexCode!,
-														seat
-													)
-												"
-												[title]="
-													seat.seatNumber + ' - ' + formatCurrency(seat.price)
-												"
-											>
-												{{ seat.seatNumber }}
+									<div class="flex flex-col">
+										<!-- Title and seats container -->
+										<div *ngIf="selectedSeats.length > 0">
+											<div class="text-white text-sm font-medium mb-2">
+												Your Selected Seats
+											</div>
+											<div class="flex items-center gap-2 flex-wrap">
+												<div
+													class="w-14 h-14 p-1 rounded-t flex items-center justify-center"
+													*ngFor="let seat of selectedSeats"
+													[ngStyle]="
+														getSeatStylesForFloatingBar(
+															seat.category?.baseColorHexCode!,
+															seat
+														)
+													"
+													[title]="
+														seat.seatNumber + ' - ' + formatCurrency(seat.price)
+													"
+												>
+													{{ seat.seatNumber }}
+												</div>
 											</div>
 										</div>
 										<span

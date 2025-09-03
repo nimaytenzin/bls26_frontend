@@ -1,4 +1,11 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import {
+	Component,
+	OnInit,
+	OnDestroy,
+	ChangeDetectorRef,
+	ViewChild,
+	ElementRef,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
@@ -23,6 +30,7 @@ import { ConfirmationService } from 'primeng/api';
 import { StepsModule } from 'primeng/steps';
 import { MenuItem } from 'primeng/api';
 import { DividerModule } from 'primeng/divider';
+import { TooltipModule } from 'primeng/tooltip';
 import * as QRCode from 'qrcode';
 
 // Interfaces
@@ -81,16 +89,59 @@ interface SelectedSeat extends Seat {
 		ConfirmDialogModule,
 		StepsModule,
 		DividerModule,
+		TooltipModule,
 	],
 	providers: [MessageService, ConfirmationService, DialogService],
 })
 export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 	private destroy$ = new Subject<void>();
 
+	@ViewChild('seatViewport') seatViewport!: ElementRef;
+	@ViewChild('seatContainer') seatContainer!: ElementRef;
+
 	ref: DynamicDialogRef | null = null;
 	// Loading and error states
 	loading = true;
 	error: string | null = null;
+
+	// Enhanced zoom functionality
+	currentZoom = 1;
+	minZoom = 0.3;
+	maxZoom = 3.0;
+	zoomStep = 0.1;
+
+	// Pan functionality
+	isPanning = false;
+	lastPanX = 0;
+	lastPanY = 0;
+	panStartX = 0;
+	panStartY = 0;
+
+	// Enhanced mini map functionality
+	showMiniMap = false;
+	miniMapWidth = 200;
+	miniMapHeight = 150;
+	viewportRect = { x: 0, y: 0, width: 0, height: 0 };
+
+	// Touch gesture support
+	private lastTouchDistance = 0;
+	private initialZoom = 1;
+	private touchStartDistance = 0;
+	private isMultiTouch = false;
+
+	// Performance optimization
+	private rafId: number | null = null;
+	private debounceTimer: any = null;
+
+	// Layout calculations cache
+	private layoutCache = {
+		containerWidth: 0,
+		containerHeight: 0,
+		seatSize: 0,
+		screenWidth: 0,
+		lastHallId: 0,
+		lastZoom: 0,
+	};
 
 	config = SEATSELECTIONCONFIG_PUBLIC;
 	sessionTimeOutSeconds = this.config.sessionTimeoutSeconds;
@@ -209,6 +260,12 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 			this.startSessionTimeoutTimer();
 		}
 		this.getDeviceInformation();
+
+		// Initialize mini map based on screen size
+		this.initializeMiniMap();
+
+		// Add keyboard shortcuts
+		this.setupKeyboardShortcuts();
 
 		console.log('Using session ID:', this.sessionId);
 		console.log('Session timeout:', this.sessionTimeOutSeconds, 'seconds');
@@ -765,6 +822,15 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 				hallSeat.status = seat.status;
 				hallSeat.selected = seat.selected;
 			}
+		}
+
+		// Update mini map if visible
+		if (this.showMiniMap) {
+			// Small delay to ensure the change is reflected in the mini map
+			setTimeout(() => {
+				// Force change detection for mini map update
+				// This ensures the mini map reflects the latest seat states
+			}, 50);
 		}
 	}
 
@@ -1489,6 +1555,517 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 				});
 			}
 			this.processing = false;
+		});
+	}
+
+	// Enhanced zoom functionality methods
+	zoomIn(): void {
+		if (this.currentZoom < this.maxZoom) {
+			this.currentZoom = Math.min(
+				this.maxZoom,
+				this.currentZoom + this.zoomStep
+			);
+			this.updateViewportRect();
+			this.invalidateLayoutCache();
+		}
+	}
+
+	zoomOut(): void {
+		if (this.currentZoom > this.minZoom) {
+			this.currentZoom = Math.max(
+				this.minZoom,
+				this.currentZoom - this.zoomStep
+			);
+			this.updateViewportRect();
+			this.invalidateLayoutCache();
+		}
+	}
+
+	resetZoom(): void {
+		this.currentZoom = 1;
+		this.updateViewportRect();
+		this.invalidateLayoutCache();
+		// Center the view
+		if (this.seatViewport) {
+			const viewport = this.seatViewport.nativeElement;
+			viewport.scrollTop = 0;
+			viewport.scrollLeft = 0;
+		}
+	}
+
+	// Wheel zoom support for desktop
+	onWheelZoom(event: WheelEvent): void {
+		event.preventDefault();
+
+		if (event.ctrlKey || event.metaKey) {
+			const delta = -event.deltaY;
+			const zoomAmount = delta > 0 ? this.zoomStep : -this.zoomStep;
+			const newZoom = Math.max(
+				this.minZoom,
+				Math.min(this.maxZoom, this.currentZoom + zoomAmount)
+			);
+
+			if (newZoom !== this.currentZoom) {
+				// Calculate zoom center based on mouse position
+				const rect = this.seatViewport.nativeElement.getBoundingClientRect();
+				const centerX = event.clientX - rect.left;
+				const centerY = event.clientY - rect.top;
+
+				this.zoomToPoint(newZoom, centerX, centerY);
+			}
+		}
+	}
+
+	// Pan functionality
+	onPanStart(event: MouseEvent): void {
+		if (event.button === 0) {
+			// Left mouse button
+			this.isPanning = true;
+			this.panStartX = event.clientX;
+			this.panStartY = event.clientY;
+			this.lastPanX = this.seatViewport.nativeElement.scrollLeft;
+			this.lastPanY = this.seatViewport.nativeElement.scrollTop;
+			event.preventDefault();
+		}
+	}
+
+	onPanMove(event: MouseEvent): void {
+		if (this.isPanning) {
+			const deltaX = this.panStartX - event.clientX;
+			const deltaY = this.panStartY - event.clientY;
+
+			this.seatViewport.nativeElement.scrollLeft = this.lastPanX + deltaX;
+			this.seatViewport.nativeElement.scrollTop = this.lastPanY + deltaY;
+
+			event.preventDefault();
+		}
+	}
+
+	onPanEnd(event: MouseEvent): void {
+		this.isPanning = false;
+	}
+
+	// Enhanced touch gesture support
+	onTouchStart(event: TouchEvent): void {
+		if (event.touches.length === 2) {
+			this.isMultiTouch = true;
+			this.lastTouchDistance = this.getTouchDistance(event.touches);
+			this.touchStartDistance = this.lastTouchDistance;
+			this.initialZoom = this.currentZoom;
+		} else {
+			this.isMultiTouch = false;
+		}
+	}
+
+	onTouchMove(event: TouchEvent): void {
+		if (event.touches.length === 2 && this.isMultiTouch) {
+			event.preventDefault();
+			const currentDistance = this.getTouchDistance(event.touches);
+			const scale = currentDistance / this.touchStartDistance;
+			const newZoom = this.initialZoom * scale;
+
+			// Apply zoom constraints
+			this.currentZoom = Math.max(
+				this.minZoom,
+				Math.min(this.maxZoom, newZoom)
+			);
+			this.updateViewportRect();
+			this.invalidateLayoutCache();
+		}
+	}
+
+	onTouchEnd(event: TouchEvent): void {
+		if (event.touches.length < 2) {
+			this.isMultiTouch = false;
+			this.lastTouchDistance = 0;
+		}
+	}
+
+	private zoomToPoint(newZoom: number, centerX: number, centerY: number): void {
+		const viewport = this.seatViewport.nativeElement;
+		const oldZoom = this.currentZoom;
+
+		// Calculate the zoom ratio
+		const zoomRatio = newZoom / oldZoom;
+
+		// Calculate new scroll position to keep the zoom centered
+		const newScrollLeft = (viewport.scrollLeft + centerX) * zoomRatio - centerX;
+		const newScrollTop = (viewport.scrollTop + centerY) * zoomRatio - centerY;
+
+		this.currentZoom = newZoom;
+		this.invalidateLayoutCache();
+
+		// Use requestAnimationFrame for smooth scrolling
+		requestAnimationFrame(() => {
+			viewport.scrollLeft = newScrollLeft;
+			viewport.scrollTop = newScrollTop;
+			this.updateViewportRect();
+		});
+	}
+
+	// Layout calculation methods
+	getTransformStyle(): string {
+		return `scale(${this.currentZoom}) translate3d(0, 0, 0)`;
+	}
+
+	getContainerWidth(): number {
+		if (!this.hall) return 0;
+
+		if (
+			this.layoutCache.containerWidth === 0 ||
+			this.layoutCache.lastHallId !== this.hall.id ||
+			this.layoutCache.lastZoom !== this.currentZoom
+		) {
+			const seatSize = this.getSeatSize();
+			const gap = this.isMobileDevice() ? 2 : 4;
+			const rowLabelWidth = this.isMobileDevice() ? 32 : 48;
+			const padding = this.isMobileDevice() ? 16 : 32;
+
+			this.layoutCache.containerWidth =
+				rowLabelWidth + // Row label
+				this.hall.columns * (seatSize + gap) + // Seats + gaps
+				padding; // Padding
+
+			this.layoutCache.lastHallId = this.hall.id;
+			this.layoutCache.lastZoom = this.currentZoom;
+		}
+
+		return this.layoutCache.containerWidth;
+	}
+
+	getContainerHeight(): number {
+		if (!this.hall) return 0;
+
+		if (
+			this.layoutCache.containerHeight === 0 ||
+			this.layoutCache.lastHallId !== this.hall.id ||
+			this.layoutCache.lastZoom !== this.currentZoom
+		) {
+			const seatSize = this.getSeatSize();
+			const gap = this.isMobileDevice() ? 2 : 8;
+			const screenHeight = this.isMobileDevice() ? 80 : 120;
+			const legendHeight = this.isMobileDevice() ? 60 : 100;
+			const padding = this.isMobileDevice() ? 32 : 64;
+
+			this.layoutCache.containerHeight =
+				screenHeight + // Screen section
+				legendHeight + // Legend section
+				this.hall.rows * (seatSize + gap) + // Seats + gaps
+				padding; // Padding
+
+			this.layoutCache.lastHallId = this.hall.id;
+			this.layoutCache.lastZoom = this.currentZoom;
+		}
+
+		return this.layoutCache.containerHeight;
+	}
+
+	getSeatSize(): number {
+		if (this.layoutCache.seatSize === 0) {
+			this.layoutCache.seatSize = this.isMobileDevice() ? 28 : 48;
+		}
+		return this.layoutCache.seatSize;
+	}
+
+	getSeatFontSize(): number {
+		return this.isMobileDevice() ? 9 : 12;
+	}
+
+	getScreenWidth(): number {
+		if (!this.hall) return 0;
+
+		if (
+			this.layoutCache.screenWidth === 0 ||
+			this.layoutCache.lastHallId !== this.hall.id
+		) {
+			const seatSize = this.getSeatSize();
+			const gap = this.isMobileDevice() ? 2 : 4;
+
+			this.layoutCache.screenWidth =
+				this.hall.screenSpan * (seatSize + gap) - gap;
+			this.layoutCache.lastHallId = this.hall.id;
+		}
+
+		return this.layoutCache.screenWidth;
+	}
+
+	// Device detection
+	isMobileDevice(): boolean {
+		return window.innerWidth < 640;
+	}
+
+	// Performance optimization methods
+	trackByCategory(index: number, category: SeatCategory): number {
+		return category.id;
+	}
+
+	trackByRowIndex(index: number, rowIndex: number): number {
+		return rowIndex;
+	}
+
+	trackByColIndex(index: number, colIndex: number): number {
+		return colIndex;
+	}
+
+	// Seat helper methods
+	getSeatTooltip(seat: SelectedSeat): string {
+		return `${seat.seatNumber} - ${this.formatCurrency(seat.price)}`;
+	}
+
+	getSeatAriaLabel(seat: SelectedSeat): string {
+		const statusText =
+			seat.status === 'available'
+				? 'Available'
+				: seat.status === 'selected'
+				? 'Selected'
+				: 'Occupied';
+		return `Seat ${seat.seatNumber}, ${statusText}, Price ${this.formatCurrency(
+			seat.price
+		)}`;
+	}
+
+	// Cache invalidation
+	private invalidateLayoutCache(): void {
+		this.layoutCache = {
+			containerWidth: 0,
+			containerHeight: 0,
+			seatSize: 0,
+			screenWidth: 0,
+			lastHallId: this.layoutCache.lastHallId,
+			lastZoom: this.currentZoom,
+		};
+	}
+
+	// Enhanced mini map functionality methods
+	toggleMiniMap(): void {
+		this.showMiniMap = !this.showMiniMap;
+		if (this.showMiniMap) {
+			// Determine mini map size based on screen size
+			const isMobile = this.isMobileDevice();
+			this.miniMapWidth = isMobile ? 140 : 200;
+			this.miniMapHeight = isMobile ? 100 : 150;
+			this.updateViewportRect();
+		}
+	}
+
+	onMiniMapClick(event: MouseEvent): void {
+		if (!this.hall || !this.seatViewport) return;
+
+		const miniMapRect = (
+			event.currentTarget as HTMLElement
+		).getBoundingClientRect();
+		const clickX = event.clientX - miniMapRect.left;
+		const clickY = event.clientY - miniMapRect.top;
+
+		// Convert mini map coordinates to main view coordinates
+		const miniMapContentWidth = this.miniMapWidth - 16; // Account for padding
+		const miniMapContentHeight = this.miniMapHeight - 40; // Account for header and padding
+
+		const mainViewWidth = this.getContainerWidth();
+		const mainViewHeight = this.getContainerHeight();
+
+		const scaleX = mainViewWidth / miniMapContentWidth;
+		const scaleY = mainViewHeight / miniMapContentHeight;
+
+		const targetX = (clickX - 8) * scaleX; // Account for padding
+		const targetY = (clickY - 20) * scaleY; // Account for header
+
+		// Center the view on the clicked position
+		const viewport = this.seatViewport.nativeElement;
+		viewport.scrollLeft = targetX - viewport.offsetWidth / 2;
+		viewport.scrollTop = targetY - viewport.offsetHeight / 2;
+	}
+
+	getMiniMapScreenWidth(): number {
+		if (!this.hall) return 0;
+
+		// Calculate available width for mini map content
+		const isMobile = this.isMobileDevice();
+		const miniMapContentWidth = (isMobile ? 140 : 200) - 16; // Account for padding
+
+		// Calculate proportional screen width based on hall layout
+		const totalColumns = this.hall.columns;
+		const screenSpan = this.hall.screenSpan;
+		const screenRatio = screenSpan / totalColumns;
+
+		return Math.floor(miniMapContentWidth * screenRatio);
+	}
+
+	// Add method to get mini map seat dimensions that fit within container
+	getMiniMapSeatDimensions(): { width: number; height: number; gap: number } {
+		if (!this.hall) return { width: 1, height: 1, gap: 0.3 };
+
+		const isMobile = this.isMobileDevice();
+		const miniMapContentWidth = (isMobile ? 140 : 200) - 16; // Account for padding
+		const miniMapContentHeight = (isMobile ? 100 : 150) - 40; // Account for header and padding
+
+		// Reserve space for screen (about 10% of height)
+		const availableSeatsHeight = miniMapContentHeight * 0.85;
+
+		// Calculate seat dimensions to fit all seats within the container
+		const seatWidth = Math.max(
+			1,
+			Math.floor(
+				(miniMapContentWidth - this.hall.columns * 0.3) / this.hall.columns
+			)
+		);
+		const seatHeight = Math.max(
+			1,
+			Math.floor((availableSeatsHeight - this.hall.rows * 0.3) / this.hall.rows)
+		);
+
+		// Use the smaller dimension to maintain square-ish seats
+		const seatSize = Math.min(seatWidth, seatHeight, 3); // Max 3px
+
+		return {
+			width: seatSize,
+			height: seatSize,
+			gap: Math.max(0.2, seatSize * 0.15),
+		};
+	}
+
+	getMiniMapSeatStyle(rowIndex: number, colIndex: number): any {
+		const seat = this.getSeatAtPosition(rowIndex, colIndex);
+
+		if (!seat) {
+			return { backgroundColor: 'transparent' };
+		}
+
+		// Return simplified styles for mini map
+		if (seat.status === 'selected') {
+			return { backgroundColor: '#10b981' }; // green-500
+		} else if (seat.status === 'booked') {
+			return { backgroundColor: '#f3f4f6' }; // gray-100
+		} else {
+			// Use a simplified version of the category color
+			return { backgroundColor: seat.category?.baseColorHexCode || '#6b7280' };
+		}
+	}
+
+	onViewportScroll(): void {
+		// Debounce scroll updates for performance
+		if (this.debounceTimer) {
+			clearTimeout(this.debounceTimer);
+		}
+
+		this.debounceTimer = setTimeout(() => {
+			this.updateViewportRect();
+		}, 16); // ~60fps
+	}
+
+	private updateViewportRect(): void {
+		if (!this.seatViewport || !this.hall || !this.showMiniMap) return;
+
+		// Cancel previous RAF
+		if (this.rafId) {
+			cancelAnimationFrame(this.rafId);
+		}
+
+		this.rafId = requestAnimationFrame(() => {
+			const viewport = this.seatViewport.nativeElement;
+			const viewportWidth = viewport.offsetWidth;
+			const viewportHeight = viewport.offsetHeight;
+			const scrollLeft = viewport.scrollLeft;
+			const scrollTop = viewport.scrollTop;
+
+			// Calculate the total content size
+			const totalWidth = this.getContainerWidth() * this.currentZoom;
+			const totalHeight = this.getContainerHeight() * this.currentZoom;
+
+			// Calculate mini map content area
+			const miniMapContentWidth = this.miniMapWidth - 16; // Account for padding
+			const miniMapContentHeight = this.miniMapHeight - 40; // Account for header and padding
+
+			// Calculate scale factors
+			const scaleX = miniMapContentWidth / totalWidth;
+			const scaleY = miniMapContentHeight / totalHeight;
+
+			// Calculate viewport rectangle position and size in mini map coordinates
+			this.viewportRect = {
+				x: scrollLeft * scaleX,
+				y: scrollTop * scaleY,
+				width: Math.min(viewportWidth * scaleX, miniMapContentWidth),
+				height: Math.min(viewportHeight * scaleY, miniMapContentHeight),
+			};
+		});
+	}
+
+	private initializeMiniMap(): void {
+		// Mini map should always be visible
+		this.showMiniMap = true;
+
+		// Set mini map size based on screen size
+		const isMobile = this.isMobileDevice();
+		this.miniMapWidth = isMobile ? 140 : 200;
+		this.miniMapHeight = isMobile ? 100 : 150;
+
+		// Listen for window resize to adjust mini map
+		const resizeHandler = () => {
+			const nowMobile = this.isMobileDevice();
+			this.miniMapWidth = nowMobile ? 140 : 200;
+			this.miniMapHeight = nowMobile ? 100 : 150;
+			this.invalidateLayoutCache();
+		};
+
+		window.addEventListener('resize', resizeHandler);
+
+		// Clean up on destroy
+		this.destroy$.subscribe(() => {
+			window.removeEventListener('resize', resizeHandler);
+		});
+	}
+
+	private getTouchDistance(touches: TouchList): number {
+		const touch1 = touches[0];
+		const touch2 = touches[1];
+		const dx = touch2.clientX - touch1.clientX;
+		const dy = touch2.clientY - touch1.clientY;
+		return Math.sqrt(dx * dx + dy * dy);
+	}
+
+	private setupKeyboardShortcuts(): void {
+		// Global keyboard shortcuts
+		const keyHandler = (event: KeyboardEvent) => {
+			// Only handle shortcuts when not typing in inputs
+			if (
+				event.target instanceof HTMLInputElement ||
+				event.target instanceof HTMLTextAreaElement
+			) {
+				return;
+			}
+
+			switch (event.key) {
+				case 'm':
+				case 'M':
+					// Toggle mini map
+					this.toggleMiniMap();
+					event.preventDefault();
+					break;
+				case '+':
+				case '=':
+					// Zoom in
+					this.zoomIn();
+					event.preventDefault();
+					break;
+				case '-':
+				case '_':
+					// Zoom out
+					this.zoomOut();
+					event.preventDefault();
+					break;
+				case '0':
+					// Reset zoom
+					this.resetZoom();
+					event.preventDefault();
+					break;
+			}
+		};
+
+		document.addEventListener('keydown', keyHandler);
+
+		// Clean up on destroy
+		this.destroy$.subscribe(() => {
+			document.removeEventListener('keydown', keyHandler);
 		});
 	}
 }

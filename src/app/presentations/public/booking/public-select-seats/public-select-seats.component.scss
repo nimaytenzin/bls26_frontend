@@ -1,189 +1,337 @@
-/* Mobile-specific improvements for seat selection */
-.scrollbar-thin {
+/* Enhanced seat selection styles with performance optimizations */
+
+/* Core viewport and container styles */
+.viewport-container {
+    position: relative;
+    overflow: auto;
+    border-radius: 8px;
+    background: #1f2937;
     scrollbar-width: thin;
     scrollbar-color: #4b5563 #1f2937;
-}
-
-.scrollbar-thin::-webkit-scrollbar {
-    height: 4px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-track {
-    background: #1f2937;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #4b5563;
-    border-radius: 2px;
-}
-
-.scrollbar-none {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-.scrollbar-none::-webkit-scrollbar {
-    display: none;
-}
-
-/* Seat container improvements */
-.seat-container {
-    touch-action: pan-x;
-    -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-    /* Ensure proper scrolling behavior */
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
+    cursor: grab;
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
 }
 
-.seat-grid {
-    /* Ensure the grid has proper minimum width */
-    min-width: fit-content;
-    padding: 0 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
+.viewport-container:active {
+    cursor: grabbing;
 }
 
-/* Seat row improvements */
-.seat-row {
-    display: flex;
-    align-items: center;
-    /* Remove individual row scrolling */
-    overflow: visible;
-    width: fit-content;
-    min-width: fit-content;
+.viewport-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-/* Mobile touch improvements */
-@media (max-width: 640px) {
-    .seat-container {
-        touch-action: pan-x;
-        -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
-        /* Reduce padding on mobile */
-        padding: 0;
-    }
-
-    .seat-grid {
-        padding: 0 8px;
-        /* Ensure proper spacing on mobile */
-        gap: 2px;
-    }
-
-    /* Improve touch targets on mobile */
-    .seat-element {
-        min-width: 28px;
-        min-height: 28px;
-        touch-action: manipulation;
-        /* Ensure seats are properly sized */
-        width: 28px !important;
-        height: 28px !important;
-        font-size: 9px !important;
-    }
-
-    /* Improve floating bar on mobile */
-    .floating-bar {
-        padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    /* Ensure proper scrolling in floating bar */
-    .floating-seat-chip {
-        -webkit-overflow-scrolling: touch;
-        width: 24px !important;
-        height: 24px !important;
-        font-size: 8px !important;
-    }
-
-    /* Ensure seat layout doesn't overflow */
-    .seat-layout-container {
-        overflow-x: visible;
-        max-width: 100vw;
-    }
-
-    /* Adjust row spacing on mobile */
-    .seat-row {
-        gap: 1px;
-        margin-bottom: 1px;
-    }
-
-    /* Optimize row label sizing */
-    .seat-row .w-8 {
-        width: 24px !important;
-        height: 24px !important;
-        font-size: 10px !important;
-        margin-right: 6px !important;
-    }
-}
-
-/* Desktop improvements */
-@media (min-width: 641px) {
-    .seat-element {
-        min-width: 48px;
-        min-height: 48px;
-        width: 48px !important;
-        height: 48px !important;
-    }
-
-    .seat-row {
-        gap: 4px;
-        margin-bottom: 8px;
-    }
-
-    .seat-grid {
-        padding: 0 16px;
-        gap: 8px;
-    }
-}
-
-/* Seat selection animation */
-.seat-element {
-    transition: all 0.2s ease-in-out;
+.viewport-container::-webkit-scrollbar-track {
+    background: #374151;
     border-radius: 4px;
-    font-size: 11px;
-    font-weight: 500;
+}
+
+.viewport-container::-webkit-scrollbar-thumb {
+    background-color: #6b7280;
+    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.viewport-container::-webkit-scrollbar-thumb:hover {
+    background-color: #9ca3af;
+}
+
+.viewport-container::-webkit-scrollbar-corner {
+    background: #374151;
+}
+
+/* Seat layout container with hardware acceleration */
+.seat-layout-container {
+    position: relative;
+    will-change: transform;
+    transform-origin: top left;
+    padding: 16px;
+    min-width: fit-content;
+    min-height: fit-content;
+}
+
+/* Enhanced screen section */
+.screen-section {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 10;
 }
 
-.seat-element:hover {
-    transform: scale(1.05);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.screen-element {
+    position: relative;
+    border-radius: 8px 8px 0 0;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
 }
 
-.seat-element:active {
-    transform: scale(0.95);
+.screen-element:hover {
+    box-shadow:
+        0 6px 16px rgba(0, 0, 0, 0.5),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1);
 }
 
-/* Mobile specific seat styling */
-@media (max-width: 640px) {
-    .seat-element {
-        font-size: 9px;
-        border-radius: 3px;
-        font-weight: 600;
-    }
+/* Legend section improvements */
+.legend-section {
+    display: flex;
+    justify-content: center;
+    z-index: 5;
+    position: relative;
 }
 
-/* Desktop specific seat styling */
-@media (min-width: 641px) {
-    .seat-element {
-        font-size: 12px;
-        border-radius: 6px;
-    }
+/* Seat grid optimizations */
+.seat-grid-container {
+    position: relative;
+    contain: layout style paint;
 }
 
-/* Custom focus styles for accessibility */
+.seat-row {
+    display: flex;
+    align-items: center;
+    will-change: transform;
+}
+
+.seat-row-container {
+    display: flex;
+    will-change: transform;
+}
+
+/* Enhanced seat styling with performance optimizations */
+.seat-element {
+    position: relative;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    will-change: transform, box-shadow;
+    contain: layout style paint;
+}
+
+.seat-element:hover:not(.seat-booked) {
+    transform: scale(1.05) translateZ(0);
+    box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    z-index: 10;
+}
+
+.seat-element:active:not(.seat-booked) {
+    transform: scale(0.95) translateZ(0);
+    transition-duration: 0.1s;
+}
+
 .seat-element:focus {
     outline: 2px solid #3b82f6;
     outline-offset: 2px;
+    z-index: 10;
 }
 
-/* Improve visibility of selected seats in floating bar */
+/* Seat status specific styles */
+.seat-available {
+    cursor: pointer;
+}
+
+.seat-selected {
+    background-color: #10b981 !important;
+    border: 2px solid #059669 !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 0 0 3px rgba(16, 185, 129, 0.3),
+        0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.seat-booked {
+    background-color: #f3f4f6 !important;
+    border: 2px solid #e5e7eb !important;
+    color: #6b7280 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+.seat-booked:hover {
+    transform: none !important;
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Row label styling */
+.row-label {
+    background: linear-gradient(135deg, #374151, #4b5563);
+    border-radius: 6px;
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Zoom and Mini Map Controls */
+.zoom-controls {
+    background: rgba(31, 41, 55, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid #374151;
+    border-radius: 8px;
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+
+.zoom-controls:hover {
+    background: rgba(31, 41, 55, 0.98);
+    border-color: #4b5563;
+}
+
+.mini-map {
+    background: rgba(31, 41, 55, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid #374151;
+    border-radius: 8px;
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+}
+
+.mini-map:hover {
+    border-color: #4b5563;
+}
+
+.mini-map-viewport {
+    border: 2px solid #fbbf24;
+    border-radius: 2px;
+    background: rgba(251, 191, 36, 0.1);
+    pointer-events: none;
+    transition: all 0.1s ease-out;
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.3);
+}
+
+.mini-map-seat {
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 1px;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive design improvements */
+@media (max-width: 640px) {
+    .seat-layout-container {
+        padding: 8px;
+    }
+
+    .screen-element {
+        border-radius: 4px 4px 0 0;
+    }
+
+    .seat-element {
+        border-radius: 4px;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .seat-element:hover:not(.seat-booked) {
+        transform: scale(1.1) translateZ(0);
+    }
+
+    .row-label {
+        border-radius: 4px;
+        font-size: 10px;
+    }
+
+    .zoom-controls {
+        padding: 8px;
+    }
+
+    .zoom-controls .p-button {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+    }
+
+    .mini-map {
+        max-width: 150px;
+        max-height: 120px;
+    }
+}
+
+@media (min-width: 641px) {
+    .seat-layout-container {
+        padding: 24px;
+    }
+
+    .seat-element {
+        border-radius: 6px;
+        font-size: 12px;
+    }
+
+    .row-label {
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .zoom-controls {
+        padding: 12px;
+    }
+
+    .zoom-controls .p-button {
+        width: 40px;
+        height: 40px;
+    }
+
+    .mini-map {
+        max-width: 200px;
+        max-height: 150px;
+    }
+}
+
+/* Animation keyframes */
+@keyframes seatSelect {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes seatDeselect {
+    0% {
+        transform: scale(1.05);
+    }
+    50% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.seat-selected {
+    animation: seatSelect 0.3s ease-out;
+}
+
+/* Floating seat chip improvements */
 .floating-seat-chip {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 4px;
     display: flex;
@@ -193,9 +341,108 @@
     transition: all 0.2s ease-in-out;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
+    contain: layout style paint;
 }
 
-/* Enhanced floating bar styling for mobile */
+/* Accessibility improvements */
+.seat-element[aria-selected="true"] {
+    box-shadow:
+        0 0 0 3px #10b981,
+        0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.seat-element[aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .seat-element {
+        border: 2px solid;
+    }
+
+    .mini-map {
+        border: 2px solid #ffffff;
+    }
+
+    .zoom-controls {
+        border: 2px solid #ffffff;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .seat-element,
+    .mini-map,
+    .zoom-controls,
+    .seat-layout-container,
+    .screen-element {
+        transition: none;
+        animation: none;
+    }
+
+    .seat-element:hover {
+        transform: none;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .seat-element:hover {
+        transform: none;
+    }
+
+    .seat-element:active:not(.seat-booked) {
+        transform: scale(0.95);
+        background-color: rgba(59, 130, 246, 0.1);
+    }
+}
+
+/* Print styles */
+@media print {
+    .zoom-controls,
+    .mini-map {
+        display: none;
+    }
+
+    .viewport-container {
+        overflow: visible;
+        max-height: none;
+    }
+
+    .seat-layout-container {
+        transform: none !important;
+    }
+}
+
+/* Loading and transition states */
+.loading .seat-element {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.updating .seat-element {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Hover effects for interactive elements */
+.zoom-controls .p-button:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+}
+
+.mini-map:hover .mini-map-seat {
+    opacity: 0.8;
+}
+
+/* Focus states for keyboard navigation */
+.zoom-controls .p-button:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Enhanced floating bar for mobile */
 @media (max-width: 640px) {
     .floating-bar {
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
@@ -216,37 +463,5 @@
     .floating-bar {
         backdrop-filter: blur(10px);
         background: rgba(17, 24, 39, 0.95);
-    }
-}
-
-/* Ensure proper alignment and spacing */
-.seat-container::-webkit-scrollbar {
-    height: 6px;
-}
-
-.seat-container::-webkit-scrollbar-track {
-    background: #374151;
-    border-radius: 3px;
-}
-
-.seat-container::-webkit-scrollbar-thumb {
-    background-color: #6b7280;
-    border-radius: 3px;
-}
-
-.seat-container::-webkit-scrollbar-thumb:hover {
-    background-color: #9ca3af;
-}
-
-/* Ensure screen section is properly aligned */
-.screen-section {
-    display: flex;
-    align-items: center;
-    margin-top: 16px;
-}
-
-@media (max-width: 640px) {
-    .screen-section {
-        margin-top: 12px;
     }
 }
