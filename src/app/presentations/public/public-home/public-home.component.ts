@@ -261,15 +261,15 @@ export class PublicHomeComponent implements OnInit, OnDestroy {
 	getMovieStatusClass(status: ScreeningStatusEnum): string {
 		switch (status) {
 			case ScreeningStatusEnum.NOW_SHOWING:
-				return 'bg-green-500 text-white animate-pulse';
+				return 'bg-gradient-to-r from-green-500/90 to-green-600/90 text-white border-green-400/50 animate-pulse';
 			case ScreeningStatusEnum.UPCOMING:
-				return 'bg-blue-500 text-white';
+				return 'bg-gradient-to-r from-blue-500/90 to-blue-600/90 text-white border-blue-400/50';
 			case ScreeningStatusEnum.ENDED:
-				return 'bg-gray-500 text-white';
+				return 'bg-gradient-to-r from-gray-500/90 to-gray-600/90 text-white border-gray-400/50';
 			case ScreeningStatusEnum.CANCELLED:
-				return 'bg-red-500 text-white';
+				return 'bg-gradient-to-r from-red-500/90 to-red-600/90 text-white border-red-400/50';
 			default:
-				return 'bg-gray-500 text-white';
+				return 'bg-gradient-to-r from-gray-500/90 to-gray-600/90 text-white border-gray-400/50';
 		}
 	}
 

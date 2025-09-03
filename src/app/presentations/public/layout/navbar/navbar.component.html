@@ -1,59 +1,116 @@
-<!-- Custom Navbar -->
-<nav class="fixed w-full z-50 top-0 left-0 bg-black border-b border-gray-800">
-	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<!-- Enhanced Responsive Navbar with Homepage Alignment -->
+<nav
+	class="fixed w-full z-50 top-0 left-0 transition-all duration-500 ease-in-out"
+	[class]="
+		scrolled
+			? 'bg-black/95 backdrop-blur-sm shadow-lg border-b border-gray-800/50'
+			: 'bg-black/90 backdrop-blur-sm border-b border-gray-800/30'
+	"
+>
+	<!-- Main Container with Homepage Alignment -->
+	<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
 		<div class="flex items-center justify-between h-16">
-			<!-- Logo and Brand -->
-			<div class="flex items-center space-x-3 logo-container">
-				<img src="logo.png" alt="Logo" class="h-8 w-auto" />
-				<span class="brand-text text-white font-bold text-lg md:text-xl">{{
-					APPNAME
-				}}</span>
+			<!-- Enhanced Logo and Brand Section -->
+			<div
+				class="flex items-center space-x-3 logo-container group cursor-pointer"
+				(click)="navigateTo('/')"
+			>
+				<div class="relative">
+					<img
+						src="logo.png"
+						alt="Logo"
+						class="h-8 w-auto transition-all duration-300 group-hover:scale-110"
+					/>
+					<!-- Logo glow effect -->
+					<div
+						class="absolute inset-0 h-8 w-8 rounded-full bg-red-600/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+					></div>
+				</div>
+				<div class="flex flex-col justify-center">
+					<span
+						class="brand-text text-white font-black text-lg md:text-xl tracking-tight"
+					>
+						{{ APPNAME }}
+					</span>
+					<span
+						class="text-red-400 text-xs font-medium opacity-100 group-hover:opacity-100 transition-opacity duration-300"
+					>
+						Redefining Cinema Experience in Bhutan
+					</span>
+				</div>
 			</div>
 
-			<!-- Desktop Navigation -->
+			<!-- Enhanced Desktop Navigation -->
 			<div class="hidden md:flex items-center space-x-8">
 				<a
 					*ngFor="let item of navItems"
 					(click)="navigateTo(item.route)"
-					class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors duration-300 cursor-pointer"
+					class="nav-link relative text-gray-300 hover:text-white px-4 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer group"
 					[class.active]="isActiveRoute(item.route)"
 				>
-					<span>{{ item.label }}</span>
+					<span class="relative z-10">{{ item.label }}</span>
+					<!-- Hover background effect -->
+					<div
+						class="absolute inset-0 bg-gradient-to-r from-red-600/10 to-red-700/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+					></div>
+					<!-- Active/hover indicator -->
+					<div
+						class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-red-600 to-red-400 group-hover:w-full transition-all duration-300"
+					></div>
 				</a>
 			</div>
 
-			<!-- Desktop Login Button -->
-			<div class="hidden md:flex">
+			<!-- Enhanced Desktop Login Button -->
+			<div class="hidden md:flex items-center space-x-4">
+				<!-- Optional Search Icon -->
+				<button
+					class="search-button p-2 text-gray-400 hover:text-white transition-colors duration-300 rounded-lg hover:bg-gray-800/50"
+					title="Search movies"
+				>
+					<i class="pi pi-search text-sm"></i>
+				</button>
+
+				<!-- Login Button -->
 				<button
 					(click)="goToLoginPage()"
-					class="login-button nav-button px-6 py-2 bg-transparent border border-gray-600 text-gray-300 hover:border-red-500 hover:text-white font-medium rounded-lg transition-all duration-300 hover:bg-red-500/10"
+					class="login-button relative px-6 py-2.5 bg-transparent border-2 border-gray-600/50 text-gray-300 hover:border-red-500/80 hover:text-white font-semibold rounded-xl transition-all duration-300 hover:bg-red-500/10 hover:shadow-lg hover:shadow-red-500/20 overflow-hidden group"
 				>
-					Login
+					<span class="relative z-10 flex items-center space-x-2">
+						<i class="pi pi-sign-in text-sm"></i>
+						<span>Login</span>
+					</span>
+					<!-- Shimmer effect -->
+					<div
+						class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+					></div>
 				</button>
 			</div>
 
-			<!-- Mobile hamburger button -->
+			<!-- Enhanced Mobile Hamburger Button -->
 			<div class="md:hidden">
 				<button
 					(click)="toggleMenu()"
-					class="relative w-10 h-10 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 rounded-md flex items-center justify-center"
+					class="hamburger-container relative w-11 h-11 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-opacity-50 rounded-lg flex items-center justify-center transition-all duration-300 hover:bg-gray-800/50"
 					[attr.aria-label]="isMenuOpen ? 'Close menu' : 'Open menu'"
 				>
-					<!-- Hamburger Lines -->
+					<!-- Enhanced Hamburger Lines -->
 					<div class="w-6 h-6 relative">
 						<span
-							class="hamburger-line absolute block w-6 h-0.5 bg-white top-2"
+							class="hamburger-line absolute block w-6 h-0.5 bg-white top-2 rounded-full transition-all duration-300"
 							[class.rotate-45]="isMenuOpen"
 							[class.top-3]="isMenuOpen"
+							[class.bg-red-400]="isMenuOpen"
 						></span>
 						<span
-							class="hamburger-line absolute block w-6 h-0.5 bg-white top-3"
+							class="hamburger-line absolute block w-6 h-0.5 bg-white top-3 rounded-full transition-all duration-300"
 							[class.opacity-0]="isMenuOpen"
+							[class.scale-0]="isMenuOpen"
 						></span>
 						<span
-							class="hamburger-line absolute block w-6 h-0.5 bg-white top-4"
+							class="hamburger-line absolute block w-6 h-0.5 bg-white top-4 rounded-full transition-all duration-300"
 							[class.-rotate-45]="isMenuOpen"
 							[class.top-3]="isMenuOpen"
+							[class.bg-red-400]="isMenuOpen"
 						></span>
 					</div>
 				</button>
@@ -61,89 +118,117 @@
 		</div>
 	</div>
 
-	<!-- Mobile Menu Overlay - Full Screen Left to Right -->
+	<!-- Enhanced Mobile Menu Overlay -->
 	<div
-		class="md:hidden fixed inset-0 z-40"
+		class="md:hidden fixed inset-0 z-40 transition-all duration-300"
 		[class.block]="isMenuOpen"
 		[class.hidden]="!isMenuOpen"
 	>
-		<!-- Backdrop -->
+		<!-- Enhanced Backdrop with Blur -->
 		<div
-			class="menu-backdrop absolute inset-0 bg-black/90"
+			class="menu-backdrop absolute inset-0 bg-black/95 backdrop-blur-md transition-opacity duration-300"
+			[class.opacity-100]="isMenuOpen"
+			[class.opacity-0]="!isMenuOpen"
 			(click)="closeMenu()"
 		></div>
 
-		<!-- Menu Panel - Enhanced Mobile Design (Right to Left) -->
+		<!-- Enhanced Mobile Menu Panel -->
 		<div
-			class="mobile-menu-panel fixed top-0 right-0 h-full w-80 bg-black border-l border-red-500/30 shadow-2xl transition-transform duration-300 ease-in-out"
+			class="mobile-menu-panel fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-lg border-l border-red-500/30 shadow-2xl transition-all duration-500 ease-out"
 			[class.translate-x-0]="isMenuOpen"
 			[class.translate-x-full]="!isMenuOpen"
 		>
-			<!-- Menu Header with Red Accent -->
+			<!-- Enhanced Menu Header -->
 			<div
-				class="bg-gradient-to-r from-black to-red-900/20 p-4 border-b border-red-500/30"
+				class="bg-gradient-to-r from-black/80 to-red-900/20 p-6 border-b border-red-500/30"
 			>
 				<div class="flex items-center justify-between">
 					<div class="flex items-center space-x-3">
 						<img src="logo.png" alt="Logo" class="h-10 w-auto" />
 						<div class="flex flex-col">
-							<span class="text-white font-bold text-lg">{{ APPNAME }}</span>
-							<span class="text-red-400 text-xs">Movie Booking</span>
+							<span class="text-white font-black text-lg tracking-tight">{{
+								APPNAME
+							}}</span>
+							<span class="text-red-400 text-xs font-medium">
+								Redefining Cinema Experience in Bhutan
+							</span>
 						</div>
 					</div>
 					<button
 						(click)="closeMenu()"
-						class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-red-500/20 rounded-lg transition-all duration-300"
+						class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-red-500/20 rounded-xl transition-all duration-300 hover:scale-110"
 					>
 						<i class="pi pi-times text-lg"></i>
 					</button>
 				</div>
 			</div>
 
-			<!-- Menu Content -->
-			<div class="flex flex-col h-full bg-black">
-				<!-- Navigation Items -->
-				<div class="flex-1 py-8 px-4 space-y-3">
+			<!-- Enhanced Menu Content -->
+			<div
+				class="flex flex-col h-full bg-gradient-to-b from-transparent to-black/20"
+			>
+				<!-- Navigation Section -->
+				<div class="flex-1 py-8 px-6">
 					<div class="mb-6">
 						<h3
-							class="text-gray-500 text-xs uppercase tracking-wider font-semibold mb-4 px-4"
+							class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-4 px-2"
 						>
 							Navigation
 						</h3>
 					</div>
-					<a
-						*ngFor="let item of navItems; let i = index"
-						(click)="navigateTo(item.route)"
-						class="mobile-nav-item flex items-center px-4 py-4 text-gray-300 hover:text-white rounded-xl cursor-pointer group relative overflow-hidden"
-						[class.active-mobile]="isActiveRoute(item.route)"
-						[style.animation-delay]="i * 0.1 + 's'"
-					>
-						<span class="font-medium text-lg">{{ item.label }}</span>
-						<div class="ml-auto">
-							<i
-								class="pi pi-chevron-left text-gray-600 group-hover:text-red-400 transition-colors"
-							></i>
-						</div>
-					</a>
+					<div class="space-y-2">
+						<a
+							*ngFor="let item of navItems; let i = index"
+							(click)="navigateTo(item.route)"
+							class="mobile-nav-item flex items-center px-4 py-4 text-gray-300 hover:text-white rounded-xl cursor-pointer group relative overflow-hidden transition-all duration-300 hover:scale-105"
+							[class.active-mobile]="isActiveRoute(item.route)"
+							[style.animation-delay]="i * 0.1 + 's'"
+						>
+							<!-- Background gradient on hover -->
+							<div
+								class="absolute inset-0 bg-gradient-to-r from-red-600/10 to-red-700/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"
+							></div>
+
+							<span class="font-semibold text-lg relative z-10">{{
+								item.label
+							}}</span>
+							<div class="ml-auto relative z-10">
+								<i
+									class="pi pi-chevron-right text-gray-600 group-hover:text-red-400 transition-all duration-300 group-hover:translate-x-1"
+								></i>
+							</div>
+
+							<!-- Active indicator -->
+							<div
+								class="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-0 bg-gradient-to-b from-red-600 to-red-400 rounded-r-full transition-all duration-300"
+								[class.h-full]="isActiveRoute(item.route)"
+								[class.group-hover:h-8]="!isActiveRoute(item.route)"
+							></div>
+						</a>
+					</div>
 				</div>
 
-				<!-- User Section -->
+				<!-- Enhanced User/Auth Section -->
 				<div
-					class="p-4 border-t border-gray-800 bg-gradient-to-r from-black to-gray-900"
+					class="p-6 border-t border-gray-800/50 bg-gradient-to-r from-black/40 to-gray-900/40"
 				>
 					<div class="mb-4">
 						<h3
-							class="text-gray-500 text-xs uppercase tracking-wider font-semibold mb-3 px-4"
+							class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-3 px-2"
 						>
 							Account
 						</h3>
 					</div>
 					<button
 						(click)="goToLoginPage()"
-						class="login-button nav-button w-full px-4 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl"
+						class="login-button w-full px-6 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl hover:scale-105 relative overflow-hidden group"
 					>
-						<i class="pi pi-sign-in text-lg"></i>
-						<span>Sign In / Register</span>
+						<i class="pi pi-sign-in text-lg relative z-10"></i>
+						<span class="relative z-10">Sign In / Register</span>
+						<!-- Button shimmer effect -->
+						<div
+							class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+						></div>
 					</button>
 				</div>
 			</div>
@@ -151,5 +236,5 @@
 	</div>
 </nav>
 
-<!-- Spacer for fixed navbar -->
-<div class="h-16"></div>
+<!-- Spacer for fixed navbar with scroll padding -->
+<div class="h-16" id="navbar-spacer"></div>

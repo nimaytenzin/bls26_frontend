@@ -1,61 +1,219 @@
-// Custom Navbar Styles
+// Enhanced Navbar Styles Aligned with Homepage Design
 nav {
-    transition: all 0.3s ease-in-out;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 
-// Logo animation
-.logo-container {
-    img {
-        transition: transform 0.3s ease;
-
-        &:hover {
-            transform: scale(1.05);
-        }
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #dc2626 0%, #ef4444 50%, #dc2626 100%);
+        opacity: 0.8;
     }
 }
 
-// Desktop nav links
+// Enhanced Logo Section with Homepage Alignment
+.logo-container {
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    img {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+
+        &:hover {
+            transform: scale(1.1) rotate(2deg);
+            filter: drop-shadow(0 4px 8px rgba(220, 38, 38, 0.4));
+        }
+    }
+
+    &:hover {
+        transform: scale(1.02);
+    }
+}
+
+// Enhanced Brand Text with Homepage Typography
+.brand-text {
+    background: linear-gradient(135deg, #ffffff 0%, #ef4444 50%, #ffffff 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% 200%;
+    animation: gradientShift 4s ease infinite;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+
+    &:hover {
+        background-size: 100% 100%;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes gradientShift {
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+// Enhanced Desktop Navigation Links
 .nav-link {
     position: relative;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+        border-radius: 0.75rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
 
     &::after {
         content: "";
         position: absolute;
-        width: 0;
-        height: 1px;
-        bottom: -4px;
+        bottom: 0;
         left: 50%;
+        width: 0;
+        height: 2px;
         background: linear-gradient(90deg, #dc2626, #ef4444);
-        transition: all 0.3s ease;
+        border-radius: 1px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         transform: translateX(-50%);
     }
 
-    &:hover::after {
-        width: 100%;
-    }
+    &:hover {
+        color: #ffffff;
+        transform: translateY(-1px);
+        text-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 
-    // Active state for current route
-    &.active {
-        color: white;
+        &::before {
+            opacity: 1;
+        }
 
         &::after {
-            width: 100%;
+            width: 80%;
+        }
+    }
+
+    &.active {
+        color: #ffffff;
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%);
+        text-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+
+        &::after {
+            width: 80%;
+            background: linear-gradient(90deg, #ef4444, #dc2626);
         }
     }
 }
 
-// Hamburger Menu Animation
-.hamburger-line {
-    transform-origin: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+// Enhanced Search Button
+.search-button {
+    transition: all 0.3s ease;
+    border-radius: 0.5rem;
+
+    &:hover {
+        background: rgba(55, 65, 81, 0.5);
+        transform: scale(1.1);
+        color: #ef4444;
+    }
 }
 
-// Mobile menu animations - Right to Left Slide
+// Enhanced Login Button with Homepage Alignment
+.login-button {
+    position: relative;
+    overflow: hidden;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow:
+            0 8px 25px rgba(220, 38, 38, 0.3),
+            0 4px 12px rgba(0, 0, 0, 0.2);
+        border-color: rgba(239, 68, 68, 0.8);
+
+        &::before {
+            left: 100%;
+        }
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+// Enhanced Mobile Hamburger with Homepage Style
+.hamburger-container {
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: rgba(55, 65, 81, 0.5);
+        transform: scale(1.05);
+    }
+}
+
+.hamburger-line {
+    transform-origin: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.rotate-45 {
+        transform: rotate(45deg);
+    }
+
+    &.-rotate-45 {
+        transform: rotate(-45deg);
+    }
+
+    &.top-3 {
+        top: 12px;
+    }
+
+    &.scale-0 {
+        transform: scale(0);
+    }
+
+    &.bg-red-400 {
+        background-color: #f87171;
+        box-shadow: 0 0 8px rgba(248, 113, 113, 0.5);
+    }
+}
+
+// Enhanced Mobile Menu with Homepage Design Language
 .mobile-menu-panel {
     transform: translateX(100%);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+        -4px 0 25px rgba(0, 0, 0, 0.5),
+        inset 1px 0 0 rgba(239, 68, 68, 0.2);
 
     &.translate-x-0 {
         transform: translateX(0);
@@ -66,59 +224,55 @@ nav {
     }
 }
 
-// Enhanced mobile menu item animations
+// Enhanced Mobile Menu Backdrop
+.menu-backdrop {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Enhanced Mobile Navigation Items
 .mobile-nav-item {
     position: relative;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     animation: slideInFromRight 0.6s ease-out forwards;
     opacity: 0;
     transform: translateX(30px);
+    border-radius: 0.75rem;
+    font-weight: 600;
 
     &:hover {
-        transform: translateX(-8px);
-        background: linear-gradient(90deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.1));
+        transform: translateX(-4px) scale(1.02);
+        color: #ffffff;
 
-        &::before {
-            content: "";
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: linear-gradient(180deg, #ef4444, #dc2626);
-            border-radius: 2px 0 0 2px;
+        .pi-chevron-right {
+            transform: translateX(4px);
+            color: #ef4444;
         }
     }
 
-    // Active state for mobile menu
     &.active-mobile {
-        color: white;
-        background: linear-gradient(90deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
+        color: #ffffff;
+        background: linear-gradient(90deg, rgba(220, 38, 38, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        box-shadow:
+            0 4px 12px rgba(220, 38, 38, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
         &::before {
             content: "";
             position: absolute;
-            right: 0;
+            left: 0;
             top: 0;
             bottom: 0;
             width: 4px;
             background: linear-gradient(180deg, #ef4444, #dc2626);
-            border-radius: 2px 0 0 2px;
-        }
-
-        &::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #dc2626, #ef4444);
+            border-radius: 0 2px 2px 0;
         }
     }
 }
 
-// Staggered animation for menu items
+// Staggered Animation for Menu Items
 .mobile-nav-item:nth-child(1) {
     animation-delay: 0.1s;
 }
@@ -139,64 +293,32 @@ nav {
     }
 }
 
-// Custom Login Button Styling
-.login-button {
-    position: relative;
-    overflow: hidden;
-
-    &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.2), transparent);
-        transition: left 0.5s;
-    }
-
-    &:hover::before {
-        left: 100%;
+// Reset mobile menu animations when closed
+.mobile-menu-panel.translate-x-full {
+    .mobile-nav-item {
+        animation: none;
+        opacity: 0;
+        transform: translateX(30px);
     }
 }
 
-// Enhanced button styling
-.nav-button {
-    transition: all 0.3s ease;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+.mobile-menu-panel.translate-x-0 {
+    .mobile-nav-item {
+        animation: slideInFromRight 0.6s ease-out forwards;
     }
 }
 
-// Enhanced hamburger animation
-.hamburger-line {
-    &.rotate-45 {
-        transform: rotate(45deg);
-    }
-
-    &.-rotate-45 {
-        transform: rotate(-45deg);
-    }
-
-    &.top-3 {
-        top: 12px;
-    }
-}
-
-// Mobile menu backdrop
-.menu-backdrop {
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: opacity 0.3s ease;
-}
-
-// Responsive adjustments
+// Responsive Design Enhancements
 @media (max-width: 768px) {
     .mobile-menu-panel {
         max-width: 340px;
         width: 85vw;
+    }
+
+    .logo-container {
+        .brand-text {
+            font-size: 1.125rem;
+        }
     }
 }
 
@@ -205,63 +327,118 @@ nav {
         width: 90vw;
         max-width: 300px;
     }
-}
 
-// Mobile menu enhancements
-.mobile-menu-panel {
-    // Reset animation when menu closes
-    &.translate-x-full {
-        .mobile-nav-item {
-            animation: none;
-            opacity: 0;
-            transform: translateX(30px);
+    .logo-container {
+        img {
+            height: 1.75rem;
         }
-    }
 
-    // Apply animation when menu opens
-    &.translate-x-0 {
-        .mobile-nav-item {
-            animation: slideInFromRight 0.6s ease-out forwards;
+        .brand-text {
+            font-size: 1rem;
         }
     }
 }
 
-// Smooth scrollbar for mobile menu
-.mobile-menu-panel::-webkit-scrollbar {
-    width: 4px;
-}
-
-.mobile-menu-panel::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1);
-}
-
-.mobile-menu-panel::-webkit-scrollbar-thumb {
-    background: rgba(220, 38, 38, 0.5);
-    border-radius: 2px;
-}
-
-.mobile-menu-panel::-webkit-scrollbar-thumb:hover {
-    background: rgba(220, 38, 38, 0.7);
-}
-
-// Focus states for accessibility
+// Enhanced Accessibility and Focus States
 button:focus-visible,
 a:focus-visible {
     outline: 2px solid #dc2626;
     outline-offset: 2px;
+    border-radius: 0.375rem;
 }
 
-// Brand text animation
-.brand-text {
-    background: linear-gradient(90deg, #ffffff, #ef4444);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    transition: all 0.3s ease;
+// Smooth Scrollbar for Mobile Menu
+.mobile-menu-panel {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(220, 38, 38, 0.5) transparent;
 
-    &:hover {
-        background: linear-gradient(90deg, #ef4444, #ffffff);
-        background-clip: text;
-        -webkit-background-clip: text;
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(220, 38, 38, 0.5);
+        border-radius: 2px;
+        transition: background 0.3s ease;
+
+        &:hover {
+            background: rgba(220, 38, 38, 0.7);
+        }
+    }
+}
+
+// Navbar Scroll Progress Indicator (Optional)
+.scroll-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #dc2626, #ef4444);
+    transition: width 0.1s ease;
+    border-radius: 0 1px 1px 0;
+}
+
+// Enhanced glassmorphism effects
+.backdrop-blur-sm {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.backdrop-blur-md {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.backdrop-blur-lg {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+// Reduced motion support for accessibility
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .brand-text {
+        animation: none;
+    }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+    .nav-link,
+    .mobile-nav-item {
+        border: 1px solid rgba(255, 255, 255, 0.2);
+
+        &:hover,
+        &.active,
+        &.active-mobile {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.2);
+        }
+    }
+
+    .login-button {
+        border-width: 2px;
+    }
+}
+
+// Dark mode optimizations (already dark theme, but ensuring consistency)
+@media (prefers-color-scheme: dark) {
+    nav {
+        background: rgba(0, 0, 0, 0.95);
+    }
+
+    .mobile-menu-panel {
+        background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(0, 0, 0, 0.95) 100%);
     }
 }
