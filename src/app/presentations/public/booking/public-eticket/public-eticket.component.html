@@ -235,13 +235,18 @@
 
 								<div
 									*ngFor="let seat of bookingData.bookingSeats"
-									class="p-1 sm:p-4 border border-primary text-center rounded-md sm:rounded-xl"
-									[ngStyle]="{ 'border-color': getSeatCategoryColor(seat) }"
+									class="p-1 sm:p-4 border-2 text-center rounded-md sm:rounded-xl bg-white shadow-sm"
+									[ngStyle]="{
+										'border-color': getSeatCategoryColor(seat),
+										'background-color': getSeatCategoryColor(seat) + '10'
+									}"
 								>
-									<p class="font-bold text-sm sm:text-2xl m-0 p-0">
+									<p
+										class="font-bold text-sm sm:text-2xl m-0 p-0 text-gray-900"
+									>
 										{{ seat.seat?.seatNumber }}
 									</p>
-									<p class="text-xs font-medium m-0 p-0">
+									<p class="text-xs font-medium m-0 p-0 text-gray-700">
 										{{ seat.seat?.category?.name }}
 									</p>
 								</div>
