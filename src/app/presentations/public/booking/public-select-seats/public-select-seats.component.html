@@ -55,46 +55,9 @@
 			<div class="pb-32 relative">
 				<!-- Add bottom padding for floating panel -->
 
-				<!-- Zoom Controls -->
-				<div
-					class="fixed bottom-20 left-4 z-40 bg-gray-800 rounded-lg p-2 shadow-xl border border-gray-700"
-				>
-					<div class="flex flex-col gap-2">
-						<button
-							pButton
-							icon="pi pi-plus"
-							class="p-button-sm p-button-outlined p-button-secondary"
-							(click)="zoomIn()"
-							[disabled]="currentZoom >= maxZoom"
-							pTooltip="Zoom In"
-							tooltipPosition="right"
-						></button>
-						<div class="text-white text-xs text-center px-1">
-							{{ currentZoom * 100 | number : "1.0-0" }}%
-						</div>
-						<button
-							pButton
-							icon="pi pi-minus"
-							class="p-button-sm p-button-outlined p-button-secondary"
-							(click)="zoomOut()"
-							[disabled]="currentZoom <= minZoom"
-							pTooltip="Zoom Out"
-							tooltipPosition="right"
-						></button>
-						<button
-							pButton
-							icon="pi pi-refresh"
-							class="p-button-sm p-button-outlined p-button-secondary"
-							(click)="resetZoom()"
-							pTooltip="Reset Zoom"
-							tooltipPosition="right"
-						></button>
-					</div>
-				</div>
-
 				<!-- Mini Map -->
 				<div
-					class="fixed bottom-20 right-4 z-40 bg-gray-800 bg-opacity-95 rounded-lg border border-gray-700 shadow-xl"
+					class="fixed top-20 right-4 z-40 bg-gray-800 bg-opacity-95 rounded-lg border border-gray-700 shadow-xl"
 					[style.width.px]="miniMapWidth"
 					[style.height.px]="miniMapHeight"
 				>
