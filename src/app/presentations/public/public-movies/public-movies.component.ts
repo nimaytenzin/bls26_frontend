@@ -8,6 +8,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { BASEAPI_URL } from '../../../core/constants/constants';
 import { PrimeNgModules } from '../../../primeng.modules';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
 	selector: 'app-public-movies',
@@ -24,7 +25,11 @@ export class PublicMoviesComponent implements OnInit, OnDestroy {
 
 	movies: Movie[] = [];
 	filteredMovies: Movie[] = [];
-	constructor(private publicDataService: PublicDataService) {}
+
+	constructor(
+		private publicDataService: PublicDataService,
+		private router: Router
+	) {}
 
 	ngOnInit() {
 		this.loadMovies();
@@ -106,15 +111,15 @@ export class PublicMoviesComponent implements OnInit, OnDestroy {
 	getMovieStatusClass(status: ScreeningStatusEnum): string {
 		switch (status) {
 			case ScreeningStatusEnum.NOW_SHOWING:
-				return 'bg-green-500 text-white animate-pulse';
+				return 'bg-green-500/90 border-green-400/50 text-white';
 			case ScreeningStatusEnum.UPCOMING:
-				return 'bg-blue-500 text-white';
+				return 'bg-blue-500/90 border-blue-400/50 text-white';
 			case ScreeningStatusEnum.ENDED:
-				return 'bg-gray-500 text-white';
+				return 'bg-gray-500/90 border-gray-400/50 text-white';
 			case ScreeningStatusEnum.CANCELLED:
-				return 'bg-red-500 text-white';
+				return 'bg-red-500/90 border-red-400/50 text-white';
 			default:
-				return 'bg-gray-500 text-white';
+				return 'bg-gray-500/90 border-gray-400/50 text-white';
 		}
 	}
 
@@ -162,11 +167,31 @@ export class PublicMoviesComponent implements OnInit, OnDestroy {
 	getMovieButtonClass(status: ScreeningStatusEnum): string {
 		switch (status) {
 			case ScreeningStatusEnum.NOW_SHOWING:
-				return 'p-button-lg bg-blue-600 hover:bg-blue-700';
+				return 'w-full px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 group';
 			case ScreeningStatusEnum.UPCOMING:
-				return 'p-button-lg p-button-secondary opacity-75 cursor-not-allowed';
+				return 'w-full px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-gray-300 font-medium rounded-lg cursor-not-allowed opacity-75 flex items-center justify-center gap-2';
 			default:
-				return 'p-button-lg p-button-secondary opacity-50 cursor-not-allowed';
+				return 'w-full px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-gray-400 font-medium rounded-lg cursor-not-allowed opacity-50 flex items-center justify-center gap-2';
+		}
+	}
+
+	// Track by function for better performance
+	trackByMovieId(index: number, movie: Movie): any {
+		return movie.id || index;
+	}
+
+	// Watch trailer functionality
+	watchTrailer(trailerURL: string): void {
+		if (trailerURL) {
+			window.open(trailerURL, '_blank');
+		}
+	}
+
+	// Handle movie actions (booking, etc.)
+	onMovieAction(movie: Movie): void {
+		if (this.isMovieBookable(movie.screeningStatus)) {
+			// Navigate to movie details or booking page
+			this.router.navigate(['/movie', movie.id]);
 		}
 	}
 

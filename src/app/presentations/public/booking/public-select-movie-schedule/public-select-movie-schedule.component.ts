@@ -74,6 +74,15 @@ export class PublicSelectMovieScheduleComponent implements OnInit, OnDestroy {
 	// Date range for screening availability (next 7 days)
 	private readonly DAYS_AHEAD = 7;
 
+	// Availability filtering
+	availabilityFilters = [
+		{ label: 'All Shows', value: 'all' },
+		{ label: 'Good Availability', value: 'good' },
+		{ label: 'Limited Seats', value: 'limited' },
+		{ label: 'Nearly Full', value: 'nearly_full' },
+	];
+	selectedAvailabilityFilter = 'all';
+
 	// Trailer properties
 	showTrailerDialog = false;
 	safeTrailerUrl: SafeResourceUrl | null = null;
@@ -493,6 +502,157 @@ export class PublicSelectMovieScheduleComponent implements OnInit, OnDestroy {
 				day: 'numeric',
 			});
 		}
+	}
+
+	// Enhanced date formatting for labels
+	formatDateLabel(date: Date): string {
+		const today = new Date();
+		const tomorrow = new Date(today);
+		tomorrow.setDate(today.getDate() + 1);
+
+		if (date.toDateString() === today.toDateString()) {
+			return 'Today';
+		} else if (date.toDateString() === tomorrow.toDateString()) {
+			return 'Tomorrow';
+		} else {
+			return date.toLocaleDateString('en-US', {
+				weekday: 'short',
+			});
+		}
+	}
+
+	// Get availability class for date indicators
+	getAvailabilityClass(date: Date): string {
+		const dateStr = this.formatDateForAPI(date);
+		const screeningsForDate = this.allScreeningsForAllDates.get(dateStr);
+		const count = screeningsForDate ? screeningsForDate.length : 0;
+
+		if (count >= 6) return 'bg-green-500';
+		if (count >= 3) return 'bg-yellow-500';
+		if (count >= 1) return 'bg-orange-500';
+		return 'bg-gray-500';
+	}
+
+	// Get availability tooltip
+	getAvailabilityTooltip(date: Date): string {
+		const dateStr = this.formatDateForAPI(date);
+		const screeningsForDate = this.allScreeningsForAllDates.get(dateStr);
+		const count = screeningsForDate ? screeningsForDate.length : 0;
+		return `${count} screening${count !== 1 ? 's' : ''} available`;
+	}
+
+	// Get total screenings count
+	getTotalScreeningsCount(): number {
+		return this.groupedScreenings.reduce(
+			(total, group) => total + group.screenings.length,
+			0
+		);
+	}
+
+	// Set availability filter
+	setAvailabilityFilter(filter: string): void {
+		this.selectedAvailabilityFilter = filter;
+	}
+
+	// Get filtered screenings based on availability
+	getFilteredScreenings(): GroupedScreening[] {
+		if (this.selectedAvailabilityFilter === 'all') {
+			return this.groupedScreenings;
+		}
+
+		return this.groupedScreenings
+			.map((group) => ({
+				...group,
+				screenings: group.screenings.filter((screening) => {
+					const availabilityPercent =
+						(screening.availableSeats / screening.totalSeats) * 100;
+
+					switch (this.selectedAvailabilityFilter) {
+						case 'good':
+							return availabilityPercent >= 50;
+						case 'limited':
+							return availabilityPercent >= 20 && availabilityPercent < 50;
+						case 'nearly_full':
+							return availabilityPercent < 20;
+						default:
+							return true;
+					}
+				}),
+			}))
+			.filter((group) => group.screenings.length > 0);
+	}
+
+	// Get screening availability class for status strip
+	getScreeningAvailabilityClass(screening: ScreeningDisplay): string {
+		const availabilityPercent =
+			(screening.availableSeats / screening.totalSeats) * 100;
+
+		if (availabilityPercent >= 70)
+			return 'bg-gradient-to-r from-green-500 to-green-400';
+		if (availabilityPercent >= 30)
+			return 'bg-gradient-to-r from-yellow-500 to-yellow-400';
+		if (availabilityPercent >= 10)
+			return 'bg-gradient-to-r from-orange-500 to-orange-400';
+		return 'bg-gradient-to-r from-red-500 to-red-400';
+	}
+
+	// Get availability dot class
+	getAvailabilityDotClass(screening: ScreeningDisplay): string {
+		const availabilityPercent =
+			(screening.availableSeats / screening.totalSeats) * 100;
+
+		if (availabilityPercent >= 70) return 'bg-green-500';
+		if (availabilityPercent >= 30) return 'bg-yellow-500';
+		if (availabilityPercent >= 10) return 'bg-orange-500';
+		return 'bg-red-500';
+	}
+
+	// Get availability text class
+	getAvailabilityTextClass(screening: ScreeningDisplay): string {
+		const availabilityPercent =
+			(screening.availableSeats / screening.totalSeats) * 100;
+
+		if (availabilityPercent >= 70) return 'text-green-300';
+		if (availabilityPercent >= 30) return 'text-yellow-300';
+		if (availabilityPercent >= 10) return 'text-orange-300';
+		return 'text-red-300';
+	}
+
+	// Get availability badge class
+	getAvailabilityBadgeClass(screening: ScreeningDisplay): string {
+		const availabilityPercent =
+			(screening.availableSeats / screening.totalSeats) * 100;
+
+		if (availabilityPercent >= 70)
+			return 'bg-green-500/20 border border-green-400/30 text-green-300';
+		if (availabilityPercent >= 30)
+			return 'bg-yellow-500/20 border border-yellow-400/30 text-yellow-300';
+		if (availabilityPercent >= 10)
+			return 'bg-orange-500/20 border border-orange-400/30 text-orange-300';
+		return 'bg-red-500/20 border border-red-400/30 text-red-300';
+	}
+
+	// Get availability label
+	getAvailabilityLabel(screening: ScreeningDisplay): string {
+		const availabilityPercent =
+			(screening.availableSeats / screening.totalSeats) * 100;
+
+		if (availabilityPercent >= 70) return 'Great Availability';
+		if (availabilityPercent >= 30) return 'Good Availability';
+		if (availabilityPercent >= 10) return 'Limited Seats';
+		return 'Nearly Full';
+	}
+
+	// Get alternate dates for empty state
+	getAlternateDates(): Date[] {
+		return this.availableDates
+			.filter(
+				(date) =>
+					this.formatDateForAPI(date) !==
+						this.formatDateForAPI(this.selectedDate) &&
+					this.hasShowsAvailable(date)
+			)
+			.slice(0, 3);
 	}
 
 	// Trailer functionality

@@ -1,31 +1,355 @@
-/* PrimeNG Component Overrides */
-:host ::ng-deep .p-button.p-button-lg {
-    @apply bg-gradient-to-r from-pink-600 to-pink-500 border-0 font-semibold shadow-lg hover:from-pink-500 hover:to-pink-400 transition-all duration-300;
+/* Enhanced Movie Schedule Selection Styles */
+:host {
+    display: block;
+    background: transparent;
 }
 
-:host ::ng-deep .p-chip {
-    @apply text-sm font-medium shadow-sm;
+/* Enhanced Loading Animation */
+.animate-spin {
+    filter: drop-shadow(0 4px 12px rgba(220, 38, 38, 0.4));
 }
 
-:host ::ng-deep .p-button.p-button-lg:disabled {
-    @apply opacity-50 cursor-not-allowed;
+/* Enhanced Date Carousel Scrollbar */
+.scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(220, 38, 38, 0.5) rgba(55, 65, 81, 0.3);
 }
 
-/* Trailer Dialog Styles */
-:host ::ng-deep .trailer-dialog {
-    @apply backdrop-blur-xl;
+.scrollbar-thin::-webkit-scrollbar {
+    height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: rgba(55, 65, 81, 0.3);
+    border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(220, 38, 38, 0.5);
+    border-radius: 3px;
+    transition: background 0.3s ease;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(220, 38, 38, 0.7);
+}
+
+/* Enhanced Line Clamping */
+.line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Enhanced Glassmorphism Effects */
+.backdrop-blur-sm {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.backdrop-blur-md {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.backdrop-blur-lg {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* Enhanced Movie Poster Hover Effects */
+.group:hover img {
+    filter: brightness(1.1) contrast(1.05) saturate(1.1);
+}
+
+/* Enhanced Date Card Animations */
+.group .relative {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group:hover .relative {
+    transform: translateY(-2px);
+}
+
+/* Enhanced Screening Card Animations */
+.group .bg-gradient-to-br {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group:hover .bg-gradient-to-br {
+    box-shadow: 
+        0 10px 25px rgba(220, 38, 38, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced Button Hover Effects */
+button.bg-gradient-to-r {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button.bg-gradient-to-r::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button.bg-gradient-to-r:hover::before {
+    left: 100%;
+}
+
+/* Enhanced Sticky Date Selector */
+.sticky {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+/* Enhanced Availability Indicators */
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    filter: drop-shadow(0 0 6px currentColor);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.1);
+    }
+}
+
+/* Enhanced Trailer Dialog Styles */
+:host ::ng-deep .enhanced-trailer-dialog {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+:host ::ng-deep .enhanced-trailer-dialog .p-dialog-header {
+    display: none;
+}
+
+:host ::ng-deep .enhanced-trailer-dialog .p-dialog-content {
+    background: transparent;
+    padding: 0;
+    border: none;
+    border-radius: 12px;
     overflow: hidden;
 }
 
-:host ::ng-deep .trailer-dialog .p-dialog-header {
-    @apply hidden;
+:host ::ng-deep .enhanced-trailer-dialog .p-dialog-mask {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.8);
 }
 
-:host ::ng-deep .trailer-dialog .p-dialog-content {
-    @apply bg-gray-900/90 p-0 border-none;
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 768px) {
+    .sticky {
+        margin-left: -1.5rem;
+        margin-right: -1.5rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+    
+    .group:hover {
+        transform: translateY(-2px) scale(1.01);
+    }
 }
 
-:host ::ng-deep .trailer-dialog .p-dialog-mask {
-    @apply backdrop-blur-sm;
+@media (max-width: 640px) {
+    .line-clamp-4 {
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+    }
+    
+    .text-4xl {
+        font-size: 2rem;
+    }
+    
+    .lg\\:text-5xl {
+        font-size: 2.5rem;
+    }
+}
+
+/* Enhanced Focus States for Accessibility */
+button:focus-visible,
+.cursor-pointer:focus-visible {
+    outline: 2px solid #dc2626;
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+}
+
+/* Enhanced Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .group:hover {
+        transform: translateY(-1px);
+    }
+    
+    .animate-pulse {
+        animation: none;
+    }
+}
+
+/* Enhanced High Contrast Mode */
+@media (prefers-contrast: high) {
+    .backdrop-blur-sm,
+    .backdrop-blur-md,
+    .backdrop-blur-lg {
+        background: rgba(0, 0, 0, 0.9) !important;
+    }
+    
+    .border {
+        border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+    
+    .text-gray-300,
+    .text-gray-400 {
+        color: #e5e7eb !important;
+    }
+}
+
+/* Enhanced Typography */
+.font-black {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: -0.025em;
+}
+
+.tracking-wider {
+    letter-spacing: 0.05em;
+}
+
+/* Enhanced Shadow Effects */
+.shadow-xl {
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04),
+        0 0 20px rgba(220, 38, 38, 0.05);
+}
+
+.shadow-2xl {
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.25),
+        0 0 30px rgba(220, 38, 38, 0.1);
+}
+
+/* Enhanced Gradient Animations */
+.bg-gradient-to-r {
+    background-size: 200% 200%;
+    animation: gradientFlow 3s ease infinite;
+}
+
+@keyframes gradientFlow {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Enhanced Scroll Behavior */
+.overflow-x-auto {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Enhanced Interactive States */
+.cursor-pointer:hover {
+    cursor: pointer;
+}
+
+.transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+}
+
+/* Enhanced Card Hover Effects */
+.hover\\:-translate-y-1:hover {
+    transform: translateY(-4px);
+}
+
+.hover\\:scale-105:hover {
+    transform: scale(1.05);
+}
+
+.hover\\:scale-110:hover {
+    transform: scale(1.1);
+}
+
+/* Enhanced Border Animations */
+.group .absolute.bottom-0 {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group:hover .absolute.bottom-0 {
+    transform: scaleX(1);
+}
+
+/* Enhanced Loading Dots Animation */
+.animate-pulse[style*="animation-delay"] {
+    animation-fill-mode: both;
+}
+
+/* Dark Mode Optimizations */
+@media (prefers-color-scheme: dark) {
+    .bg-gradient-to-b {
+        background: linear-gradient(to bottom, #111827, #000000);
+    }
+}
+
+/* Enhanced Accessibility */
+@media (prefers-reduced-motion: no-preference) {
+    .scroll-smooth {
+        scroll-behavior: smooth;
+    }
+}
+
+/* Custom Scrollbar for Container */
+.container {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(220, 38, 38, 0.5) transparent;
+}
+
+.container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.container::-webkit-scrollbar-thumb {
+    background: rgba(220, 38, 38, 0.5);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+    background: rgba(220, 38, 38, 0.7);
 }
 

@@ -1,6 +1,6 @@
 <!-- Enhanced Responsive Navbar with Homepage Alignment -->
 <nav
-	class="fixed w-full z-50 top-0 left-0 transition-all duration-500 ease-in-out"
+	class="fixed w-full z-[9998] top-0 left-0 transition-all duration-500 ease-in-out"
 	[class]="
 		scrolled
 			? 'bg-black/95 backdrop-blur-sm shadow-lg border-b border-gray-800/50'
@@ -120,21 +120,13 @@
 
 	<!-- Enhanced Mobile Menu Overlay -->
 	<div
-		class="md:hidden fixed inset-0 z-40 transition-all duration-300"
+		class="md:hidden fixed inset-0 z-[9999] transition-all duration-300"
 		[class.block]="isMenuOpen"
 		[class.hidden]="!isMenuOpen"
 	>
-		<!-- Enhanced Backdrop with Blur -->
+		<!-- Enhanced Mobile Menu Panel with Full Coverage -->
 		<div
-			class="menu-backdrop absolute inset-0 bg-black/95 backdrop-blur-md transition-opacity duration-300"
-			[class.opacity-100]="isMenuOpen"
-			[class.opacity-0]="!isMenuOpen"
-			(click)="closeMenu()"
-		></div>
-
-		<!-- Enhanced Mobile Menu Panel -->
-		<div
-			class="mobile-menu-panel fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-lg border-l border-red-500/30 shadow-2xl transition-all duration-500 ease-out"
+			class="mobile-menu-panel fixed top-0 right-0 h-full w-full bg-black shadow-2xl transition-all duration-500 ease-out z-[9999]"
 			[class.translate-x-0]="isMenuOpen"
 			[class.translate-x-full]="!isMenuOpen"
 		>
