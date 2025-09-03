@@ -45,6 +45,9 @@ import {
 	ClientDebitSuccessDTO,
 } from '../../../../core/dataservice/payment-settlement/payment-settlement.interface';
 import { PaymentSettlementDataService } from '../../../../core/dataservice/payment-settlement/payment-settlement.dataservice';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { InputGroupModule } from 'primeng/inputgroup';
 
 interface SelectedSeat extends Seat {
 	price: number;
@@ -64,6 +67,9 @@ interface SelectedSeat extends Seat {
 		ButtonModule,
 		CardModule,
 		InputTextModule,
+		InputNumberModule,
+		InputGroupModule,
+		InputGroupAddonModule,
 		ProgressSpinnerModule,
 		DialogModule,
 		ChipModule,
@@ -150,7 +156,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
 				'',
 				[Validators.required, Validators.pattern(/^[0-9]{8}$/)],
 			],
-			email: ['', [Validators.required, Validators.email]],
 		});
 
 		this.paymentForm = this.fb.group({
@@ -347,7 +352,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
 		const updateUserDetailsDto: UpdateUserDetailsDto = {
 			name: this.customerForm.get('customerName')?.value,
 			phoneNumber: this.customerForm.get('phoneNumber')?.value,
-			email: this.customerForm.get('email')?.value,
 		};
 
 		this.bookingDataService

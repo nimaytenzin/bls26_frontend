@@ -64,7 +64,7 @@
 				class="space-y-6"
 				*ngIf="!updatingCustomerInfo && !initializingPayment"
 			>
-				<div class="grid md:grid-cols-2 gap-6">
+				<div class="space-y-6">
 					<div class="field">
 						<label
 							for="name"
@@ -91,52 +91,33 @@
 
 					<div class="field">
 						<label
-							for="email"
+							for="phone"
 							class="block text-sm font-medium mb-2 text-gray-700"
-							>Email Address</label
+							>Phone Number</label
 						>
-						<input
-							pInputText
-							id="email"
-							formControlName="email"
-							placeholder="Enter your email"
-							fluid
-						/>
+						<p-inputGroup>
+							<p-inputGroupAddon>+975</p-inputGroupAddon>
+							<p-inputNumber
+								inputId="phone"
+								formControlName="phoneNumber"
+								placeholder="17123456"
+								[maxlength]="8"
+								[useGrouping]="false"
+								[showButtons]="false"
+								fluid
+								inputmode="numeric"
+							></p-inputNumber>
+						</p-inputGroup>
 						<small
 							*ngIf="
-								customerForm.get('email')?.invalid &&
-								customerForm.get('email')?.touched
+								customerForm.get('phoneNumber')?.invalid &&
+								customerForm.get('phoneNumber')?.touched
 							"
 							class="text-red-600 text-xs mt-1 block"
 						>
-							Please enter a valid email address
+							Please enter a valid 8-digit phone number
 						</small>
 					</div>
-				</div>
-
-				<div class="field">
-					<label
-						for="phone"
-						class="block text-sm font-medium mb-2 text-gray-700"
-						>Phone Number</label
-					>
-					<input
-						pInputText
-						id="phone"
-						formControlName="phoneNumber"
-						placeholder="Enter your phone number"
-						maxlength="8"
-						fluid
-					/>
-					<small
-						*ngIf="
-							customerForm.get('phone')?.invalid &&
-							customerForm.get('phone')?.touched
-						"
-						class="text-red-600 text-xs mt-1 block"
-					>
-						Please enter a valid 8-digit phone number
-					</small>
 				</div>
 
 				<div class="flex justify-end pt-4">

@@ -183,7 +183,6 @@ export interface SeatSelectionDto {
 
 export interface UpdateUserDetailsDto {
 	name: string;
-	email: string;
 	phoneNumber: string;
 	notes?: string;
 }

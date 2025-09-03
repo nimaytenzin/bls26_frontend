@@ -114,19 +114,6 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 	hallLayout: (SelectedSeat | null)[][] = [];
 	selectedSeats: SelectedSeat[] = [];
 
-	// Enhanced UI Features for Mobile-First Design
-	zoomLevel: number = 100;
-	panOffset = { x: 0, y: 0 };
-	miniMapOffset = { x: 0, y: 0 };
-	viewportIndicator = { x: 0, y: 0, width: 20, height: 15 };
-	seatContainerHeight = '70vh';
-
-	// Touch and gesture support
-	private lastTouchDistance: number = 0;
-	private isPanning: boolean = false;
-	private lastPanPoint = { x: 0, y: 0 };
-	private initialPanOffset = { x: 0, y: 0 };
-
 	// Route parameters
 	screeningId: number = 0;
 
@@ -200,7 +187,6 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 				'',
 				[Validators.required, Validators.pattern(/^[0-9]{8}$/)],
 			],
-			email: ['', [Validators.required, Validators.email]],
 		});
 
 		this.paymentForm = this.fb.group({
@@ -237,9 +223,6 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 				this.loading = false;
 			}
 		});
-
-		// Initialize enhanced mobile features
-		this.initializeEnhancedFeatures();
 	}
 
 	ngOnDestroy(): void {
@@ -953,7 +936,7 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 	/**
 	 * Clear all current seat selections
 	 */
-	clearAllSelections(): void {
+	private clearAllSelections(): void {
 		console.log('Clearing all seat selections');
 
 		// Update each selected seat
@@ -1456,6 +1439,15 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 			closable: false,
 			dismissableMask: false,
 			data: bookingData,
+			width: '100vw',
+			height: '100vh',
+			contentStyle: {
+				'max-height': '100vh',
+				'overflow-y': 'auto',
+				padding: '0',
+				'border-radius': '0',
+			},
+			styleClass: 'payment-modal-mobile',
 		});
 
 		// Listen for booking completion (recursive handling)
@@ -1498,234 +1490,5 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 			}
 			this.processing = false;
 		});
-	}
-
-	// Enhanced UI Methods for Mobile-First Design
-
-	/**
-	 * Zoom in on the seat map
-	 */
-	zoomIn(): void {
-		if (this.zoomLevel < 200) {
-			this.zoomLevel = Math.min(200, this.zoomLevel + 25);
-			this.updateViewportIndicator();
-		}
-	}
-
-	/**
-	 * Zoom out on the seat map
-	 */
-	zoomOut(): void {
-		if (this.zoomLevel > 50) {
-			this.zoomLevel = Math.max(50, this.zoomLevel - 25);
-			this.updateViewportIndicator();
-		}
-	}
-
-	/**
-	 * Get CSS class for mini map seats
-	 */
-	getMiniSeatClass(seat: SelectedSeat): string {
-		const baseClass = 'w-full h-full rounded';
-
-		switch (seat.status) {
-			case 'selected':
-				return `${baseClass} bg-green-500`;
-			case 'booked':
-				return `${baseClass} bg-gray-400 opacity-60`;
-			default:
-				return `${baseClass} bg-blue-500`;
-		}
-	}
-
-	/**
-	 * Focus on a specific seat in the main view
-	 */
-	focusOnSeat(rowIndex: number, colIndex: number): void {
-		// Calculate the position to center the seat in the viewport
-		const seatSize = 48; // 12 * 4 (3rem = 48px)
-		const containerPadding = 24; // 6 * 4 (1.5rem = 24px)
-
-		// Approximate position calculation
-		const targetX = -(colIndex * (seatSize + 8) - window.innerWidth / 2);
-		const targetY = -(rowIndex * (seatSize + 12) - window.innerHeight / 3);
-
-		this.panOffset = {
-			x: Math.max(
-				Math.min(targetX, 0),
-				-(this.getColumns().length * (seatSize + 8))
-			),
-			y: Math.max(
-				Math.min(targetY, 0),
-				-(this.getRows().length * (seatSize + 12))
-			),
-		};
-
-		this.updateViewportIndicator();
-	}
-
-	/**
-	 * Get animation class for seat based on state
-	 */
-	getSeatAnimationClass(seat: SelectedSeat): string {
-		switch (seat.status) {
-			case 'selected':
-				return 'animate-pulse-slow seat-selected';
-			case 'booked':
-				return 'seat-disabled';
-			default:
-				return 'seat-available hover:scale-110';
-		}
-	}
-
-	/**
-	 * Touch gesture handlers for mobile interaction
-	 */
-	onTouchStart(event: TouchEvent): void {
-		if (event.touches.length === 1) {
-			// Single touch - start panning
-			this.isPanning = true;
-			this.lastPanPoint = {
-				x: event.touches[0].clientX,
-				y: event.touches[0].clientY,
-			};
-			this.initialPanOffset = { ...this.panOffset };
-		} else if (event.touches.length === 2) {
-			// Multi-touch - prepare for zoom
-			const touch1 = event.touches[0];
-			const touch2 = event.touches[1];
-			this.lastTouchDistance = Math.sqrt(
-				Math.pow(touch2.clientX - touch1.clientX, 2) +
-					Math.pow(touch2.clientY - touch1.clientY, 2)
-			);
-		}
-		event.preventDefault();
-	}
-
-	onTouchMove(event: TouchEvent): void {
-		if (event.touches.length === 1 && this.isPanning) {
-			// Single touch - pan
-			const deltaX = event.touches[0].clientX - this.lastPanPoint.x;
-			const deltaY = event.touches[0].clientY - this.lastPanPoint.y;
-
-			this.panOffset = {
-				x: this.initialPanOffset.x + deltaX,
-				y: this.initialPanOffset.y + deltaY,
-			};
-
-			this.constrainPanOffset();
-			this.updateViewportIndicator();
-		} else if (event.touches.length === 2) {
-			// Multi-touch - zoom
-			const touch1 = event.touches[0];
-			const touch2 = event.touches[1];
-			const currentDistance = Math.sqrt(
-				Math.pow(touch2.clientX - touch1.clientX, 2) +
-					Math.pow(touch2.clientY - touch1.clientY, 2)
-			);
-
-			if (this.lastTouchDistance > 0) {
-				const scale = currentDistance / this.lastTouchDistance;
-				const newZoomLevel = this.zoomLevel * scale;
-
-				if (newZoomLevel >= 50 && newZoomLevel <= 200) {
-					this.zoomLevel = newZoomLevel;
-					this.updateViewportIndicator();
-				}
-			}
-
-			this.lastTouchDistance = currentDistance;
-		}
-		event.preventDefault();
-	}
-
-	onTouchEnd(event: TouchEvent): void {
-		this.isPanning = false;
-		this.lastTouchDistance = 0;
-		event.preventDefault();
-	}
-
-	/**
-	 * Mouse wheel zoom handler
-	 */
-	onWheel(event: WheelEvent): void {
-		event.preventDefault();
-
-		const zoomDelta = event.deltaY > 0 ? -10 : 10;
-		const newZoomLevel = this.zoomLevel + zoomDelta;
-
-		if (newZoomLevel >= 50 && newZoomLevel <= 200) {
-			this.zoomLevel = newZoomLevel;
-			this.updateViewportIndicator();
-		}
-	}
-
-	/**
-	 * Constrain pan offset to prevent over-panning
-	 */
-	private constrainPanOffset(): void {
-		const maxPanX = 0;
-		const minPanX = -(
-			this.getColumns().length * 56 * (this.zoomLevel / 100) -
-			window.innerWidth
-		);
-		const maxPanY = 0;
-		const minPanY = -(
-			this.getRows().length * 56 * (this.zoomLevel / 100) -
-			window.innerHeight
-		);
-
-		this.panOffset.x = Math.max(Math.min(this.panOffset.x, maxPanX), minPanX);
-		this.panOffset.y = Math.max(Math.min(this.panOffset.y, maxPanY), minPanY);
-	}
-
-	/**
-	 * Update viewport indicator for mini map
-	 */
-	private updateViewportIndicator(): void {
-		// Calculate viewport position relative to the full theater
-		const containerWidth = this.getColumns().length * 16; // Mini map scale
-		const containerHeight = this.getRows().length * 16;
-
-		// Calculate visible area
-		const visibleWidth = Math.min(containerWidth, 96); // Mini map container width
-		const visibleHeight = Math.min(containerHeight, 96); // Mini map container height
-
-		this.viewportIndicator = {
-			x: (Math.abs(this.panOffset.x) / (this.zoomLevel / 100)) * 0.15,
-			y: (Math.abs(this.panOffset.y) / (this.zoomLevel / 100)) * 0.15,
-			width: visibleWidth / (this.zoomLevel / 100),
-			height: visibleHeight / (this.zoomLevel / 100),
-		};
-	}
-
-	/**
-	 * Initialize component with enhanced mobile features
-	 */
-	private initializeEnhancedFeatures(): void {
-		// Set responsive container height
-		this.updateContainerHeight();
-
-		// Initialize viewport indicator
-		this.updateViewportIndicator();
-
-		// Add window resize listener
-		window.addEventListener('resize', () => {
-			this.updateContainerHeight();
-			this.updateViewportIndicator();
-		});
-	}
-
-	/**
-	 * Update container height based on device
-	 */
-	private updateContainerHeight(): void {
-		if (window.innerWidth < 768) {
-			// Mobile
-			this.seatContainerHeight = '60vh';
-		} else {
-			// Desktop
-			this.seatContainerHeight = '70vh';
-		}
 	}
 }
