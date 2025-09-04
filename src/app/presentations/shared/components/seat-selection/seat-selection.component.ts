@@ -163,12 +163,10 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 	 */
 	private initializeCustomerForm(): void {
 		this.customerForm = this.formBuilder.group({
-			customerName: ['', [Validators.required, Validators.minLength(2)]],
 			customerPhoneNumber: [
 				'',
 				[Validators.required, Validators.pattern(/^\d{8}$/)],
 			],
-			customerEmail: ['', [Validators.email]],
 			paymentMethod: ['', [Validators.required]],
 			notes: ['', [Validators.maxLength(500)]],
 		});
@@ -826,6 +824,7 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 	 */
 	submitCustomerDetails(): void {
 		if (this.customerForm.invalid) {
+			console.log("there is some error")
 			this.markFormGroupTouched(this.customerForm);
 			this.messageService.add({
 				severity: 'warn',
@@ -834,6 +833,8 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 			});
 			return;
 		}
+
+		console.log("making booking");
 
 		this.createBooking();
 	}
