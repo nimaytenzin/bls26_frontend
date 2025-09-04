@@ -178,7 +178,7 @@ export class CounterStaffSellTicketsComponent implements OnInit, OnDestroy {
 				return GETMEDIAURL(poster.uri);
 			}
 		}
-		return 'assets/images/default-poster.png';
+		return '/images/default-poster.png';
 	}
 
 	/**
