@@ -2,6 +2,7 @@ import {
 	Component,
 	OnInit,
 	OnDestroy,
+	AfterViewInit,
 	ChangeDetectorRef,
 	ViewChild,
 	ElementRef,
@@ -93,7 +94,9 @@ interface SelectedSeat extends Seat {
 	],
 	providers: [MessageService, ConfirmationService, DialogService],
 })
-export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
+export class PublicSelectSeatsComponent
+	implements OnInit, AfterViewInit, OnDestroy
+{
 	private destroy$ = new Subject<void>();
 
 	@ViewChild('seatViewport') seatViewport!: ElementRef;
@@ -280,6 +283,18 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 				this.loading = false;
 			}
 		});
+
+		// Ensure scroll position is reset when component initializes
+		setTimeout(() => {
+			this.resetScrollToTop();
+		}, 500);
+	}
+
+	ngAfterViewInit(): void {
+		// Ensure the viewport starts at the top after view initialization
+		setTimeout(() => {
+			this.resetScrollToTop();
+		}, 200);
 	}
 
 	ngOnDestroy(): void {
@@ -408,6 +423,9 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 					);
 					this.generateHallLayout();
 					this.loading = false;
+
+					// Reset scroll position to top after layout is ready
+					this.resetScrollToTop();
 
 					// Start periodic refresh of occupied seats
 					this.startPeriodicRefresh();
@@ -1591,6 +1609,19 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 			viewport.scrollTop = 0;
 			viewport.scrollLeft = 0;
 		}
+	}
+
+	/**
+	 * Reset scroll position to top-left after layout initialization
+	 */
+	private resetScrollToTop(): void {
+		setTimeout(() => {
+			if (this.seatViewport && this.seatViewport.nativeElement) {
+				const viewport = this.seatViewport.nativeElement;
+				viewport.scrollTop = 0;
+				viewport.scrollLeft = 0;
+			}
+		}, 100); // Small delay to ensure DOM is fully rendered
 	}
 
 	// Wheel zoom support for desktop

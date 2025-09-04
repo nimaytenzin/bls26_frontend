@@ -8,10 +8,12 @@
     background: #1f2937;
     scrollbar-width: thin;
     scrollbar-color: #4b5563 #1f2937;
-    scroll-behavior: smooth;
+    scroll-behavior: auto; /* Changed from smooth to auto to prevent unwanted scroll animations */
     cursor: grab;
     touch-action: pan-x pan-y;
     -webkit-overflow-scrolling: touch;
+    /* Prevent auto-scroll on load */
+    scroll-snap-type: none;
 }
 
 .viewport-container:active {
