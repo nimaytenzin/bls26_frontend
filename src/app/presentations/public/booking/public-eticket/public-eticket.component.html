@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-black">
+<div class="mx-auto flex flex-col justify-center w-full">
 	<!-- Loading State -->
 	<div *ngIf="loading" class="flex items-center justify-center min-h-screen">
 		<div class="text-center">
@@ -33,36 +33,36 @@
 	</div>
 
 	<!-- E-Ticket Content -->
-	<div
-		*ngIf="!loading && !error && bookingData"
-		class="container mx-auto px-4 py-8"
-	>
-		<!-- Header Actions -->
-		<div class="flex justify-between items-center mb-8">
-			<div class="flex items-center gap-2">
-				<h1 class="text-white text-2xl font-bold">Your E-Ticket</h1>
-			</div>
-			<div class="flex gap-3">
-				<button
-					pButton
-					icon="pi pi-share-alt"
-					label="Share"
-					(click)="shareTicket()"
-				></button>
-				<button
-					pButton
-					icon="pi pi-download"
-					label="Download"
-					(click)="downloadTicket()"
-				></button>
-			</div>
+	<div *ngIf="!loading && !error && bookingData" class="mx-auto px-4 py-8">
+		<!-- Header Actions (fixed, absolute top right, always visible) -->
+		<div
+			class="fixed top-6 left-1/2 transform -translate-x-1/2 flex gap-3 z-50 g w-auto px-2"
+			style="max-width: 320px"
+		>
+			<button
+				pButton
+				icon="pi pi-download"
+				label="Download"
+				(click)="downloadTicket()"
+				size="small"
+				class="p-button p-button-success shadow-lg"
+			></button>
 		</div>
+		<style>
+			@media (max-width: 640px) {
+				.fixed.left-1\/2 {
+					left: 0 !important;
+					transform: none !important;
+				}
+			}
+		</style>
 
 		<!-- Main E-Ticket Card -->
-		<div class="max-w-3xl mx-auto rounded-3xl" id="eticket-card">
-			<div
-				class="bg-white/95 border border-white backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden"
-			>
+		<div
+			class="max-w-3xl min-h-screen flex flex-col justify-center"
+			id="eticket-card"
+		>
+			<div class="bg-white/95 border backdrop-blur-xl flex flex-col h-full">
 				<!-- Ticket Header -->
 
 				<div class="relative">
@@ -111,39 +111,11 @@
 							</div>
 						</div>
 					</div>
-					<img [src]="getMovieImage(bookingData.screening!.movie!)" alt="" />
-				</div>
-
-				<!-- CUTTER -->
-				<div class="relative flex justify-between -mt-[5rem] z-10">
-					<!-- Left cutter circle -->
-					<div
-						class="w-[10rem] h-[10rem] rounded-full bg-black -ml-[5rem] relative"
-					>
-						<div
-							class="absolute inset-2 rounded-full border-2 border-dashed border-gray-400 opacity-30"
-						></div>
-					</div>
-
-					<!-- Perforated line in the middle -->
-					<div
-						class="absolute top-1/2 left-0 right-0 h-px transform -translate-y-1/2"
-					>
-						<div class="flex justify-center items-center h-full">
-							<div
-								class="flex-1 border-t-2 border-dashed border-gray-300 mx-20"
-							></div>
-						</div>
-					</div>
-
-					<!-- Right cutter circle -->
-					<div
-						class="w-[10rem] h-[10rem] rounded-full bg-black -mr-[5rem] relative"
-					>
-						<div
-							class="absolute inset-2 rounded-full border-2 border-dashed border-gray-400 opacity-30"
-						></div>
-					</div>
+					<img
+						[src]="getMovieImage(bookingData.screening!.movie!)"
+						class="rounded-xl"
+						alt=""
+					/>
 				</div>
 
 				<!-- QR AND DETAILS -->
@@ -256,14 +228,14 @@
 				</div>
 
 				<!-- Footer -->
-				<div class="w-full pt-0 pb-12">
+				<div class="w-full text-center pt-0 p-6">
 					<p
-						class="text-gray-600 text-sm flex items-center justify-center gap-2"
+						class="text-gray-600 text-sm m-0 flex items-center justify-center gap-2"
 					>
 						<i class="pi pi-check-circle text-green-500"></i>
-						Generated on {{ currentDate | date : "medium" }} • Thank you for
-						choosing our cinema!
+						Generated on {{ currentDate | date : "medium" }}
 					</p>
+					<p class="text-gray-600 text-sm m-0">Thank you</p>
 				</div>
 			</div>
 		</div>

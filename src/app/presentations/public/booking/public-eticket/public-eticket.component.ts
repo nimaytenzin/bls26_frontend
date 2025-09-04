@@ -42,6 +42,7 @@ export class PublicEticketComponent implements OnInit, OnDestroy {
 	// Loading and error states
 	loading = true;
 	error: string | null = null;
+	errorMessage: string = '';
 
 	// Route parameters
 	sessionId: string | null = null;
@@ -52,9 +53,85 @@ export class PublicEticketComponent implements OnInit, OnDestroy {
 
 	// QR Code
 	qrCodeDataURL: string = '';
+	qrCodeData: string = '';
 
 	// Date and time formatting
 	currentDate = new Date();
+	generationTimestamp: Date = new Date();
+
+	// UI computed properties
+	get moviePosterUrl(): string {
+		if (!this.bookingData?.screening?.movie)
+			return 'assets/images/default-movie-poster.jpg';
+		return this.getMovieImage(this.bookingData.screening.movie);
+	}
+	get movieTitle(): string {
+		return this.bookingData?.screening?.movie?.name || '';
+	}
+	get runtime(): string {
+		return this.bookingData?.screening?.movie?.durationMin
+			? `${this.bookingData.screening.movie.durationMin} min`
+			: '';
+	}
+	get genres(): string {
+		return (
+			this.bookingData?.screening?.movie?.genres
+				?.map((g) => g.name)
+				.join(', ') || ''
+		);
+	}
+	get screeningDate(): Date | null {
+		return this.bookingData?.screening?.date
+			? new Date(this.bookingData.screening.date)
+			: null;
+	}
+	get screeningTime(): string {
+		return this.bookingData?.screening?.startTime
+			? this.formatTime(this.bookingData.screening.startTime)
+			: '';
+	}
+	get format(): string {
+		// No format field, fallback to PG rating or language
+		return this.bookingData?.screening?.movie?.pgRating || '';
+	}
+	get audioSubtitle(): string {
+		const audio = this.bookingData?.screening?.audioLanguage?.name || '';
+		const subtitle = this.bookingData?.screening?.subtitleLanguage?.name || '';
+		return [audio, subtitle].filter(Boolean).join(' / ');
+	}
+	get theatreName(): string {
+		return this.bookingData?.screening?.hall?.theatre?.name || '';
+	}
+	get hallName(): string {
+		return this.bookingData?.screening?.hall?.name || '';
+	}
+	get address(): string {
+		return this.bookingData?.screening?.hall?.theatre?.address || '';
+	}
+	get seatNumbers(): string {
+		return (
+			this.bookingData?.bookingSeats
+				?.map((seat: any) => seat.seat?.seatNumber)
+				.join(', ') || ''
+		);
+	}
+	get seatCategories(): string[] {
+		return Array.from(
+			new Set(
+				this.bookingData?.bookingSeats
+					?.map((seat: any) => seat.seat?.category?.name)
+					.filter(Boolean)
+			)
+		);
+	}
+	get bookingRef(): string {
+		return this.bookingData?.uuid || '';
+	}
+	get cinemaInfo(): string {
+		// No info field, fallback to address or name
+		const theatre = this.bookingData?.screening?.hall?.theatre;
+		return theatre ? `${theatre.name}, ${theatre.address}` : '';
+	}
 
 	constructor(
 		private route: ActivatedRoute,
@@ -73,6 +150,7 @@ export class PublicEticketComponent implements OnInit, OnDestroy {
 		if (!this.sessionId || !this.bookingId) {
 			this.error =
 				'Invalid booking link. Missing session or booking information.';
+			this.errorMessage = this.error;
 			this.loading = false;
 			this.showErrorMessage('Invalid booking link');
 			return;
@@ -85,6 +163,34 @@ export class PublicEticketComponent implements OnInit, OnDestroy {
 		this.destroy$.next();
 		this.destroy$.complete();
 	}
+
+	/**
+	 * Load booking data using route parameters
+	 */
+	// ...existing code...
+
+	/**
+	 * Download e-ticket as image
+	 */
+	onDownload(): void {
+		this.downloadTicket();
+	}
+
+	/**
+	 * Share e-ticket
+	 */
+	onShare(): void {
+		this.shareTicket();
+	}
+
+	/**
+	 * Retry loading booking data
+	 */
+	onRetry(): void {
+		this.loadBookingData();
+	}
+
+	// ...existing code...
 
 	/**
 	 * Load booking data using route parameters
@@ -126,7 +232,7 @@ export class PublicEticketComponent implements OnInit, OnDestroy {
 			margin: 2,
 			width: 300, // Larger size for better quality
 			color: {
-				dark: '#6F1C76', // Custom purple color for QR code
+				dark: '#4D42BD', // Custom purple color for QR code
 				light: '#FFFFFF00', // Transparent background
 			},
 		})
