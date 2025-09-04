@@ -151,7 +151,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
 	) {
 		// Initialize forms
 		this.customerForm = this.fb.group({
-			customerName: ['', [Validators.required, Validators.minLength(2)]],
 			phoneNumber: [
 				'',
 				[Validators.required, Validators.pattern(/^[0-9]{8}$/)],

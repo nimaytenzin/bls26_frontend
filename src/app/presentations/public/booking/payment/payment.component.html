@@ -131,44 +131,6 @@
 				class="space-y-4"
 				*ngIf="!updatingCustomerInfo && !initializingPayment"
 			>
-				<!-- Full Name Field -->
-				<div class="space-y-2">
-					<label
-						for="customer-name"
-						class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-					>
-						Full Name <span class="text-red-500" aria-label="required">*</span>
-					</label>
-					<input
-						id="customer-name"
-						pInputText
-						formControlName="customerName"
-						placeholder="Enter your full name"
-						autocomplete="name"
-						aria-describedby="name-error"
-						class="w-full h-12 px-4 text-base rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-						[class.border-red-500]="
-							customerForm.get('customerName')?.invalid &&
-							customerForm.get('customerName')?.touched
-						"
-						[attr.aria-invalid]="
-							customerForm.get('customerName')?.invalid &&
-							customerForm.get('customerName')?.touched
-						"
-					/>
-					<small
-						id="name-error"
-						*ngIf="
-							customerForm.get('customerName')?.invalid &&
-							customerForm.get('customerName')?.touched
-						"
-						class="text-red-500 text-xs"
-						role="alert"
-					>
-						Name is required (minimum 2 characters)
-					</small>
-				</div>
-
 				<!-- Phone Number Field -->
 				<div class="space-y-2">
 					<label
