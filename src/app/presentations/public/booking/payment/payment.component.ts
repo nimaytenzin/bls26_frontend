@@ -972,4 +972,148 @@ export class PaymentComponent implements OnInit, OnDestroy {
 			this.sessionTimer = null;
 		}
 	}
+
+	// Mobile-friendly button methods
+	getSubmitButtonDisabled(): boolean {
+		if (
+			this.processing ||
+			this.updatingCustomerInfo ||
+			this.initializingPayment ||
+			this.sendingAERequest
+		) {
+			return true;
+		}
+
+		switch (this.activeStep) {
+			case 1:
+				return this.customerForm.invalid;
+			case 2:
+				return !this.selectedBank;
+			case 3:
+				return this.paymentForm.get('accountNumber')?.invalid || false;
+			case 4:
+				return this.paymentForm.get('otpCode')?.invalid || false;
+			default:
+				return true;
+		}
+	}
+
+	getSubmitButtonLabel(): string {
+		switch (this.activeStep) {
+			case 1:
+				return 'Continue';
+			case 2:
+				return 'Continue';
+			case 3:
+				return 'Continue';
+			case 4:
+				return 'Complete Payment';
+			default:
+				return 'Continue';
+		}
+	}
+
+	getSubmitButtonIcon(): string {
+		switch (this.activeStep) {
+			case 1:
+				return 'pi-arrow-right';
+			case 2:
+				return 'pi-arrow-right';
+			case 3:
+				return 'pi-arrow-right';
+			case 4:
+				return 'pi-check';
+			default:
+				return 'pi-arrow-right';
+		}
+	}
+
+	handleSubmit(): void {
+		switch (this.activeStep) {
+			case 1:
+				this.submitCustomerForm();
+				break;
+			case 2:
+			case 3:
+				this.goToNextStep();
+				break;
+			case 4:
+				this.verifyOTP();
+				break;
+		}
+	}
+
+	// Utility method for tracking banks in ngFor
+	trackByBank(index: number, bank: PGBank): string {
+		return bank.bankCode;
+	}
+
+	// Enhanced mobile-friendly methods
+	onOtpInput(event: any): void {
+		const value = event.target.value;
+		// Auto-format OTP input - remove non-digits and limit to 6 digits
+		const cleanValue = value.replace(/\D/g, '').slice(0, 6);
+		this.paymentForm.patchValue({ otpCode: cleanValue });
+
+		// Auto-submit when 6 digits are entered
+		if (cleanValue.length === 6) {
+			setTimeout(() => {
+				this.verifyOTP();
+			}, 300);
+		}
+	}
+
+	onPhoneNumberInput(event: any): void {
+		const value = event.target.value;
+		// Auto-format phone number - remove non-digits and limit to 8 digits
+		const cleanValue = value.replace(/\D/g, '').slice(0, 8);
+		this.customerForm.patchValue({ phoneNumber: cleanValue });
+	}
+
+	onAccountNumberInput(event: any): void {
+		const value = event.target.value;
+		// Auto-format account number - remove non-alphanumeric and limit to 20 chars
+		const cleanValue = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+		this.paymentForm.patchValue({ accountNumber: cleanValue });
+	}
+
+	// Get step completion status for progress indicator
+	isStepCompleted(step: number): boolean {
+		switch (step) {
+			case 1:
+				return this.customerForm.valid && this.activeStep > 1;
+			case 2:
+				return !!this.selectedBank && this.activeStep > 2;
+			case 3:
+				return (
+					(this.paymentForm.get('accountNumber')?.valid ?? false) &&
+					this.activeStep > 3
+				);
+			case 4:
+				return (
+					(this.paymentForm.get('otpCode')?.valid ?? false) &&
+					!!this.bookingResponse
+				);
+			default:
+				return false;
+		}
+	}
+
+	// Enhanced error handling
+	getFieldErrorMessage(formGroup: FormGroup, fieldName: string): string {
+		const field = formGroup.get(fieldName);
+		if (field && field.errors && (field.dirty || field.touched)) {
+			if (field.errors['required']) return `${fieldName} is required`;
+			if (field.errors['email']) return 'Please enter a valid email address';
+			if (field.errors['minlength']) return `${fieldName} is too short`;
+			if (field.errors['maxlength']) return `${fieldName} is too long`;
+			if (field.errors['pattern']) {
+				if (fieldName === 'phoneNumber')
+					return 'Please enter a valid 8-digit phone number';
+				if (fieldName === 'otpCode') return 'Please enter a valid 6-digit OTP';
+				return `${fieldName} format is invalid`;
+			}
+		}
+		return '';
+	}
 }
