@@ -1303,15 +1303,6 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 								closable: false,
 								dismissableMask: false,
 								data: bookingData,
-								width: '100vw',
-								height: '100vh',
-								contentStyle: {
-									'max-height': '100vh',
-									'overflow-y': 'auto',
-									padding: '0',
-									'border-radius': '0',
-								},
-								styleClass: 'payment-modal-mobile',
 							});
 
 							// Listen for booking completion
