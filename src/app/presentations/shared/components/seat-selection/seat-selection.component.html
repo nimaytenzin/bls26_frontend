@@ -326,12 +326,12 @@
 							<div class="flex gap-2 flex-wrap">
 								<div *ngFor="let seat of generatedBooking.bookingSeats"
 									class="text-center text-white bg-gray-800 px-2 py-1 rounded-sm">
-									<p class="font-medium">{{ seat.seatNumber }}</p>
+									<p class="font-medium">{{ seat.seat?.seatNumber || seat.seatId }}</p>
 								</div>
 							</div>
 						</div>
 						<div class="flex flex-col items-center space-y-3">
-							<qrcode [qrdata]="1231234" [elementType]="'canvas'" [errorCorrectionLevel]="'H'"
+							<qrcode [qrdata]="generatedBooking.uuid" [elementType]="'canvas'" [errorCorrectionLevel]="'H'"
 								[margin]="4" [colorDark]="'#6F1C76'" [colorLight]="'#ffffff'" cssClass="mx-auto block">
 							</qrcode>
 							<p class="text-gray-500 text-sm">Scan to check in</p>
