@@ -40,7 +40,7 @@ import {
 import { Seat } from '../../../../core/dataservice/seat/seat.interface';
 import { Hall } from '../../../../core/dataservice/hall/hall.interface';
 import { SeatCategory } from '../../../../core/dataservice/seat-category/seat-category.interface';
-import { generateSeatStyle } from '../../../../core/utility/utility.service';
+import { generateSeatStyle, GETMEDIAURL } from '../../../../core/utility/utility.service';
 import { PaymentMode } from '../../../../core/constants/enums';
 import { ScreeningDataService } from '../../../../core/dataservice/screening/screening.dataservice';
 import { Movie } from '../../../../core/dataservice/movie/movie.interface';
@@ -147,6 +147,21 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 		}
 
 		console.log('AUTHETNCTED USER ID', this.getAuthenticatedUserId());
+	}
+
+	getPosterUrl(movie?: Movie): string {
+		console.log("MMovie", movie?.media);
+		if(movie == null ) return '/images/default-poster.png';
+		if (movie.media && movie.media.length > 0) {
+			const poster = movie.media.find(
+				(media: any) =>
+					media.type === 'IMAGE' && media.orientation === 'PORTRAIT'
+			);
+			if (poster) {
+				return GETMEDIAURL(poster.uri);
+			}
+		}
+		return '/images/default-poster.png';
 	}
 
 	getDeviceInformation() {
