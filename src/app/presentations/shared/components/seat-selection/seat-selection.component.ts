@@ -40,7 +40,7 @@ import {
 import { Seat } from '../../../../core/dataservice/seat/seat.interface';
 import { Hall } from '../../../../core/dataservice/hall/hall.interface';
 import { SeatCategory } from '../../../../core/dataservice/seat-category/seat-category.interface';
-import { generateSeatStyle } from '../../../../core/utility/utility.service';
+import { generateSeatStyle, GETMEDIAURL } from '../../../../core/utility/utility.service';
 import { PaymentMode } from '../../../../core/constants/enums';
 import { ScreeningDataService } from '../../../../core/dataservice/screening/screening.dataservice';
 import { Movie } from '../../../../core/dataservice/movie/movie.interface';
@@ -51,6 +51,7 @@ import {
 	UserAgentService,
 } from '../../../../core/utility/useragent.service';
 import { AuthService } from '../../../../core/dataservice/auth/auth.service';
+import { QRCodeComponent } from 'angularx-qrcode';
 
 export interface SelectedSeat extends Seat {
 	price: number;
@@ -71,7 +72,7 @@ export interface SeatSelectionEvents {
 	templateUrl: './seat-selection.component.html',
 	styleUrls: ['./seat-selection.component.scss'],
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, FormsModule, PrimeNgModules],
+	imports: [CommonModule, ReactiveFormsModule, FormsModule, PrimeNgModules,QRCodeComponent],
 	providers: [MessageService, ConfirmationService],
 })
 export class SeatSelectionComponent implements OnInit, OnDestroy {
@@ -148,6 +149,21 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 		console.log('AUTHETNCTED USER ID', this.getAuthenticatedUserId());
 	}
 
+	getPosterUrl(movie?: Movie): string {
+		console.log("MMovie", movie?.media);
+		if(movie == null ) return '/images/default-poster.png';
+		if (movie.media && movie.media.length > 0) {
+			const poster = movie.media.find(
+				(media: any) =>
+					media.type === 'IMAGE' && media.orientation === 'PORTRAIT'
+			);
+			if (poster) {
+				return GETMEDIAURL(poster.uri);
+			}
+		}
+		return '/images/default-poster.png';
+	}
+
 	getDeviceInformation() {
 		this.userAgentService.getDeviceInfo().then((info) => {
 			this.deviceInformation = info;
@@ -163,12 +179,10 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 	 */
 	private initializeCustomerForm(): void {
 		this.customerForm = this.formBuilder.group({
-			customerName: ['', [Validators.required, Validators.minLength(2)]],
 			customerPhoneNumber: [
 				'',
 				[Validators.required, Validators.pattern(/^\d{8}$/)],
 			],
-			customerEmail: ['', [Validators.email]],
 			paymentMethod: ['', [Validators.required]],
 			notes: ['', [Validators.maxLength(500)]],
 		});
@@ -826,6 +840,7 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 	 */
 	submitCustomerDetails(): void {
 		if (this.customerForm.invalid) {
+			console.log("there is some error")
 			this.markFormGroupTouched(this.customerForm);
 			this.messageService.add({
 				severity: 'warn',
@@ -834,6 +849,8 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 			});
 			return;
 		}
+
+		console.log("making booking");
 
 		this.createBooking();
 	}
@@ -903,10 +920,113 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 	 * Print e-ticket
 	 */
 	printTicket(): void {
-		window.print();
+		const printable = document.getElementById('printable-ticket');
+		if (!printable) {
+			console.warn('Printable element not found');
+			window.print();
+			return;
+		}
+
+		// Convert any canvas (QR) to data URL first
+		const originalCanvas = printable.querySelector('canvas');
+		let qrDataUrl: string | null = null;
+		if (originalCanvas && (originalCanvas as HTMLCanvasElement).toDataURL) {
+			try {
+				qrDataUrl = (originalCanvas as HTMLCanvasElement).toDataURL('image/png');
+			} catch (e) {
+				console.warn('Unable to read canvas data', e);
+			}
+		}
+
+		// Clone the printable area
+		const clone = printable.cloneNode(true) as HTMLElement;
+
+		// Replace any canvas in clone with img using the captured data URL
+		if (qrDataUrl) {
+			const c = clone.querySelector('canvas');
+			if (c && c.parentElement) {
+				const img = document.createElement('img');
+				img.src = qrDataUrl;
+				img.alt = 'QR Code';
+				img.style.maxWidth = '180px';
+				img.style.height = 'auto';
+				c.parentElement.replaceChild(img, c);
+			}
+		}
+
+		// Create hidden iframe to avoid popup blockers
+		const iframe = document.createElement('iframe');
+		iframe.style.position = 'fixed';
+		iframe.style.right = '0';
+		iframe.style.bottom = '0';
+		iframe.style.width = '0';
+		iframe.style.height = '0';
+		iframe.style.border = '0';
+		(document.body || document.documentElement).appendChild(iframe);
+
+		const idoc = iframe.contentDocument || iframe.contentWindow?.document;
+		if (!idoc) {
+			// fallback
+			window.print();
+			return;
+		}
+
+		idoc.open();
+		idoc.write('<!doctype html><html><head><title>Ticket</title>');
+
+		// Copy styles (links and inline styles)
+		document.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
+			const href = (link as HTMLLinkElement).href;
+			// Use absolute href to ensure iframe can load it
+			idoc.write(`<link rel="stylesheet" href="${href}">`);
+		});
+		document.querySelectorAll('style').forEach((style) => {
+			idoc.write(style.outerHTML);
+		});
+
+		idoc.write('</head><body>');
+		idoc.write(clone.outerHTML);
+		idoc.write('</body></html>');
+		idoc.close();
+
+		// Wait for images/styles to load in iframe then print
+		const iframeWindow = iframe.contentWindow as Window | null;
+		const doPrint = () => {
+			try {
+				iframeWindow?.focus();
+				iframeWindow?.print();
+			} catch (e) {
+				console.warn('Print failed', e);
+			}
+			// remove iframe after short delay
+			setTimeout(() => {
+				if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+			}, 500);
+		};
+
+		// If there are images, wait for them to load
+		const imgs = iframe.contentDocument?.images ?? [];
+		if (imgs.length === 0) {
+			// small delay to allow styles to apply
+			setTimeout(doPrint, 200);
+		} else {
+			let loaded = 0;
+			for (let i = 0; i < imgs.length; i++) {
+				const img = imgs[i] as HTMLImageElement;
+				if (img.complete) {
+					loaded++;
+				} else {
+					img.onload = img.onerror = () => {
+						loaded++;
+						if (loaded === imgs.length) doPrint();
+					};
+				}
+			}
+			if (loaded === imgs.length) doPrint();
+		}
 	}
 
-	/**
+		/**
 	 * Start new booking
 	 */
 	startNewBooking(): void {
