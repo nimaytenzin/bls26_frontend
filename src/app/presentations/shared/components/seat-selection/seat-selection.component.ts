@@ -51,6 +51,7 @@ import {
 	UserAgentService,
 } from '../../../../core/utility/useragent.service';
 import { AuthService } from '../../../../core/dataservice/auth/auth.service';
+import { QRCodeComponent } from 'angularx-qrcode';
 
 export interface SelectedSeat extends Seat {
 	price: number;
@@ -71,7 +72,7 @@ export interface SeatSelectionEvents {
 	templateUrl: './seat-selection.component.html',
 	styleUrls: ['./seat-selection.component.scss'],
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, FormsModule, PrimeNgModules],
+	imports: [CommonModule, ReactiveFormsModule, FormsModule, PrimeNgModules,QRCodeComponent],
 	providers: [MessageService, ConfirmationService],
 })
 export class SeatSelectionComponent implements OnInit, OnDestroy {
