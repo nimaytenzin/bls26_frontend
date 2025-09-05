@@ -253,7 +253,7 @@
 							Payment Method <span class="text-red-500">*</span>
 						</label>
 						<p-dropdown id="paymentMethod" formControlName="paymentMethod" [options]="paymentMethods"
-							placeholder="Select payment method" styleClass="w-full" [style]="{ width: '100%' }">
+							placeholder="Select payment method" styleClass="w-full" [style]="{ width: '100%' }" (onChange)="onPaymentMethodChange($event)" >
 						</p-dropdown>
 						<div *ngIf="
 								customerForm.get('paymentMethod')?.invalid &&
@@ -261,6 +261,36 @@
 							" class="text-red-500 text-sm mt-1">
 							Payment method is required
 						</div>
+					</div>
+
+					<div class="mb-6">
+						<p-table [value]="paymentTypes" [dataKey]="'paymentMethod'" [responsiveLayout]="'scroll'" class="bg-white rounded-lg overflow-hidden">
+							<ng-template pTemplate="header">
+								<tr>
+									<th>Method</th>
+									<th>Price</th>
+									<th style="width:120px">Actions</th>
+								</tr>
+							</ng-template>
+
+							<ng-template pTemplate="body" let-paymentType>
+								<tr>
+									<td>{{ paymentType.paymentMethod }}</td>
+									<td>{{ formatCurrency(paymentType.amount) }}</td>
+									<td>
+										<button pButton type="button" icon="pi pi-trash" class="p-button-text p-button-danger"(click)="removePaymentType(paymentType)" ></button>
+									</td>
+								</tr>
+							</ng-template>
+
+							<ng-template pTemplate="footer">
+								<tr>
+									<td colspan="2" class="text-right font-semibold">Total</td>
+									<td class="font-semibold">{{ formatCurrency(getTotalAmount()) }}</td>
+									<td></td>
+								</tr>
+							</ng-template>
+						</p-table>
 					</div>
 
 					<div>

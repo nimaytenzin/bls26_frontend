@@ -67,12 +67,17 @@ export interface SeatSelectionEvents {
 	onSeatConflict: (seat: SelectedSeat) => void;
 }
 
+export interface PaymentType {
+	paymentMethod: string;
+	amount: number;
+}
+
 @Component({
 	selector: 'app-seat-selection',
 	templateUrl: './seat-selection.component.html',
 	styleUrls: ['./seat-selection.component.scss'],
 	standalone: true,
-	imports: [CommonModule, ReactiveFormsModule, FormsModule, PrimeNgModules,QRCodeComponent],
+	imports: [CommonModule, ReactiveFormsModule, FormsModule, PrimeNgModules, QRCodeComponent],
 	providers: [MessageService, ConfirmationService],
 })
 export class SeatSelectionComponent implements OnInit, OnDestroy {
@@ -122,6 +127,7 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 
 	//device information
 	deviceInformation: DeviceInfo | null = null;
+	paymentTypes: PaymentType[] = [];
 
 	constructor(
 		private bookingService: BookingDataService,
@@ -151,7 +157,7 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 
 	getPosterUrl(movie?: Movie): string {
 		console.log("MMovie", movie?.media);
-		if(movie == null ) return '/images/default-poster.png';
+		if (movie == null) return '/images/default-poster.png';
 		if (movie.media && movie.media.length > 0) {
 			const poster = movie.media.find(
 				(media: any) =>
@@ -300,18 +306,18 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 		if (occupiedSeatResponse.sessionSeats) {
 			this.sessionSeats = occupiedSeatResponse.sessionSeats.map(
 				(seat) =>
-					({
-						seatId: seat.seatId,
-						sessionId: this.sessionId,
-						selectedAt: new Date().toISOString(),
-						expiresAt: new Date(
-							Date.now() + this.config.sessionTimeoutSeconds * 1000
-						).toISOString(),
-						userMetadata: {
-							userAgent: navigator.userAgent,
-							ipAddress: '',
-						},
-					} as SessionSeatInfo)
+				({
+					seatId: seat.seatId,
+					sessionId: this.sessionId,
+					selectedAt: new Date().toISOString(),
+					expiresAt: new Date(
+						Date.now() + this.config.sessionTimeoutSeconds * 1000
+					).toISOString(),
+					userMetadata: {
+						userAgent: navigator.userAgent,
+						ipAddress: '',
+					},
+				} as SessionSeatInfo)
 			);
 		}
 
@@ -916,6 +922,21 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 			});
 	}
 
+	onPaymentMethodChange(event: any): void {
+		const selectedMethod = event.value;
+		const exists = this.paymentTypes.some((pt) => pt.paymentMethod === selectedMethod);
+		if (exists) {
+			return;
+		}
+		this.paymentTypes.push({ paymentMethod: selectedMethod, amount: this.getTotalAmount() });
+	}
+
+	removePaymentType(paymentMethod: any): void {
+		this.paymentTypes = this.paymentTypes.filter(
+			(pt) => pt.paymentMethod !== paymentMethod.paymentMethod
+		);
+	}
+
 	/**
 	 * Print e-ticket
 	 */
@@ -1026,9 +1047,9 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 		}
 	}
 
-		/**
-	 * Start new booking
-	 */
+	/**
+ * Start new booking
+ */
 	startNewBooking(): void {
 		this.confirmationService.confirm({
 			message:
