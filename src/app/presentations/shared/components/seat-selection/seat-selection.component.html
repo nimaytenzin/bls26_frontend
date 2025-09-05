@@ -278,7 +278,22 @@
 							<ng-template pTemplate="body" let-paymentType>
 								<tr>
 									<td>{{ paymentType.paymentMethod }}</td>
-									<td>{{ formatCurrency(paymentType.amount) }}</td>
+									<td>
+										<p-inputNumber
+											[(ngModel)]="paymentType.amount"
+											[ngModelOptions]="{ standalone: true }"
+											(ngModelChange)="onPaymentAmountChange(paymentType, $event)"
+											[min]="0"
+											[step]="0.01"
+											[mode]="'decimal'"
+											inputId="payment-amount-{{paymentType.paymentMethod}}"
+											styleClass="w-full"
+											[minFractionDigits]="0"
+											[maxFractionDigits]="2"
+											[locale]="'en-US'"
+											[useGrouping]="false">
+										</p-inputNumber>
+									</td>
 									<td>
 										<button pButton type="button" icon="pi pi-trash"
 											class="p-button-text p-button-danger"
@@ -326,7 +341,7 @@
 					</button>
 					<button type="submit"
 						class="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-						[disabled]="bookingLoading">
+						[disabled]="bookingLoading || (getTotalAmount() !== getTotalPaymentMethodAmount())">
 						<p-progressSpinner *ngIf="bookingLoading" strokeWidth="3"
 							[style]="{ width: '16px', height: '16px' }" class="mr-2"></p-progressSpinner>
 						<span *ngIf="!bookingLoading">Create Booking</span>

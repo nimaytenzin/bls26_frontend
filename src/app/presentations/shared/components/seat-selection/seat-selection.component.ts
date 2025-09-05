@@ -928,7 +928,8 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 		if (exists) {
 			return;
 		}
-		this.paymentTypes.push({ paymentMethod: selectedMethod, amount: this.getTotalAmount() });
+		let balanceAmount = this.getTotalAmount() - this.getTotalPaymentMethodAmount();
+		this.paymentTypes.push({ paymentMethod: selectedMethod, amount: balanceAmount });
 	}
 
 	removePaymentType(paymentMethod: any): void {
@@ -939,6 +940,12 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 
 	getTotalPaymentMethodAmount(): number {
 		return this.paymentTypes.reduce((total, pt) => total + pt.amount, 0);
+	}
+	onPaymentAmountChange(paymentType: string, amount:number){
+		const payment = this.paymentTypes.find(pt => pt.paymentMethod === paymentType);
+		if (payment) {
+			payment.amount = amount;
+		}
 	}
 
 	/**
