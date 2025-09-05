@@ -937,6 +937,10 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 		);
 	}
 
+	getTotalPaymentMethodAmount(): number {
+		return this.paymentTypes.reduce((total, pt) => total + pt.amount, 0);
+	}
+
 	/**
 	 * Print e-ticket
 	 */
