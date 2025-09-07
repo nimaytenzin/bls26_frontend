@@ -1,3 +1,4 @@
+import { PaymentType } from '../../../presentations/shared/components';
 import { Screening } from '../screening/screening.interface';
 import { Seat } from '../seat/seat.interface';
 
@@ -75,7 +76,8 @@ export interface CounterStaffCreateBookingDto {
 	seats: BookedSeatDto[];
 	totalAmount: number;
 	notes?: string;
-	paymentMethod?: string;
+	// paymentMethod?: string;
+	paymentMethod?: PaymentType[];
 	bookedBy: number;
 }
 

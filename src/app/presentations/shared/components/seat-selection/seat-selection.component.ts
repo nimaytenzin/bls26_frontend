@@ -884,7 +884,8 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 			email: formValue.customerEmail || '',
 			seats: bookedSeats,
 			totalAmount: totalAmount,
-			paymentMethod: formValue.paymentMethod.toUpperCase(),
+			// paymentMethod: formValue.paymentMethod.toUpperCase(),
+			paymentMethod: this.paymentTypes,
 			notes: formValue.notes || '',
 			bookedBy: this.getAuthenticatedUserId(),
 		};
