@@ -200,6 +200,10 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 		console.log('Generated session ID:', this.sessionId);
 	}
 
+	private resetSessionId(): void {
+		this.sessionService.endSession();
+	}
+
 	ngOnDestroy(): void {
 		this.destroy$.next();
 		this.destroy$.complete();
@@ -1083,6 +1087,8 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 		this.customerForm.reset();
 		this.generatedBooking = null;
 		this.bookingLoading = false;
+		this.resetSessionId();
+		this.generateSessionId();
 	}
 
 	/**
