@@ -435,7 +435,9 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 
 		// Mark occupied seats as booked (both CONFIRMED and active PENDING)
 		occupiedSeatResponse.occupiedSeats.forEach((occupiedSeat) => {
-			this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
+			if (occupiedSeat.seatId !== null) {
+				this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
+			}
 		});
 	}
 
@@ -906,7 +908,9 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 				);
 				if (!isOurSelection) {
 					console.log(`Marking seat ${occupiedSeat.seatId} as booked`);
-					this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
+					if (occupiedSeat.seatId !== null) {
+						this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
+					}
 				} else {
 					console.log(
 						`Seat ${occupiedSeat.seatId} is our selection, keeping as selected`
@@ -1825,8 +1829,8 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 			seat.status === 'available'
 				? 'Available'
 				: seat.status === 'selected'
-				? 'Selected'
-				: 'Occupied';
+					? 'Selected'
+					: 'Occupied';
 		return `Seat ${seat.seatNumber}, ${statusText}, Price ${this.formatCurrency(
 			seat.price
 		)}`;
