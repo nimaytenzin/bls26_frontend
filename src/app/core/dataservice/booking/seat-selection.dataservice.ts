@@ -20,7 +20,7 @@ import {
 export class SeatSelectionDataService {
 	private readonly apiUrl = `${BASEAPI_URL}/seat-selection`;
 
-	constructor(private http: HttpClient) {}
+	constructor(private http: HttpClient) { }
 
 	/**
 	 * Initialize session for seat selection and get occupied seats
@@ -101,6 +101,37 @@ export class SeatSelectionDataService {
 					return throwError(() => error);
 				})
 			);
+	}
+
+	sellExtraSeat(
+		screeningId: number,
+		sessionId: string,
+		deviceType: string,
+		operatingSystem: string,
+		country: string,
+		city: string,
+		bookedBy: number,
+	) {
+		return this.http
+			.post<any>(
+				`${this.apiUrl}/sell-extra-seat`,
+				{
+					screeningId: screeningId,
+					sessionId: sessionId,
+					deviceType: deviceType,
+					operatingSystem: operatingSystem,
+					country: country,
+					city: city,
+					bookedBy: bookedBy,
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error proceeding to payment:', error);
+					return throwError(() => error);
+				})
+			);
+
 	}
 
 	/**

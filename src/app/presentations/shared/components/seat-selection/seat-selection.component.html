@@ -31,6 +31,10 @@
 						<p class="mb-1">Hall</p>
 						<p class="font-medium">{{ screening.hall.name }}</p>
 					</div>
+					<div>
+						<p class="mb-1">Seats</p>
+						<p class="font-medium">{{ noBookedSeats}}/{{totalSeats}} booked</p>
+					</div>
 				</div>
 			</div>
 
@@ -41,6 +45,17 @@
 					<span *ngFor="let seat of selectedSeats"
 						class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm font-medium">
 						{{ seat.seatNumber }}
+					</span>
+				</div>
+				<p class="text-xl font-bold">{{ formatCurrency(getTotalAmount()) }}</p>
+
+				<p  class="text-xl font-bold">{{ formatCurrency(totalAmountExtraSeats) }}</p>
+			</div>
+			<div *ngIf="totalAmountExtraSeats !== 0" class="mk-6 text-right">
+				<p class="text-blue-200 mb-2">Selected Seats</p>
+				<div class="flex flex-wrap justify-end gap-2 mb-2">
+					<span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm font-medium">
+						Extra Seat
 					</span>
 				</div>
 				<p class="text-xl font-bold">{{ formatCurrency(getTotalAmount()) }}</p>
@@ -123,6 +138,19 @@
 									class="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
 									(click)="proceedToCustomerDetails()">
 									Continue to Customer Details
+									<i class="pi pi-arrow-right ml-2"></i>
+								</button>
+								<!-- <button type="button"
+									*ngIf="totalSeats != null && noBookedSeats != null && totalSeats === noBookedSeats"
+									class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+									(click)="sellExtraTicket()">
+									Sell Extra tickets
+									<i class="pi pi-arrow-right ml-2"></i>
+								</button> -->
+								<button type="button"
+									class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+									(click)="sellExtraTicket()">
+									Sell Extra tickets
 									<i class="pi pi-arrow-right ml-2"></i>
 								</button>
 							</div>

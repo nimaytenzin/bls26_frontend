@@ -109,6 +109,8 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 	seats: Seat[] = [];
 	selectedSeats: SelectedSeat[] = [];
 	seatCategories: SeatCategory[] = [];
+	totalSeats: number | null = null;
+	noBookedSeats: number | null = null;
 
 	// Session Management
 	sessionSeats: SessionSeatInfo[] = [];
@@ -128,6 +130,7 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 	//device information
 	deviceInformation: DeviceInfo | null = null;
 	paymentTypes: PaymentType[] = [];
+	totalAmountExtraSeats: number = 0;
 
 	constructor(
 		private bookingService: BookingDataService,
@@ -295,14 +298,18 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 	): void {
 		// Initialize all seats as available
 		this.seatAvailability = {};
+		this.totalSeats = seats.length;
 		seats.forEach((seat) => {
 			this.seatAvailability[seat.id.toString()] = 'available';
 		});
 
 		// Mark occupied seats as booked
+		this.noBookedSeats = occupiedSeatResponse.occupiedSeats.length;
 		if (occupiedSeatResponse.occupiedSeats) {
 			occupiedSeatResponse.occupiedSeats.forEach((occupiedSeat) => {
-				this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
+				if (occupiedSeat.seatId !== null) {
+					this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
+				}
 			});
 		}
 
@@ -803,11 +810,40 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 	}
 
 	getTotalAmount(): number {
+		if (this.totalAmountExtraSeats > 0) {
+			return this.totalAmountExtraSeats
+		}
 		return this.selectedSeats.reduce((total, seat) => total + seat.price, 0);
 	}
 
 	getSelectedSeatsText(): string {
 		return this.selectedSeats.map((seat) => seat.seatNumber).join(', ');
+	}
+
+	sellExtraTicket() {
+		this.seatSelectionService.sellExtraSeat(
+			this.screening.id,
+			this.sessionId,
+			this.deviceInformation?.deviceType || 'unknown',
+			this.deviceInformation?.operatingSystem || 'unknown',
+			this.deviceInformation?.country || 'unknown',
+			this.deviceInformation?.city || 'unknown',
+			this.getAuthenticatedUserId(),
+		).subscribe({
+			next: (response) => {
+				const booking = response.booking
+				console.log("Extra Ticket Booking", booking);
+				this.bookingStep = 'customer-details';
+				this.totalAmountExtraSeats = Number(booking.amount);
+			},
+			error: (error) => {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: error.error?.message || 'Failed to proceed to payment step',
+				});
+			},
+		});
 	}
 
 	/**
@@ -946,7 +982,7 @@ export class SeatSelectionComponent implements OnInit, OnDestroy {
 	getTotalPaymentMethodAmount(): number {
 		return this.paymentTypes.reduce((total, pt) => total + pt.amount, 0);
 	}
-	onPaymentAmountChange(paymentType: string, amount:number){
+	onPaymentAmountChange(paymentType: string, amount: number) {
 		const payment = this.paymentTypes.find(pt => pt.paymentMethod === paymentType);
 		if (payment) {
 			payment.amount = amount;
