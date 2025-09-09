@@ -155,6 +155,28 @@
 					Screen Configuration
 				</h4>
 
+				<!-- Screen Location -->
+				<div class="field">
+					<label
+						for="screenLocation"
+						class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+					>
+						Screen Location *
+					</label>
+					<p-dropdown
+						id="screenLocation"
+						formControlName="screenLocation"
+						[options]="screenLocationOptions"
+						optionLabel="label"
+						optionValue="value"
+						placeholder="Select screen location"
+						class="w-full"
+					></p-dropdown>
+					<small class="p-error" *ngIf="isFieldInvalid('screenLocation')">
+						{{ getFieldErrorMessage("screenLocation") }}
+					</small>
+				</div>
+
 				<div class="grid grid-cols-2 gap-4">
 					<div class="field">
 						<label
@@ -200,7 +222,9 @@
 				</div>
 
 				<small class="text-xs text-gray-500">
-					Screen will span from column
+					Screen will be positioned at the
+					{{ hallForm.get("screenLocation")?.value?.toLowerCase() || "top" }}
+					and span from column
 					{{ hallForm.get("screenStart")?.value || 1 }} to column
 					{{
 						(hallForm.get("screenStart")?.value || 1) +

@@ -15,6 +15,7 @@ import { PrimeNgModules } from '../../../../../../primeng.modules';
 import { HallDataService } from '../../../../../../core/dataservice/hall/hall.dataservice';
 import { CreateHallDto } from '../../../../../../core/dataservice/hall/hall.interface';
 import { Theatre } from '../../../../../../core/dataservice/theatre/theatre.interface';
+import { ScreenLocationEnum } from '../../../../../../core/constants/enums';
 
 @Component({
 	selector: 'app-admin-hall-add',
@@ -30,6 +31,12 @@ export class AdminHallAddComponent implements OnInit, OnDestroy {
 	hallForm: FormGroup;
 	loading = false;
 	theatre: Theatre;
+
+	// Screen location options
+	screenLocationOptions = [
+		{ label: 'Top', value: ScreenLocationEnum.TOP },
+		{ label: 'Bottom', value: ScreenLocationEnum.BOTTOM },
+	];
 
 	constructor(
 		private fb: FormBuilder,
@@ -67,6 +74,7 @@ export class AdminHallAddComponent implements OnInit, OnDestroy {
 			columns: [0, [Validators.required, Validators.min(1)]],
 			screenStart: [1, [Validators.required, Validators.min(1)]],
 			screenSpan: [1, [Validators.required, Validators.min(1)]],
+			screenLocation: [ScreenLocationEnum.TOP, [Validators.required]],
 		});
 	}
 
@@ -105,6 +113,7 @@ export class AdminHallAddComponent implements OnInit, OnDestroy {
 			columns: 'Number of Columns',
 			screenStart: 'Screen Start Position',
 			screenSpan: 'Screen Span',
+			screenLocation: 'Screen Location',
 		};
 		return labels[fieldName] || fieldName;
 	}

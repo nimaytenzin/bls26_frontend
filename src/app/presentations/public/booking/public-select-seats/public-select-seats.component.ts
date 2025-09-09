@@ -63,6 +63,7 @@ import {
 	DeviceInfo,
 	UserAgentService,
 } from '../../../../core/utility/useragent.service';
+import { ScreenLocationEnum } from '../../../../core/constants/enums';
 
 interface SelectedSeat extends Seat {
 	price: number;
@@ -103,6 +104,9 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 	// Loading and error states
 	loading = true;
 	error: string | null = null;
+
+	// Expose enum to template
+	ScreenLocationEnum = ScreenLocationEnum;
 
 	// Enhanced zoom functionality
 	currentZoom = 1;

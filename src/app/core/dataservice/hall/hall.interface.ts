@@ -1,3 +1,4 @@
+import { ScreenLocationEnum } from '../../constants/enums';
 import { SeatCategory } from '../seat-category/seat-category.interface';
 import { Seat } from '../seat/seat.interface';
 import { Theatre } from '../theatre/theatre.interface';
@@ -11,6 +12,7 @@ export interface Hall {
 	columns: number;
 	screenStart: number;
 	screenSpan: number;
+	screenLocation: ScreenLocationEnum;
 	theatreId: number;
 	theatre: Theatre; // Theatre interface reference
 	createdAt?: Date;
@@ -25,6 +27,7 @@ export interface CreateHallDto {
 	capacity: number;
 	rows: number;
 	columns: number;
+	screenLocation: ScreenLocationEnum;
 	screenStart: number;
 	screenSpan: number;
 	theatreId: number;
@@ -36,6 +39,7 @@ export interface UpdateHallDto {
 	capacity?: number;
 	rows?: number;
 	columns?: number;
+	screenLocation?: ScreenLocationEnum;
 	screenStart?: number;
 	screenSpan?: number;
 }

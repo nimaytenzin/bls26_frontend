@@ -155,6 +155,56 @@
 			</div>
 		</div>
 
+		<!-- Selected Seats with Editable Numbers -->
+		<div
+			*ngIf="selectedCells.length > 0"
+			class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mb-6"
+		>
+			<div class="flex items-center justify-between mb-4">
+				<h3
+					class="text-lg font-semibold text-green-800 dark:text-green-200 flex items-center gap-2"
+				>
+					<i class="pi pi-edit text-green-600"></i>
+					Edit Seat Numbers
+				</h3>
+				<p-button
+					label="Auto Generate"
+					icon="pi pi-refresh"
+					severity="success"
+					size="small"
+					[text]="true"
+					(onClick)="generateBulkSeatNumbers()"
+					pTooltip="Reset all seat numbers to auto-generated values"
+				></p-button>
+			</div>
+			<div class="text-sm text-green-700 dark:text-green-300 mb-3">
+				Click on any seat number below to edit it. Auto-generated seat numbers
+				are shown by default.
+			</div>
+
+			<div
+				class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3"
+			>
+				<div
+					*ngFor="let cell of selectedCells; let i = index"
+					class="flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded border"
+				>
+					<span class="text-xs text-gray-500 min-w-[40px]">
+						{{ getRowLabel(cell.row) }}{{ cell.col + 1 }}:
+					</span>
+					<input
+						type="text"
+						[value]="getSeatNumber(cell.row, cell.col)"
+						(input)="onSeatNumberChange(cell.row, cell.col, $event)"
+						(blur)="onSeatNumberChange(cell.row, cell.col, $event)"
+						class="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+						placeholder="Seat number"
+						maxlength="10"
+					/>
+				</div>
+			</div>
+		</div>
+
 		<!-- Hall Layout Grid -->
 		<div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
 			<h3

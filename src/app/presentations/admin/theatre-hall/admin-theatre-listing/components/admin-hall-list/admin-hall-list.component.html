@@ -113,7 +113,7 @@
 						<div class="detail-row">
 							<span class="detail-label">Screen:</span>
 							<span class="detail-value">
-								Position {{ hall.screenStart }}-{{
+								{{ hall.screenLocation }} - Position {{ hall.screenStart }}-{{
 									hall.screenStart + hall.screenSpan - 1
 								}}
 								({{ hall.screenSpan }} columns wide)
@@ -208,8 +208,18 @@
 						<div
 							class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600"
 						>
-							<!-- Screen Section -->
-							<div class="mb-4">
+							<!-- Debug Info (remove after testing) -->
+							<div class="text-xs text-gray-500 mb-2">
+								Screen Location: {{ hall.screenLocation }} | Expected TOP:
+								{{ ScreenLocationEnum.TOP }} | Expected BOTTOM:
+								{{ ScreenLocationEnum.BOTTOM }}
+							</div>
+
+							<!-- Screen Section - TOP -->
+							<div
+								class="mb-4"
+								*ngIf="hall.screenLocation === ScreenLocationEnum.TOP"
+							>
 								<!-- Screen positioned within the same grid as seats -->
 								<div class="flex items-center gap-2">
 									<!-- Empty space for row label -->
@@ -274,6 +284,13 @@
 											[class.shadow-md]="hasSeatAt(rowIndex, colIndex, hall)"
 											[class.border-2]="hasSeatAt(rowIndex, colIndex, hall)"
 											[class.border-white]="hasSeatAt(rowIndex, colIndex, hall)"
+											[class.cursor-pointer]="
+												hasSeatAt(rowIndex, colIndex, hall)
+											"
+											[class.hover:scale-110]="
+												hasSeatAt(rowIndex, colIndex, hall)
+											"
+											(click)="onSeatClick(rowIndex, colIndex, hall)"
 										>
 											<!-- Seat Number -->
 											<span
@@ -314,6 +331,45 @@
 
 								<!-- Empty space for right row label -->
 								<div class="w-8"></div>
+							</div>
+
+							<!-- Screen Section - BOTTOM -->
+							<div
+								class="mt-4"
+								*ngIf="hall.screenLocation === ScreenLocationEnum.BOTTOM"
+							>
+								<!-- Screen positioned within the same grid as seats -->
+								<div class="flex items-center gap-2">
+									<!-- Empty space for row label -->
+									<div class="w-8"></div>
+
+									<!-- Screen Grid Container -->
+									<div class="flex gap-1 flex-1 justify-center">
+										<div
+											*ngFor="
+												let col of Array(hall.columns).fill(0);
+												let colIndex = index
+											"
+											class="w-6 h-6 flex items-center justify-center"
+										>
+											<!-- Screen spans across specified columns -->
+											<div
+												*ngIf="
+													colIndex >= hall.screenStart - 1 &&
+													colIndex < hall.screenStart - 1 + hall.screenSpan
+												"
+												class="w-full h-3 bg-primary-800 dark:bg-primary-900 text-white text-xs flex items-center justify-center font-semibold"
+												[class.rounded-l-md]="colIndex === hall.screenStart - 1"
+												[class.rounded-r-md]="
+													colIndex ===
+													hall.screenStart - 1 + hall.screenSpan - 1
+												"
+											>
+												SCREEN
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
 
 							<!-- Legend and Seat Categories -->
@@ -360,6 +416,12 @@
 										></div>
 										<span class="text-gray-600 dark:text-gray-400"
 											>Empty Position</span
+										>
+									</div>
+									<div class="flex items-center gap-1">
+										<i class="pi pi-hand-pointer text-blue-600"></i>
+										<span class="text-gray-600 dark:text-gray-400"
+											>Click seat to edit</span
 										>
 									</div>
 								</div>

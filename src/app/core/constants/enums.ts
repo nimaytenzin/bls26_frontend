@@ -27,3 +27,8 @@ export enum RefundReason {
 	SYSTEM_ERROR = 'SYSTEM_ERROR',
 	FRAUD_PREVENTION = 'FRAUD_PREVENTION',
 }
+
+export enum ScreenLocationEnum {
+	TOP = 'TOP',
+	BOTTOM = 'BOTTOM',
+}

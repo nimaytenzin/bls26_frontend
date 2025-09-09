@@ -17,6 +17,7 @@ import {
 	UpdateHallDto,
 	Hall,
 } from '../../../../../../core/dataservice/hall/hall.interface';
+import { ScreenLocationEnum } from '../../../../../../core/constants/enums';
 
 @Component({
 	selector: 'app-admin-hall-edit',
@@ -32,6 +33,12 @@ export class AdminHallEditComponent implements OnInit, OnDestroy {
 	hallForm: FormGroup;
 	loading = false;
 	hall: Hall;
+
+	// Screen location options
+	screenLocationOptions = [
+		{ label: 'Top', value: ScreenLocationEnum.TOP },
+		{ label: 'Bottom', value: ScreenLocationEnum.BOTTOM },
+	];
 
 	constructor(
 		private fb: FormBuilder,
@@ -72,6 +79,7 @@ export class AdminHallEditComponent implements OnInit, OnDestroy {
 			columns: [0, [Validators.required, Validators.min(1)]],
 			screenStart: [1, [Validators.required, Validators.min(1)]],
 			screenSpan: [1, [Validators.required, Validators.min(1)]],
+			screenLocation: [ScreenLocationEnum.TOP, [Validators.required]],
 		});
 	}
 
@@ -84,6 +92,7 @@ export class AdminHallEditComponent implements OnInit, OnDestroy {
 			columns: this.hall.columns,
 			screenStart: this.hall.screenStart,
 			screenSpan: this.hall.screenSpan,
+			screenLocation: this.hall.screenLocation || ScreenLocationEnum.TOP,
 		});
 	}
 
@@ -135,6 +144,7 @@ export class AdminHallEditComponent implements OnInit, OnDestroy {
 			columns: 'Number of Columns',
 			screenStart: 'Screen Start Position',
 			screenSpan: 'Screen Span',
+			screenLocation: 'Screen Location',
 		};
 		return labels[fieldName] || fieldName;
 	}

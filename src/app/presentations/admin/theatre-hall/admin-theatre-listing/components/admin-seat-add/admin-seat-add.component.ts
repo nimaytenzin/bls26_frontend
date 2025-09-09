@@ -36,11 +36,12 @@ export class AdminSeatAddComponent implements OnInit, OnDestroy {
 	hall: Hall;
 	isSubmitting = false;
 	seatCategories: SeatCategory[] = [];
-	selectedCells: { row: number; col: number }[] = [];
+	selectedCells: { row: number; col: number; seatNumber?: string }[] = [];
 	hallLayout: boolean[][] = [];
 	existingSeats: Seat[] = [];
 	existingSeatPositions: Map<string, Seat> = new Map();
 	deletingSeats: Set<number> = new Set(); // Track seats being deleted
+	editingSeatNumbers: Map<string, string> = new Map(); // Track custom seat numbers
 
 	constructor(
 		private fb: FormBuilder,
@@ -151,10 +152,17 @@ export class AdminSeatAddComponent implements OnInit, OnDestroy {
 			// Deselect cell
 			this.selectedCells.splice(cellIndex, 1);
 			this.hallLayout[row][col] = false;
+			// Remove custom seat number for this cell
+			const key = `${row}-${col}`;
+			this.editingSeatNumbers.delete(key);
 		} else {
-			// Select cell
-			this.selectedCells.push({ row, col });
+			// Select cell with auto-generated seat number
+			const autoSeatNumber = `${this.getRowLabel(row)}${col + 1}`;
+			this.selectedCells.push({ row, col, seatNumber: autoSeatNumber });
 			this.hallLayout[row][col] = true;
+			// Set default seat number
+			const key = `${row}-${col}`;
+			this.editingSeatNumbers.set(key, autoSeatNumber);
 		}
 	}
 
@@ -284,18 +292,31 @@ export class AdminSeatAddComponent implements OnInit, OnDestroy {
 			return;
 		}
 
+		// Validate seat numbers for uniqueness
+		if (!this.validateSeatNumbers()) {
+			return;
+		}
+
 		this.isSubmitting = true;
 		const formValue = this.seatForm.value;
 
-		// Generate seat data for selected cells
-		const seatsToCreate: CreateSeatDto[] = this.selectedCells.map((cell) => ({
-			hallId: this.hall.id,
-			rowId: cell.row + 1, // Convert to 1-based indexing
-			colId: cell.col + 1, // Convert to 1-based indexing
-			seatNumber: `${this.getRowLabel(cell.row)}${cell.col + 1}`,
-			annotation: formValue.annotation?.trim() || undefined,
-			categoryId: formValue.categoryId,
-		}));
+		// Generate seat data for selected cells with custom seat numbers
+		const seatsToCreate: CreateSeatDto[] = this.selectedCells.map((cell) => {
+			const key = `${cell.row}-${cell.col}`;
+			const customSeatNumber =
+				this.editingSeatNumbers.get(key) ||
+				cell.seatNumber ||
+				`${this.getRowLabel(cell.row)}${cell.col + 1}`;
+
+			return {
+				hallId: this.hall.id,
+				rowId: cell.row + 1, // Convert to 1-based indexing
+				colId: cell.col + 1, // Convert to 1-based indexing
+				seatNumber: customSeatNumber,
+				annotation: formValue.annotation?.trim() || undefined,
+				categoryId: formValue.categoryId,
+			};
+		});
 
 		this.seatService
 			.createMultipleSeats(seatsToCreate)
@@ -346,17 +367,23 @@ export class AdminSeatAddComponent implements OnInit, OnDestroy {
 
 	clearSelection(): void {
 		this.selectedCells = [];
+		this.editingSeatNumbers.clear();
 		this.initializeHallLayout();
 	}
 
 	selectAll(): void {
 		this.selectedCells = [];
+		this.editingSeatNumbers.clear();
 		for (let row = 0; row < this.hall.rows; row++) {
 			for (let col = 0; col < this.hall.columns; col++) {
 				// Only select cells that don't have existing seats
 				if (!this.hasExistingSeat(row, col)) {
-					this.selectedCells.push({ row, col });
+					const autoSeatNumber = `${this.getRowLabel(row)}${col + 1}`;
+					this.selectedCells.push({ row, col, seatNumber: autoSeatNumber });
 					this.hallLayout[row][col] = true;
+					// Set default seat number
+					const key = `${row}-${col}`;
+					this.editingSeatNumbers.set(key, autoSeatNumber);
 				}
 			}
 		}
@@ -436,5 +463,110 @@ export class AdminSeatAddComponent implements OnInit, OnDestroy {
 			'diamond-seat': '#06b6d4',
 		};
 		return colorMap[category.baseColorHexCode] || '#6b7280';
+	}
+
+	// Methods for seat number editing
+	getSeatNumber(row: number, col: number): string {
+		const key = `${row}-${col}`;
+		return (
+			this.editingSeatNumbers.get(key) || `${this.getRowLabel(row)}${col + 1}`
+		);
+	}
+
+	updateSeatNumber(row: number, col: number, newSeatNumber: string): void {
+		const key = `${row}-${col}`;
+		this.editingSeatNumbers.set(key, newSeatNumber);
+
+		// Update the selectedCells array as well
+		const cellIndex = this.selectedCells.findIndex(
+			(cell) => cell.row === row && cell.col === col
+		);
+		if (cellIndex > -1) {
+			this.selectedCells[cellIndex].seatNumber = newSeatNumber;
+		}
+	}
+
+	onSeatNumberChange(row: number, col: number, event: any): void {
+		const newValue = event.target.value.trim();
+		if (newValue) {
+			this.updateSeatNumber(row, col, newValue);
+		}
+	}
+
+	validateSeatNumbers(): boolean {
+		const seatNumbers = new Set<string>();
+		const duplicates: string[] = [];
+
+		// Check for duplicates among selected seats
+		this.selectedCells.forEach((cell) => {
+			const key = `${cell.row}-${cell.col}`;
+			const seatNumber =
+				this.editingSeatNumbers.get(key) ||
+				cell.seatNumber ||
+				`${this.getRowLabel(cell.row)}${cell.col + 1}`;
+
+			if (seatNumbers.has(seatNumber)) {
+				duplicates.push(seatNumber);
+			} else {
+				seatNumbers.add(seatNumber);
+			}
+		});
+
+		// Check for conflicts with existing seats
+		const existingConflicts: string[] = [];
+		this.selectedCells.forEach((cell) => {
+			const key = `${cell.row}-${cell.col}`;
+			const seatNumber =
+				this.editingSeatNumbers.get(key) ||
+				cell.seatNumber ||
+				`${this.getRowLabel(cell.row)}${cell.col + 1}`;
+
+			const existingSeatsWithSameName = this.existingSeats.filter(
+				(seat) => seat.seatNumber === seatNumber
+			);
+			if (existingSeatsWithSameName.length > 0) {
+				existingConflicts.push(seatNumber);
+			}
+		});
+
+		// Show validation errors
+		if (duplicates.length > 0) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Duplicate Seat Numbers',
+				detail: `The following seat numbers are duplicated: ${duplicates.join(
+					', '
+				)}. Please use unique seat numbers.`,
+			});
+			return false;
+		}
+
+		if (existingConflicts.length > 0) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Seat Number Conflicts',
+				detail: `The following seat numbers already exist: ${existingConflicts.join(
+					', '
+				)}. Please use different seat numbers.`,
+			});
+			return false;
+		}
+
+		return true;
+	}
+
+	// Utility method to generate bulk seat numbers
+	generateBulkSeatNumbers(): void {
+		this.selectedCells.forEach((cell, index) => {
+			const autoSeatNumber = `${this.getRowLabel(cell.row)}${cell.col + 1}`;
+			this.updateSeatNumber(cell.row, cell.col, autoSeatNumber);
+		});
+
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Seat Numbers Generated',
+			detail:
+				'Auto-generated seat numbers have been applied to all selected cells.',
+		});
 	}
 }

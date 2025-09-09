@@ -19,8 +19,10 @@ import { AdminSeatCategoryAddComponent } from '../admin-seat-category-add/admin-
 import { SeatCategory } from '../../../../../../core/dataservice/seat-category/seat-category.interface';
 import { AdminSeatCategoryEditComponent } from '../admin-seat-category-edit/admin-seat-category-edit.component';
 import { AdminSeatAddComponent } from '../admin-seat-add/admin-seat-add.component';
+import { AdminSeatEditComponent } from '../admin-seat-edit/admin-seat-edit.component';
 import { SeatDataService } from '../../../../../../core/dataservice/seat/seat.dataservice';
 import { Seat } from '../../../../../../core/dataservice/seat/seat.interface';
+import { ScreenLocationEnum } from '../../../../../../core/constants/enums';
 
 @Component({
 	selector: 'app-admin-hall-list',
@@ -38,6 +40,9 @@ export class AdminHallListComponent implements OnInit, OnDestroy {
 	hallSeats: Map<number, Seat[]> = new Map(); // Track seats by hall ID
 	loading = false;
 	hallDialogRef: DynamicDialogRef | undefined;
+
+	// Expose enum to template
+	ScreenLocationEnum = ScreenLocationEnum;
 
 	constructor(
 		private ref: DynamicDialogRef,
@@ -307,6 +312,37 @@ export class AdminHallListComponent implements OnInit, OnDestroy {
 					this.loadHalls(); // Refresh hall data to show new seats
 				}
 			});
+	}
+
+	openEditSeatDialog(seat: Seat, hall: Hall): void {
+		this.hallDialogRef = this.dialogService.open(AdminSeatEditComponent, {
+			header: `Edit Seat - ${seat.seatNumber}`,
+			data: { seat, hall },
+			modal: true,
+			draggable: false,
+			resizable: false,
+			closable: true,
+		});
+
+		this.hallDialogRef.onClose
+			.pipe(takeUntil(this.destroy$))
+			.subscribe((result) => {
+				if (result?.success) {
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: 'Seat updated successfully!',
+					});
+					this.loadHalls(); // Refresh hall data to show updated seat
+				}
+			});
+	}
+
+	onSeatClick(rowIndex: number, colIndex: number, hall: Hall): void {
+		const seat = this.getSeatAt(rowIndex, colIndex, hall);
+		if (seat) {
+			this.openEditSeatDialog(seat, hall);
+		}
 	}
 
 	onDeleteSeat(seat: Seat, event: Event): void {
