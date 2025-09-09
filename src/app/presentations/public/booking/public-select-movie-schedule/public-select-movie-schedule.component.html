@@ -52,7 +52,7 @@
 		<!-- Main Content -->
 		<div *ngIf="!loading && !error && movie" class="space-y-8">
 			<!-- Enhanced Movie Header Section -->
-			<div class="grid lg:grid-cols-2 gap-8 mb-12">
+			<div class="flex flex-row sm:flex-col gap-8 mb-12">
 				<!-- Movie Poster with Enhanced Styling -->
 				<div class="relative w-full max-w-lg mx-auto lg:mx-0 group">
 					<div
@@ -166,19 +166,6 @@
 				class="bg-gradient-to-br from-gray-800/50 to-gray-900/30 backdrop-blur-lg rounded-2xl border border-gray-700/50 overflow-hidden"
 			>
 				<!-- Section Header -->
-				<div class="p-6 border-b border-gray-700/50">
-					<div class="flex items-center gap-4 mb-2">
-						<div
-							class="w-1 h-8 bg-gradient-to-b from-red-600 to-red-400 rounded-full"
-						></div>
-						<h2 class="text-2xl lg:text-3xl font-black text-white">
-							Select Showtime
-						</h2>
-					</div>
-					<p class="text-gray-400 ml-8">
-						Choose your preferred date and screening time
-					</p>
-				</div>
 
 				<div class="p-6 space-y-8">
 					<!-- Enhanced Date Selection -->

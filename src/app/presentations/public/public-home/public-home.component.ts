@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CarouselModule } from 'primeng/carousel';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
@@ -15,6 +14,8 @@ import {
 } from '../../../core/dataservice/movie/movie.interface';
 import { PublicDataService } from '../../../core/dataservice/public/public.dataservice';
 import { BASEAPI_URL } from '../../../core/constants/constants';
+import { HeroCarouselComponent } from './hero-carousel/hero-carousel.component';
+import { MovieCardComponent } from './movie-card/movie-card.component';
 
 @Component({
 	selector: 'app-public-home',
@@ -23,11 +24,12 @@ import { BASEAPI_URL } from '../../../core/constants/constants';
 	standalone: true,
 	imports: [
 		CommonModule,
-		CarouselModule,
 		ButtonModule,
 		TagModule,
 		DialogModule,
 		ProgressSpinnerModule,
+		HeroCarouselComponent,
+		MovieCardComponent,
 	],
 })
 export class PublicHomeComponent implements OnInit, OnDestroy {
@@ -44,29 +46,6 @@ export class PublicHomeComponent implements OnInit, OnDestroy {
 
 	movies: Movie[] = [];
 	filteredMovies: Movie[] = [];
-
-	responsiveOptions = [
-		{
-			breakpoint: '1400px',
-			numVisible: 1,
-			numScroll: 1,
-		},
-		{
-			breakpoint: '1024px',
-			numVisible: 1,
-			numScroll: 1,
-		},
-		{
-			breakpoint: '768px',
-			numVisible: 1,
-			numScroll: 1,
-		},
-		{
-			breakpoint: '576px',
-			numVisible: 1,
-			numScroll: 1,
-		},
-	];
 
 	movieStatuses: string[] = ['Screening', 'Coming Soon'];
 	selectedStatus: string = 'Screening';
@@ -339,26 +318,5 @@ export class PublicHomeComponent implements OnInit, OnDestroy {
 			return `${hours}h ${minutes}min`;
 		}
 		return `${minutes}min`;
-	}
-
-	getCarouselImage(movie: Movie): string {
-		// Use portrait image for small screens, landscape for larger screens
-		if (window.innerWidth < 768) {
-			// Mobile and tablet
-			return this.getMoviePotraitImage(movie);
-		} else {
-			// Desktop
-			return this.getMovieLandscapeImage(movie);
-		}
-	}
-
-	getGenresText(movie: Movie): string {
-		if (!movie.genres || movie.genres.length === 0) {
-			return 'No genres';
-		}
-		return movie.genres
-			.slice(0, 2)
-			.map((g) => g.name)
-			.join(', ');
 	}
 }

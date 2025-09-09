@@ -1,51 +1,4 @@
 :host ::ng-deep {
-    // Enhanced Hero Carousel Styling
-    .hero-carousel {
-        margin: 0 !important;
-        padding: 0 !important;
-
-        .p-carousel-container {
-            overflow: hidden !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        .p-carousel-content {
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        .p-carousel-items-content {
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        .p-carousel-items-container {
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        .p-carousel-item {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        // Hide all controls completely
-        .p-carousel-next,
-        .p-carousel-prev,
-        .p-carousel-indicators {
-            display: none !important;
-        }
-
-        // Enhanced smooth transitions
-        .p-carousel-items-container {
-            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        }
-    }
-
     // Enhanced Button Styling with Red Color Scheme
     .p-button {
         transition: all 0.3s ease;
@@ -758,5 +711,167 @@ button:focus-visible,
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+}
+
+// ========== MOBILE-FIRST OPTIMIZATIONS ==========
+
+// Enhanced Mobile-Optimized Movie Grid
+.enhanced-movie-grid {
+    // Mobile grid optimizations
+    @media (max-width: 640px) {
+        gap: 0.75rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+
+        // Ensure proper grid layout on very small screens
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    // Tablet optimizations
+    @media (min-width: 641px) and (max-width: 1024px) {
+        gap: 1rem !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    // Large screen optimizations
+    @media (min-width: 1025px) {
+        gap: 1.5rem !important;
+    }
+
+    // Extra large screens - 5 columns
+    @media (min-width: 1400px) {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    }
+}
+
+// Enhanced Mobile Filter Tabs
+.mobile-filter-tabs {
+    // Mobile scroll optimization
+    @media (max-width: 640px) {
+        gap: 0.5rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+
+        // Hide scrollbar on mobile
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        // Ensure buttons don't shrink too much
+        button {
+            min-width: fit-content !important;
+            flex-shrink: 0 !important;
+            font-size: 0.875rem !important;
+            padding: 0.75rem 1rem !important;
+        }
+    }
+}
+
+// Mobile-Optimized Section Header
+.mobile-section-header {
+    @media (max-width: 640px) {
+        margin-bottom: 2rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+
+        h2 {
+            font-size: 2rem !important;
+            line-height: 2.5rem !important;
+        }
+
+        p {
+            font-size: 1rem !important;
+            margin-left: 1rem !important;
+        }
+    }
+
+    @media (min-width: 641px) and (max-width: 768px) {
+        h2 {
+            font-size: 2.5rem !important;
+        }
+    }
+}
+
+// Enhanced Mobile Container
+.mobile-container {
+    @media (max-width: 640px) {
+        max-width: 100% !important;
+        margin-top: 1rem !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    @media (min-width: 641px) and (max-width: 768px) {
+        max-width: 90vw !important;
+        margin-top: 1.5rem !important;
+    }
+}
+
+// Improved mobile touch targets and typography
+@media (max-width: 640px) {
+    // Ensure all interactive elements meet minimum touch target size
+    button,
+    .clickable {
+        min-height: 44px !important;
+        min-width: 44px !important;
+    }
+
+    // Better spacing for mobile readability
+    .text-lg {
+        font-size: 1rem !important;
+        line-height: 1.5rem !important;
+    }
+
+    .text-3xl {
+        font-size: 1.875rem !important;
+        line-height: 2.25rem !important;
+    }
+
+    .text-4xl {
+        font-size: 2.25rem !important;
+        line-height: 2.5rem !important;
+    }
+
+    .text-5xl {
+        font-size: 2.5rem !important;
+        line-height: 2.75rem !important;
+    }
+}
+
+// Performance optimizations for mobile
+@media (max-width: 640px) {
+    .movie-grid-container {
+        // Enable hardware acceleration
+        transform: translateZ(0);
+        will-change: transform;
+
+        // Optimize rendering
+        contain: layout style paint;
+    }
+}
+
+// Enhanced accessibility for mobile
+@media (max-width: 640px) {
+    // High contrast mode support
+    @media (prefers-contrast: high) {
+        .text-gray-400 {
+            color: #e5e7eb !important;
+        }
+
+        .bg-gray-800 {
+            background-color: #1f2937 !important;
+            border: 1px solid #4b5563 !important;
+        }
+    }
+
+    // Focus indicators for mobile navigation
+    button:focus,
+    .clickable:focus {
+        outline: 2px solid #ef4444 !important;
+        outline-offset: 2px !important;
     }
 }
