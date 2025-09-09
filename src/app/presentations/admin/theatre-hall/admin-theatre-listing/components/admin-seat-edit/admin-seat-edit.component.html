@@ -2,9 +2,24 @@
 <p-toast position="top-right"></p-toast>
 
 <div class="max-w-2xl mx-auto p-6">
-	<!-- Header Card -->
-
-	<!-- Current Seat Info -->
+	<!-- Header Card 			<tex			<textarea
+				pTextarea
+				id="annotation"
+				[(ngModel)]="annotation"
+				name="annotation"
+				placeholder="Enter any additional notes or remarks"
+				class="w-full"
+				rows="3"
+				#annotationInput="ngModel"
+			></textarea>	pTextarea
+				id="annotation"
+				[(ngModel)]="annotation"
+				name="annotation"
+				placeholder="Enter any additional notes or remarks"
+				class="w-full"
+				rows="3"
+				#annotationInput="ngModel"
+			></textarea>- Current Seat Info -->
 	<div class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
 		<h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
 			Current Seat Information
@@ -37,16 +52,17 @@
 				>
 					Seat Number <span class="text-red-500">*</span>
 				</label>
-				<p-inputText
+				<input
+					pInputText
 					id="seatNumber"
 					[(ngModel)]="seatNumber"
 					name="seatNumber"
 					placeholder="Enter seat number (e.g., A1, B12)"
-					styleClass="w-full"
+					class="w-full"
 					required
 					#seatNumberInput="ngModel"
 					[class.p-invalid]="seatNumberInput.invalid && seatNumberInput.touched"
-				></p-inputText>
+				/>
 				<small
 					*ngIf="seatNumberInput.invalid && seatNumberInput.touched"
 					class="p-error block"
@@ -72,7 +88,7 @@
 					optionLabel="name"
 					optionValue="id"
 					placeholder="Select seat category"
-					styleClass="w-full"
+					class="w-full"
 					required
 					#categoryInput="ngModel"
 					[class.p-invalid]="categoryInput.invalid && categoryInput.touched"
@@ -118,15 +134,18 @@
 				>
 					Annotation (Optional)
 				</label>
-				<p-textarea
-					id="annotation"
+				<input
+					pInputText
+					id="seatNumber"
 					[(ngModel)]="annotation"
+					id="annotation"
 					name="annotation"
 					placeholder="Enter any additional notes or remarks"
-					styleClass="w-full"
-					rows="3"
+					class="w-full"
+					required
 					#annotationInput="ngModel"
-				></p-textarea>
+					[class.p-invalid]="annotationInput.invalid && annotationInput.touched"
+				/>
 			</div>
 		</div>
 

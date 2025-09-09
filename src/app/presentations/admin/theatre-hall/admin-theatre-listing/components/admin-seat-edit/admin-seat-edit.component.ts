@@ -6,7 +6,12 @@ import { MessageService } from 'primeng/api';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
-import { PrimeNgModules } from '../../../../../../primeng.modules';
+// Import specific PrimeNG modules
+import { InputTextModule } from 'primeng/inputtext';
+import { DropdownModule } from 'primeng/dropdown';
+import { TextareaModule } from 'primeng/textarea';
+import { ButtonModule } from 'primeng/button';
+import { ToastModule } from 'primeng/toast';
 import { SeatDataService } from '../../../../../../core/dataservice/seat/seat.dataservice';
 import {
 	Seat,
@@ -20,7 +25,15 @@ import { Hall } from '../../../../../../core/dataservice/hall/hall.interface';
 	templateUrl: './admin-seat-edit.component.html',
 	styleUrls: ['./admin-seat-edit.component.css'],
 	standalone: true,
-	imports: [CommonModule, FormsModule, PrimeNgModules],
+	imports: [
+		CommonModule,
+		FormsModule,
+		InputTextModule,
+		DropdownModule,
+		TextareaModule,
+		ButtonModule,
+		ToastModule,
+	],
 	providers: [MessageService],
 })
 export class AdminSeatEditComponent implements OnInit, OnDestroy {
@@ -69,6 +82,7 @@ export class AdminSeatEditComponent implements OnInit, OnDestroy {
 
 		this.loadSeatCategories();
 		this.populateForm();
+		console.log(this.seat, this.hall);
 	}
 
 	ngOnDestroy(): void {
