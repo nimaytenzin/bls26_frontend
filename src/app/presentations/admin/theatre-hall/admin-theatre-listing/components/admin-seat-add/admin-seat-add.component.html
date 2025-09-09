@@ -251,6 +251,37 @@
 				</div>
 			</div>
 
+			<div class="mt-6">
+				<div class="flex items-center gap-2">
+					<!-- Empty space for row label -->
+					<div class="w-8"></div>
+					<!-- Screen Grid Container -->
+					<div class="flex gap-1 flex-1 justify-center">
+						<div
+							*ngFor="
+								let col of Array(hall.columns).fill(0);
+								let colIndex = index
+							"
+							class="w-8 h-2 flex items-center justify-center"
+						>
+							<!-- Screen spans across specified columns -->
+							<div
+								*ngIf="
+									colIndex >= hall.screenStart - 1 &&
+									colIndex < hall.screenStart - 1 + hall.screenSpan
+								"
+								class="w-full h-2 bg-gray-800 dark:bg-gray-900 text-white text-xs flex items-center justify-center font-semibold"
+								[class.rounded-l-md]="colIndex === hall.screenStart - 1"
+								[class.rounded-r-md]="
+									colIndex === hall.screenStart - 1 + hall.screenSpan - 1
+								"
+							></div>
+						</div>
+					</div>
+					<div class="w-8"></div>
+				</div>
+				<div class="text-center text-xs text-gray-500 mt-1">SCREEN</div>
+			</div>
 			<!-- Legend -->
 			<div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
 				<div class="flex items-center justify-center gap-6 text-sm">
