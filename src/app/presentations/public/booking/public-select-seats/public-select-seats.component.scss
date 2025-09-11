@@ -217,10 +217,13 @@
 .mini-map-viewport {
     border: 2px solid #fbbf24;
     border-radius: 2px;
-    background: rgba(251, 191, 36, 0.1);
+    background: rgba(251, 191, 36, 0.15);
     pointer-events: none;
     transition: all 0.1s ease-out;
-    box-shadow: 0 0 6px rgba(251, 191, 36, 0.3);
+    box-shadow:
+        0 0 8px rgba(251, 191, 36, 0.4),
+        inset 0 0 4px rgba(251, 191, 36, 0.2);
+    z-index: 10;
 }
 
 .mini-map-seat {

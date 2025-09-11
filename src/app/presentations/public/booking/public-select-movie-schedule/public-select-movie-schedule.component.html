@@ -1,6 +1,6 @@
 <!-- Enhanced Movie Schedule Selection Interface -->
 <div class="min-h-screen bg-gradient-to-b from-gray-900 to-black">
-	<div class="container mx-auto px-4 py-8">
+	<div class="container mx-auto px-4 pt-4 pb-8">
 		<!-- Enhanced Loading State -->
 		<div *ngIf="loading" class="flex items-center justify-center min-h-[60vh]">
 			<div class="text-center">
@@ -50,7 +50,7 @@
 		</div>
 
 		<!-- Main Content -->
-		<div *ngIf="!loading && !error && movie" class="space-y-8">
+		<div *ngIf="!loading && !error && movie" class="space-y-3">
 			<!-- Mobile-Optimized Movie Header Section -->
 			<div class="mobile-movie-section">
 				<!-- Mobile: Full-Height Movie Poster with Overlay -->
@@ -89,7 +89,7 @@
 							class="absolute bottom-0 left-0 right-0 p-6 pb-8 bg-gradient-to-t from-gray-900 via-gray-900/95 to-transparent"
 						>
 							<!-- Movie Title and Rating -->
-							<div class="space-y-3 mb-6">
+							<div class="space-y-0 mb-6">
 								<div class="flex items-start gap-3">
 									<h1
 										class="text-3xl font-black text-white leading-tight flex-1"
@@ -120,9 +120,9 @@
 										<i class="pi pi-clock text-red-400 text-sm"></i>
 									</div>
 									<div>
-										<p class="text-gray-400 text-xs uppercase tracking-wider">
+										<!-- <p class="text-gray-400 text-xs uppercase tracking-wider">
 											Duration
-										</p>
+										</p> -->
 										<p class="text-white font-semibold text-sm">
 											{{ formatDuration(movie.durationMin) }}
 										</p>
@@ -137,9 +137,9 @@
 										<i class="pi pi-star-fill text-red-400 text-sm"></i>
 									</div>
 									<div>
-										<p class="text-gray-400 text-xs uppercase tracking-wider">
+										<!-- <p class="text-gray-400 text-xs uppercase tracking-wider">
 											Rating
-										</p>
+										</p> -->
 										<p class="text-white font-semibold text-sm">
 											{{ movie.pgRating }}
 										</p>
@@ -149,9 +149,9 @@
 
 							<!-- Genres -->
 							<div *ngIf="movie.genres && movie.genres.length > 0" class="mb-6">
-								<p class="text-gray-400 text-xs uppercase tracking-wider mb-2">
+								<!-- <p class="text-gray-400 text-xs uppercase tracking-wider mb-2">
 									Genres
-								</p>
+								</p> -->
 								<div class="flex flex-wrap gap-2">
 									<span
 										*ngFor="let genre of movie.genres.slice(0, 3)"
@@ -287,7 +287,7 @@
 				class="mobile-showtimes-section bg-gradient-to-br from-gray-800/50 to-gray-900/30 backdrop-blur-lg rounded-2xl lg:border border-gray-700/50 overflow-hidden"
 			>
 				<!-- Mobile: Seamless Date Selection (No Container) -->
-				<div class="lg:p-6 space-y-8">
+				<div class="p-4 lg:p-6 space-y-8">
 					<!-- Enhanced Date Selection -->
 					<div
 						class="mobile-date-section bg-gradient-to-b from-gray-900/90 to-gray-900/95 lg:bg-transparent p-6 lg:p-0 -mx-6 lg:mx-0 mb-6 lg:mb-0"

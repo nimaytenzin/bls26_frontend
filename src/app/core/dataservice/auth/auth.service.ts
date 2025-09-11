@@ -171,6 +171,14 @@ export class AuthService {
 	}
 
 	/**
+	 * Check if user is executive producer
+	 * @returns boolean
+	 */
+	isExecutiveProducer(): boolean {
+		return this.hasRole(UserRole.EXECUTIVE_PRODUCER);
+	}
+
+	/**
 	 * Refresh authentication token
 	 * @returns Observable<LoginResponse>
 	 */

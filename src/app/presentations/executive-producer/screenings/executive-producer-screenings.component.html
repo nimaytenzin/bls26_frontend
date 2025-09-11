@@ -1,0 +1,362 @@
+<!-- Executive Producer Screenings Component -->
+<div class="executive-producer-screenings p-6">
+	<!-- Header Section -->
+	<div class="flex justify-between items-center mb-6">
+		<div>
+			<h1 class="text-3xl font-bold text-gray-900 mb-2">
+				{{ selectedMovie ? selectedMovie.name + " -" : "" }} Screenings
+			</h1>
+			<p class="text-gray-600">
+				Track and manage movie screenings across all theatres
+			</p>
+		</div>
+		<div class="flex gap-3">
+			<p-button
+				icon="pi pi-refresh"
+				label="Refresh"
+				(click)="refreshScreenings()"
+				[loading]="loading"
+				styleClass="p-button-outlined"
+			></p-button>
+		</div>
+	</div>
+
+	<!-- Filter Section -->
+	<div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
+		<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-2">
+					Select Movie
+				</label>
+				<p-dropdown
+					[(ngModel)]="selectedMovieId"
+					placeholder="All Movies"
+					[options]="movies"
+					optionLabel="name"
+					optionValue="id"
+					class="w-full"
+					(onChange)="onMovieChange($event.value)"
+					[showClear]="true"
+				></p-dropdown>
+			</div>
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-2">
+					Select Theatre
+				</label>
+				<p-dropdown
+					[(ngModel)]="selectedTheatreId"
+					placeholder="All Theatres"
+					[options]="theatres"
+					optionLabel="name"
+					optionValue="id"
+					class="w-full"
+					(onChange)="onTheatreChange($event.value)"
+					[showClear]="true"
+				></p-dropdown>
+			</div>
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-2">
+					Date Range
+				</label>
+				<p-calendar
+					[(ngModel)]="selectedDateRange"
+					selectionMode="range"
+					placeholder="Select date range"
+					class="w-full"
+					[showIcon]="true"
+				></p-calendar>
+			</div>
+			<div class="flex items-end">
+				<p-button
+					icon="pi pi-times"
+					label="Clear Filters"
+					(click)="clearFilters()"
+					styleClass="p-button-outlined p-button-secondary w-full"
+				></p-button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Tab View -->
+	<p-tabView
+		[(activeIndex)]="activeTabIndex"
+		(onChange)="onTabChange($event)"
+		class="mb-6"
+	>
+		<p-tabPanel header="Current & Upcoming">
+			<!-- Current Screenings Content -->
+			<div class="mt-4">
+				<!-- Loading State -->
+				<div *ngIf="loading" class="text-center py-8">
+					<p-progressSpinner strokeWidth="3"></p-progressSpinner>
+					<p class="text-gray-600 mt-4">Loading screenings...</p>
+				</div>
+
+				<!-- Error State -->
+				<div *ngIf="error && !loading" class="text-center py-8">
+					<i class="pi pi-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+					<p class="text-red-600 mb-4">{{ error }}</p>
+					<p-button
+						label="Try Again"
+						(click)="loadScreenings()"
+						styleClass="p-button-outlined p-button-danger"
+					></p-button>
+				</div>
+
+				<!-- Screenings List -->
+				<div *ngIf="!loading && !error && screenings.length > 0">
+					<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+						<div
+							*ngFor="let screening of screenings; trackBy: trackByScreeningId"
+							class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+						>
+							<!-- Movie Poster and Info -->
+							<div class="flex">
+								<div class="w-24 h-36 bg-gray-200 flex-shrink-0">
+									<img
+										*ngIf="getMoviePosterUrl(screening.movie)"
+										[src]="getMoviePosterUrl(screening.movie)"
+										[alt]="screening.movie.name"
+										class="w-full h-full object-cover"
+										(error)="onImageError($event)"
+									/>
+									<div
+										*ngIf="!getMoviePosterUrl(screening.movie)"
+										class="w-full h-full flex items-center justify-center bg-gray-300"
+									>
+										<i class="pi pi-image text-2xl text-gray-500"></i>
+									</div>
+								</div>
+
+								<div class="flex-1 p-4">
+									<!-- Movie Title -->
+									<h3 class="font-semibold text-lg text-gray-900 mb-1">
+										{{ screening.movie.name }}
+									</h3>
+
+									<!-- Theatre Info -->
+									<div
+										class="flex items-center gap-2 text-sm text-gray-600 mb-2"
+									>
+										<i class="pi pi-map-marker text-blue-500"></i>
+										<span>{{ getTheatreInfo(screening) }}</span>
+									</div>
+
+									<!-- Date and Time -->
+									<div
+										class="flex items-center gap-2 text-sm text-gray-600 mb-2"
+									>
+										<i class="pi pi-calendar text-green-500"></i>
+										<span>{{ formatDate(screening.date) }}</span>
+									</div>
+
+									<div
+										class="flex items-center gap-2 text-sm text-gray-600 mb-3"
+									>
+										<i class="pi pi-clock text-orange-500"></i>
+										<span
+											>{{ formatTime(screening.startTime) }} -
+											{{ formatTime(screening.endTime) }}</span
+										>
+									</div>
+
+									<!-- Status Badge -->
+									<div class="mb-3">
+										<p-tag
+											[value]="activeTabIndex === 0 ? 'Upcoming' : 'Past'"
+											[severity]="getScreeningSeverity(screening)"
+										></p-tag>
+									</div>
+
+									<!-- Pricing Info -->
+									<div class="text-xs text-gray-500 mb-3">
+										{{ getSeatCategoryPrices(screening) }}
+									</div>
+
+									<!-- Action Buttons -->
+									<div class="flex gap-2">
+										<p-button
+											label="Details"
+											icon="pi pi-eye"
+											(click)="viewScreeningDetails(screening)"
+											styleClass="p-button-sm p-button-outlined flex-1"
+										></p-button>
+										<p-button
+											label="Bookings"
+											icon="pi pi-ticket"
+											(click)="viewScreeningBookings(screening)"
+											styleClass="p-button-sm p-button-outlined p-button-success flex-1"
+										></p-button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Pagination -->
+					<div class="mt-8">
+						<p-paginator
+							[rows]="pageSize"
+							[totalRecords]="totalRecords"
+							[rowsPerPageOptions]="[10, 20, 30]"
+							(onPageChange)="onPageChange($event)"
+							styleClass="border-0"
+						></p-paginator>
+					</div>
+				</div>
+
+				<!-- Empty State -->
+				<div
+					*ngIf="!loading && !error && screenings.length === 0"
+					class="text-center py-12"
+				>
+					<i class="pi pi-calendar text-6xl text-gray-400 mb-4"></i>
+					<h3 class="text-xl font-semibold text-gray-700 mb-2">
+						No Current Screenings Found
+					</h3>
+					<p class="text-gray-500 mb-6">
+						There are no current or upcoming screenings matching your criteria.
+					</p>
+				</div>
+			</div>
+		</p-tabPanel>
+
+		<p-tabPanel header="Past Screenings">
+			<!-- Past Screenings Content -->
+			<div class="mt-4">
+				<!-- Loading State -->
+				<div *ngIf="loading" class="text-center py-8">
+					<p-progressSpinner strokeWidth="3"></p-progressSpinner>
+					<p class="text-gray-600 mt-4">Loading past screenings...</p>
+				</div>
+
+				<!-- Error State -->
+				<div *ngIf="error && !loading" class="text-center py-8">
+					<i class="pi pi-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+					<p class="text-red-600 mb-4">{{ error }}</p>
+					<p-button
+						label="Try Again"
+						(click)="loadScreenings()"
+						styleClass="p-button-outlined p-button-danger"
+					></p-button>
+				</div>
+
+				<!-- Past Screenings List -->
+				<div *ngIf="!loading && !error && screenings.length > 0">
+					<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+						<div
+							*ngFor="let screening of screenings; trackBy: trackByScreeningId"
+							class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 opacity-75"
+						>
+							<!-- Movie Poster and Info -->
+							<div class="flex">
+								<div class="w-24 h-36 bg-gray-200 flex-shrink-0">
+									<img
+										*ngIf="getMoviePosterUrl(screening.movie)"
+										[src]="getMoviePosterUrl(screening.movie)"
+										[alt]="screening.movie.name"
+										class="w-full h-full object-cover"
+										(error)="onImageError($event)"
+									/>
+									<div
+										*ngIf="!getMoviePosterUrl(screening.movie)"
+										class="w-full h-full flex items-center justify-center bg-gray-300"
+									>
+										<i class="pi pi-image text-2xl text-gray-500"></i>
+									</div>
+								</div>
+
+								<div class="flex-1 p-4">
+									<!-- Movie Title -->
+									<h3 class="font-semibold text-lg text-gray-900 mb-1">
+										{{ screening.movie.name }}
+									</h3>
+
+									<!-- Theatre Info -->
+									<div
+										class="flex items-center gap-2 text-sm text-gray-600 mb-2"
+									>
+										<i class="pi pi-map-marker text-blue-500"></i>
+										<span>{{ getTheatreInfo(screening) }}</span>
+									</div>
+
+									<!-- Date and Time -->
+									<div
+										class="flex items-center gap-2 text-sm text-gray-600 mb-2"
+									>
+										<i class="pi pi-calendar text-green-500"></i>
+										<span>{{ formatDate(screening.date) }}</span>
+									</div>
+
+									<div
+										class="flex items-center gap-2 text-sm text-gray-600 mb-3"
+									>
+										<i class="pi pi-clock text-orange-500"></i>
+										<span
+											>{{ formatTime(screening.startTime) }} -
+											{{ formatTime(screening.endTime) }}</span
+										>
+									</div>
+
+									<!-- Status Badge -->
+									<div class="mb-3">
+										<p-tag value="Completed" severity="secondary"></p-tag>
+									</div>
+
+									<!-- Pricing Info -->
+									<div class="text-xs text-gray-500 mb-3">
+										{{ getSeatCategoryPrices(screening) }}
+									</div>
+
+									<!-- Action Buttons -->
+									<div class="flex gap-2">
+										<p-button
+											label="Details"
+											icon="pi pi-eye"
+											(click)="viewScreeningDetails(screening)"
+											styleClass="p-button-sm p-button-outlined flex-1"
+										></p-button>
+										<p-button
+											label="Report"
+											icon="pi pi-chart-line"
+											(click)="viewScreeningBookings(screening)"
+											styleClass="p-button-sm p-button-outlined p-button-info flex-1"
+										></p-button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Pagination -->
+					<div class="mt-8">
+						<p-paginator
+							[rows]="pageSize"
+							[totalRecords]="totalRecords"
+							[rowsPerPageOptions]="[10, 20, 30]"
+							(onPageChange)="onPageChange($event)"
+							styleClass="border-0"
+						></p-paginator>
+					</div>
+				</div>
+
+				<!-- Empty State -->
+				<div
+					*ngIf="!loading && !error && screenings.length === 0"
+					class="text-center py-12"
+				>
+					<i class="pi pi-calendar text-6xl text-gray-400 mb-4"></i>
+					<h3 class="text-xl font-semibold text-gray-700 mb-2">
+						No Past Screenings Found
+					</h3>
+					<p class="text-gray-500 mb-6">
+						There are no past screenings matching your criteria.
+					</p>
+				</div>
+			</div>
+		</p-tabPanel>
+	</p-tabView>
+</div>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>

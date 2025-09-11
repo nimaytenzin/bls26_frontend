@@ -911,12 +911,12 @@
 							>
 								<div class="text-sm text-slate-600">
 									Showing {{ failedBookings.length }} of
-									{{ failedPagination?.pagination?.totalCount || 0 }} failed
+									{{ failedPagination.pagination.totalCount || 0 }} failed
 									bookings
 								</div>
 								<p-paginator
 									[rows]="failedPageSize"
-									[totalRecords]="failedPagination?.pagination?.totalCount || 0"
+									[totalRecords]="failedPagination.pagination.totalCount || 0"
 									[first]="(failedPage - 1) * failedPageSize"
 									(onPageChange)="onFailedPageChange($event)"
 									[showCurrentPageReport]="false"

@@ -217,15 +217,9 @@ export const EXECUTIVEPRODUCERSIDEBARITEMS = [
 		label: 'Dashboard',
 		items: [
 			{
-				label: 'Revenue Overview',
+				label: 'Overview',
 				icon: 'pi pi-fw pi-chart-bar',
 				routerLink: ['/executive-producer'],
-				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
-			},
-			{
-				label: 'Movie Performance',
-				icon: 'pi pi-fw pi-chart-line',
-				routerLink: ['/executive-producer/movie-performance'],
 				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
 			},
 		],
@@ -234,21 +228,26 @@ export const EXECUTIVEPRODUCERSIDEBARITEMS = [
 		label: 'Content Management',
 		items: [
 			{
-				label: 'My Movies',
+				label: 'Movies',
 				icon: 'pi pi-fw pi-video',
 				routerLink: ['/executive-producer/movies'],
 				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
 			},
 			{
-				label: 'Submit New Movie',
-				icon: 'pi pi-fw pi-plus',
-				routerLink: ['/executive-producer/submit-movie'],
+				label: 'Screenings',
+				icon: 'pi pi-fw pi-calendar',
+				routerLink: ['/executive-producer/screenings'],
 				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
 			},
+		],
+	},
+	{
+		label: 'Operations',
+		items: [
 			{
-				label: 'Distribution Management',
-				icon: 'pi pi-fw pi-share-alt',
-				routerLink: ['/executive-producer/distribution'],
+				label: 'Bookings',
+				icon: 'pi pi-fw pi-ticket',
+				routerLink: ['/executive-producer/bookings'],
 				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
 			},
 		],
@@ -257,49 +256,9 @@ export const EXECUTIVEPRODUCERSIDEBARITEMS = [
 		label: 'Financial Management',
 		items: [
 			{
-				label: 'Revenue Reports',
+				label: 'Revenue',
 				icon: 'pi pi-fw pi-money-bill',
 				routerLink: ['/executive-producer/revenue'],
-				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
-			},
-			{
-				label: 'Royalty Tracking',
-				icon: 'pi pi-fw pi-percentage',
-				routerLink: ['/executive-producer/royalties'],
-				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
-			},
-			{
-				label: 'Contracts',
-				icon: 'pi pi-fw pi-file-o',
-				routerLink: ['/executive-producer/contracts'],
-				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
-			},
-		],
-	},
-	{
-		label: 'Marketing & Promotion',
-		items: [
-			{
-				label: 'Campaign Management',
-				icon: 'pi pi-fw pi-megaphone',
-				routerLink: ['/executive-producer/campaigns'],
-				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
-			},
-			{
-				label: 'Media Assets',
-				icon: 'pi pi-fw pi-images',
-				routerLink: ['/executive-producer/media'],
-				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
-			},
-		],
-	},
-	{
-		label: 'Profile',
-		items: [
-			{
-				label: 'My Profile',
-				icon: 'pi pi-fw pi-user',
-				routerLink: ['/executive-producer/profile'],
 				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
 			},
 		],

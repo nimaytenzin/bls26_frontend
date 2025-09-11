@@ -9,50 +9,224 @@ export const executiveProducerRoutes: Routes = [
 		// canActivate: [AuthGuard],
 		// data: { roles: ['EXECUTIVE_PRODUCER'] },
 		children: [
+			// ==================== Dashboard Routes ====================
 			{
 				path: '',
 				component: ExecutiveProducerDashboardComponent,
 			},
-			//   {
-			//     path: 'movie-performance',
-			//     loadComponent: () => import('./movie-performance/executive-producer-movie-performance.component').then(m => m.ExecutiveProducerMoviePerformanceComponent),
-			//   },
-			//   {
-			//     path: 'movies',
-			//     loadComponent: () => import('./movies/executive-producer-movies.component').then(m => m.ExecutiveProducerMoviesComponent),
-			//   },
-			//   {
-			//     path: 'submit-movie',
-			//     loadComponent: () => import('./submit-movie/executive-producer-submit-movie.component').then(m => m.ExecutiveProducerSubmitMovieComponent),
-			//   },
-			//   {
-			//     path: 'distribution',
-			//     loadComponent: () => import('./distribution/executive-producer-distribution.component').then(m => m.ExecutiveProducerDistributionComponent),
-			//   },
-			//   {
-			//     path: 'revenue',
-			//     loadComponent: () => import('./revenue/executive-producer-revenue.component').then(m => m.ExecutiveProducerRevenueComponent),
-			//   },
-			//   {
-			//     path: 'royalties',
-			//     loadComponent: () => import('./royalties/executive-producer-royalties.component').then(m => m.ExecutiveProducerRoyaltiesComponent),
-			//   },
-			//   {
-			//     path: 'contracts',
-			//     loadComponent: () => import('./contracts/executive-producer-contracts.component').then(m => m.ExecutiveProducerContractsComponent),
-			//   },
-			//   {
-			//     path: 'campaigns',
-			//     loadComponent: () => import('./campaigns/executive-producer-campaigns.component').then(m => m.ExecutiveProducerCampaignsComponent),
-			//   },
-			//   {
-			//     path: 'media',
-			//     loadComponent: () => import('./media/executive-producer-media.component').then(m => m.ExecutiveProducerMediaComponent),
-			//   },
-			//   {
-			//     path: 'profile',
-			//     loadComponent: () => import('./profile/executive-producer-profile.component').then(m => m.ExecutiveProducerProfileComponent),
-			//   },
+			{
+				path: 'dashboard',
+				component: ExecutiveProducerDashboardComponent,
+			},
+			{
+				path: 'dashboard/:id',
+				component: ExecutiveProducerDashboardComponent,
+			},
+
+			// ==================== Movies Management Routes ====================
+			{
+				path: 'movies',
+				loadComponent: () =>
+					import('./movies/executive-producer-movies.component').then(
+						(m) => m.ExecutiveProducerMoviesComponent
+					),
+			},
+			{
+				path: 'movies/:id',
+				loadComponent: () =>
+					import(
+						'./movie-detail/executive-producer-movie-detail.component'
+					).then((m) => m.ExecutiveProducerMovieDetailComponent),
+			},
+			{
+				path: 'movies/:id/details',
+				loadComponent: () =>
+					import(
+						'./movie-detail/executive-producer-movie-detail.component'
+					).then((m) => m.ExecutiveProducerMovieDetailComponent),
+			},
+
+			// ==================== Revenue Routes ====================
+			{
+				path: 'revenue',
+				loadComponent: () =>
+					import('./revenue/executive-producer-revenue.component').then(
+						(m) => m.ExecutiveProducerRevenueComponent
+					),
+			},
+			{
+				path: 'revenue/:id',
+				loadComponent: () =>
+					import('./revenue/executive-producer-revenue.component').then(
+						(m) => m.ExecutiveProducerRevenueComponent
+					),
+			},
+			{
+				path: 'revenue/:id/details',
+				loadComponent: () =>
+					import('./revenue/executive-producer-revenue.component').then(
+						(m) => m.ExecutiveProducerRevenueComponent
+					),
+			},
+
+			// ==================== Booking Routes ====================
+			{
+				path: 'bookings',
+				loadComponent: () =>
+					import('./bookings/executive-producer-bookings.component').then(
+						(m) => m.ExecutiveProducerBookingsComponent
+					),
+			},
+			{
+				path: 'bookings/:id',
+				loadComponent: () =>
+					import('./bookings/executive-producer-bookings.component').then(
+						(m) => m.ExecutiveProducerBookingsComponent
+					),
+			},
+			{
+				path: 'bookings/:id/analytics',
+				loadComponent: () =>
+					import('./bookings/executive-producer-bookings.component').then(
+						(m) => m.ExecutiveProducerBookingsComponent
+					),
+			},
+
+			// ==================== Screening Routes ====================
+			{
+				path: 'screenings',
+				loadComponent: () =>
+					import('./screenings/executive-producer-screenings.component').then(
+						(m) => m.ExecutiveProducerScreeningsComponent
+					),
+			},
+			{
+				path: 'screenings/:id',
+				loadComponent: () =>
+					import('./screenings/executive-producer-screenings.component').then(
+						(m) => m.ExecutiveProducerScreeningsComponent
+					),
+			},
+			{
+				path: 'screenings/:id/performance',
+				loadComponent: () =>
+					import('./screenings/executive-producer-screenings.component').then(
+						(m) => m.ExecutiveProducerScreeningsComponent
+					),
+			},
+
+			// ==================== Placeholder Routes for Future Components ====================
+			// These routes will redirect to existing components until the actual components are created
+
+			// Analytics routes (currently redirect to revenue)
+			{
+				path: 'analytics',
+				redirectTo: 'revenue',
+			},
+			{
+				path: 'analytics/:id',
+				redirectTo: 'revenue/:id',
+			},
+
+			// Performance routes (currently redirect to revenue)
+			{
+				path: 'performance',
+				redirectTo: 'revenue',
+			},
+			{
+				path: 'performance/:id',
+				redirectTo: 'revenue/:id',
+			},
+			{
+				path: 'performance/:id/metrics',
+				redirectTo: 'revenue/:id',
+			},
+			{
+				path: 'performance/comparison',
+				redirectTo: 'revenue',
+			},
+
+			// Reports routes (currently redirect to revenue)
+			{
+				path: 'reports',
+				redirectTo: 'revenue',
+			},
+			{
+				path: 'reports/:id',
+				redirectTo: 'revenue/:id',
+			},
+			{
+				path: 'reports/:id/financial',
+				redirectTo: 'revenue/:id',
+			},
+			{
+				path: 'reports/:id/performance',
+				redirectTo: 'revenue/:id',
+			},
+			{
+				path: 'reports/:id/audience',
+				redirectTo: 'bookings/:id',
+			},
+			{
+				path: 'reports/custom',
+				redirectTo: 'revenue',
+			},
+
+			// Future feature routes (redirects to dashboard)
+			{
+				path: 'submit-movie',
+				redirectTo: 'dashboard',
+			},
+			{
+				path: 'distribution',
+				redirectTo: 'dashboard',
+			},
+			{
+				path: 'distribution/:id',
+				redirectTo: 'movies/:id',
+			},
+			{
+				path: 'contracts',
+				redirectTo: 'dashboard',
+			},
+			{
+				path: 'contracts/:id',
+				redirectTo: 'movies/:id',
+			},
+			{
+				path: 'royalties',
+				redirectTo: 'revenue',
+			},
+			{
+				path: 'royalties/:id',
+				redirectTo: 'revenue/:id',
+			},
+			{
+				path: 'campaigns',
+				redirectTo: 'dashboard',
+			},
+			{
+				path: 'campaigns/:id',
+				redirectTo: 'movies/:id',
+			},
+			{
+				path: 'media',
+				redirectTo: 'dashboard',
+			},
+			{
+				path: 'media/:id',
+				redirectTo: 'movies/:id',
+			},
+			{
+				path: 'profile',
+				redirectTo: 'dashboard',
+			},
+
+			// ==================== Redirect Routes ====================
+			{
+				path: '**',
+				redirectTo: '',
+			},
 		],
 	},
 ];

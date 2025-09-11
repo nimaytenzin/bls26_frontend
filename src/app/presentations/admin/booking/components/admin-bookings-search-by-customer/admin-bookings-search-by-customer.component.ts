@@ -483,9 +483,7 @@ export class AdminBookingsSearchByCustomerComponent
 					this.messageService.add({
 						severity: 'success',
 						summary: 'eTicket Sent',
-						detail: `eTicket has been resent successfully to ${
-							booking.email || booking.phoneNumber
-						}`,
+						detail: `eTicket has been resent successfully to ${booking.phoneNumber}`,
 					});
 				},
 				error: (error: any) => {

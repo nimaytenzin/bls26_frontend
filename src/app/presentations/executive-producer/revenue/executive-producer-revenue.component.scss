@@ -1,0 +1,415 @@
+.executive-producer-revenue-container {
+    font-family:
+        "Inter",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    // Chart containers
+    p-chart {
+        display: block;
+        height: 100%;
+        width: 100%;
+    }
+
+    // Custom card styling
+    .revenue-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow:
+            0 1px 3px 0 rgba(0, 0, 0, 0.1),
+            0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        padding: 1.5rem;
+        border: 1px solid rgb(243, 244, 246);
+        transition: all 0.2s ease-in-out;
+
+        &:hover {
+            box-shadow:
+                0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-color: rgb(229, 231, 235);
+            transform: translateY(-1px);
+        }
+
+        .card-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-value {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            font-weight: 700;
+            color: rgb(17, 24, 39);
+            margin-top: 0.25rem;
+        }
+
+        .card-label {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            color: rgb(75, 85, 99);
+        }
+
+        .card-change {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            margin-top: 0.25rem;
+
+            &.positive {
+                color: rgb(5, 150, 105);
+            }
+
+            &.negative {
+                color: rgb(220, 38, 38);
+            }
+
+            &.neutral {
+                color: rgb(107, 114, 128);
+            }
+        }
+    }
+
+    // Chart section styling
+    .chart-container {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow:
+            0 1px 3px 0 rgba(0, 0, 0, 0.1),
+            0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        padding: 1.5rem;
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+
+            h3 {
+                font-size: 1.125rem;
+                line-height: 1.75rem;
+                font-weight: 600;
+                color: rgb(17, 24, 39);
+            }
+        }
+
+        .chart-wrapper {
+            height: 18rem;
+            position: relative;
+
+            canvas {
+                max-height: 100% !important;
+            }
+        }
+    }
+
+    // Table customizations
+    .p-datatable {
+        .p-datatable-thead > tr > th {
+            background-color: rgb(249, 250, 251);
+            border-bottom: 1px solid rgb(229, 231, 235);
+            color: rgb(17, 24, 39);
+            font-weight: 500;
+            padding: 1rem 1.5rem;
+        }
+
+        .p-datatable-tbody > tr {
+            border-bottom: 1px solid rgb(243, 244, 246);
+            transition: background-color 0.15s ease-in-out;
+
+            &:hover {
+                background-color: rgb(249, 250, 251);
+            }
+
+            > td {
+                padding: 1rem 1.5rem;
+                color: rgb(17, 24, 39);
+            }
+        }
+
+        .p-paginator {
+            background-color: white;
+            border-top: 1px solid rgb(229, 231, 235);
+            padding: 1rem 1.5rem;
+
+            .p-paginator-current {
+                color: rgb(75, 85, 99);
+            }
+        }
+    }
+
+    // Loading skeleton styling
+    .p-skeleton {
+        background-color: rgb(229, 231, 235);
+        border-radius: 0.5rem;
+    }
+
+    // Filter section styling
+    .filter-section {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow:
+            0 1px 3px 0 rgba(0, 0, 0, 0.1),
+            0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+
+            @media (min-width: 768px) {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .filter-item {
+            label {
+                display: block;
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+                font-weight: 500;
+                color: rgb(55, 65, 81);
+                margin-bottom: 0.5rem;
+            }
+
+            .p-dropdown,
+            .p-calendar {
+                width: 100%;
+            }
+        }
+
+        .quick-filters {
+            .p-button {
+                margin-right: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+        }
+    }
+
+    // Insights section styling
+    .insights-section {
+        .insight-card {
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--from-color) 0%, var(--to-color) 100%);
+
+            &.blue {
+                --from-color: rgb(239, 246, 255);
+                --to-color: rgb(219, 234, 254);
+            }
+
+            &.green {
+                --from-color: rgb(240, 253, 244);
+                --to-color: rgb(220, 252, 231);
+            }
+
+            &.purple {
+                --from-color: rgb(250, 245, 255);
+                --to-color: rgb(243, 232, 255);
+            }
+
+            &.orange {
+                --from-color: rgb(255, 251, 235);
+                --to-color: rgb(254, 243, 199);
+            }
+
+            .insight-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 0.75rem;
+                gap: 0.75rem;
+
+                i {
+                    font-size: 1.25rem;
+                    line-height: 1.75rem;
+                }
+
+                h4 {
+                    font-weight: 500;
+                }
+            }
+
+            .insight-value {
+                font-weight: 600;
+            }
+
+            .insight-description {
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+            }
+
+            .insight-detail {
+                font-size: 0.75rem;
+                line-height: 1rem;
+                margin-top: 0.25rem;
+            }
+        }
+    }
+
+    // Button customizations
+    .p-button {
+        &.p-button-secondary {
+            background-color: rgb(243, 244, 246);
+            border-color: rgb(209, 213, 219);
+            color: rgb(55, 65, 81);
+
+            &:hover {
+                background-color: rgb(229, 231, 235);
+                border-color: rgb(156, 163, 175);
+            }
+        }
+
+        &.p-button-outlined {
+            &:hover {
+                box-shadow:
+                    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+                    0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            }
+        }
+    }
+
+    // Tag customizations
+    .p-tag {
+        &.p-tag-success {
+            background-color: rgb(220, 252, 231);
+            color: rgb(22, 101, 52);
+        }
+
+        &.p-tag-warning {
+            background-color: rgb(254, 243, 199);
+            color: rgb(146, 64, 14);
+        }
+
+        &.p-tag-danger {
+            background-color: rgb(254, 226, 226);
+            color: rgb(153, 27, 27);
+        }
+
+        &.p-tag-info {
+            background-color: rgb(219, 234, 254);
+            color: rgb(30, 64, 175);
+        }
+    }
+
+    // Message styling
+    .p-message {
+        margin-bottom: 1rem;
+
+        &.p-message-error {
+            background-color: rgb(254, 242, 242);
+            border: 1px solid rgb(252, 165, 165);
+            color: rgb(153, 27, 27);
+        }
+    }
+
+    // Responsive adjustments
+    @media (max-width: 768px) {
+        .chart-wrapper {
+            height: 16rem;
+        }
+
+        .revenue-card {
+            padding: 1rem;
+
+            .card-value {
+                font-size: 1.25rem;
+                line-height: 1.75rem;
+            }
+        }
+
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .p-datatable {
+            font-size: 0.875rem;
+
+            .p-datatable-thead > tr > th,
+            .p-datatable-tbody > tr > td {
+                padding: 0.75rem 1rem;
+            }
+        }
+    }
+
+    @media (max-width: 640px) {
+        padding: 1rem;
+
+        .chart-wrapper {
+            height: 14rem;
+        }
+
+        .insights-section {
+            .insight-card {
+                padding: 0.75rem;
+
+                .insight-header {
+                    gap: 0.5rem;
+
+                    i {
+                        font-size: 1.125rem;
+                        line-height: 1.75rem;
+                    }
+                }
+            }
+        }
+    }
+
+    // Dark mode support (if needed)
+    @media (prefers-color-scheme: dark) {
+        // Add dark mode styles here if required
+    }
+
+    // Animation classes
+    .fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .slide-up {
+        animation: slideUp 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    // Print styles
+    @media print {
+        .p-button,
+        .filter-section,
+        .p-paginator {
+            display: none !important;
+        }
+
+        .chart-wrapper {
+            height: auto !important;
+        }
+
+        .executive-producer-revenue-container {
+            background: white !important;
+            padding: 0 !important;
+        }
+    }
+}

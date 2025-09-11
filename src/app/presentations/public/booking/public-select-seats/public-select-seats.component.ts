@@ -439,9 +439,7 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 
 		// Mark occupied seats as booked (both CONFIRMED and active PENDING)
 		occupiedSeatResponse.occupiedSeats.forEach((occupiedSeat) => {
-			if (occupiedSeat.seatId !== null) {
-				this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
-			}
+			this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
 		});
 	}
 
@@ -653,11 +651,11 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 				next: (response: SeatSelectionResponse) => {
 					console.log(`Seat ${seat.id} selected successfully`, response);
 					if (response.success) {
-						this.messageService.add({
-							severity: 'success',
-							summary: 'Seat Selected',
-							detail: `You have selected seat ${seat.seatNumber}`,
-						});
+						// this.messageService.add({
+						// 	severity: 'success',
+						// 	summary: 'Seat Selected',
+						// 	detail: `You have selected seat ${seat.seatNumber}`,
+						// });
 						// Update seat availability based on response
 						this.updateSeatAvailabilityFromSeatSelectionResponse(response);
 					} else {
@@ -912,9 +910,7 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 				);
 				if (!isOurSelection) {
 					console.log(`Marking seat ${occupiedSeat.seatId} as booked`);
-					if (occupiedSeat.seatId !== null) {
-						this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
-					}
+					this.seatAvailability[occupiedSeat.seatId.toString()] = 'booked';
 				} else {
 					console.log(
 						`Seat ${occupiedSeat.seatId} is our selection, keeping as selected`
@@ -1833,8 +1829,8 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 			seat.status === 'available'
 				? 'Available'
 				: seat.status === 'selected'
-					? 'Selected'
-					: 'Occupied';
+				? 'Selected'
+				: 'Occupied';
 		return `Seat ${seat.seatNumber}, ${statusText}, Price ${this.formatCurrency(
 			seat.price
 		)}`;
@@ -1875,7 +1871,7 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 
 		// Convert mini map coordinates to main view coordinates
 		const miniMapContentWidth = this.miniMapWidth - 16; // Account for padding
-		const miniMapContentHeight = this.miniMapHeight - 40; // Account for header and padding
+		const miniMapContentHeight = this.miniMapHeight - 20; // Reduced from 40 to 20 since we removed row label space
 
 		const mainViewWidth = this.getContainerWidth();
 		const mainViewHeight = this.getContainerHeight();
@@ -1884,7 +1880,7 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 		const scaleY = mainViewHeight / miniMapContentHeight;
 
 		const targetX = (clickX - 8) * scaleX; // Account for padding
-		const targetY = (clickY - 20) * scaleY; // Account for header
+		const targetY = (clickY - 12) * scaleY; // Reduced offset from 20 to 12
 
 		// Center the view on the clicked position
 		const viewport = this.seatViewport.nativeElement;
@@ -1988,9 +1984,9 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 			const totalWidth = this.getContainerWidth() * this.currentZoom;
 			const totalHeight = this.getContainerHeight() * this.currentZoom;
 
-			// Calculate mini map content area
+			// Calculate mini map content area (adjusted for smaller header space)
 			const miniMapContentWidth = this.miniMapWidth - 16; // Account for padding
-			const miniMapContentHeight = this.miniMapHeight - 40; // Account for header and padding
+			const miniMapContentHeight = this.miniMapHeight - 20; // Reduced from 40 to 20 since we removed row label space
 
 			// Calculate scale factors
 			const scaleX = miniMapContentWidth / totalWidth;

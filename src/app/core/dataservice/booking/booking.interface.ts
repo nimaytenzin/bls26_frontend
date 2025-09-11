@@ -21,13 +21,11 @@ export enum EntryStatusEnum {
 export interface Booking {
 	id: number;
 	screeningId: number;
-	name: string;
 	phoneNumber: string;
 	bookingStatus: BookingStatusEnum;
 	amount: number;
 	uuid: string;
 	entryStatus: EntryStatusEnum;
-	email?: string;
 	notes?: string;
 	paymentMethod?: string;
 

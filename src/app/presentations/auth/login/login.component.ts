@@ -89,12 +89,14 @@ export class LoginComponent implements OnInit {
 	 */
 	private redirectToUserDashboard(): void {
 		const user = this.authService.getCurrentUser();
-
+		console.log(user);
 		if (user) {
 			if (this.authService.isAdmin()) {
 				this.router.navigate(['/admin']);
 			} else if (this.authService.isCounterStaff()) {
 				this.router.navigate(['/counter-staff/sell-tickets']);
+			} else if (this.authService.isExecutiveProducer()) {
+				this.router.navigate(['/executive-producer']);
 			} else {
 				this.router.navigate(['/']);
 			}

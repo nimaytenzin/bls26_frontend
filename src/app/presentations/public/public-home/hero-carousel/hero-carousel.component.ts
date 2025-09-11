@@ -98,7 +98,6 @@ export class HeroCarouselComponent {
 	}
 
 	getMovieButtonText(status: string): string {
-		console.log(status);
 		switch (status) {
 			case 'now_showing':
 				return 'Buy Tickets';

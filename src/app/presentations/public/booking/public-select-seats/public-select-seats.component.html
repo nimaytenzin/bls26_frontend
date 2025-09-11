@@ -25,7 +25,7 @@
 		<!-- Main Content -->
 		<div *ngIf="!loading && !error && movie && screening">
 			<!-- Sticky Header -->
-			<div class="sticky top-0 z-20 mb-6">
+			<!-- <div class="sticky top-0 z-20 mb-6">
 				<div
 					class="bg-gray-800 rounded-lg p-4 text-white shadow-lg border-b border-gray-700"
 				>
@@ -49,7 +49,7 @@
 						></button>
 					</div>
 				</div>
-			</div>
+			</div> -->
 
 			<!-- Main Layout: Single Column for Seats -->
 			<div class="pb-32 relative">
@@ -57,34 +57,24 @@
 
 				<!-- Mini Map -->
 				<div
-					class="fixed top-20 right-4 z-40 bg-gray-800 bg-opacity-95 rounded-lg border border-gray-700 shadow-xl"
+					class="fixed top-25 right-4 z-[889] bg-gray-800 bg-opacity-95 rounded-lg border border-gray-700 shadow-xl"
 					[style.width.px]="miniMapWidth"
 					[style.height.px]="miniMapHeight"
 				>
-					<!-- Mini Map Header -->
-					<div
-						class="flex items-center justify-center p-2 border-b border-gray-700"
-					>
-						<span class="text-white text-xs font-medium">Overview</span>
-					</div>
-
 					<!-- Mini Map Content -->
 					<div
 						class="p-2 overflow-hidden relative cursor-crosshair"
 						(click)="onMiniMapClick($event)"
 					>
-						<!-- Mini Map Screen - TOP -->
-						<div
-							class="flex justify-center mb-1"
-							*ngIf="hall?.screenLocation === ScreenLocationEnum.TOP"
-						>
+						<!-- Mini Map Screen (positioned at top) -->
+						<div class="flex justify-center mb-1">
 							<div
 								class="bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm border-b border-white shadow-sm"
 								[style.width.px]="getMiniMapScreenWidth()"
-								[style.height.px]="4"
+								[style.height.px]="6"
 							>
 								<div
-									class="text-white text-[4px] text-center leading-[4px] font-bold opacity-80"
+									class="text-white text-[6px] text-center leading-[6px] font-bold opacity-90"
 								>
 									SCREEN
 								</div>
@@ -114,29 +104,11 @@
 							</div>
 						</div>
 
-						<!-- Mini Map Screen - BOTTOM -->
-						<div
-							class="flex justify-center mt-1"
-							*ngIf="hall?.screenLocation === ScreenLocationEnum.BOTTOM"
-						>
-							<div
-								class="bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm border-b border-white shadow-sm"
-								[style.width.px]="getMiniMapScreenWidth()"
-								[style.height.px]="4"
-							>
-								<div
-									class="text-white text-[4px] text-center leading-[4px] font-bold opacity-80"
-								>
-									SCREEN
-								</div>
-							</div>
-						</div>
-
 						<!-- Viewport Rectangle -->
 						<div
 							class="mini-map-viewport absolute"
 							[style.left.px]="viewportRect.x"
-							[style.top.px]="viewportRect.y + 16"
+							[style.top.px]="viewportRect.y + 8"
 							[style.width.px]="viewportRect.width"
 							[style.height.px]="viewportRect.height"
 						></div>
@@ -169,17 +141,9 @@
 								[style.width.px]="getContainerWidth()"
 								[style.height.px]="getContainerHeight()"
 							>
-								<!-- Screen Section - TOP -->
-								<div
-									class="screen-section mb-6 sm:mb-8"
-									*ngIf="hall?.screenLocation === ScreenLocationEnum.TOP"
-								>
+								<!-- Screen Section (moved to top) -->
+								<div class="screen-section mb-6 sm:mb-8">
 									<div class="flex items-center justify-center w-full">
-										<!-- Empty space for row label alignment -->
-										<div
-											class="w-10 h-10 sm:w-14 sm:h-14 mr-2 flex-shrink-0"
-										></div>
-
 										<!-- Screen Bar -->
 										<div class="flex justify-center items-center relative">
 											<div
@@ -263,13 +227,6 @@
 										*ngFor="let rowIndex of getRows(); trackBy: trackByRowIndex"
 										class="seat-row flex items-center mb-1 sm:mb-2"
 									>
-										<!-- Row Label -->
-										<div
-											class="row-label w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center text-white font-bold bg-gray-700 rounded mr-1 sm:mr-2 flex-shrink-0 text-xs sm:text-sm"
-										>
-											{{ getRowLabel(rowIndex) }}
-										</div>
-
 										<!-- Seats in Row -->
 										<div class="seat-row-container flex gap-0.5 sm:gap-1">
 											<div
@@ -316,54 +273,6 @@
 												<ng-template #emptySeat>
 													<div class="w-full h-full"></div>
 												</ng-template>
-											</div>
-										</div>
-									</div>
-								</div>
-
-								<!-- Screen Section - BOTTOM -->
-								<div
-									class="screen-section mt-6 sm:mt-8"
-									*ngIf="hall?.screenLocation === ScreenLocationEnum.BOTTOM"
-								>
-									<div class="flex items-center justify-center w-full">
-										<!-- Empty space for row label alignment -->
-										<div
-											class="w-10 h-10 sm:w-14 sm:h-14 mr-2 flex-shrink-0"
-										></div>
-
-										<!-- Screen Bar -->
-										<div class="flex justify-center items-center relative">
-											<div
-												class="screen-element relative"
-												[style.width.px]="getScreenWidth()"
-												[style.height.px]="isMobileDevice() ? 32 : 48"
-											>
-												<!-- Screen gradient background -->
-												<div
-													class="absolute inset-0 bg-gradient-to-b from-gray-400 via-gray-500 to-gray-600 rounded-t-lg"
-												></div>
-
-												<!-- Screen bottom border (like a TV screen) -->
-												<div
-													class="absolute bottom-0 left-0 right-0 h-1 bg-white shadow-lg"
-												></div>
-
-												<!-- Screen text -->
-												<div
-													class="absolute inset-0 flex items-center justify-center"
-												>
-													<span
-														class="text-white font-bold text-xs sm:text-lg tracking-wider drop-shadow-md"
-													>
-														SCREEN
-													</span>
-												</div>
-
-												<!-- Screen shine effect -->
-												<div
-													class="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-transparent rounded-t-lg"
-												></div>
 											</div>
 										</div>
 									</div>

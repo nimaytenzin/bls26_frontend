@@ -1,0 +1,280 @@
+/* Executive Producer Movie Detail Component Styles */
+
+.custom-tabview {
+    ::ng-deep {
+        .p-tabview-nav-link {
+            padding: 0.75rem 1.5rem;
+            color: #6b7280;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+
+            &:hover {
+                color: #2563eb;
+                border-bottom-color: #2563eb;
+            }
+        }
+
+        .p-tabview-nav-link.p-tabview-nav-link-active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        .p-tabview-panels {
+            padding: 0;
+        }
+    }
+}
+
+.movie-poster {
+    &:hover {
+        .poster-overlay {
+            opacity: 1;
+        }
+
+        .poster-image {
+            transform: scale(1.05);
+        }
+    }
+
+    .poster-overlay {
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .poster-image {
+        transition: transform 0.3s ease;
+    }
+}
+
+/* Chart Container Responsive */
+.chart-container {
+    min-height: 300px;
+
+    @media (max-width: 768px) {
+        min-height: 250px;
+    }
+}
+
+/* Media Gallery Responsive */
+.media-gallery {
+    .media-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+        &:hover {
+            box-shadow: 0 25px 25px -5px rgba(0, 0, 0, 0.1);
+
+            .media-overlay {
+                opacity: 1;
+            }
+        }
+
+        .media-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+    }
+}
+
+/* Performance Cards */
+.performance-card {
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 5rem;
+        height: 5rem;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        margin-right: -2.5rem;
+        margin-top: -2.5rem;
+    }
+
+    &::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 4rem;
+        height: 4rem;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        margin-left: -2rem;
+        margin-bottom: -2rem;
+    }
+}
+
+/* Table Styles */
+.performance-table {
+    thead th {
+        background-color: #f9fafb;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    tbody tr {
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: #f9fafb;
+        }
+    }
+}
+
+/* Loading and Error States */
+.loading-container,
+.error-container {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Responsive Grid Adjustments */
+@media (max-width: 640px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+    .custom-tabview {
+        ::ng-deep {
+            .p-tabview-nav-link {
+                color: #d1d5db;
+
+                &:hover {
+                    color: #60a5fa;
+                }
+            }
+
+            .p-tabview-nav-link.p-tabview-nav-link-active {
+                color: #60a5fa;
+                border-bottom-color: #60a5fa;
+            }
+        }
+    }
+
+    .performance-table {
+        thead th {
+            background-color: #374151;
+            color: #d1d5db;
+        }
+
+        tbody tr:hover {
+            background-color: #374151;
+        }
+    }
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    .print-break {
+        page-break-after: always;
+    }
+}
+
+/* Trailer Dialog Styles */
+::ng-deep .p-dialog .p-dialog-content {
+    padding: 0 !important;
+}
+
+::ng-deep .p-dialog .p-dialog-header {
+    background-color: #111827;
+    color: white;
+    border-bottom: 1px solid #374151;
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Scrollbar Styling */
+.custom-scrollbar {
+    &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background-color: #f3f4f6;
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #9ca3af;
+        border-radius: 4px;
+
+        &:hover {
+            background-color: #6b7280;
+        }
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .custom-scrollbar {
+        &::-webkit-scrollbar-track {
+            background-color: #1f2937;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+
+            &:hover {
+                background-color: #6b7280;
+            }
+        }
+    }
+}

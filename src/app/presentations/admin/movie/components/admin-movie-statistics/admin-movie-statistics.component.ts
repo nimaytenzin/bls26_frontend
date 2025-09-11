@@ -140,6 +140,7 @@ export class AdminMovieStatisticsComponent implements OnInit {
 			return {
 				totalScreenings: 0,
 				totalTicketsSold: 0,
+				totalBookings: 0,
 				totalRevenue: 0,
 				averageOccupancy: 0,
 				totalCapacity: 0,
@@ -261,7 +262,6 @@ export class AdminMovieStatisticsComponent implements OnInit {
 			maximizable: true,
 			modal: true,
 			closable: true,
-			styleClass: '!rounded-2xl !border-none !shadow-2xl',
 		});
 	}
 }

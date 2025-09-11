@@ -1,0 +1,510 @@
+<!-- Executive Producer Bookings Component -->
+<div class="executive-producer-bookings p-6">
+	<!-- Header Section -->
+	<div class="flex justify-between items-center mb-6">
+		<div>
+			<h1 class="text-3xl font-bold text-gray-900 mb-2">
+				{{ selectedMovie ? selectedMovie.name + " -" : "" }} Bookings
+			</h1>
+			<p class="text-gray-600">Track and manage movie bookings and revenue</p>
+		</div>
+		<div class="flex gap-3">
+			<p-button
+				icon="pi pi-refresh"
+				label="Refresh"
+				(click)="refreshBookings()"
+				[loading]="getCurrentTabLoading()"
+				styleClass="p-button-outlined"
+			></p-button>
+		</div>
+	</div>
+
+	<!-- Statistics Cards -->
+	<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+		<div class="bg-white rounded-lg shadow-sm p-6 border">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Total Bookings</p>
+					<p class="text-2xl font-bold text-gray-900">
+						{{ getTotalBookingsCount() }}
+					</p>
+				</div>
+				<div class="p-3 bg-blue-100 rounded-full">
+					<i class="pi pi-ticket text-blue-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+
+		<div class="bg-white rounded-lg shadow-sm p-6 border">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Revenue</p>
+					<p class="text-2xl font-bold text-gray-900">BTN 0</p>
+				</div>
+				<div class="p-3 bg-green-100 rounded-full">
+					<i class="pi pi-chart-line text-green-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+
+		<div class="bg-white rounded-lg shadow-sm p-6 border">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Average Booking</p>
+					<p class="text-2xl font-bold text-gray-900">BTN 0</p>
+				</div>
+				<div class="p-3 bg-purple-100 rounded-full">
+					<i class="pi pi-calculator text-purple-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+
+		<div class="bg-white rounded-lg shadow-sm p-6 border">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Occupancy Rate</p>
+					<p class="text-2xl font-bold text-gray-900">0%</p>
+				</div>
+				<div class="p-3 bg-orange-100 rounded-full">
+					<i class="pi pi-percentage text-orange-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Filter Section -->
+	<div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
+		<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-2">
+					Select Movie
+				</label>
+				<p-dropdown
+					[(ngModel)]="selectedMovieId"
+					placeholder="All Movies"
+					[options]="movies"
+					optionLabel="name"
+					optionValue="id"
+					class="w-full"
+					(onChange)="onMovieChange($event.value)"
+					[showClear]="true"
+				></p-dropdown>
+			</div>
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-2">
+					Customer Search
+				</label>
+				<p-inputText
+					[(ngModel)]="searchCustomer"
+					placeholder="Search by customer name/email..."
+					class="w-full"
+				></p-inputText>
+			</div>
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-2">
+					Date Range
+				</label>
+				<p-calendar
+					[(ngModel)]="selectedDateRange"
+					selectionMode="range"
+					placeholder="Select date range"
+					class="w-full"
+					[showIcon]="true"
+				></p-calendar>
+			</div>
+			<div class="flex items-end">
+				<p-button
+					icon="pi pi-times"
+					label="Clear Filters"
+					(click)="clearFilters()"
+					styleClass="p-button-outlined p-button-secondary w-full"
+				></p-button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Tab View -->
+	<p-tabView
+		[(activeIndex)]="activeTabIndex"
+		(onChange)="onTabChange($event)"
+		class="mb-6"
+	>
+		<p-tabPanel header="Confirmed">
+			<!-- Confirmed Bookings Content -->
+			<div class="mt-4">
+				<!-- Loading State -->
+				<div *ngIf="confirmedLoading" class="text-center py-8">
+					<p-progressSpinner strokeWidth="3"></p-progressSpinner>
+					<p class="text-gray-600 mt-4">Loading confirmed bookings...</p>
+				</div>
+
+				<!-- Bookings List -->
+				<div *ngIf="!confirmedLoading && bookings.length > 0">
+					<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+						<div
+							*ngFor="let booking of bookings; trackBy: trackByBookingId"
+							class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+						>
+							<!-- Booking Header -->
+							<div
+								class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4"
+							>
+								<div class="flex justify-between items-start">
+									<div>
+										<h3 class="font-semibold text-lg">
+											{{ getMovieTitle(booking) }}
+										</h3>
+										<p class="text-blue-100 text-sm">
+											{{ getTheatreInfo(booking) }}
+										</p>
+									</div>
+									<p-tag
+										[value]="booking.bookingStatus"
+										[severity]="getStatusSeverity(booking.bookingStatus)"
+									></p-tag>
+								</div>
+							</div>
+
+							<!-- Booking Details -->
+							<div class="p-4">
+								<!-- Customer Info -->
+								<div class="flex items-center gap-2 mb-3">
+									<i class="pi pi-user text-gray-500"></i>
+									<div>
+										<p class="font-medium text-gray-900">
+											{{ getCustomerName(booking) }}
+										</p>
+										<p class="text-sm text-gray-600">
+											{{ getCustomerPhone(booking) }}
+										</p>
+									</div>
+								</div>
+
+								<!-- Screening Info -->
+								<div class="flex items-center gap-2 mb-3">
+									<i class="pi pi-calendar text-blue-500"></i>
+									<span class="text-sm text-gray-600">{{
+										getScreeningTime(booking)
+									}}</span>
+								</div>
+
+								<!-- Seats Info -->
+								<div class="flex items-center gap-2 mb-3">
+									<i class="pi pi-th-large text-green-500"></i>
+									<span class="text-sm text-gray-600"
+										>{{ booking.bookingSeats?.length || 0 }} seats</span
+									>
+								</div>
+
+								<!-- Amount -->
+								<div class="flex items-center justify-between mb-4">
+									<span class="text-sm text-gray-600">Total Amount:</span>
+									<span class="font-bold text-lg text-green-600">{{
+										formatCurrency(booking.amount || 0)
+									}}</span>
+								</div>
+
+								<!-- Booking Date -->
+								<div class="text-xs text-gray-500 mb-4">
+									Booked on: {{ formatDate(booking.createdAt) }}
+								</div>
+
+								<!-- Action Buttons -->
+								<div class="flex gap-2">
+									<p-button
+										label="View Details"
+										icon="pi pi-eye"
+										styleClass="p-button-sm p-button-outlined flex-1"
+									></p-button>
+									<p-button
+										label="Receipt"
+										icon="pi pi-print"
+										styleClass="p-button-sm p-button-outlined p-button-info flex-1"
+									></p-button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Pagination -->
+					<div class="mt-8">
+						<p-paginator
+							[rows]="pageSize"
+							[totalRecords]="totalRecords"
+							[rowsPerPageOptions]="[10, 20, 30]"
+							(onPageChange)="onPageChange($event)"
+							styleClass="border-0"
+						></p-paginator>
+					</div>
+				</div>
+
+				<!-- Empty State -->
+				<div
+					*ngIf="!confirmedLoading && bookings.length === 0"
+					class="text-center py-12"
+				>
+					<i class="pi pi-ticket text-6xl text-gray-400 mb-4"></i>
+					<h3 class="text-xl font-semibold text-gray-700 mb-2">
+						No Confirmed Bookings Found
+					</h3>
+					<p class="text-gray-500 mb-6">
+						There are no confirmed bookings matching your criteria.
+					</p>
+				</div>
+			</div>
+		</p-tabPanel>
+
+		<p-tabPanel header="Processing">
+			<!-- Processing Bookings Content -->
+			<div class="mt-4">
+				<!-- Loading State -->
+				<div *ngIf="processingLoading" class="text-center py-8">
+					<p-progressSpinner strokeWidth="3"></p-progressSpinner>
+					<p class="text-gray-600 mt-4">Loading processing bookings...</p>
+				</div>
+
+				<!-- Bookings List -->
+				<div *ngIf="!processingLoading && bookings.length > 0">
+					<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+						<div
+							*ngFor="let booking of bookings; trackBy: trackByBookingId"
+							class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+						>
+							<!-- Booking Header -->
+							<div
+								class="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4"
+							>
+								<div class="flex justify-between items-start">
+									<div>
+										<h3 class="font-semibold text-lg">
+											{{ getMovieTitle(booking) }}
+										</h3>
+										<p class="text-orange-100 text-sm">
+											{{ getTheatreInfo(booking) }}
+										</p>
+									</div>
+									<p-tag
+										[value]="booking.bookingStatus"
+										[severity]="getStatusSeverity(booking.bookingStatus)"
+									></p-tag>
+								</div>
+							</div>
+
+							<!-- Booking Details -->
+							<div class="p-4">
+								<!-- Customer Info -->
+								<div class="flex items-center gap-2 mb-3">
+									<i class="pi pi-user text-gray-500"></i>
+									<div>
+										<p class="font-medium text-gray-900">
+											{{ getCustomerName(booking) }}
+										</p>
+										<p class="text-sm text-gray-600">
+											{{ getCustomerPhone(booking) }}
+										</p>
+									</div>
+								</div>
+
+								<!-- Screening Info -->
+								<div class="flex items-center gap-2 mb-3">
+									<i class="pi pi-calendar text-blue-500"></i>
+									<span class="text-sm text-gray-600">{{
+										getScreeningTime(booking)
+									}}</span>
+								</div>
+
+								<!-- Seats Info -->
+								<div class="flex items-center gap-2 mb-3">
+									<i class="pi pi-th-large text-green-500"></i>
+									<span class="text-sm text-gray-600"
+										>{{ booking.bookingSeats?.length || 0 }} seats</span
+									>
+								</div>
+
+								<!-- Amount -->
+								<div class="flex items-center justify-between mb-4">
+									<span class="text-sm text-gray-600">Total Amount:</span>
+									<span class="font-bold text-lg text-orange-600">{{
+										formatCurrency(booking.amount || 0)
+									}}</span>
+								</div>
+
+								<!-- Booking Date -->
+								<div class="text-xs text-gray-500 mb-4">
+									Booked on: {{ formatDate(booking.createdAt) }}
+								</div>
+
+								<!-- Action Buttons -->
+								<div class="flex gap-2">
+									<p-button
+										label="View Details"
+										icon="pi pi-eye"
+										styleClass="p-button-sm p-button-outlined flex-1"
+									></p-button>
+									<p-button
+										label="Track"
+										icon="pi pi-search"
+										styleClass="p-button-sm p-button-outlined p-button-warning flex-1"
+									></p-button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Pagination -->
+					<div class="mt-8">
+						<p-paginator
+							[rows]="pageSize"
+							[totalRecords]="totalRecords"
+							[rowsPerPageOptions]="[10, 20, 30]"
+							(onPageChange)="onPageChange($event)"
+							styleClass="border-0"
+						></p-paginator>
+					</div>
+				</div>
+
+				<!-- Empty State -->
+				<div
+					*ngIf="!processingLoading && bookings.length === 0"
+					class="text-center py-12"
+				>
+					<i class="pi pi-clock text-6xl text-gray-400 mb-4"></i>
+					<h3 class="text-xl font-semibold text-gray-700 mb-2">
+						No Processing Bookings Found
+					</h3>
+					<p class="text-gray-500 mb-6">
+						There are no bookings currently being processed.
+					</p>
+				</div>
+			</div>
+		</p-tabPanel>
+
+		<p-tabPanel header="Failed">
+			<!-- Failed Bookings Content -->
+			<div class="mt-4">
+				<!-- Loading State -->
+				<div *ngIf="failedLoading" class="text-center py-8">
+					<p-progressSpinner strokeWidth="3"></p-progressSpinner>
+					<p class="text-gray-600 mt-4">Loading failed bookings...</p>
+				</div>
+
+				<!-- Bookings List -->
+				<div *ngIf="!failedLoading && bookings.length > 0">
+					<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+						<div
+							*ngFor="let booking of bookings; trackBy: trackByBookingId"
+							class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 opacity-75"
+						>
+							<!-- Booking Header -->
+							<div
+								class="bg-gradient-to-r from-red-500 to-red-600 text-white p-4"
+							>
+								<div class="flex justify-between items-start">
+									<div>
+										<h3 class="font-semibold text-lg">
+											{{ getMovieTitle(booking) }}
+										</h3>
+										<p class="text-red-100 text-sm">
+											{{ getTheatreInfo(booking) }}
+										</p>
+									</div>
+									<p-tag
+										[value]="booking.bookingStatus"
+										[severity]="getStatusSeverity(booking.bookingStatus)"
+									></p-tag>
+								</div>
+							</div>
+
+							<!-- Booking Details -->
+							<div class="p-4">
+								<!-- Customer Info -->
+								<div class="flex items-center gap-2 mb-3">
+									<i class="pi pi-user text-gray-500"></i>
+									<div>
+										<p class="font-medium text-gray-900">
+											{{ getCustomerName(booking) }}
+										</p>
+										<p class="text-sm text-gray-600">
+											{{ getCustomerPhone(booking) }}
+										</p>
+									</div>
+								</div>
+
+								<!-- Screening Info -->
+								<div class="flex items-center gap-2 mb-3">
+									<i class="pi pi-calendar text-blue-500"></i>
+									<span class="text-sm text-gray-600">{{
+										getScreeningTime(booking)
+									}}</span>
+								</div>
+
+								<!-- Seats Info -->
+								<div class="flex items-center gap-2 mb-3">
+									<i class="pi pi-th-large text-green-500"></i>
+									<span class="text-sm text-gray-600"
+										>{{ booking.bookingSeats?.length || 0 }} seats</span
+									>
+								</div>
+
+								<!-- Amount -->
+								<div class="flex items-center justify-between mb-4">
+									<span class="text-sm text-gray-600">Total Amount:</span>
+									<span class="font-bold text-lg text-red-600">{{
+										formatCurrency(booking.amount || 0)
+									}}</span>
+								</div>
+
+								<!-- Booking Date -->
+								<div class="text-xs text-gray-500 mb-4">
+									Failed on: {{ formatDate(booking.createdAt) }}
+								</div>
+
+								<!-- Action Buttons -->
+								<div class="flex gap-2">
+									<p-button
+										label="View Details"
+										icon="pi pi-eye"
+										styleClass="p-button-sm p-button-outlined flex-1"
+									></p-button>
+									<p-button
+										label="Retry"
+										icon="pi pi-refresh"
+										styleClass="p-button-sm p-button-outlined p-button-danger flex-1"
+									></p-button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Pagination -->
+					<div class="mt-8">
+						<p-paginator
+							[rows]="pageSize"
+							[totalRecords]="totalRecords"
+							[rowsPerPageOptions]="[10, 20, 30]"
+							(onPageChange)="onPageChange($event)"
+							styleClass="border-0"
+						></p-paginator>
+					</div>
+				</div>
+
+				<!-- Empty State -->
+				<div
+					*ngIf="!failedLoading && bookings.length === 0"
+					class="text-center py-12"
+				>
+					<i class="pi pi-times-circle text-6xl text-gray-400 mb-4"></i>
+					<h3 class="text-xl font-semibold text-gray-700 mb-2">
+						No Failed Bookings Found
+					</h3>
+					<p class="text-gray-500 mb-6">
+						There are no failed bookings at this time.
+					</p>
+				</div>
+			</div>
+		</p-tabPanel>
+	</p-tabView>
+</div>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>
