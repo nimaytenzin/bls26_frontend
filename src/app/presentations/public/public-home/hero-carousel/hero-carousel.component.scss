@@ -9,21 +9,18 @@
         margin-left: -50vw !important;
         margin-right: -50vw !important;
         position: relative !important;
-        touch-action: pan-y pinch-zoom !important; // Improved vertical scrolling on touch devices
 
         .p-carousel-container {
             overflow: hidden !important;
             margin: 0 !important;
             padding: 0 !important;
             width: 100% !important;
-            touch-action: pan-y pinch-zoom !important; // Improved vertical scrolling on touch devices
         }
 
         .p-carousel-content {
             margin: 0 !important;
             padding: 0 !important;
             width: 100% !important;
-            touch-action: pan-y pinch-zoom !important; // Improved vertical scrolling on touch devices
         }
 
 
@@ -31,7 +28,6 @@
             margin: 0 !important;
             padding: 0 !important;
             width: 100% !important;
-            touch-action: pan-y pinch-zoom !important; // Improved vertical scrolling on touch devices
         }
 
         .p-carousel-items-container {
