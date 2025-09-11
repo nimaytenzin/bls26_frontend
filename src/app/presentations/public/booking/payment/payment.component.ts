@@ -330,6 +330,10 @@ export class PaymentComponent implements OnInit, OnDestroy {
 			});
 	}
 
+	closePayment(){
+		this.ref.close();
+	}
+
 	// Submit customer form and proceed to payment
 	submitCustomerForm() {
 		if (this.sessionExpired) {
