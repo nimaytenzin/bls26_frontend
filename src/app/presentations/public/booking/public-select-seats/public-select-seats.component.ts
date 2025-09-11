@@ -64,6 +64,8 @@ import {
 	UserAgentService,
 } from '../../../../core/utility/useragent.service';
 import { ScreenLocationEnum } from '../../../../core/constants/enums';
+import { HallDataService } from '../../../../core/dataservice/hall/hall.dataservice';
+import { Dir } from "../../../../../../node_modules/@angular/cdk/bidi-module.d-BSI86Zrk";
 
 interface SelectedSeat extends Seat {
 	price: number;
@@ -91,6 +93,7 @@ interface SelectedSeat extends Seat {
 		StepsModule,
 		DividerModule,
 		TooltipModule,
+		Dir
 	],
 	providers: [MessageService, ConfirmationService, DialogService],
 })
@@ -106,7 +109,7 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 	error: string | null = null;
 
 	// Expose enum to template
-	ScreenLocationEnum = ScreenLocationEnum;
+	screenLocationEnum: string = "TOP";
 
 	// Enhanced zoom functionality
 	currentZoom = 1;
@@ -233,7 +236,8 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 		private seatSelectionService: SeatSelectionDataService,
 		private seatService: SeatDataService,
 		private confirmationService: ConfirmationService,
-		private userAgentService: UserAgentService
+		private userAgentService: UserAgentService,
+		private hallService: HallDataService
 	) {
 		// Initialize forms
 		this.bookingForm = this.fb.group({
@@ -316,6 +320,12 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 		});
 	}
 
+	private async setScreenLocation(hall: Hall) {
+		if (hall && hall.screenLocation) {
+			this.screenLocationEnum = hall.screenLocation;
+		}
+	}
+
 	private loadScreeningData(): void {
 		this.loading = true;
 		this.error = null;
@@ -337,6 +347,7 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 					// Load seats for the hall
 					if (screening.hallId) {
 						this.loadSeatsForHall(screening.hallId);
+						this.setScreenLocation(screening.hall);
 					} else {
 						this.loading = false;
 						this.error = 'No hall information found for this screening.';
@@ -1829,8 +1840,8 @@ export class PublicSelectSeatsComponent implements OnInit, OnDestroy {
 			seat.status === 'available'
 				? 'Available'
 				: seat.status === 'selected'
-				? 'Selected'
-				: 'Occupied';
+					? 'Selected'
+					: 'Occupied';
 		return `Seat ${seat.seatNumber}, ${statusText}, Price ${this.formatCurrency(
 			seat.price
 		)}`;
