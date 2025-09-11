@@ -461,6 +461,25 @@ export class ExecutiveProducerDataService {
 			);
 	}
 
+	// ==================== Trend Analytics ====================
+
+	/**
+	 * Get comprehensive lifetime revenue and ticket trends by week
+	 * This is the main endpoint for lifetime trend analysis that producers need
+	 */
+	getLifetimeMovieTrends(movieId: number): Observable<ApiResponse<any>> {
+		return this.http
+			.get<ApiResponse<any>>(
+				`${this.baseUrl}/trends/movies/${movieId}/lifetime`
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching lifetime movie trends:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
 	// ==================== Utility Functions ====================
 
 	/**

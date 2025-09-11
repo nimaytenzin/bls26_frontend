@@ -99,6 +99,15 @@ export class ExecutiveProducerMovieDetailComponent
 			const movieId = Number(params['id']);
 			if (movieId) {
 				this.loadMovieDetails(movieId);
+
+				this.executiveProducerDataService
+					.getLifetimeMovieTrends(movieId)
+					.subscribe({
+						next: (res) => {
+							console.log('LIFE TIME MOVIE TRENDS');
+							console.log(res);
+						},
+					});
 			} else {
 				this.error = 'Invalid movie ID';
 			}
