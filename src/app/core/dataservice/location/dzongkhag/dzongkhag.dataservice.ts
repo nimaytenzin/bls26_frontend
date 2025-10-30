@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -22,9 +22,31 @@ export class DzongkhagDataService {
 
 	/**
 	 * Get all dzongkhags
+	 * @param withGeom - Include geometry (default: false)
+	 * @param includeAdminZones - Include administrative zones (default: false)
+	 * @param includeSubAdminZones - Include sub-administrative zones (default: false)
+	 * @param includeEAs - Include enumeration areas (default: false)
+	 * @returns Observable<Dzongkhag[]>
+	 *
+	 * @example
+	 * findAllDzongkhags() // Basic list
+	 * findAllDzongkhags(true) // With geometry
+	 * findAllDzongkhags(false, true, true, true) // With all nested relations
 	 */
-	findAllDzongkhags(): Observable<Dzongkhag[]> {
-		return this.http.get<Dzongkhag[]>(this.apiUrl).pipe(
+	findAllDzongkhags(
+		withGeom: boolean = false,
+		includeAdminZones: boolean = false,
+		includeSubAdminZones: boolean = false,
+		includeEAs: boolean = false
+	): Observable<Dzongkhag[]> {
+		let params = new HttpParams();
+		if (withGeom) params = params.set('withGeom', 'true');
+		if (includeAdminZones) params = params.set('includeAdminZones', 'true');
+		if (includeSubAdminZones)
+			params = params.set('includeSubAdminZones', 'true');
+		if (includeEAs) params = params.set('includeEAs', 'true');
+
+		return this.http.get<Dzongkhag[]>(this.apiUrl, { params }).pipe(
 			map((dzongkhags: any[]) =>
 				dzongkhags.map((d) => ({
 					...d,
@@ -35,14 +57,15 @@ export class DzongkhagDataService {
 				}))
 			),
 			catchError((error) => {
-				console.error('Error fetching dzonghkags:', error);
+				console.error('Error fetching dzongkhags:', error);
 				return throwError(() => error);
 			})
 		);
 	}
 
 	/**
-	 * Get all dzongkhags as GeoJSON
+	 * Get all dzongkhags as GeoJSON FeatureCollection
+	 * @returns Observable<any> - GeoJSON FeatureCollection
 	 */
 	getAllDzongkhagGeojson(): Observable<any> {
 		return this.http.get<any>(`${this.apiUrl}/geojson/all`).pipe(
@@ -54,10 +77,34 @@ export class DzongkhagDataService {
 	}
 
 	/**
-	 * Get all dzongkhag by Id(No Geojson)
+	 * Get a single dzongkhag by ID
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @param withGeom - Include geometry (default: false)
+	 * @param includeAdminZones - Include administrative zones (default: false)
+	 * @param includeSubAdminZones - Include sub-administrative zones (default: false)
+	 * @param includeEAs - Include enumeration areas (default: false)
+	 * @returns Observable<Dzongkhag>
+	 *
+	 * @example
+	 * getDzongkhagById(1) // Basic info
+	 * getDzongkhagById(1, true) // With geometry
+	 * getDzongkhagById(1, false, true, true) // With nested zones
 	 */
-	getDzongkhagById(dzongkhagId: number): Observable<Dzongkhag> {
-		return this.http.get<any>(`${this.apiUrl}/${dzongkhagId}`).pipe(
+	getDzongkhagById(
+		dzongkhagId: number,
+		withGeom: boolean = false,
+		includeAdminZones: boolean = false,
+		includeSubAdminZones: boolean = false,
+		includeEAs: boolean = false
+	): Observable<Dzongkhag> {
+		let params = new HttpParams();
+		if (withGeom) params = params.set('withGeom', 'true');
+		if (includeAdminZones) params = params.set('includeAdminZones', 'true');
+		if (includeSubAdminZones)
+			params = params.set('includeSubAdminZones', 'true');
+		if (includeEAs) params = params.set('includeEAs', 'true');
+
+		return this.http.get<any>(`${this.apiUrl}/${dzongkhagId}`, { params }).pipe(
 			map((dzongkhag: any) => ({
 				...dzongkhag,
 				areaSqKm:
@@ -66,14 +113,18 @@ export class DzongkhagDataService {
 						: dzongkhag.areaSqKm,
 			})),
 			catchError((error) => {
-				console.error('Error fetching dzongkhag :', error);
+				console.error('Error fetching dzongkhag:', error);
 				return throwError(() => error);
 			})
 		);
 	}
 
+	// ============ ADMIN OPERATIONS ============
+
 	/**
-	 * Create new dzongkhag
+	 * Create a new dzongkhag (ADMIN only)
+	 * @param data - CreateDzongkhagDto
+	 * @returns Observable<ApiResponse<Dzongkhag>>
 	 */
 	createDzongkhag(
 		data: CreateDzongkhagDto
@@ -87,7 +138,10 @@ export class DzongkhagDataService {
 	}
 
 	/**
-	 * Update existing dzongkhag
+	 * Update an existing dzongkhag (ADMIN only)
+	 * @param id - Dzongkhag ID
+	 * @param data - UpdateDzongkhagDto (partial update)
+	 * @returns Observable<ApiResponse<Dzongkhag>>
 	 */
 	updateDzongkhag(
 		id: number,
@@ -97,14 +151,16 @@ export class DzongkhagDataService {
 			.patch<ApiResponse<Dzongkhag>>(`${this.apiUrl}/${id}`, data)
 			.pipe(
 				catchError((error) => {
-					console.error('Error updating dzlongkhag:', error);
+					console.error('Error updating dzongkhag:', error);
 					return throwError(() => error);
 				})
 			);
 	}
 
 	/**
-	 * Delete language
+	 * Delete a dzongkhag (ADMIN only)
+	 * @param id - Dzongkhag ID
+	 * @returns Observable<ApiResponse<any>>
 	 */
 	deleteDzongkhag(id: number): Observable<ApiResponse<any>> {
 		return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`).pipe(
@@ -116,7 +172,17 @@ export class DzongkhagDataService {
 	}
 
 	/**
-	 * Upload GeoJSON for a dzongkhag
+	 * Upload GeoJSON file to update dzongkhag geometry (ADMIN only)
+	 * Accepts .geojson or .json files (max 50MB)
+	 * Supports Feature, FeatureCollection, or direct Geometry objects
+	 *
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @param file - GeoJSON file to upload
+	 * @returns Observable<ApiResponse<Dzongkhag>>
+	 *
+	 * @example
+	 * const file = event.target.files[0];
+	 * uploadGeojsonByDzongkhag(1, file).subscribe(...)
 	 */
 	uploadGeojsonByDzongkhag(
 		dzongkhagId: number,

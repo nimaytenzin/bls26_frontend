@@ -1,0 +1,69 @@
+/* Map Container Styling */
+#eaMap,
+#dzongkhagMap,
+#adminZoneMap,
+#subAdminZoneMap {
+  z-index: 0;
+}
+
+/* Ensure Leaflet controls are visible */
+:host ::ng-deep .leaflet-control-zoom,
+:host ::ng-deep .leaflet-control-attribution {
+  z-index: 10;
+}
+
+/* Loading Spinner Animation */
+.pi-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Card Hover Effects */
+.cursor-pointer:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Responsive Map Heights */
+@media (max-width: 768px) {
+  #eaMap {
+    height: 400px !important;
+  }
+  
+  #dzongkhagMap,
+  #adminZoneMap,
+  #subAdminZoneMap {
+    height: 350px !important;
+  }
+}
+
+/* Leaflet Popup Customization */
+:host ::ng-deep .leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+:host ::ng-deep .leaflet-popup-content {
+  margin: 12px 16px;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+:host ::ng-deep .leaflet-popup-tip {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Breadcrumb Link Styling */
+.cursor-pointer.hover\:text-blue-600:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Color Legend Styling */
+.inline-block {
+  vertical-align: middle;
+  border-radius: 2px;
+}

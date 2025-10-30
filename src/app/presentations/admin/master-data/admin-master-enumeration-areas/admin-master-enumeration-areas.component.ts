@@ -6,6 +6,7 @@ import {
 	ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import {
 	FormsModule,
 	ReactiveFormsModule,
@@ -83,7 +84,8 @@ export class AdminMasterEnumerationAreasComponent
 		private enumerationAreaService: EnumerationAreaDataService,
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
 		private fb: FormBuilder,
-		private messageService: MessageService
+		private messageService: MessageService,
+		private router: Router
 	) {
 		this.enumerationAreaForm = this.fb.group({
 			name: ['', [Validators.required, Validators.minLength(2)]],
@@ -97,6 +99,11 @@ export class AdminMasterEnumerationAreasComponent
 	ngOnInit() {
 		this.loadSubAdministrativeZones();
 		this.loadEnumerationAreas();
+
+		// Create global function for map popup navigation
+		(window as any).navigateToEADetails = (id: number) => {
+			this.viewEnumerationAreaDetails({ id } as EnumerationArea);
+		};
 	}
 
 	ngAfterViewInit() {
@@ -122,6 +129,9 @@ export class AdminMasterEnumerationAreasComponent
 		if (this.map) {
 			this.map.remove();
 		}
+
+		// Clean up global function
+		delete (window as any).navigateToEADetails;
 	}
 
 	loadSubAdministrativeZones() {
@@ -265,12 +275,12 @@ export class AdminMasterEnumerationAreasComponent
 			onEachFeature: (feature, layer) => {
 				const props = feature.properties;
 
-				layer.bindPopup(`
-<div style="padding: 12px; min-width: 200px;">
+				const popupContent = `
+<div style="padding: 4px; ">
   <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #111827;">${
 		props.name
 	}</div>
-  <div style="display: grid; gap: 4px; font-size: 13px;">
+  <div style="display: grid; gap: 4px; font-size: 13px; margin-bottom: 12px;">
     <div><span style="font-weight: 600; color: #6b7280;">Code:</span> <span style="color: #374151;">${
 			props.areaCode || 'N/A'
 		}</span></div>
@@ -281,8 +291,34 @@ export class AdminMasterEnumerationAreasComponent
 			props.description || 'N/A'
 		}</span></div>
   </div>
+  <button 
+    onclick="window.navigateToEADetails(${props.id})"
+    style="
+      width: 100%;
+      padding: 4px 12px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background-color 0.2s;
+    "
+    onmouseover="this.style.backgroundColor='#2563eb'"
+    onmouseout="this.style.backgroundColor='#3b82f6'"
+  >
+    <i class="pi pi-eye" style="font-size: 12px;"></i>
+    View Details
+  </button>
 </div>
-`);
+`;
+
+				layer.bindPopup(popupContent);
 
 				layer.bindTooltip(props.name, {
 					permanent: false,
@@ -657,5 +693,10 @@ export class AdminMasterEnumerationAreasComponent
 		this.bulkUploadDialog = false;
 		this.bulkUploadFile = null;
 		this.bulkUploadResults = null;
+	}
+
+	// Navigate to detail viewer
+	viewEnumerationAreaDetails(area: EnumerationArea) {
+		this.router.navigate(['/admin/data-view/eazone', area.id]);
 	}
 }

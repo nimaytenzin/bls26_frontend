@@ -258,10 +258,20 @@
 											<button
 												pButton
 												type="button"
+												icon="pi pi-eye"
+												class="p-button-outlined p-button-sm p-button-secondary"
+												(click)="viewEnumerationAreaDetails(area)"
+												pTooltip="View Details"
+												tooltipPosition="top"
+											></button>
+											<button
+												pButton
+												type="button"
 												icon="pi pi-pencil"
 												class="p-button-outlined p-button-sm p-button-info"
 												(click)="editEnumerationArea(area)"
 												pTooltip="Edit"
+												tooltipPosition="top"
 											></button>
 											<button
 												pButton
@@ -274,6 +284,7 @@
 												[pTooltip]="
 													area.geom ? 'Replace GeoJSON' : 'Upload GeoJSON'
 												"
+												tooltipPosition="top"
 											></button>
 											<button
 												pButton
@@ -282,6 +293,7 @@
 												class="p-button-outlined p-button-sm p-button-danger"
 												(click)="confirmDelete(area)"
 												pTooltip="Delete"
+												tooltipPosition="top"
 											></button>
 										</div>
 									</td>
@@ -432,10 +444,20 @@
 								<button
 									pButton
 									type="button"
+									icon="pi pi-eye"
+									class="p-button-outlined p-button-sm p-button-secondary"
+									(click)="viewEnumerationAreaDetails(area)"
+									pTooltip="View Details"
+									tooltipPosition="top"
+								></button>
+								<button
+									pButton
+									type="button"
 									icon="pi pi-pencil"
 									class="p-button-outlined p-button-sm p-button-info"
 									(click)="editEnumerationArea(area)"
 									pTooltip="Edit"
+									tooltipPosition="top"
 								></button>
 								<button
 									pButton
@@ -446,6 +468,7 @@
 									[class.p-button-warning]="area.geom"
 									(click)="openUploadGeojson(area)"
 									[pTooltip]="area.geom ? 'Replace GeoJSON' : 'Upload GeoJSON'"
+									tooltipPosition="top"
 								></button>
 								<button
 									pButton
@@ -454,6 +477,7 @@
 									class="p-button-outlined p-button-sm p-button-danger"
 									(click)="confirmDelete(area)"
 									pTooltip="Delete"
+									tooltipPosition="top"
 								></button>
 							</div>
 						</td>
