@@ -31,20 +31,6 @@ export const executiveProducerRoutes: Routes = [
 						(m) => m.ExecutiveProducerMoviesComponent
 					),
 			},
-			{
-				path: 'movies/:id',
-				loadComponent: () =>
-					import(
-						'./movie-detail/executive-producer-movie-detail.component'
-					).then((m) => m.ExecutiveProducerMovieDetailComponent),
-			},
-			{
-				path: 'movies/:id/details',
-				loadComponent: () =>
-					import(
-						'./movie-detail/executive-producer-movie-detail.component'
-					).then((m) => m.ExecutiveProducerMovieDetailComponent),
-			},
 
 			// ==================== Revenue Routes ====================
 			{

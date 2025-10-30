@@ -1,0 +1,563 @@
+<!-- Toast Messages -->
+<p-toast></p-toast>
+
+<!-- Current Household Listings Management Dashboard -->
+<div class="p-6 bg-gray-50 min-h-screen">
+	<!-- Header Section -->
+	<div class="mb-6">
+		<div class="flex justify-between items-center">
+			<div>
+				<h1 class="text-2xl font-bold text-gray-900">
+					Current Household Listings Management
+				</h1>
+				<p class="text-sm text-gray-600 mt-1">
+					Manage household listings and census data
+				</p>
+			</div>
+
+			<!-- Action Controls -->
+			<div class="flex items-center gap-2">
+				<button
+					pButton
+					type="button"
+					label="Add Household"
+					icon="pi pi-plus"
+					class="p-button-primary"
+					(click)="openNew()"
+				></button>
+			</div>
+		</div>
+
+		<!-- Statistics Cards -->
+		<div class="mt-6 grid grid-cols-1 md:grid-cols-5 gap-4">
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-home text-blue-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Total Households</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ totalHouseholds }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-users text-green-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Total Members</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ totalMembers }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-chart-bar text-purple-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Avg Members</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ averageMembersPerHousehold | number : "1.1-1" }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-mars text-indigo-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Total Male</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ totalMaleMembers }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-venus text-pink-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Total Female</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ totalFemaleMembers }}
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Content Area -->
+	<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+		<div class="p-4">
+			<div class="flex justify-between items-center mb-4">
+				<h2 class="text-lg font-semibold text-gray-900">Household Listings</h2>
+				<div class="flex items-center gap-3">
+					<!-- EA Filter -->
+					<div class="flex items-center gap-2">
+						<label class="text-sm font-medium text-gray-700"
+							>Filter by EA:</label
+						>
+						<p-dropdown
+							[options]="enumerationAreas"
+							[(ngModel)]="selectedEAFilter"
+							optionLabel="name"
+							optionValue="id"
+							placeholder="All Areas"
+							[showClear]="true"
+							(onChange)="onEAFilterChange($event)"
+							[filter]="true"
+							filterBy="name"
+							styleClass="w-64"
+						></p-dropdown>
+					</div>
+
+					<!-- Search -->
+					<span class="p-input-icon-left">
+						<i class="pi pi-search"></i>
+						<input
+							pInputText
+							type="text"
+							[(ngModel)]="globalFilterValue"
+							placeholder="Search households..."
+							class="p-inputtext-sm"
+							(input)="onGlobalFilter($event)"
+						/>
+					</span>
+				</div>
+			</div>
+
+			<p-table
+				#dt
+				[value]="householdListings"
+				[rows]="10"
+				[paginator]="true"
+				responsiveLayout="scroll"
+				[loading]="loading"
+				selectionMode="single"
+				[(selection)]="selectedHousehold"
+				styleClass="p-datatable-sm"
+				[globalFilterFields]="[
+					'structureNumber',
+					'householdIdentification',
+					'nameOfHOH',
+					'phoneNumber'
+				]"
+				[filterDelay]="0"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th pSortableColumn="eaId">Enumeration Area</th>
+
+						<th pSortableColumn="structureNumber">
+							Structure # <p-sortIcon field="structureNumber"></p-sortIcon>
+						</th>
+						<th pSortableColumn="householdSerialNumber">
+							Serial # <p-sortIcon field="householdSerialNumber"></p-sortIcon>
+						</th>
+						<th pSortableColumn="householdIdentification">
+							Household Identification
+							<p-sortIcon field="householdIdentification"></p-sortIcon>
+						</th>
+						<th pSortableColumn="nameOfHOH">
+							Head of Household <p-sortIcon field="nameOfHOH"></p-sortIcon>
+						</th>
+						<th pSortableColumn="totalMale">
+							Male <p-sortIcon field="totalMale"></p-sortIcon>
+						</th>
+						<th pSortableColumn="totalFemale">
+							Female <p-sortIcon field="totalFemale"></p-sortIcon>
+						</th>
+						<th>Remarks</th>
+						<th pSortableColumn="phoneNumber">Phone</th>
+						<th>Actions</th>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="body" let-household>
+					<tr [class.bg-blue-50]="selectedHousehold?.id === household.id">
+						<td>
+							<span class="text-sm text-gray-700">
+								{{ getEnumerationAreaName(household.eaId) }}
+							</span>
+						</td>
+						<td>
+							<span class="font-mono text-sm text-gray-900">
+								{{ household.structureNumber }}
+							</span>
+						</td>
+						<td>
+							<span class="font-semibold text-gray-900">
+								{{ household.householdSerialNumber }}
+							</span>
+						</td>
+						<td>
+							<span class="font-mono text-xs text-gray-600">
+								{{ household.householdIdentification }}
+							</span>
+						</td>
+						<td>
+							<div class="font-medium text-gray-900">
+								{{ household.nameOfHOH }}
+							</div>
+						</td>
+
+						<td>
+							<span class="text-sm text-gray-900">
+								{{ household.totalMale }}
+							</span>
+						</td>
+						<td>
+							<span class="text-sm text-gray-900">
+								{{ household.totalFemale }}
+							</span>
+						</td>
+						<td>
+							<p>
+								{{ household.remarks || "-" }}
+							</p>
+						</td>
+						<td>
+							<span class="text-sm text-gray-600">
+								{{ household.phoneNumber || "N/A" }}
+							</span>
+						</td>
+						<td>
+							<div class="flex items-center gap-2">
+								<button
+									pButton
+									type="button"
+									icon="pi pi-pencil"
+									class="p-button-outlined p-button-sm p-button-info"
+									(click)="editHousehold(household)"
+									pTooltip="Edit"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-trash"
+									class="p-button-outlined p-button-sm p-button-danger"
+									(click)="confirmDelete(household)"
+									pTooltip="Delete"
+								></button>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="10" class="text-center py-8">
+							<div class="text-gray-500">
+								<i class="pi pi-info-circle text-2xl mb-2 block"></i>
+								No household listings found
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</div>
+	</div>
+</div>
+
+<!-- Add/Edit Dialog -->
+<p-dialog
+	[(visible)]="householdDialog"
+	[style]="{ width: '700px' }"
+	[header]="isEditMode ? 'Edit Household Listing' : 'Add New Household Listing'"
+	[modal]="true"
+	styleClass="p-fluid"
+>
+	<ng-template pTemplate="content">
+		<form [formGroup]="householdForm" class="space-y-4">
+			<!-- Enumeration Area Field -->
+			<div>
+				<label for="eaId" class="block text-sm font-medium text-gray-700 mb-2">
+					Enumeration Area *
+				</label>
+				<p-dropdown
+					id="eaId"
+					[options]="enumerationAreas"
+					formControlName="eaId"
+					optionLabel="name"
+					optionValue="id"
+					placeholder="Select enumeration area"
+					[class.ng-invalid]="hasFormError('eaId')"
+					styleClass="w-full"
+					[filter]="true"
+					filterBy="name"
+				></p-dropdown>
+				<small *ngIf="hasFormError('eaId')" class="p-error">
+					{{ getFormError("eaId") }}
+				</small>
+			</div>
+
+			<!-- Structure Number and Serial Number -->
+			<div class="grid grid-cols-2 gap-4">
+				<div>
+					<label
+						for="structureNumber"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						Structure Number *
+					</label>
+					<input
+						id="structureNumber"
+						type="text"
+						pInputText
+						formControlName="structureNumber"
+						placeholder="e.g., STR-001"
+						[class.ng-invalid]="hasFormError('structureNumber')"
+						class="w-full"
+					/>
+					<small *ngIf="hasFormError('structureNumber')" class="p-error">
+						{{ getFormError("structureNumber") }}
+					</small>
+				</div>
+
+				<div>
+					<label
+						for="householdSerialNumber"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						Serial Number *
+					</label>
+					<p-inputNumber
+						id="householdSerialNumber"
+						formControlName="householdSerialNumber"
+						placeholder="Enter serial number"
+						[min]="1"
+						[useGrouping]="false"
+						[class.ng-invalid]="hasFormError('householdSerialNumber')"
+						styleClass="w-full"
+					>
+					</p-inputNumber>
+					<small *ngIf="hasFormError('householdSerialNumber')" class="p-error">
+						{{ getFormError("householdSerialNumber") }}
+					</small>
+				</div>
+			</div>
+
+			<!-- Household Identification -->
+			<div>
+				<label
+					for="householdIdentification"
+					class="block text-sm font-medium text-gray-700 mb-2"
+				>
+					Household Identification *
+				</label>
+				<input
+					id="householdIdentification"
+					type="text"
+					pInputText
+					formControlName="householdIdentification"
+					placeholder="e.g., HH-2024-001"
+					[class.ng-invalid]="hasFormError('householdIdentification')"
+					class="w-full"
+				/>
+				<small *ngIf="hasFormError('householdIdentification')" class="p-error">
+					{{ getFormError("householdIdentification") }}
+				</small>
+			</div>
+
+			<!-- Name of Head of Household -->
+			<div>
+				<label
+					for="nameOfHOH"
+					class="block text-sm font-medium text-gray-700 mb-2"
+				>
+					Name of Head of Household *
+				</label>
+				<input
+					id="nameOfHOH"
+					type="text"
+					pInputText
+					formControlName="nameOfHOH"
+					placeholder="Enter full name"
+					[class.ng-invalid]="hasFormError('nameOfHOH')"
+					class="w-full"
+				/>
+				<small *ngIf="hasFormError('nameOfHOH')" class="p-error">
+					{{ getFormError("nameOfHOH") }}
+				</small>
+			</div>
+
+			<!-- Total Male and Female -->
+			<div class="grid grid-cols-2 gap-4">
+				<div>
+					<label
+						for="totalMale"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						Total Male *
+					</label>
+					<p-inputNumber
+						id="totalMale"
+						formControlName="totalMale"
+						placeholder="Number of males"
+						[min]="0"
+						[useGrouping]="false"
+						[class.ng-invalid]="hasFormError('totalMale')"
+						styleClass="w-full"
+					>
+					</p-inputNumber>
+					<small *ngIf="hasFormError('totalMale')" class="p-error">
+						{{ getFormError("totalMale") }}
+					</small>
+				</div>
+
+				<div>
+					<label
+						for="totalFemale"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						Total Female *
+					</label>
+					<p-inputNumber
+						id="totalFemale"
+						formControlName="totalFemale"
+						placeholder="Number of females"
+						[min]="0"
+						[useGrouping]="false"
+						[class.ng-invalid]="hasFormError('totalFemale')"
+						styleClass="w-full"
+					>
+					</p-inputNumber>
+					<small *ngIf="hasFormError('totalFemale')" class="p-error">
+						{{ getFormError("totalFemale") }}
+					</small>
+				</div>
+			</div>
+
+			<!-- Phone Number -->
+			<div>
+				<label
+					for="phoneNumber"
+					class="block text-sm font-medium text-gray-700 mb-2"
+				>
+					Phone Number
+				</label>
+				<input
+					id="phoneNumber"
+					type="text"
+					pInputText
+					formControlName="phoneNumber"
+					placeholder="e.g., +975-12345678"
+					class="w-full"
+				/>
+			</div>
+
+			<!-- Remarks -->
+			<div>
+				<label
+					for="remarks"
+					class="block text-sm font-medium text-gray-700 mb-2"
+				>
+					Remarks
+				</label>
+				<textarea
+					id="remarks"
+					pInputTextarea
+					formControlName="remarks"
+					placeholder="Enter any additional notes"
+					rows="3"
+					class="w-full"
+				></textarea>
+			</div>
+		</form>
+	</ng-template>
+
+	<ng-template pTemplate="footer">
+		<button
+			pButton
+			type="button"
+			label="Cancel"
+			icon="pi pi-times"
+			class="p-button-text"
+			(click)="householdDialog = false"
+		></button>
+		<button
+			pButton
+			type="button"
+			[label]="isEditMode ? 'Update' : 'Save'"
+			icon="pi pi-check"
+			class="p-button-primary"
+			[disabled]="householdForm.invalid"
+			(click)="saveHousehold()"
+		></button>
+	</ng-template>
+</p-dialog>
+
+<!-- Delete Confirmation Dialog -->
+<p-dialog
+	[(visible)]="deleteDialog"
+	[style]="{ width: '450px' }"
+	header="Confirm Delete"
+	[modal]="true"
+>
+	<ng-template pTemplate="content">
+		<div class="flex items-center mb-4">
+			<i class="pi pi-exclamation-triangle text-orange-500 text-2xl mr-3"></i>
+			<span>
+				Are you sure you want to delete household
+				<strong>{{ selectedHousehold?.householdIdentification }}</strong>
+				({{ selectedHousehold?.nameOfHOH }})?
+			</span>
+		</div>
+		<p class="text-sm text-gray-600">This action cannot be undone.</p>
+	</ng-template>
+
+	<ng-template pTemplate="footer">
+		<button
+			pButton
+			type="button"
+			label="Cancel"
+			icon="pi pi-times"
+			class="p-button-text"
+			(click)="deleteDialog = false"
+		></button>
+		<button
+			pButton
+			type="button"
+			label="Delete"
+			icon="pi pi-trash"
+			class="p-button-danger"
+			(click)="deleteHousehold()"
+		></button>
+	</ng-template>
+</p-dialog>

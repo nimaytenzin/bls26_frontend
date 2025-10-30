@@ -24,41 +24,76 @@ export const ADMINSIDEBARITEMS = [
 		],
 	},
 	{
-		label: 'Content Management',
+		label: 'Data Viewer',
 		items: [
 			{
-				label: 'Movies',
-				icon: 'pi pi-fw pi-video',
-				routerLink: ['/admin/master-movies'],
+				label: 'Dzongkhag  Viewer',
+				icon: 'pi pi-fw pi-plus-circle',
+				routerLink: ['/admin/master-bookings/create'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 			{
-				label: 'Theatres & Halls',
-				icon: 'pi pi-fw pi-building',
-				routerLink: ['/admin/master-theatres'],
+				label: 'Admin Zone Viewer',
+				icon: 'pi pi-fw pi-plus-circle',
+				routerLink: ['/admin/master-bookings/create'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 			{
-				label: 'Screenings',
-				icon: 'pi pi-fw pi-calendar',
-				routerLink: ['/admin/master-screenings'],
+				label: 'Sub Adm Zone  Viewer',
+				icon: 'pi pi-fw pi-plus-circle',
+				routerLink: ['/admin/master-bookings/create'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'EA Zone  Viewer',
+				icon: 'pi pi-fw pi-plus-circle',
+				routerLink: ['/admin/master-bookings/create'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 		],
 	},
 	{
-		label: 'Operations',
+		label: 'Master Data',
 		items: [
 			{
-				label: 'Bookings',
-				icon: 'pi pi-fw pi-ticket',
-				routerLink: ['/admin/master-bookings'],
+				label: 'Dzongkhags',
+				icon: 'pi pi-fw pi-map',
+				routerLink: ['/admin/master/dzongkhags'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 			{
-				label: 'Sell Tickets',
-				icon: 'pi pi-fw pi-plus-circle',
-				routerLink: ['/admin/master-bookings/create'],
+				label: 'Administrative Zones',
+				icon: 'pi pi-fw pi-map-marker',
+				routerLink: ['/admin/master/administrative-zones'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'Sub Administrative Zones',
+				icon: 'pi pi-fw pi-th-large',
+				routerLink: ['/admin/master/sub-administrative-zones'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'Enumeration Areas',
+				icon: 'pi pi-fw pi-sitemap',
+				routerLink: ['/admin/master/enumeration-areas'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'Current Listings',
+				icon: 'pi pi-fw pi-ticket',
+				routerLink: ['/admin/master/current-household-listings'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+		],
+	},
+	{
+		label: 'Survey Manager',
+		items: [
+			{
+				label: 'Surveys',
+				icon: 'pi pi-fw pi-list-check',
+				routerLink: ['/admin/survey/master'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 		],
@@ -67,7 +102,13 @@ export const ADMINSIDEBARITEMS = [
 		label: 'User Management',
 		items: [
 			{
-				label: 'User Management',
+				label: 'Admin',
+				icon: 'pi pi-fw pi-users',
+				routerLink: ['/admin/user-management'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'Admin',
 				icon: 'pi pi-fw pi-users',
 				routerLink: ['/admin/user-management'],
 				roles: [USERROLESENUM.ADMIN],

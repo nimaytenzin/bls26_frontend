@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import {
 	FormBuilder,
 	FormGroup,
@@ -7,10 +7,11 @@ import {
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { APPNAME } from '../../../core/constants/constants';
 import { AuthService } from '../../../core/dataservice/auth/auth.service';
 import { PrimeNgModules } from '../../../primeng.modules';
 import { LoginDto } from '../../../core/dataservice/auth/auth.interface';
+
+declare const particlesJS: any;
 
 @Component({
 	selector: 'app-login',
@@ -19,15 +20,10 @@ import { LoginDto } from '../../../core/dataservice/auth/auth.interface';
 	styleUrls: ['./login.component.scss'],
 	imports: [CommonModule, ReactiveFormsModule, RouterModule, PrimeNgModules],
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 	loginForm!: FormGroup;
 	isLoading = false;
 	errorMessage = '';
-	APPNAME = APPNAME;
-	mouseX: number = 0;
-	mouseY: number = 0;
-	cursorX: number = 0;
-	cursorY: number = 0;
 
 	constructor(
 		private fb: FormBuilder,
@@ -38,21 +34,118 @@ export class LoginComponent implements OnInit {
 	ngOnInit(): void {
 		// Initialize the form first
 		this.loginForm = this.fb.group({
-			phoneNumber: [
-				17263764,
-				[
-					Validators.required,
-					Validators.min(1000000),
-					Validators.max(99999999999),
-				],
-			],
-			password: ['overlord123', [Validators.required, Validators.minLength(6)]],
+			email: ['', [Validators.required, Validators.email]],
+			password: ['', [Validators.required, Validators.minLength(6)]],
 		});
 
 		// Check if user is already authenticated
 		if (this.authService.isAuthenticated()) {
 			this.redirectToUserDashboard();
 			return;
+		}
+	}
+
+	ngAfterViewInit(): void {
+		this.loadParticlesJS();
+	}
+
+	ngOnDestroy(): void {
+		// Cleanup if needed
+	}
+
+	private loadParticlesJS(): void {
+		// Particles.js is loaded from CDN, initialize directly
+		setTimeout(() => {
+			this.initializeParticles();
+		}, 100);
+	}
+
+	private initializeParticles(): void {
+		if (typeof particlesJS !== 'undefined') {
+			particlesJS('particles-js', {
+				particles: {
+					number: {
+						value: 50,
+						density: {
+							enable: true,
+							value_area: 800,
+						},
+					},
+					color: {
+						value: ['#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe'],
+					},
+					shape: {
+						type: 'circle',
+						stroke: {
+							width: 1,
+							color: '#bfdbfe',
+						},
+					},
+					opacity: {
+						value: 0.6,
+						random: true,
+						anim: {
+							enable: true,
+							speed: 1,
+							opacity_min: 0.3,
+							sync: false,
+						},
+					},
+					size: {
+						value: 8,
+						random: true,
+						anim: {
+							enable: true,
+							speed: 2,
+							size_min: 4,
+							sync: false,
+						},
+					},
+					line_linked: {
+						enable: false,
+					},
+					move: {
+						enable: true,
+						speed: 1,
+						direction: 'top',
+						random: true,
+						straight: false,
+						out_mode: 'out',
+						bounce: false,
+						attract: {
+							enable: false,
+						},
+					},
+				},
+				interactivity: {
+					detect_on: 'canvas',
+					events: {
+						onhover: {
+							enable: true,
+							mode: 'bubble',
+						},
+						onclick: {
+							enable: true,
+							mode: 'repulse',
+						},
+						resize: true,
+					},
+					modes: {
+						bubble: {
+							distance: 150,
+							size: 12,
+							duration: 2,
+							opacity: 0.8,
+							speed: 3,
+						},
+						repulse: {
+							distance: 100,
+							duration: 0.6,
+						},
+					},
+				},
+				retina_detect: true,
+			});
 		}
 	}
 
@@ -66,7 +159,7 @@ export class LoginComponent implements OnInit {
 		this.errorMessage = '';
 
 		const loginDto: LoginDto = {
-			phoneNumber: this.loginForm.value.phoneNumber,
+			email: this.loginForm.value.email,
 			password: this.loginForm.value.password,
 		};
 
@@ -132,40 +225,24 @@ export class LoginComponent implements OnInit {
 		if (field && field.errors && field.touched) {
 			if (field.errors['required']) {
 				return `${
-					fieldName === 'phoneNumber' ? 'Phone number' : 'Password'
+					fieldName === 'phoneNumber' ? 'Email address' : 'Password'
 				} is required`;
 			}
 			if (field.errors['minlength']) {
 				return `Password must be at least ${field.errors['minlength'].requiredLength} characters`;
 			}
-			if (field.errors['min'] || field.errors['max']) {
-				return 'Please enter a valid phone number';
+			if (field.errors['email']) {
+				return 'Please enter a valid email address';
 			}
 		}
 
 		return '';
 	}
 
-	@HostListener('mousemove', ['$event'])
-	onMouseMove(event: MouseEvent) {
-		this.cursorX = event.clientX;
-		this.cursorY = event.clientY;
-
-		this.mouseX = (event.clientX / window.innerWidth - 0.5) * 100;
-		this.mouseY = (event.clientY / window.innerHeight - 0.5) * 100;
-	}
-
-	getTopCircleStyle() {
-		return {
-			transform: `translate3d(${this.mouseX * 2}px, ${this.mouseY * 2}px, 0)`,
-			transition: 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1)',
-		};
-	}
-
-	getBottomCircleStyle() {
-		return {
-			transform: `translate3d(${-this.mouseX * 2}px, ${-this.mouseY * 2}px, 0)`,
-			transition: 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1)',
-		};
+	/**
+	 * Navigate back to home page
+	 */
+	navigateToHome(): void {
+		this.router.navigate(['/']);
 	}
 }

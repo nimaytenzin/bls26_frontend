@@ -1,116 +1,88 @@
-<!-- Enhanced Responsive Navbar with Homepage Alignment -->
+<!-- Professional NSB Navbar -->
 <nav
-	class="fixed w-full z-[9998] top-0 left-0 transition-all duration-500 ease-in-out"
+	class="fixed w-full z-[9998] top-0 left-0 transition-all duration-300"
 	[class]="
 		scrolled
-			? 'bg-black/95 backdrop-blur-sm shadow-lg border-b border-gray-800/50'
-			: 'bg-black/90 backdrop-blur-sm border-b border-gray-800/30'
+			? 'bg-white/95 backdrop-blur-sm shadow-md border-b border-gray-200'
+			: 'bg-white/90 backdrop-blur-sm border-b border-gray-100'
 	"
 >
-	<!-- Main Container with Homepage Alignment -->
-	<div class="w-full sm:max-w-[80vw] mx-auto py-6 px-4 sm:px-6 lg:px-8">
-		<div class="flex items-center justify-between h-16">
-			<!-- Enhanced Logo and Brand Section -->
+	<div class="mx-auto px-4 sm:px-6 lg:px-2">
+		<div class="flex items-center justify-between h-20">
+			<!-- Logo and Brand Section -->
 			<div
-				class="flex items-center space-x-3 logo-container group cursor-pointer"
+				class="flex items-center space-x-4 cursor-pointer group"
 				(click)="navigateTo('/')"
 			>
-				<div class="relative">
+				<div class="flex items-center space-x-3">
 					<img
-						src="logo.png"
-						alt="Logo"
-						class="h-8 w-auto transition-all duration-300 group-hover:scale-110"
+						src="assets/images/nsb-logo.png"
+						alt="NSB Logo"
+						class="h-12 w-auto transition-transform duration-300 group-hover:scale-105"
+						onerror="this.style.display='none'"
 					/>
-					<!-- Logo glow effect -->
-					<div
-						class="absolute inset-0 h-8 w-8 rounded-full bg-red-600/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-					></div>
-				</div>
-				<div class="flex flex-col justify-center">
-					<span
-						class="brand-text text-white font-black text-lg md:text-xl tracking-tight"
-					>
-						{{ APPNAME }}
-					</span>
-					<span
-						class="text-red-400 text-xs font-medium opacity-100 group-hover:opacity-100 transition-opacity duration-300"
-					>
-						Redefining Cinema Experience in Bhutan
-					</span>
+					<div class="flex flex-col">
+						<span
+							class="text-xl font-bold text-gray-900 tracking-tight leading-tight"
+						>
+							National Statistics Bureau
+						</span>
+						<span class="text-sm text-gray-600 font-medium">
+							Royal Government of Bhutan
+						</span>
+					</div>
 				</div>
 			</div>
 
-			<!-- Enhanced Desktop Navigation -->
+			<!-- Desktop Navigation -->
 			<div class="hidden md:flex items-center space-x-8">
 				<a
 					*ngFor="let item of navItems"
 					(click)="navigateTo(item.route)"
-					class="nav-link relative text-gray-300 hover:text-white px-4 py-2 text-sm font-semibold transition-all duration-300 cursor-pointer group"
-					[class.active]="isActiveRoute(item.route)"
+					class="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors duration-200 cursor-pointer relative"
+					[class.text-gray-900]="isActiveRoute(item.route)"
+					[class.font-semibold]="isActiveRoute(item.route)"
 				>
-					<span class="relative z-10">{{ item.label }}</span>
-					<!-- Hover background effect -->
+					{{ item.label }}
 					<div
-						class="absolute inset-0 bg-gradient-to-r from-red-600/10 to-red-700/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-					></div>
-					<!-- Active/hover indicator -->
-					<div
-						class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-red-600 to-red-400 group-hover:w-full transition-all duration-300"
+						class="absolute bottom-0 left-0 w-0 h-0.5 bg-gray-900 transition-all duration-300"
+						[class.w-full]="isActiveRoute(item.route)"
 					></div>
 				</a>
 			</div>
 
-			<!-- Enhanced Desktop Login Button -->
-			<div class="hidden md:flex items-center space-x-4">
-				<!-- Optional Search Icon -->
-				<button
-					class="search-button p-2 text-gray-400 hover:text-white transition-colors duration-300 rounded-lg hover:bg-gray-800/50"
-					title="Search movies"
-				>
-					<i class="pi pi-search text-sm"></i>
-				</button>
-
-				<!-- Login Button -->
+			<!-- Desktop Login Button -->
+			<div class="hidden md:flex items-center">
 				<button
 					(click)="goToLoginPage()"
-					class="login-button relative px-6 py-2.5 bg-transparent border-2 border-gray-600/50 text-gray-300 hover:border-red-500/80 hover:text-white font-semibold rounded-xl transition-all duration-300 hover:bg-red-500/10 hover:shadow-lg hover:shadow-red-500/20 overflow-hidden group"
+					class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
 				>
-					<span class="relative z-10 flex items-center space-x-2">
-						<i class="pi pi-sign-in text-sm"></i>
-						<span>Login</span>
-					</span>
-					<!-- Shimmer effect -->
-					<div
-						class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"
-					></div>
+					<i class="pi pi-sign-in text-sm mr-2"></i>
+					Login
 				</button>
 			</div>
 
-			<!-- Enhanced Mobile Hamburger Button -->
+			<!-- Mobile Menu Button -->
 			<div class="md:hidden">
 				<button
 					(click)="toggleMenu()"
-					class="hamburger-container relative w-11 h-11 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-opacity-50 rounded-lg flex items-center justify-center transition-all duration-300 hover:bg-gray-800/50"
+					class="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500 transition-colors duration-200"
 					[attr.aria-label]="isMenuOpen ? 'Close menu' : 'Open menu'"
 				>
-					<!-- Enhanced Hamburger Lines -->
 					<div class="w-6 h-6 relative">
 						<span
-							class="hamburger-line absolute block w-6 h-0.5 bg-white top-2 rounded-full transition-all duration-300"
+							class="absolute block w-6 h-0.5 bg-current top-2 rounded-sm transition-all duration-300"
 							[class.rotate-45]="isMenuOpen"
 							[class.top-3]="isMenuOpen"
-							[class.bg-red-400]="isMenuOpen"
 						></span>
 						<span
-							class="hamburger-line absolute block w-6 h-0.5 bg-white top-3 rounded-full transition-all duration-300"
+							class="absolute block w-6 h-0.5 bg-current top-3 rounded-sm transition-all duration-300"
 							[class.opacity-0]="isMenuOpen"
-							[class.scale-0]="isMenuOpen"
 						></span>
 						<span
-							class="hamburger-line absolute block w-6 h-0.5 bg-white top-4 rounded-full transition-all duration-300"
+							class="absolute block w-6 h-0.5 bg-current top-4 rounded-sm transition-all duration-300"
 							[class.-rotate-45]="isMenuOpen"
 							[class.top-3]="isMenuOpen"
-							[class.bg-red-400]="isMenuOpen"
 						></span>
 					</div>
 				</button>
@@ -118,115 +90,36 @@
 		</div>
 	</div>
 
-	<!-- Enhanced Mobile Menu Overlay -->
+	<!-- Mobile Menu -->
 	<div
-		class="md:hidden fixed inset-0 z-[9999] transition-all duration-300"
+		class="md:hidden"
 		[class.block]="isMenuOpen"
 		[class.hidden]="!isMenuOpen"
 	>
-		<!-- Enhanced Mobile Menu Panel with Full Coverage -->
 		<div
-			class="mobile-menu-panel fixed top-0 right-0 h-full w-full bg-black shadow-2xl transition-all duration-500 ease-out z-[9999]"
-			[class.translate-x-0]="isMenuOpen"
-			[class.translate-x-full]="!isMenuOpen"
+			class="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200 shadow-lg"
 		>
-			<!-- Enhanced Menu Header -->
-			<!-- <div
-				class="bg-gradient-to-r from-black/80 to-red-900/20 p-6 border-b border-red-500/30"
+			<a
+				*ngFor="let item of navItems"
+				(click)="navigateTo(item.route)"
+				class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors duration-200 cursor-pointer"
+				[class.text-gray-900]="isActiveRoute(item.route)"
+				[class.bg-gray-100]="isActiveRoute(item.route)"
 			>
-				<div class="flex items-center justify-between">
-					<div class="flex items-center space-x-3">
-						<img src="logo.png" alt="Logo" class="h-10 w-auto" />
-						<div class="flex flex-col">
-							<span class="text-white font-black text-lg tracking-tight">{{
-								APPNAME
-							}}</span>
-							<span class="text-red-400 text-xs font-medium">
-								Redefining Cinema Experience in Bhutan
-							</span>
-						</div>
-					</div>
-					<button
-						(click)="closeMenu()"
-						class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-red-500/20 rounded-xl transition-all duration-300 hover:scale-110"
-					>
-						<i class="pi pi-times text-lg"></i>
-					</button>
-				</div>
-			</div> -->
-
-			<!-- Enhanced Menu Content -->
-			<div
-				class="flex flex-col h-full bg-gradient-to-b from-transparent to-black/20"
-			>
-				<!-- Navigation Section -->
-				<div class="flex-1 py-8 px-6">
-					<div class="mb-6">
-						<h3
-							class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-4 px-2"
-						>
-							Navigation
-						</h3>
-					</div>
-					<div class="space-y-2">
-						<a
-							*ngFor="let item of navItems; let i = index"
-							(click)="navigateTo(item.route)"
-							class="mobile-nav-item flex items-center px-4 py-4 text-gray-300 hover:text-white rounded-xl cursor-pointer group relative overflow-hidden transition-all duration-300 hover:scale-105"
-							[class.active-mobile]="isActiveRoute(item.route)"
-							[style.animation-delay]="i * 0.1 + 's'"
-						>
-							<!-- Background gradient on hover -->
-							<div
-								class="absolute inset-0 bg-gradient-to-r from-red-600/10 to-red-700/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"
-							></div>
-
-							<span class="font-semibold text-lg relative z-10">{{
-								item.label
-							}}</span>
-							<div class="ml-auto relative z-10">
-								<i
-									class="pi pi-chevron-right text-gray-600 group-hover:text-red-400 transition-all duration-300 group-hover:translate-x-1"
-								></i>
-							</div>
-
-							<!-- Active indicator -->
-							<div
-								class="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-0 bg-gradient-to-b from-red-600 to-red-400 rounded-r-full transition-all duration-300"
-								[class.h-full]="isActiveRoute(item.route)"
-								[class.group-hover:h-8]="!isActiveRoute(item.route)"
-							></div>
-						</a>
-					</div>
-				</div>
-
-				<!-- Enhanced User/Auth Section -->
-				<div
-					class="p-6 border-t border-gray-800/50 bg-gradient-to-r from-black/40 to-gray-900/40"
+				{{ item.label }}
+			</a>
+			<div class="border-t border-gray-200 pt-3">
+				<button
+					(click)="goToLoginPage()"
+					class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors duration-200"
 				>
-					<div class="mb-4">
-						<h3
-							class="text-gray-500 text-xs uppercase tracking-wider font-bold mb-3 px-2"
-						>
-							Account
-						</h3>
-					</div>
-					<button
-						(click)="goToLoginPage()"
-						class="login-button w-full px-6 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl hover:scale-105 relative overflow-hidden group"
-					>
-						<i class="pi pi-sign-in text-lg relative z-10"></i>
-						<span class="relative z-10">Sign In / Register</span>
-						<!-- Button shimmer effect -->
-						<div
-							class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"
-						></div>
-					</button>
-				</div>
+					<i class="pi pi-sign-in text-sm mr-2"></i>
+					Login
+				</button>
 			</div>
 		</div>
 	</div>
 </nav>
 
-<!-- Spacer for fixed navbar with scroll padding -->
-<div class="h-16" id="navbar-spacer"></div>
+<!-- Spacer for fixed navbar -->
+<div class="h-20" id="navbar-spacer"></div>

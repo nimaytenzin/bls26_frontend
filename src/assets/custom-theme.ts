@@ -10,7 +10,7 @@ const CustomTheme = definePreset(Aura, {
 			200: '#b9cffc',
 			300: '#96b7fa',
 			400: '#739ff9',
-			500: '#6F1C76', // Base primary
+			500: '#14428D', // Base primary
 			600: '#355ac3',
 			700: '#284392',
 			800: '#1a2d62',

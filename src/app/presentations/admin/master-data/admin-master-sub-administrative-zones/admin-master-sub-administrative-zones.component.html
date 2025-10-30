@@ -1,0 +1,810 @@
+<!-- Toast Messages -->
+<p-toast></p-toast>
+
+<!-- Sub-Administrative Zone Management Dashboard -->
+<div class="p-6 bg-gray-50 min-h-screen">
+	<!-- Header Section -->
+	<div class="mb-6">
+		<div class="flex justify-between items-center">
+			<div>
+				<h1 class="text-2xl font-bold text-gray-900">
+					Sub-Administrative Zone Management
+				</h1>
+				<p class="text-sm text-gray-600 mt-1">
+					Manage chiwogs and laps within administrative zones
+				</p>
+			</div>
+
+			<!-- Action Controls -->
+			<div class="flex items-center gap-4">
+				<!-- View Mode Toggle -->
+				<div
+					class="flex bg-white rounded-lg shadow-sm border border-gray-200 p-1"
+				>
+					<button
+						class="px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-2"
+						[class.bg-blue-500]="currentView === 'table'"
+						[class.text-white]="currentView === 'table'"
+						[class.shadow-sm]="currentView === 'table'"
+						[class.text-gray-700]="currentView !== 'table'"
+						[class.hover:bg-gray-50]="currentView !== 'table'"
+						(click)="switchView('table')"
+					>
+						<i class="pi pi-table text-sm"></i>
+						<span>Table View</span>
+					</button>
+					<button
+						class="px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-2"
+						[class.bg-blue-500]="currentView === 'split'"
+						[class.text-white]="currentView === 'split'"
+						[class.shadow-sm]="currentView === 'split'"
+						[class.text-gray-700]="currentView !== 'split'"
+						[class.hover:bg-gray-50]="currentView !== 'split'"
+						(click)="switchView('split')"
+					>
+						<i class="pi pi-clone text-sm"></i>
+						<span>Split View</span>
+					</button>
+				</div>
+
+				<!-- Action Buttons -->
+				<div class="flex items-center gap-2">
+					<button
+						pButton
+						type="button"
+						label="Add Sub-Zone"
+						icon="pi pi-plus"
+						class="p-button-primary"
+						(click)="openNew()"
+					></button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Statistics Cards -->
+		<div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-map text-blue-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Total Sub-Zones</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ subAdministrativeZones.length }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-building text-purple-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Chiwogs</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ chiwogCount }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-home text-amber-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Laps</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ lapCount }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-eye text-green-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Selected</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ selectedSubAdministrativeZone?.name || "None" }}
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Content Area -->
+	<div *ngIf="currentView === 'table'">
+		<!-- TabView for Table Only View -->
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+			<p-tabView (onChange)="onTabChange($event)">
+				<!-- Table Tab -->
+				<p-tabPanel header="Data Management" leftIcon="pi pi-table">
+					<div class="p-4">
+						<div class="flex justify-between items-center mb-4">
+							<h2 class="text-lg font-semibold text-gray-900">
+								Sub-Administrative Zones List
+							</h2>
+							<div class="flex items-center gap-3">
+								<span class="p-input-icon-left">
+									<input
+										pInputText
+										type="text"
+										[(ngModel)]="globalFilterValue"
+										placeholder="Search sub-zones..."
+										class="p-inputtext-sm"
+										(input)="onGlobalFilter($event)"
+									/>
+								</span>
+							</div>
+						</div>
+
+						<p-table
+							#dt
+							[value]="subAdministrativeZones"
+							[rows]="10"
+							[paginator]="true"
+							responsiveLayout="scroll"
+							[loading]="loading"
+							selectionMode="single"
+							[(selection)]="selectedSubAdministrativeZone"
+							(onRowSelect)="onRowSelect($event)"
+							styleClass="p-datatable-sm"
+							[globalFilterFields]="['name', 'areaCode', 'type']"
+							[filterDelay]="0"
+						>
+							<ng-template pTemplate="header">
+								<tr>
+									<th pSortableColumn="name">
+										Name <p-sortIcon field="name"></p-sortIcon>
+									</th>
+									<th pSortableColumn="type">
+										Type <p-sortIcon field="type"></p-sortIcon>
+									</th>
+									<th pSortableColumn="administrativeZoneId">
+										Administrative Zone
+									</th>
+									<th pSortableColumn="areaCode">Code</th>
+									<th pSortableColumn="areaSqKm">
+										Area (km²) <p-sortIcon field="areaSqKm"></p-sortIcon>
+									</th>
+									<th>Actions</th>
+								</tr>
+							</ng-template>
+
+							<ng-template pTemplate="body" let-zone>
+								<tr
+									[class.bg-blue-50]="
+										selectedSubAdministrativeZone?.id === zone.id
+									"
+								>
+									<td>
+										<div class="font-medium text-gray-900">
+											{{ zone.name }}
+										</div>
+										<div class="text-sm text-gray-500">ID: {{ zone.id }}</div>
+									</td>
+									<td>
+										<span
+											class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+											[class.bg-purple-100]="zone.type === 'chiwog'"
+											[class.text-purple-800]="zone.type === 'chiwog'"
+											[class.bg-amber-100]="zone.type === 'lap'"
+											[class.text-amber-800]="zone.type === 'lap'"
+										>
+											{{ zone.type }}
+										</span>
+									</td>
+									<td>
+										<span class="text-sm text-gray-700">
+											{{ getAdministrativeZoneName(zone.administrativeZoneId) }}
+										</span>
+									</td>
+									<td>
+										<span class="font-mono text-xs text-gray-600">
+											{{ zone.areaCode || "N/A" }}
+										</span>
+									</td>
+									<td>
+										<span class="text-sm font-medium text-gray-900">
+											{{
+												zone.areaSqKm
+													? (getSafeAreaValue(zone.areaSqKm) | number : "1.2-2")
+													: "N/A"
+											}}
+										</span>
+									</td>
+									<td>
+										<div class="flex items-center gap-2">
+											<button
+												pButton
+												type="button"
+												icon="pi pi-pencil"
+												class="p-button-outlined p-button-sm p-button-info"
+												(click)="editSubAdministrativeZone(zone)"
+												pTooltip="Edit"
+											></button>
+											<button
+												pButton
+												type="button"
+												icon="pi pi-upload"
+												class="p-button-outlined p-button-sm p-button-success"
+												(click)="openUploadGeojson(zone)"
+												pTooltip="Upload GeoJSON"
+											></button>
+											<button
+												pButton
+												type="button"
+												icon="pi pi-trash"
+												class="p-button-outlined p-button-sm p-button-danger"
+												(click)="confirmDelete(zone)"
+												pTooltip="Delete"
+											></button>
+										</div>
+									</td>
+								</tr>
+							</ng-template>
+
+							<ng-template pTemplate="emptymessage">
+								<tr>
+									<td colspan="6" class="text-center py-8">
+										<div class="text-gray-500">
+											<i class="pi pi-info-circle text-2xl mb-2 block"></i>
+											No sub-administrative zones found
+										</div>
+									</td>
+								</tr>
+							</ng-template>
+						</p-table>
+					</div>
+				</p-tabPanel>
+
+				<!-- Map Tab -->
+				<p-tabPanel header="Geographic View" leftIcon="pi pi-map">
+					<!-- Map Tab Header -->
+					<div class="p-4 border-b border-gray-200 bg-gray-50">
+						<div class="flex justify-between items-center">
+							<div>
+								<h3 class="text-lg font-semibold text-gray-900">
+									Interactive Map
+								</h3>
+								<p class="text-sm text-gray-600 mt-1">
+									Click on sub-zones to view details
+								</p>
+							</div>
+							<button
+								pButton
+								type="button"
+								label="Reload Map"
+								icon="pi pi-refresh"
+								class="p-button-outlined p-button-sm p-button-secondary"
+								(click)="reloadMap()"
+								pTooltip="Refresh map data"
+								tooltipPosition="bottom"
+							></button>
+						</div>
+					</div>
+
+					<div class="relative" style="height: 750px">
+						<div
+							id="sub-administrative-zone-map-tab"
+							class="w-full h-full"
+						></div>
+
+						<!-- Map Loading Overlay -->
+						<div
+							*ngIf="!subAdministrativeZoneGeoJSON"
+							class="absolute inset-0 bg-gray-50 flex items-center justify-center"
+						>
+							<div class="text-center">
+								<div
+									class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
+								></div>
+								<p class="text-sm text-gray-600">Loading map data...</p>
+							</div>
+						</div>
+					</div>
+				</p-tabPanel>
+			</p-tabView>
+		</div>
+	</div>
+
+	<!-- Split View -->
+	<div *ngIf="currentView === 'split'" class="grid grid-cols-2 gap-6">
+		<!-- Table Section -->
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+			<div class="p-4 border-b border-gray-200">
+				<div class="flex justify-between items-center">
+					<h2 class="text-lg font-semibold text-gray-900">
+						Sub-Administrative Zones List
+					</h2>
+					<div class="flex items-center gap-3">
+						<span class="p-input-icon-left">
+							<input
+								pInputText
+								type="text"
+								[(ngModel)]="globalFilterValue"
+								placeholder="Search sub-zones..."
+								class="p-inputtext-sm"
+								(input)="onGlobalFilterSplit($event)"
+							/>
+						</span>
+					</div>
+				</div>
+			</div>
+
+			<p-table
+				#dtSplit
+				[value]="subAdministrativeZones"
+				[rows]="10"
+				[paginator]="true"
+				responsiveLayout="scroll"
+				[loading]="loading"
+				selectionMode="single"
+				[(selection)]="selectedSubAdministrativeZone"
+				(onRowSelect)="onRowSelect($event)"
+				styleClass="p-datatable-sm"
+				[globalFilterFields]="['name', 'areaCode', 'type']"
+				[filterDelay]="0"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th pSortableColumn="name">
+							Name <p-sortIcon field="name"></p-sortIcon>
+						</th>
+						<th pSortableColumn="type">Type</th>
+						<th>Actions</th>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="body" let-zone>
+					<tr
+						[class.bg-blue-50]="selectedSubAdministrativeZone?.id === zone.id"
+					>
+						<td>
+							<div class="font-medium text-gray-900 text-sm">
+								{{ zone.name }}
+							</div>
+							<div class="text-xs text-gray-500">
+								{{ getAdministrativeZoneName(zone.administrativeZoneId) }}
+							</div>
+						</td>
+						<td>
+							<span
+								class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+								[class.bg-purple-100]="zone.type === 'chiwog'"
+								[class.text-purple-800]="zone.type === 'chiwog'"
+								[class.bg-amber-100]="zone.type === 'lap'"
+								[class.text-amber-800]="zone.type === 'lap'"
+							>
+								{{ zone.type }}
+							</span>
+						</td>
+						<td>
+							<div class="flex items-center gap-1">
+								<button
+									pButton
+									type="button"
+									icon="pi pi-pencil"
+									class="p-button-outlined p-button-sm p-button-info"
+									(click)="editSubAdministrativeZone(zone)"
+									pTooltip="Edit"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-upload"
+									class="p-button-outlined p-button-sm p-button-success"
+									(click)="openUploadGeojson(zone)"
+									pTooltip="Upload GeoJSON"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-trash"
+									class="p-button-outlined p-button-sm p-button-danger"
+									(click)="confirmDelete(zone)"
+									pTooltip="Delete"
+								></button>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="3" class="text-center py-6">
+							<div class="text-gray-500">
+								<i class="pi pi-info-circle text-xl mb-2 block"></i>
+								No sub-zones found
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</div>
+
+		<!-- Map Section -->
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+			<div class="p-4 border-b border-gray-200">
+				<div class="flex justify-between items-center">
+					<div>
+						<h2 class="text-lg font-semibold text-gray-900">Geographic View</h2>
+						<div class="text-sm text-gray-600">Interactive Map</div>
+					</div>
+					<button
+						pButton
+						type="button"
+						label="Reload Map"
+						icon="pi pi-refresh"
+						class="p-button-outlined p-button-sm p-button-secondary"
+						(click)="reloadMap()"
+						pTooltip="Refresh map data"
+						tooltipPosition="bottom"
+					></button>
+				</div>
+			</div>
+
+			<div class="relative" style="height: 600px">
+				<div
+					id="sub-administrative-zone-map"
+					class="w-full h-full rounded-b-lg"
+				></div>
+
+				<!-- Map Loading Overlay -->
+				<div
+					*ngIf="!subAdministrativeZoneGeoJSON"
+					class="absolute inset-0 bg-gray-50 flex items-center justify-center rounded-b-lg"
+				>
+					<div class="text-center">
+						<div
+							class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
+						></div>
+						<p class="text-sm text-gray-600">Loading map data...</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Add/Edit Dialog -->
+<p-dialog
+	[(visible)]="subAdministrativeZoneDialog"
+	[style]="{ width: '500px' }"
+	[header]="
+		isEditMode
+			? 'Edit Sub-Administrative Zone'
+			: 'Add New Sub-Administrative Zone'
+	"
+	[modal]="true"
+	styleClass="p-fluid"
+>
+	<ng-template pTemplate="content">
+		<form [formGroup]="subAdministrativeZoneForm" class="space-y-4">
+			<!-- Name Field -->
+			<div>
+				<label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+					Sub-Zone Name *
+				</label>
+				<input
+					id="name"
+					type="text"
+					pInputText
+					formControlName="name"
+					placeholder="Enter sub-zone name"
+					[class.ng-invalid]="hasFormError('name')"
+					class="w-full"
+				/>
+				<small *ngIf="hasFormError('name')" class="p-error">
+					{{ getFormError("name") }}
+				</small>
+			</div>
+
+			<!-- Type Field -->
+			<div>
+				<label for="type" class="block text-sm font-medium text-gray-700 mb-2">
+					Type *
+				</label>
+				<p-dropdown
+					id="type"
+					[options]="zoneTypes"
+					formControlName="type"
+					placeholder="Select type"
+					[class.ng-invalid]="hasFormError('type')"
+					styleClass="w-full"
+				></p-dropdown>
+				<small *ngIf="hasFormError('type')" class="p-error">
+					{{ getFormError("type") }}
+				</small>
+			</div>
+
+			<!-- Administrative Zone Field -->
+			<div>
+				<label
+					for="administrativeZoneId"
+					class="block text-sm font-medium text-gray-700 mb-2"
+				>
+					Administrative Zone *
+				</label>
+				<p-dropdown
+					id="administrativeZoneId"
+					[options]="administrativeZones"
+					formControlName="administrativeZoneId"
+					optionLabel="name"
+					optionValue="id"
+					placeholder="Select administrative zone"
+					[class.ng-invalid]="hasFormError('administrativeZoneId')"
+					styleClass="w-full"
+				></p-dropdown>
+				<small *ngIf="hasFormError('administrativeZoneId')" class="p-error">
+					{{ getFormError("administrativeZoneId") }}
+				</small>
+			</div>
+
+			<!-- Area Code Field -->
+			<div>
+				<label
+					for="areaCode"
+					class="block text-sm font-medium text-gray-700 mb-2"
+				>
+					Area Code
+				</label>
+				<input
+					id="areaCode"
+					type="text"
+					pInputText
+					formControlName="areaCode"
+					placeholder="e.g., C001, L001"
+					class="w-full"
+				/>
+			</div>
+
+			<!-- Area Field -->
+			<div>
+				<label
+					for="areaSqKm"
+					class="block text-sm font-medium text-gray-700 mb-2"
+				>
+					Area (km²)
+				</label>
+				<p-inputNumber
+					id="areaSqKm"
+					formControlName="areaSqKm"
+					placeholder="Enter area in square kilometers"
+					[minFractionDigits]="2"
+					[maxFractionDigits]="2"
+					[min]="0"
+					[class.ng-invalid]="hasFormError('areaSqKm')"
+					styleClass="w-full"
+				>
+				</p-inputNumber>
+				<small *ngIf="hasFormError('areaSqKm')" class="p-error">
+					{{ getFormError("areaSqKm") }}
+				</small>
+			</div>
+		</form>
+	</ng-template>
+
+	<ng-template pTemplate="footer">
+		<button
+			pButton
+			type="button"
+			label="Cancel"
+			icon="pi pi-times"
+			class="p-button-text"
+			(click)="subAdministrativeZoneDialog = false"
+		></button>
+		<button
+			pButton
+			type="button"
+			[label]="isEditMode ? 'Update' : 'Save'"
+			icon="pi pi-check"
+			class="p-button-primary"
+			[disabled]="subAdministrativeZoneForm.invalid"
+			(click)="saveSubAdministrativeZone()"
+		></button>
+	</ng-template>
+</p-dialog>
+
+<!-- Delete Confirmation Dialog -->
+<p-confirmDialog></p-confirmDialog>
+
+<!-- Custom Delete Dialog -->
+<p-dialog
+	[(visible)]="deleteDialog"
+	[style]="{ width: '450px' }"
+	header="Confirm Delete"
+	[modal]="true"
+>
+	<ng-template pTemplate="content">
+		<div class="flex items-center mb-4">
+			<i class="pi pi-exclamation-triangle text-orange-500 text-2xl mr-3"></i>
+			<span
+				>Are you sure you want to delete
+				<strong>{{ selectedSubAdministrativeZone?.name }}</strong
+				>?</span
+			>
+		</div>
+		<p class="text-sm text-gray-600">This action cannot be undone.</p>
+	</ng-template>
+
+	<ng-template pTemplate="footer">
+		<button
+			pButton
+			type="button"
+			label="Cancel"
+			icon="pi pi-times"
+			class="p-button-text"
+			(click)="deleteDialog = false"
+		></button>
+		<button
+			pButton
+			type="button"
+			label="Delete"
+			icon="pi pi-trash"
+			class="p-button-danger"
+			(click)="deleteSubAdministrativeZone()"
+		></button>
+	</ng-template>
+</p-dialog>
+
+<!-- Upload GeoJSON Dialog -->
+<p-dialog
+	[(visible)]="uploadGeojsonDialog"
+	[style]="{ width: '600px' }"
+	header="Upload GeoJSON"
+	[modal]="true"
+	styleClass="p-fluid"
+>
+	<ng-template pTemplate="content">
+		<div class="space-y-4">
+			<!-- Info Section -->
+			<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+				<div class="flex items-start">
+					<i class="pi pi-info-circle text-blue-600 text-xl mr-3 mt-0.5"></i>
+					<div>
+						<h4 class="font-semibold text-blue-900 mb-2">
+							Important Guidelines
+						</h4>
+						<ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
+							<li>
+								Ensure the GeoJSON file is in
+								<strong>WGS84 (EPSG:4326)</strong> projection
+							</li>
+							<li>
+								The file must contain a <strong>single Feature</strong> or
+								FeatureCollection with one feature
+							</li>
+							<li>Supported geometry types: Polygon, MultiPolygon</li>
+							<li>File format: .json or .geojson</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+
+			<!-- Selected Sub-Administrative Zone -->
+			<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-sm text-gray-600">Uploading for:</p>
+						<p class="font-semibold text-gray-900 text-lg">
+							{{ selectedSubAdministrativeZone?.name }}
+						</p>
+						<span
+							class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2"
+							[class.bg-purple-100]="
+								selectedSubAdministrativeZone?.type === 'chiwog'
+							"
+							[class.text-purple-800]="
+								selectedSubAdministrativeZone?.type === 'chiwog'
+							"
+							[class.bg-amber-100]="
+								selectedSubAdministrativeZone?.type === 'lap'
+							"
+							[class.text-amber-800]="
+								selectedSubAdministrativeZone?.type === 'lap'
+							"
+						>
+							{{ selectedSubAdministrativeZone?.type }}
+						</span>
+					</div>
+					<div
+						class="text-right"
+						*ngIf="selectedSubAdministrativeZone?.areaCode"
+					>
+						<p class="text-sm text-gray-600">Area Code:</p>
+						<p class="font-mono font-semibold text-gray-900">
+							{{ selectedSubAdministrativeZone?.areaCode }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- File Upload -->
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-2">
+					Select GeoJSON File *
+				</label>
+				<p-fileUpload
+					mode="basic"
+					[auto]="false"
+					accept=".json,.geojson"
+					[maxFileSize]="10000000"
+					chooseLabel="Choose File"
+					chooseIcon="pi pi-upload"
+					(onSelect)="onFileSelect($event)"
+					[showUploadButton]="false"
+					[showCancelButton]="false"
+					styleClass="w-full"
+				></p-fileUpload>
+				<small class="text-gray-500 mt-1 block">
+					Maximum file size: 10 MB
+				</small>
+			</div>
+
+			<!-- Selected File Info -->
+			<div
+				*ngIf="selectedFile"
+				class="bg-green-50 border border-green-200 rounded-lg p-3"
+			>
+				<div class="flex items-center">
+					<i class="pi pi-file text-green-600 text-xl mr-3"></i>
+					<div class="flex-1">
+						<p class="font-medium text-green-900">{{ selectedFile.name }}</p>
+						<p class="text-sm text-green-700">
+							{{ (selectedFile.size / 1024).toFixed(2) }} KB
+						</p>
+					</div>
+					<i class="pi pi-check-circle text-green-600 text-xl"></i>
+				</div>
+			</div>
+		</div>
+	</ng-template>
+
+	<ng-template pTemplate="footer">
+		<button
+			pButton
+			type="button"
+			label="Cancel"
+			icon="pi pi-times"
+			class="p-button-text"
+			(click)="uploadGeojsonDialog = false; selectedFile = null"
+			[disabled]="uploadLoading"
+		></button>
+		<button
+			pButton
+			type="button"
+			label="Upload"
+			icon="pi pi-upload"
+			class="p-button-success"
+			[disabled]="!selectedFile || uploadLoading"
+			[loading]="uploadLoading"
+			(click)="uploadGeojson()"
+		></button>
+	</ng-template>
+</p-dialog>

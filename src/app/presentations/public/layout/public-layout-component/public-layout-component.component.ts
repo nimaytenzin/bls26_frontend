@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { PrimeNgModules } from '../../../../primeng.modules';
-import { PublicPreLoaderComponent } from '../../public-pre-loader/public-pre-loader.component';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
 
@@ -14,19 +13,12 @@ import { FooterComponent } from '../footer/footer.component';
 		CommonModule,
 		RouterModule,
 		PrimeNgModules,
-		PublicPreLoaderComponent,
 		NavbarComponent,
 		FooterComponent,
 	],
 })
 export class PublicLayoutComponentComponent implements OnInit {
-	showPreloader: boolean = true;
-
 	constructor(private router: Router) {}
 
-	ngOnInit() {
-		setTimeout(() => {
-			this.showPreloader = false;
-		}, 0);
-	}
+	ngOnInit() {}
 }

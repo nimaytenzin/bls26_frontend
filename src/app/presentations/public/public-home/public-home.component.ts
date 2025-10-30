@@ -1,322 +1,406 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { DialogModule } from 'primeng/dialog';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { Router } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import {
-	Movie,
-	ScreeningStatusEnum,
-} from '../../../core/dataservice/movie/movie.interface';
-import { PublicDataService } from '../../../core/dataservice/public/public.dataservice';
-import { BASEAPI_URL } from '../../../core/constants/constants';
-import { HeroCarouselComponent } from './hero-carousel/hero-carousel.component';
-import { MovieCardComponent } from './movie-card/movie-card.component';
+	Component,
+	OnInit,
+	OnDestroy,
+	AfterViewInit,
+	NgZone,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import * as L from 'leaflet';
+import { DzongkhagDataService } from '../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
+
+import { PrimeNgModules } from '../../../primeng.modules';
 
 @Component({
 	selector: 'app-public-home',
 	templateUrl: './public-home.component.html',
 	styleUrls: ['./public-home.component.scss'],
 	standalone: true,
-	imports: [
-		CommonModule,
-		ButtonModule,
-		TagModule,
-		DialogModule,
-		ProgressSpinnerModule,
-		HeroCarouselComponent,
-		MovieCardComponent,
-	],
+	imports: [CommonModule, PrimeNgModules],
 })
-export class PublicHomeComponent implements OnInit, OnDestroy {
-	private destroy$ = new Subject<void>();
+export class PublicHomeComponent implements OnInit, OnDestroy, AfterViewInit {
+	private map?: L.Map;
+	private dzongkhagGeoJSON: any;
+	private dzongkhagLayer?: L.GeoJSON;
 
-	movieScreeningStatus = ScreeningStatusEnum;
-	showPreloader: boolean = true;
-	isLoading: boolean = false;
-	error: string | null = null;
+	private baseLayer?: L.TileLayer;
+	currentBasemap: 'none' | 'google' | 'osm' = 'none';
 
-	// YouTube Modal properties
-	showTrailerModal: boolean = false;
-	currentTrailerUrl: SafeResourceUrl | null = null;
+	// Control widget state
+	expandedSection: 'basemaps' | 'layers' | 'legend' | 'download' | null = null;
 
-	movies: Movie[] = [];
-	filteredMovies: Movie[] = [];
+	// Side drawer state
+	drawerOpen = false;
+	selectedDzongkhag: any = null;
 
-	movieStatuses: string[] = ['Screening', 'Coming Soon'];
-	selectedStatus: string = 'Screening';
+	// Layers state
+	layers = [
+		{
+			id: 'dzongkhag',
+			name: 'Dzongkhag Boundaries',
+			enabled: true,
+			color: '#6D8AA3',
+		},
+		{
+			id: 'dzongkhag-labels',
+			name: 'Dzongkhag Labels',
+			enabled: true,
+			color: '#333',
+		},
+	];
+
+	baseMaps: Array<{
+		name: string;
+		url: string | null;
+		iconUrl: string;
+		key: 'none' | 'google' | 'osm';
+	}> = [
+		{
+			name: 'No Basemap',
+			url: null,
+			iconUrl: 'basemapicons/nobasemap.png',
+			key: 'none',
+		},
+		{
+			name: 'OpenStreetMap',
+			url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+			iconUrl: 'basemapicons/openstreetmaps.png',
+			key: 'osm',
+		},
+		{
+			name: 'Google Satellite',
+			url: 'https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}',
+			iconUrl: 'basemapicons/googlesatellite.png',
+			key: 'google',
+		},
+	];
+
+	// Legend items (dynamic based on active layers)
+	get legendItems() {
+		return this.layers
+			.filter((layer) => layer.enabled)
+			.map((layer) => ({
+				label: layer.name,
+				color: layer.color,
+				type: layer.id === 'dzongkhag' ? 'polygon' : 'text',
+			}));
+	}
 
 	constructor(
-		private router: Router,
-		private sanitizer: DomSanitizer,
-		private publicDataService: PublicDataService
+		private dzongkhagService: DzongkhagDataService,
+		private ngZone: NgZone,
+		private router: Router
 	) {}
 
-	ngOnInit() {
-		this.loadMovies();
+	ngOnInit(): void {
+		// Load dzongkhag GeoJSON data
+		this.loadDzongkhagData();
 	}
 
-	ngOnDestroy() {
-		this.destroy$.next();
-		this.destroy$.complete();
+	ngAfterViewInit(): void {
+		// Fix for Leaflet default icon paths in Angular
+		this.fixLeafletIcons();
+
+		// Initialize Leaflet map after view is initialized
+		this.initializeMap();
 	}
 
-	loadMovies() {
-		this.isLoading = true;
-		this.error = null;
+	private fixLeafletIcons(): void {
+		// Fix Leaflet default icon paths
+		const iconRetinaUrl = 'assets/marker-icon-2x.png';
+		const iconUrl = 'assets/marker-icon.png';
+		const shadowUrl = 'assets/marker-shadow.png';
 
-		this.publicDataService
-			.findAllMovies()
-			.pipe(takeUntil(this.destroy$))
-			.subscribe({
-				next: (movies) => {
-					console.log('Loaded movies:', movies);
-					this.movies = movies;
-					this.filterByStatus(this.selectedStatus); // Apply initial filter
-					this.isLoading = false;
-					// Hide preloader after movies load
-					setTimeout(() => {
-						this.showPreloader = false;
-					}, 500);
-				},
-				error: (error) => {
-					console.error('Error loading movies:', error);
-					this.error = 'Failed to load movies. Please try again later.';
-					this.isLoading = false;
-					this.showPreloader = false;
-				},
+		const iconDefault = L.icon({
+			iconRetinaUrl,
+			iconUrl,
+			shadowUrl,
+			iconSize: [25, 41],
+			iconAnchor: [12, 41],
+			popupAnchor: [1, -34],
+			tooltipAnchor: [16, -28],
+			shadowSize: [41, 41],
+		});
+
+		L.Marker.prototype.options.icon = iconDefault;
+	}
+
+	private initializeMap(): void {
+		console.log('Initializing map...');
+
+		// Create the map
+		this.map = L.map('map', {
+			center: [27.5142, 90.4336],
+			zoom: 7,
+			zoomControl: false,
+			attributionControl: false,
+		});
+
+		console.log('Map created successfully');
+
+		// Render dzongkhag layer if data is already loaded
+		if (this.dzongkhagGeoJSON) {
+			console.log('Data already loaded, rendering layer immediately');
+			this.renderDzongkhagLayer(this.dzongkhagGeoJSON);
+		} else {
+			console.log('No data yet, waiting for data to load');
+		}
+	}
+
+	private loadDzongkhagData(): void {
+		console.log('Loading dzongkhag data...');
+		this.dzongkhagService.getAllDzongkhagGeojson().subscribe({
+			next: (geojsonData) => {
+				console.log('Dzongkhag data loaded:', geojsonData);
+				// Store the data
+				this.dzongkhagGeoJSON = geojsonData;
+				// Render the layer if map is already initialized
+				if (this.map) {
+					console.log('Map exists, rendering layer immediately');
+					this.renderDzongkhagLayer(geojsonData);
+				} else {
+					console.log(
+						'Map not yet initialized, data stored for later rendering'
+					);
+				}
+			},
+			error: (error) => {
+				console.error('Error loading dzongkhag GeoJSON:', error);
+			},
+		});
+	}
+	private renderDzongkhagLayer(geojson: any): void {
+		if (!this.map || !geojson) {
+			console.log('Cannot render layer: map or geojson missing', {
+				map: !!this.map,
+				geojson: !!geojson,
 			});
-	}
-
-	buyTickets(movieId: number) {
-		// Find the movie to check its status
-		const movie =
-			this.movies.find((m) => m.id === movieId) ||
-			this.filteredMovies.find((m) => m.id === movieId);
-
-		if (
-			movie &&
-			(movie.screeningStatus === ScreeningStatusEnum.UPCOMING ||
-				movie.screeningStatus === ScreeningStatusEnum.ENDED ||
-				movie.screeningStatus === ScreeningStatusEnum.CANCELLED)
-		) {
-			// Show alert or message that booking is not available
-			let message = 'Booking is not available for this movie.';
-
-			if (movie.screeningStatus === ScreeningStatusEnum.UPCOMING) {
-				message =
-					'This movie is coming soon. Booking will be available closer to the release date.';
-			} else if (movie.screeningStatus === ScreeningStatusEnum.ENDED) {
-				message = 'This movie is no longer screening.';
-			} else if (movie.screeningStatus === ScreeningStatusEnum.CANCELLED) {
-				message = 'This movie has been cancelled.';
-			}
-
-			alert(message);
 			return;
 		}
 
-		this.router.navigate(['/select-schedule', movieId]);
+		console.log('Rendering dzongkhag layer with data:', geojson);
+
+		// Store the geojson data
+		this.dzongkhagGeoJSON = geojson;
+
+		// Remove existing layer if it exists
+		if (this.dzongkhagLayer) {
+			this.map.removeLayer(this.dzongkhagLayer);
+		}
+
+		const isNoBasemap = this.currentBasemap === 'none';
+
+		// Create GeoJSON layer
+		this.dzongkhagLayer = L.geoJSON(geojson, {
+			style: (feature) => ({
+				fillColor: 'transparent',
+				fillOpacity: 0,
+				color: isNoBasemap ? '#6D8AA3' : '#3388ff',
+				weight: 2,
+				opacity: 1,
+			}),
+			onEachFeature: (feature, layer) => {
+				const props = feature.properties;
+				console.log('Processing feature:', props);
+
+				// Bind tooltip for hover
+				layer.bindTooltip(
+					`<div style="text-align: center; font-weight: 600;">${
+						props.name || 'Unknown'
+					} | ${props.areaCode || 'N/A'}</div>`,
+					{
+						permanent: false,
+						direction: 'top',
+						className: 'hover-tooltip',
+					}
+				);
+
+				// Add hover effects
+				layer.on('mouseover', (e) => {
+					(layer as any).setStyle({
+						fillColor: '#6D8AA3',
+						weight: 3,
+						fillOpacity: 0.7,
+					});
+				});
+
+				layer.on('mouseout', (e) => {
+					// Only reset style if this feature is not the selected one
+					if (
+						!this.selectedDzongkhag ||
+						this.selectedDzongkhag.id !== props.id
+					) {
+						this.dzongkhagLayer?.resetStyle(layer as any);
+					}
+				});
+
+				// Add click event to open side drawer
+				layer.on('click', (e) => {
+					// Prevent default behavior and stop propagation
+					L.DomEvent.stopPropagation(e);
+					if (e.originalEvent) {
+						e.originalEvent.preventDefault();
+					}
+
+					// Remove focus from any element that might have it
+					if (document.activeElement) {
+						(document.activeElement as HTMLElement).blur();
+					}
+
+					// Reset all other layers first
+					if (this.dzongkhagLayer) {
+						this.dzongkhagLayer.eachLayer((l: any) => {
+							this.dzongkhagLayer?.resetStyle(l);
+						});
+					}
+
+					// Set the clicked layer style to maintain #6D8AA3 fill
+					(layer as any).setStyle({
+						fillColor: '#6D8AA3',
+						weight: 3,
+						fillOpacity: 0.7,
+					});
+
+					// Run inside NgZone to ensure Angular change detection
+					this.ngZone.run(() => {
+						this.openDrawer(props);
+					});
+				});
+			},
+		});
+
+		// Add the layer to the map
+		this.dzongkhagLayer.addTo(this.map);
+		console.log('Layer added to map');
+
+		// Fit bounds to dzongkhag layer
+		this.map.fitBounds(this.dzongkhagLayer.getBounds());
+		console.log('Map bounds fitted');
 	}
 
-	watchTrailer(trailerUrl: string) {
-		// Convert YouTube watch URL to embed URL with autoplay
-		const embedUrl = this.convertToEmbedUrl(trailerUrl);
-		this.currentTrailerUrl =
-			this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
-		this.showTrailerModal = true;
-	}
+	switchBasemap(basemap: 'none' | 'google' | 'osm'): void {
+		if (!this.map) return;
 
-	closeTrailerModal() {
-		this.showTrailerModal = false;
-		this.currentTrailerUrl = null;
-	}
+		// Remove existing base layer
+		if (this.baseLayer) {
+			this.map.removeLayer(this.baseLayer);
+			this.baseLayer = undefined;
+		}
 
-	filterByStatus(status: string) {
-		this.selectedStatus = status;
-
-		if (status === 'Screening') {
-			this.filteredMovies = this.movies.filter(
-				(movie) => movie.screeningStatus === ScreeningStatusEnum.NOW_SHOWING
-			);
-		} else if (status === 'Coming Soon') {
-			this.filteredMovies = this.movies.filter(
-				(movie) => movie.screeningStatus === ScreeningStatusEnum.UPCOMING
-			);
+		if (basemap === 'none') {
+			// No base map - will show default gray background
+			this.currentBasemap = 'none';
 		} else {
-			this.filteredMovies = [...this.movies];
+			// Add tile layer
+			const tileUrl =
+				basemap === 'google'
+					? 'https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}'
+					: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+			this.baseLayer = L.tileLayer(tileUrl, {
+				maxZoom: 19,
+				attribution:
+					basemap === 'google' ? '© Google' : '© OpenStreetMap contributors',
+			});
+
+			this.baseLayer.addTo(this.map);
+
+			this.currentBasemap = basemap;
 		}
 
-		console.log(`Filtered movies for ${status}:`, this.filteredMovies);
+		// Re-render dzongkhag layer to update styling
+		this.renderDzongkhagLayer(this.dzongkhagGeoJSON);
 	}
 
-	private convertToEmbedUrl(youtubeUrl: string): string {
-		// Extract video ID from various YouTube URL formats
-		const regExp =
-			/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-		const match = youtubeUrl.match(regExp);
-		const videoId = match && match[7].length === 11 ? match[7] : null;
-
-		if (videoId) {
-			// Return embed URL with autoplay, muted (required for autoplay), and other parameters
-			return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&rel=0&modestbranding=1`;
-		}
-
-		return youtubeUrl;
+	// Control widget methods
+	toggleSection(section: 'basemaps' | 'layers' | 'legend' | 'download'): void {
+		this.expandedSection = this.expandedSection === section ? null : section;
 	}
 
-	// Helper methods for template
-	getFirstLandscapePosterImage(movie: Movie): any {
-		return movie?.media?.find(
-			(media) => media.type === 'IMAGE' && media.orientation === 'LANDSCAPE'
-		);
-	}
+	toggleLayer(layerId: string): void {
+		const layer = this.layers.find((l) => l.id === layerId);
+		if (layer) {
+			layer.enabled = !layer.enabled;
 
-	getFirstPortraitImage(movie: Movie): any {
-		return movie?.media?.find(
-			(media) => media.type === 'IMAGE' && media.orientation === 'PORTRAIT'
-		);
-	}
-
-	getMediaUrl(uri: string): string {
-		return `${BASEAPI_URL}${uri}`;
-	}
-
-	getMovieLandscapeImage(movie: Movie): string {
-		// Get the first landscape image from media array, fallback to any image, or default
-		const landscapeImage = this.getFirstLandscapePosterImage(movie);
-
-		if (landscapeImage) {
-			return this.getMediaUrl(landscapeImage.uri);
-		}
-
-		// Fallback to first image
-		const firstImage = movie.media?.find((m) => m.type === 'IMAGE');
-		if (firstImage) {
-			return this.getMediaUrl(firstImage.uri);
-		}
-
-		// Default fallback image
-		return 'assets/images/default-movie-poster.jpg';
-	}
-
-	getMoviePotraitImage(movie: Movie): string {
-		// Get the first landscape image from media array, fallback to any image, or default
-		const portaitImage = this.getFirstPortraitImage(movie);
-
-		if (portaitImage) {
-			return this.getMediaUrl(portaitImage.uri);
-		}
-
-		// Fallback to first image
-		const firstImage = movie.media?.find((m) => m.type === 'IMAGE');
-		if (firstImage) {
-			return this.getMediaUrl(firstImage.uri);
-		}
-
-		// Default fallback image
-		return 'assets/images/default-movie-poster.jpg';
-	}
-
-	getMovieStatusText(status: ScreeningStatusEnum): string {
-		switch (status) {
-			case ScreeningStatusEnum.NOW_SHOWING:
-				return 'Screening Now';
-			case ScreeningStatusEnum.UPCOMING:
-				return 'Coming Soon';
-			case ScreeningStatusEnum.ENDED:
-				return 'Ended';
-			case ScreeningStatusEnum.CANCELLED:
-				return 'Cancelled';
-			default:
-				return 'Unknown';
+			if (layerId === 'dzongkhag') {
+				this.toggleDzongkhagLayer();
+			}
 		}
 	}
 
-	getMovieStatusClass(status: ScreeningStatusEnum): string {
-		switch (status) {
-			case ScreeningStatusEnum.NOW_SHOWING:
-				return 'bg-gradient-to-r from-green-500/90 to-green-600/90 text-white border-green-400/50 animate-pulse';
-			case ScreeningStatusEnum.UPCOMING:
-				return 'bg-gradient-to-r from-blue-500/90 to-blue-600/90 text-white border-blue-400/50';
-			case ScreeningStatusEnum.ENDED:
-				return 'bg-gradient-to-r from-gray-500/90 to-gray-600/90 text-white border-gray-400/50';
-			case ScreeningStatusEnum.CANCELLED:
-				return 'bg-gradient-to-r from-red-500/90 to-red-600/90 text-white border-red-400/50';
-			default:
-				return 'bg-gradient-to-r from-gray-500/90 to-gray-600/90 text-white border-gray-400/50';
+	private toggleDzongkhagLayer(): void {
+		if (!this.map || !this.dzongkhagLayer) return;
+
+		const layer = this.layers.find((l) => l.id === 'dzongkhag');
+		if (layer?.enabled) {
+			this.dzongkhagLayer.addTo(this.map);
+		} else {
+			this.map.removeLayer(this.dzongkhagLayer);
 		}
 	}
 
-	getMovieStatusIcon(status: ScreeningStatusEnum): string {
-		switch (status) {
-			case ScreeningStatusEnum.NOW_SHOWING:
-				return 'pi-play-circle';
-			case ScreeningStatusEnum.UPCOMING:
-				return 'pi-clock';
-			case ScreeningStatusEnum.ENDED:
-				return 'pi-stop-circle';
-			case ScreeningStatusEnum.CANCELLED:
-				return 'pi-times-circle';
-			default:
-				return 'pi-question-circle';
+	downloadMap(format: string): void {
+		console.log(`Downloading map as ${format}`);
+		// Implement download functionality based on format
+		// For now, just logging
+	}
+
+	openDrawer(dzongkhagProps: any): void {
+		// Generate fake statistics for the selected dzongkhag
+		this.selectedDzongkhag = {
+			id: dzongkhagProps.id,
+			name: dzongkhagProps.name,
+			areaCode: dzongkhagProps.areaCode,
+			type: dzongkhagProps.type || 'Dzongkhag',
+			region: dzongkhagProps.region || 'N/A',
+			stats: {
+				gewogs: Math.floor(Math.random() * 15) + 5, // Random between 5-20
+				thromdes: Math.floor(Math.random() * 3), // Random between 0-2
+				chiwogs: Math.floor(Math.random() * 30) + 10, // Random between 10-40
+				laps: Math.floor(Math.random() * 60) + 20, // Random between 20-80
+				eaAreas: Math.floor(Math.random() * 500) + 100, // Random between 100-600
+			},
+		};
+		this.drawerOpen = true;
+	}
+
+	closeDrawer(): void {
+		this.drawerOpen = false;
+
+		// Reset all layer styles when closing drawer
+		if (this.dzongkhagLayer) {
+			this.dzongkhagLayer.eachLayer((layer: any) => {
+				this.dzongkhagLayer?.resetStyle(layer);
+			});
+		}
+
+		this.selectedDzongkhag = null;
+	}
+
+	downloadDzongkhagData(): void {
+		if (this.selectedDzongkhag) {
+			console.log(`Downloading data for ${this.selectedDzongkhag.name}`);
+			// Implement download functionality for specific dzongkhag data
+			// For now, just logging
 		}
 	}
 
-	getMovieButtonText(status: ScreeningStatusEnum): string {
-		switch (status) {
-			case ScreeningStatusEnum.NOW_SHOWING:
-				return 'Buy Tickets';
-			case ScreeningStatusEnum.UPCOMING:
-				return 'Coming Soon';
-			case ScreeningStatusEnum.ENDED:
-				return 'Ended';
-			case ScreeningStatusEnum.CANCELLED:
-				return 'Cancelled';
-			default:
-				return 'Unavailable';
+	viewDzongkhagDetails(): void {
+		if (this.selectedDzongkhag && this.selectedDzongkhag.id) {
+			// Navigate to dzongkhag viewer with the selected dzongkhag ID
+			console.log(
+				'navigating to dzongkhag viewer for ID:',
+				this.selectedDzongkhag.id
+			);
+			this.router.navigate(['/dzongkhag-viewer', this.selectedDzongkhag.id]);
 		}
 	}
 
-	getMovieButtonIcon(status: ScreeningStatusEnum): string {
-		switch (status) {
-			case ScreeningStatusEnum.NOW_SHOWING:
-				return 'pi-ticket';
-			case ScreeningStatusEnum.UPCOMING:
-				return 'pi-clock';
-			default:
-				return 'pi-ban';
+	ngOnDestroy(): void {
+		// Clean up map resources
+		if (this.map) {
+			this.map.remove();
 		}
-	}
-
-	getMovieButtonClass(status: ScreeningStatusEnum): string {
-		switch (status) {
-			case ScreeningStatusEnum.NOW_SHOWING:
-				return 'p-button-lg bg-blue-600 hover:bg-blue-700';
-			case ScreeningStatusEnum.UPCOMING:
-				return 'p-button-lg p-button-secondary opacity-75 cursor-not-allowed';
-			default:
-				return 'p-button-lg p-button-secondary opacity-50 cursor-not-allowed';
-		}
-	}
-
-	isMovieBookable(status: ScreeningStatusEnum): boolean {
-		return status === ScreeningStatusEnum.NOW_SHOWING;
-	}
-
-	formatDuration(durationMin?: number): string {
-		if (!durationMin) return 'N/A';
-
-		const hours = Math.floor(durationMin / 60);
-		const minutes = durationMin % 60;
-
-		if (hours > 0) {
-			return `${hours}h ${minutes}min`;
-		}
-		return `${minutes}min`;
 	}
 }

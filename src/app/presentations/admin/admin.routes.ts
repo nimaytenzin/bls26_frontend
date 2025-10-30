@@ -1,19 +1,17 @@
 import { Routes } from '@angular/router';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard.component';
-import { AdminMasterMoviesComponent } from './movie/admin-master-movies/admin-master-movies.component';
-import { AdminMovieDetailComponent } from './movie/admin-movie-detail/admin-movie-detail.component';
-import { AdminMasterTheatreComponent } from './theatre-hall/admin-master-theatre/admin-master-theatre.component';
-import { AdminMasterLanguageComponent } from './master/admin-master-language/admin-master-language.component';
 import { LayoutComponent } from '../../layout/layout.component';
-import { AdminMasterGenreComponent } from './master/admin-master-genre/admin-master-genre.component';
-import { AdminMasterLocationsComponent } from './master/admin-master-locations/admin-master-locations.component';
-import { AdminMasterScreeningComponent } from './screening/admin-master-screening/admin-master-screening.component';
-import { AdminMasterBookingsComponent } from './booking/admin-master-bookings/admin-master-bookings.component';
-import { AdminCreateBookingComponent } from './booking/components/admin-create-booking/admin-create-booking.component';
 import { AdminUserManagementComponent } from './user-mangement/admin-user-management/admin-user-management.component';
-
-import { AdminMasterPayoutSettingsComponent } from './payouts/admin-master-payout-settings/admin-master-payout-settings.component';
-import { AdminMasterTransactionComponent } from './transactions/admin-master-transaction/admin-master-transaction.component';
+import { AdminMasterDzongkhagsComponent } from './master-data/admin-master-dzongkhags/admin-master-dzongkhags.component';
+import { AdminMasterAdministrativeZonesComponent } from './master-data/admin-master-administrative-zones/admin-master-administrative-zones.component';
+import { AdminMasterSubAdministrativeZonesComponent } from './master-data/admin-master-sub-administrative-zones/admin-master-sub-administrative-zones.component';
+import { AdminMasterEnumerationAreasComponent } from './master-data/admin-master-enumeration-areas/admin-master-enumeration-areas.component';
+import { AdminMasterCurrentHouseholdListingsComponent } from './master-data/admin-master-current-household-listings/admin-master-current-household-listings.component';
+import { AdminMasterSurveyComponent } from './survey/admin-master-survey/admin-master-survey.component';
+import { AdminDzongkhagDataViewerComponent } from './data-viewer/admin-dzongkhag-data-viewer/admin-dzongkhag-data-viewer.component';
+import { AdminAdminstrativeZoneDataViewerComponent } from './data-viewer/admin-adminstrative-zone-data-viewer/admin-adminstrative-zone-data-viewer.component';
+import { AdminSubAdminstrativeZoneDataViewerComponent } from './data-viewer/admin-sub-adminstrative-zone-data-viewer/admin-sub-adminstrative-zone-data-viewer.component';
+import { AdminEnumerationAreaDataViewerComponent } from './data-viewer/admin-enumeration-area-data-viewer/admin-enumeration-area-data-viewer.component';
 
 export const adminRoutes: Routes = [
 	{
@@ -27,45 +25,6 @@ export const adminRoutes: Routes = [
 				path: '',
 				component: AdminDashboardComponent,
 			},
-			{
-				path: 'master-movies',
-				component: AdminMasterMoviesComponent,
-			},
-			{
-				path: 'master-movies/:id',
-				component: AdminMovieDetailComponent,
-			},
-			{
-				path: 'master-movies/:id/edit',
-				component: AdminMovieDetailComponent,
-				data: { editMode: true },
-			},
-			{
-				path: 'master-movies/:id/media',
-				component: AdminMovieDetailComponent,
-				data: { mediaMode: true },
-			},
-			{
-				path: 'master-theatres',
-				component: AdminMasterTheatreComponent,
-			},
-
-			{
-				path: 'master-screenings',
-				component: AdminMasterScreeningComponent,
-			},
-			{
-				path: 'master-bookings',
-				component: AdminMasterBookingsComponent,
-			},
-			{
-				path: 'master-bookings/create',
-				component: AdminCreateBookingComponent,
-			},
-			{
-				path: 'master-transactions',
-				component: AdminMasterTransactionComponent,
-			},
 
 			// User Management Routes
 			{
@@ -73,27 +32,62 @@ export const adminRoutes: Routes = [
 				component: AdminUserManagementComponent,
 			},
 
-			//master tables
+			//Mater data managmenet
 			{
-				path: 'master-languages',
-				component: AdminMasterLanguageComponent,
+				path: 'master',
+				children: [
+					{
+						path: 'dzongkhags',
+						component: AdminMasterDzongkhagsComponent,
+					},
+					{
+						path: 'administrative-zones',
+						component: AdminMasterAdministrativeZonesComponent,
+					},
+					{
+						path: 'sub-administrative-zones',
+						component: AdminMasterSubAdministrativeZonesComponent,
+					},
+					{
+						path: 'enumeration-areas',
+						component: AdminMasterEnumerationAreasComponent,
+					},
+					{
+						path: 'current-household-listings',
+						component: AdminMasterCurrentHouseholdListingsComponent,
+					},
+				],
 			},
 			{
-				path: 'master-genres',
-				component: AdminMasterGenreComponent,
+				path: 'survey',
+				children: [
+					{
+						path: 'master',
+						component: AdminMasterSurveyComponent,
+					},
+				],
 			},
+
 			{
-				path: 'master-locations',
-				component: AdminMasterLocationsComponent,
-			},
-			{
-				path: 'master-casts',
-				component: AdminMasterLocationsComponent,
-			},
-			//Payout setttings
-			{
-				path: 'master-payout-settings',
-				component: AdminMasterPayoutSettingsComponent,
+				path: 'data-view',
+				children: [
+					{
+						path: 'dzongkhag/:id',
+						component: AdminDzongkhagDataViewerComponent,
+					},
+					{
+						path: 'admzone/:id',
+						component: AdminAdminstrativeZoneDataViewerComponent,
+					},
+					{
+						path: 'sub-admzone/:id',
+						component: AdminSubAdminstrativeZoneDataViewerComponent,
+					},
+					{
+						path: 'eazone/:id',
+						component: AdminEnumerationAreaDataViewerComponent,
+					},
+				],
 			},
 		],
 	},

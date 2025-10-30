@@ -1,7 +1,7 @@
 // Auth-related interfaces and types
 
 export interface LoginDto {
-	phoneNumber: number;
+	email: number;
 	password: string;
 }
 

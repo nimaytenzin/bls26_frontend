@@ -1,4 +1,4 @@
-import { Dzongkhag } from '../dzonkhag/dzongkhag.interface';
+import { Dzongkhag } from '../location/dzongkhag/dzongkhag.interface';
 import { Hall } from '../hall/hall.interface';
 
 // Theatre interfaces

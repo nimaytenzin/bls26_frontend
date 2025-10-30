@@ -1,0 +1,690 @@
+<!-- Toast Messages -->
+<p-toast></p-toast>
+
+<!-- Survey Management Dashboard -->
+<div class="p-6 bg-gray-50 min-h-screen">
+	<!-- Header Section -->
+	<div class="mb-6">
+		<div class="flex justify-between items-center">
+			<div>
+				<h1 class="text-2xl font-bold text-gray-900">Survey Management</h1>
+				<p class="text-sm text-gray-600 mt-1">
+					Manage surveys and enumeration area assignments
+				</p>
+			</div>
+
+			<!-- Action Controls -->
+			<div class="flex items-center gap-2">
+				<button
+					pButton
+					type="button"
+					label="Add Survey"
+					icon="pi pi-plus"
+					class="p-button-primary"
+					(click)="openNew()"
+				></button>
+			</div>
+		</div>
+
+		<!-- Statistics Cards -->
+		<div class="mt-6 grid grid-cols-1 md:grid-cols-5 gap-4">
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-list text-blue-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Total Surveys</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ totalSurveys }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-check-circle text-green-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Active Surveys</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ activeSurveys }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-times-circle text-gray-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Ended Surveys</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ endedSurveys }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-send text-blue-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Submitted</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ submittedSurveys }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<div
+							class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
+						>
+							<i class="pi pi-verified text-purple-600"></i>
+						</div>
+					</div>
+					<div class="ml-3">
+						<p class="text-sm font-medium text-gray-500">Verified</p>
+						<p class="text-lg font-semibold text-gray-900">
+							{{ verifiedSurveys }}
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Content Area -->
+	<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+		<div class="p-4">
+			<div class="flex justify-between items-center mb-4">
+				<h2 class="text-lg font-semibold text-gray-900">Survey List</h2>
+				<div class="flex items-center gap-3">
+					<span class="p-input-icon-left">
+						<input
+							pInputText
+							type="text"
+							[(ngModel)]="globalFilterValue"
+							placeholder="Search surveys..."
+							class="p-inputtext-sm"
+							(input)="onGlobalFilter($event)"
+						/>
+					</span>
+				</div>
+			</div>
+
+			<p-table
+				#dt
+				[value]="surveys"
+				[rows]="10"
+				[paginator]="true"
+				responsiveLayout="scroll"
+				[loading]="loading"
+				selectionMode="single"
+				[(selection)]="selectedSurvey"
+				(onRowSelect)="onRowSelect($event)"
+				styleClass="p-datatable-sm"
+				[globalFilterFields]="['name', 'description', 'status']"
+				[filterDelay]="0"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th pSortableColumn="name">
+							Name <p-sortIcon field="name"></p-sortIcon>
+						</th>
+						<th>Description</th>
+						<th pSortableColumn="year">
+							Year <p-sortIcon field="year"></p-sortIcon>
+						</th>
+						<th pSortableColumn="startDate">
+							Start Date <p-sortIcon field="startDate"></p-sortIcon>
+						</th>
+						<th pSortableColumn="endDate">
+							End Date <p-sortIcon field="endDate"></p-sortIcon>
+						</th>
+						<th pSortableColumn="status">
+							Status <p-sortIcon field="status"></p-sortIcon>
+						</th>
+						<th>Flags</th>
+						<th>Enumeration Areas</th>
+						<th>Actions</th>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="body" let-survey>
+					<tr [class.bg-blue-50]="selectedSurvey?.id === survey.id">
+						<td>
+							<div class="font-medium text-gray-900">
+								{{ survey.name }}
+							</div>
+							<div class="text-xs text-gray-500">ID: {{ survey.id }}</div>
+						</td>
+						<td>
+							<div class="text-sm text-gray-700 max-w-xs truncate">
+								{{ survey.description }}
+							</div>
+						</td>
+						<td>
+							<span
+								class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
+							>
+								{{ survey.year }}
+							</span>
+						</td>
+						<td>
+							<span class="text-sm text-gray-900">
+								{{ formatDate(survey.startDate) }}
+							</span>
+						</td>
+						<td>
+							<div class="text-sm">
+								<span class="text-gray-900">
+									{{ formatDate(survey.endDate) }}
+								</span>
+								<span
+									*ngIf="isSurveyEndingSoon(survey)"
+									class="ml-1 text-xs text-orange-600"
+								>
+									<i class="pi pi-exclamation-triangle"></i> Ending soon
+								</span>
+							</div>
+						</td>
+						<td>
+							<span
+								[class]="
+									'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' +
+									getStatusBadgeClass(survey.status)
+								"
+							>
+								{{ survey.status }}
+							</span>
+						</td>
+						<td>
+							<div class="flex gap-1">
+								<span
+									*ngIf="survey.isSubmitted"
+									class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+									pTooltip="Submitted"
+								>
+									<i class="pi pi-send text-xs"></i>
+								</span>
+								<span
+									*ngIf="survey.isVerified"
+									class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+									pTooltip="Verified"
+								>
+									<i class="pi pi-verified text-xs"></i>
+								</span>
+							</div>
+						</td>
+						<td>
+							<div class="text-sm">
+								<span class="font-medium text-gray-900">
+									{{ getEACount(survey) }}
+								</span>
+								<span class="text-gray-500"> EAs</span>
+								<div class="text-xs text-gray-500 mt-1 max-w-xs truncate">
+									{{ getEANames(survey) }}
+								</div>
+							</div>
+						</td>
+						<td>
+							<div class="flex items-center gap-2">
+								<button
+									pButton
+									type="button"
+									icon="pi pi-pencil"
+									class="p-button-outlined p-button-sm p-button-info"
+									(click)="editSurvey(survey)"
+									pTooltip="Edit"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-map-marker"
+									class="p-button-outlined p-button-sm p-button-success"
+									(click)="openManageEAs(survey)"
+									pTooltip="Manage Enumeration Areas"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-trash"
+									class="p-button-outlined p-button-sm p-button-danger"
+									(click)="confirmDelete(survey)"
+									pTooltip="Delete"
+								></button>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="9" class="text-center py-8">
+							<div class="text-gray-500">
+								<i class="pi pi-info-circle text-2xl mb-2 block"></i>
+								No surveys found
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</div>
+	</div>
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<p-dialog
+	[(visible)]="deleteDialog"
+	[style]="{ width: '450px' }"
+	header="Confirm Delete"
+	[modal]="true"
+>
+	<ng-template pTemplate="content">
+		<div class="flex items-center mb-4">
+			<i class="pi pi-exclamation-triangle text-orange-500 text-2xl mr-3"></i>
+			<span
+				>Are you sure you want to delete
+				<strong>{{ selectedSurvey?.name }}</strong
+				>?</span
+			>
+		</div>
+		<p class="text-sm text-gray-600">
+			This will also remove all enumeration area associations. This action
+			cannot be undone.
+		</p>
+	</ng-template>
+
+	<ng-template pTemplate="footer">
+		<button
+			pButton
+			type="button"
+			label="Cancel"
+			icon="pi pi-times"
+			class="p-button-text"
+			(click)="deleteDialog = false"
+		></button>
+		<button
+			pButton
+			type="button"
+			label="Delete"
+			icon="pi pi-trash"
+			class="p-button-danger"
+			(click)="deleteSurvey()"
+		></button>
+	</ng-template>
+</p-dialog>
+
+<!-- Manage Enumeration Areas Dialog -->
+<p-dialog
+	[(visible)]="manageEADialog"
+	[style]="{ width: '90vw', maxHeight: '90vh' }"
+	[header]="'Manage Enumeration Areas - ' + selectedSurvey?.name"
+	[modal]="true"
+	styleClass="p-fluid"
+>
+	<ng-template pTemplate="content">
+		<div class="space-y-4">
+			<!-- Info Section -->
+			<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+				<div class="flex items-start justify-between">
+					<div class="flex items-start">
+						<i class="pi pi-info-circle text-blue-600 text-xl mr-3 mt-0.5"></i>
+						<div>
+							<h4 class="font-semibold text-blue-900 mb-2">Instructions</h4>
+							<ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
+								<li>
+									Use the hierarchical filters above to narrow down enumeration
+									areas by location
+								</li>
+								<li>
+									Check/uncheck the checkboxes in the table to select areas for
+									this survey
+								</li>
+								<li>The table is grouped by Dzongkhag for easy management</li>
+								<li>Use the search box to find specific areas quickly</li>
+							</ul>
+						</div>
+					</div>
+					<div class="text-right">
+						<p class="text-sm text-gray-600">Currently Selected:</p>
+						<p class="font-semibold text-blue-900 text-2xl">
+							{{ selectedEAIds.length }}
+						</p>
+						<p class="text-xs text-gray-600">
+							of {{ enumerationAreas.length }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Hierarchical Location Filter -->
+			<div class="bg-white border border-gray-300 rounded-lg p-4">
+				<div class="flex items-center justify-between mb-3">
+					<h4 class="font-semibold text-gray-900 flex items-center">
+						<i class="pi pi-filter text-purple-600 mr-2"></i>
+						Filter by Location Hierarchy
+					</h4>
+					<button
+						pButton
+						type="button"
+						label="Clear Filters"
+						icon="pi pi-filter-slash"
+						class="p-button-outlined p-button-sm p-button-secondary"
+						(click)="resetHierarchicalFilters(); buildGroupedEAData()"
+					></button>
+				</div>
+
+				<div class="grid grid-cols-4 gap-4">
+					<!-- Level 1: Dzongkhag -->
+					<div>
+						<label
+							for="dzongkhag"
+							class="block text-sm font-medium text-gray-700 mb-2"
+						>
+							Dzongkhag
+						</label>
+						<p-dropdown
+							id="dzongkhag"
+							[(ngModel)]="selectedDzongkhagId"
+							[options]="dzongkhags"
+							optionLabel="name"
+							optionValue="id"
+							placeholder="All Dzongkhags"
+							[filter]="true"
+							filterBy="name"
+							[showClear]="true"
+							styleClass="w-full"
+							(onChange)="onDzongkhagChange($event.value)"
+							[loading]="loadingDzongkhags"
+							appendTo="body"
+						>
+							<ng-template let-dzongkhag pTemplate="item">
+								<div class="flex items-center justify-between">
+									<span>{{ dzongkhag.name }}</span>
+									<span class="text-xs text-gray-500 ml-2">{{
+										dzongkhag.areaCode
+									}}</span>
+								</div>
+							</ng-template>
+						</p-dropdown>
+					</div>
+
+					<!-- Level 2: Administrative Zone -->
+					<div>
+						<label
+							for="adminZone"
+							class="block text-sm font-medium text-gray-700 mb-2"
+						>
+							Administrative Zone
+						</label>
+						<p-dropdown
+							id="adminZone"
+							[(ngModel)]="selectedAdminZoneId"
+							[options]="administrativeZones"
+							optionLabel="name"
+							optionValue="id"
+							placeholder="All Administrative Zones"
+							[filter]="true"
+							filterBy="name"
+							[showClear]="true"
+							styleClass="w-full"
+							[disabled]="!selectedDzongkhagId"
+							(onChange)="onAdministrativeZoneChange($event.value)"
+							[loading]="loadingAdminZones"
+							appendTo="body"
+						>
+							<ng-template let-zone pTemplate="item">
+								<div class="flex items-center justify-between">
+									<span>{{ zone.name }}</span>
+									<span class="text-xs text-gray-500 ml-2"
+										>{{ zone.type }} - {{ zone.areaCode }}</span
+									>
+								</div>
+							</ng-template>
+						</p-dropdown>
+					</div>
+
+					<!-- Level 3: Sub-Administrative Zone -->
+					<div>
+						<label
+							for="subAdminZone"
+							class="block text-sm font-medium text-gray-700 mb-2"
+						>
+							Sub-Administrative Zone
+						</label>
+						<p-dropdown
+							id="subAdminZone"
+							[(ngModel)]="selectedSubAdminZoneId"
+							[options]="subAdministrativeZones"
+							optionLabel="name"
+							optionValue="id"
+							placeholder="All Sub-Admin Zones"
+							[filter]="true"
+							filterBy="name"
+							[showClear]="true"
+							styleClass="w-full"
+							[disabled]="!selectedAdminZoneId"
+							(onChange)="onSubAdministrativeZoneChange($event.value)"
+							[loading]="loadingSubAdminZones"
+							appendTo="body"
+						>
+							<ng-template let-subZone pTemplate="item">
+								<div class="flex items-center justify-between">
+									<span>{{ subZone.name }}</span>
+									<span class="text-xs text-gray-500 ml-2"
+										>{{ subZone.type }} - {{ subZone.areaCode }}</span
+									>
+								</div>
+							</ng-template>
+						</p-dropdown>
+					</div>
+
+					<!-- Search Box -->
+					<div>
+						<label
+							for="eaSearch"
+							class="block text-sm font-medium text-gray-700 mb-2"
+						>
+							Search Areas
+						</label>
+						<span class="p-input-icon-left w-full">
+							<i class="pi pi-search"></i>
+							<input
+								id="eaSearch"
+								pInputText
+								type="text"
+								[(ngModel)]="eaTableGlobalFilter"
+								placeholder="Search by name, code..."
+								class="w-full"
+								(input)="onEATableGlobalFilter($event)"
+							/>
+						</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Quick Actions -->
+			<div class="flex justify-between items-center">
+				<div class="text-sm text-gray-600">
+					Showing {{ filteredGroupedEAs.length }} of {{ groupedEAs.length }}
+					enumeration areas
+				</div>
+				<div class="flex gap-2">
+					<button
+						pButton
+						type="button"
+						label="Select All Filtered"
+						icon="pi pi-check-square"
+						class="p-button-outlined p-button-sm p-button-success"
+						(click)="selectAllFilteredEAs()"
+						[disabled]="filteredGroupedEAs.length === 0"
+					></button>
+					<button
+						pButton
+						type="button"
+						label="Deselect All Filtered"
+						icon="pi pi-times"
+						class="p-button-outlined p-button-sm p-button-danger"
+						(click)="deselectAllFilteredEAs()"
+						[disabled]="filteredGroupedEAs.length === 0"
+					></button>
+				</div>
+			</div>
+
+			<!-- Enumeration Areas Table (Grouped by Dzongkhag) -->
+			<div class="border border-gray-300 rounded-lg overflow-hidden">
+				<p-table
+					[value]="filteredGroupedEAs"
+					[rowGroupMode]="'subheader'"
+					groupRowsBy="dzongkhagName"
+					[scrollable]="true"
+					scrollHeight="500px"
+					styleClass="p-datatable-sm p-datatable-gridlines"
+					[rowHover]="true"
+				>
+					<ng-template pTemplate="header">
+						<tr>
+							<th style="width: 50px">
+								<i class="pi pi-check-square"></i>
+							</th>
+							<th pSortableColumn="name">
+								Enumeration Area <p-sortIcon field="name"></p-sortIcon>
+							</th>
+							<th pSortableColumn="areaCode">
+								Area Code <p-sortIcon field="areaCode"></p-sortIcon>
+							</th>
+							<th pSortableColumn="subAdministrativeZoneName">
+								Sub-Admin Zone
+								<p-sortIcon field="subAdministrativeZoneName"></p-sortIcon>
+							</th>
+							<th pSortableColumn="administrativeZoneName">
+								Administrative Zone
+								<p-sortIcon field="administrativeZoneName"></p-sortIcon>
+							</th>
+							<th>Description</th>
+						</tr>
+					</ng-template>
+
+					<ng-template pTemplate="groupheader" let-ea let-rowIndex="rowIndex">
+						<tr class="bg-gray-100">
+							<td colspan="6">
+								<div class="flex items-center font-semibold text-gray-900">
+									<i class="pi pi-map-marker text-purple-600 mr-2"></i>
+									<span class="text-base">{{ ea.dzongkhagName }}</span>
+									<span class="ml-3 text-sm text-gray-600 font-normal">
+										({{ getEACountByDzongkhag(ea.dzongkhagName) }}
+										areas,
+										{{ getSelectedEACountByDzongkhag(ea.dzongkhagName) }}
+										selected)
+									</span>
+								</div>
+							</td>
+						</tr>
+					</ng-template>
+
+					<ng-template pTemplate="body" let-ea>
+						<tr [class.bg-blue-50]="ea.isSelected">
+							<td class="text-center">
+								<p-checkbox
+									[(ngModel)]="ea.isSelected"
+									[binary]="true"
+									(onChange)="toggleEASelection(ea)"
+								></p-checkbox>
+							</td>
+							<td>
+								<div class="font-medium text-gray-900">{{ ea.name }}</div>
+							</td>
+							<td>
+								<span
+									class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800"
+								>
+									{{ ea.areaCode }}
+								</span>
+							</td>
+							<td>
+								<div class="text-sm text-gray-700">
+									{{ ea.subAdministrativeZoneName }}
+								</div>
+							</td>
+							<td>
+								<div class="text-sm text-gray-700">
+									{{ ea.administrativeZoneName }}
+								</div>
+							</td>
+							<td>
+								<div class="text-sm text-gray-600 max-w-xs truncate">
+									{{ ea.description || "N/A" }}
+								</div>
+							</td>
+						</tr>
+					</ng-template>
+
+					<ng-template pTemplate="emptymessage">
+						<tr>
+							<td colspan="6" class="text-center py-8">
+								<div class="text-gray-500">
+									<i class="pi pi-info-circle text-2xl mb-2 block"></i>
+									No enumeration areas found
+								</div>
+							</td>
+						</tr>
+					</ng-template>
+				</p-table>
+			</div>
+		</div>
+	</ng-template>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-between items-center">
+			<div class="text-sm text-gray-600">
+				<strong>{{ selectedEAIds.length }}</strong> enumeration area(s) selected
+			</div>
+			<div class="flex gap-2">
+				<button
+					pButton
+					type="button"
+					label="Cancel"
+					icon="pi pi-times"
+					class="p-button-text"
+					(click)="manageEADialog = false"
+				></button>
+				<button
+					pButton
+					type="button"
+					label="Save Changes"
+					icon="pi pi-check"
+					class="p-button-primary"
+					(click)="saveEAAssociations()"
+				></button>
+			</div>
+		</div>
+	</ng-template>
+</p-dialog>

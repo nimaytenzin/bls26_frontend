@@ -23,15 +23,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
 			route: '/',
 			icon: 'pi-home',
 		},
+
 		{
-			label: 'Movies',
-			route: '/movies',
-			icon: 'pi-video',
+			label: 'Data',
+			route: '/data',
+			icon: 'pi-database',
 		},
 		{
-			label: 'How to Book',
-			route: '/guide',
-			icon: 'pi-info-circle',
+			label: 'Reports',
+			route: '/reports',
+			icon: 'pi-file-pdf',
 		},
 	];
 
@@ -102,7 +103,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 	 * Navigate to login page
 	 */
 	goToLoginPage(): void {
-		this.router.navigate(['auth/login']);
+		this.router.navigate(['/auth/login']);
 		this.closeMenu();
 	}
 

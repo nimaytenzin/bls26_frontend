@@ -1,0 +1,6 @@
+<svg width="64" height="48" viewBox="0 0 64 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="48" fill="#F3F4F6"/>
+  <path d="M8 10 L16 20 L24 15 L32 25 L40 18 L48 28 L56 22" stroke="#059669" stroke-width="2" fill="none"/>
+  <circle cx="20" cy="12" r="3" fill="#DC2626"/>
+  <text x="32" y="38" text-anchor="middle" fill="#374151" font-size="8" font-family="Arial">OSM</text>
+</svg>
