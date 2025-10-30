@@ -30,9 +30,15 @@
               {
                 "glob": "**/*",
                 "input": "src/assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/leaflet/dist/images",
+                "output": "assets/leaflet/"
               }
             ],
             "styles": [
+              "node_modules/primeicons/primeicons.css",
               "src/styles.css"
             ],
             "scripts": []
@@ -48,16 +54,21 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "50mb",
+                  "maximumWarning": "10mb",
                   "maximumError": "50mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "50mb",
+                  "maximumWarning": "10mb",
                   "maximumError": "50mb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": true,
+              "buildOptimizer": true,
+              "aot": true,
+              "extractLicenses": true,
+              "namedChunks": false
             },
             "development": {
               "optimization": false,

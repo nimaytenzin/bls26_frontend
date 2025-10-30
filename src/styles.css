@@ -1,13 +1,15 @@
+/* Import Leaflet CSS for map functionality */
+@import "leaflet/dist/leaflet.css";
+
 /* Import layout styles */
 @import "assets/styles/layout/layout.css";
-
-/* Import PrimeNG icons */
-@import "primeicons/primeicons.css";
-
-/* Import Leaflet CSS for map functionality */
-@import "~leaflet/dist/leaflet.css";
 
 /* Tailwind CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Fix for Leaflet marker icons in production */
+.leaflet-default-icon-path {
+	background-image: url('leaflet/dist/images/marker-icon.png');
+}
