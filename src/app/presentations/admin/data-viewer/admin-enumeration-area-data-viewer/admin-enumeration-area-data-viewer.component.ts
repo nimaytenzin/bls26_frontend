@@ -351,10 +351,8 @@ export class AdminEnumerationAreaDataViewerComponent
 					if (feature.properties) {
 						const props = feature.properties;
 						layer.bindPopup(
-							`<strong>Building ${props.id || 'N/A'}</strong><br/>
-							EA ID: ${props.enumerationAreaId || 'N/A'}<br/>
-							Type: ${props.buildingType || 'N/A'}<br/>
-							Status: ${props.status || 'N/A'}`
+							`<strong>Building ID: ${props.id || 'N/A'}</strong><br/>
+							Source: ${props.source || 'N/A'}`
 						);
 					}
 				},
