@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { PrimeNgModules } from '../../../../primeng.modules';
@@ -55,6 +56,7 @@ import { UploadGeojsonEaComponent } from '../../master-data/admin-master-enumera
 	standalone: true,
 	imports: [
 		CommonModule,
+		FormsModule,
 		RouterModule,
 		PrimeNgModules,
 		AddEnumerationAreaComponent,
@@ -83,10 +85,13 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 	private map: L.Map | null = null;
 	private subAdminZoneLayer: L.GeoJSON | null = null;
 	private enumerationAreasLayer: L.GeoJSON | null = null;
+	private satelliteLayer: L.TileLayer | null = null;
+	private openStreetMapLayer: L.TileLayer | null = null;
 
 	// State
 	loading = true;
 	loadingEAs = false;
+	showSatelliteLayer = false;
 	globalFilterValue = '';
 
 	// Dialog states for new components
@@ -97,9 +102,11 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 	selectedEAForEdit: EnumerationArea | null = null;
 	selectedEAForUpload: EnumerationArea | null = null;
 
-	// Tile layer
+	// Tile layers
 	private readonly tileLayer =
 		'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+	private readonly satelliteTileLayer =
+		'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}';
 
 	constructor(
 		private route: ActivatedRoute,
@@ -126,6 +133,22 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 
 		// Add window resize listener for map
 		window.addEventListener('resize', this.onWindowResize.bind(this));
+	}
+
+	toggleSatelliteLayer() {
+		if (!this.map || !this.openStreetMapLayer || !this.satelliteLayer) {
+			return;
+		}
+
+		if (this.showSatelliteLayer) {
+			// Switch to satellite layer
+			this.map.removeLayer(this.openStreetMapLayer);
+			this.map.addLayer(this.satelliteLayer);
+		} else {
+			// Switch to OpenStreetMap layer
+			this.map.removeLayer(this.satelliteLayer);
+			this.map.addLayer(this.openStreetMapLayer);
+		}
 	}
 
 	ngOnDestroy() {
@@ -226,10 +249,19 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 			attributionControl: false,
 		});
 
-		L.tileLayer(this.tileLayer, {
+		// Initialize both tile layers
+		this.openStreetMapLayer = L.tileLayer(this.tileLayer, {
 			maxZoom: 19,
 			attribution: '© OpenStreetMap contributors',
-		}).addTo(this.map);
+		});
+
+		this.satelliteLayer = L.tileLayer(this.satelliteTileLayer, {
+			maxZoom: 19,
+			attribution: '© Google',
+		});
+
+		// Add default layer (OpenStreetMap)
+		this.openStreetMapLayer.addTo(this.map);
 
 		// Load and render sub-administrative zone boundary
 		if (this.subAdministrativeZone?.geom) {
@@ -426,6 +458,12 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 		if (this.map) {
 			this.map.remove();
 			this.map = null;
+		}
+		if (this.openStreetMapLayer) {
+			this.openStreetMapLayer = null;
+		}
+		if (this.satelliteLayer) {
+			this.satelliteLayer = null;
 		}
 	}
 

@@ -72,6 +72,23 @@ export class SubAdministrativeZoneDataService {
 	}
 
 	/**
+	 * Get single sub-administrative zone as GeoJSON
+	 * @param id - Sub-administrative zone ID
+	 * @returns GeoJSON Feature
+	 */
+	findOneAsGeoJson(id: number): Observable<any> {
+		return this.http.get<any>(`${this.apiUrl}/geojson/${id}`).pipe(
+			catchError((error) => {
+				console.error(
+					'Error fetching sub-administrative zone as GeoJSON:',
+					error
+				);
+				return throwError(() => error);
+			})
+		);
+	}
+
+	/**
 	 * Get all sub-administrative zones by administrative zone ID as GeoJSON
 	 */
 	getSubAdministrativeZoneGeojsonByAdministrativeZone(

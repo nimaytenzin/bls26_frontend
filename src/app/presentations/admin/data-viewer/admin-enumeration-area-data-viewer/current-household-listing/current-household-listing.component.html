@@ -1,0 +1,373 @@
+<div class="p-4">
+	<!-- Header with Summary Stats -->
+	<div class="flex items-center justify-between mb-4">
+		<div>
+			<h3 class="text-lg font-semibold text-gray-800 m-0 mb-1">
+				Household Listing for
+
+				<strong> {{ date | date : "yyyy" }} </strong>
+			</h3>
+			<div
+				class="flex items-center gap-4 text-sm text-gray-600"
+				*ngIf="!loading && householdListings.length > 0"
+			>
+				<span>{{ totalHouseholds }} Households</span>
+				<span>{{ totalPopulation }} Total Population</span>
+				<span>{{ totalMale }}M / {{ totalFemale }}F</span>
+			</div>
+		</div>
+		<p-button
+			label="Add Household"
+			icon="pi pi-plus"
+			size="small"
+			severity="primary"
+			(click)="addHousehold()"
+		></p-button>
+	</div>
+
+	<!-- Loading State -->
+	<div *ngIf="loading" class="text-center py-8">
+		<i class="pi pi-spin pi-spinner text-2xl text-blue-500 mb-3 block"></i>
+		<p class="text-gray-600">Loading household listings...</p>
+	</div>
+
+	<!-- Empty State -->
+	<div
+		*ngIf="!loading && householdListings.length === 0"
+		class="text-center py-8"
+	>
+		<i class="pi pi-home text-4xl text-gray-400 mb-3 block"></i>
+		<h4 class="text-lg font-medium text-gray-600 mb-2">
+			No Household Listings
+		</h4>
+		<p class="text-gray-500 mb-4">
+			No households have been registered for this enumeration area yet.
+		</p>
+		<p-button
+			label="Add First Household"
+			icon="pi pi-plus"
+			severity="secondary"
+			(click)="addHousehold()"
+		></p-button>
+	</div>
+
+	<!-- Household Listings Table -->
+	<div *ngIf="!loading && householdListings.length > 0">
+		<!-- Summary Cards -->
+		<div class="grid grid-cols-3 gap-4 mb-4">
+			<div class="bg-blue-50 rounded-lg p-3">
+				<div class="text-blue-600 text-sm font-medium">Total Households</div>
+				<div class="text-blue-900 text-xl font-bold">{{ totalHouseholds }}</div>
+			</div>
+			<div class="bg-green-50 rounded-lg p-3">
+				<div class="text-green-600 text-sm font-medium">Total Population</div>
+				<div class="text-green-900 text-xl font-bold">
+					{{ totalPopulation }}
+				</div>
+			</div>
+			<div class="bg-purple-50 rounded-lg p-3">
+				<div class="text-purple-600 text-sm font-medium">Gender Ratio</div>
+				<div class="text-purple-900 text-xl font-bold">
+					{{ totalMale }}M : {{ totalFemale }}F
+				</div>
+			</div>
+		</div>
+
+		<!-- Data Table -->
+		<p-table
+			[value]="householdListings"
+			[paginator]="true"
+			[rows]="10"
+			[showCurrentPageReport]="true"
+			currentPageReportTemplate="Showing {first} to {last} of {totalRecords} households"
+			[tableStyle]="{ 'min-width': '60rem' }"
+			styleClass="p-datatable-sm"
+		>
+			<ng-template pTemplate="header">
+				<tr>
+					<th>S.No.</th>
+					<th>Structure No.</th>
+					<th>Household ID</th>
+					<th>Head of Household</th>
+					<th>Male</th>
+					<th>Female</th>
+					<th>Total</th>
+					<th>Phone</th>
+					<th>Actions</th>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="body" let-listing let-rowIndex="rowIndex">
+				<tr>
+					<td>{{ listing.householdSerialNumber }}</td>
+					<td>
+						<span class="font-medium">{{ listing.structureNumber }}</span>
+					</td>
+					<td>
+						<span class="text-blue-600 font-medium">{{
+							listing.householdIdentification
+						}}</span>
+					</td>
+					<td>
+						<span class="font-medium">{{ listing.nameOfHOH }}</span>
+					</td>
+					<td>
+						<span
+							class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium"
+						>
+							{{ listing.totalMale }}
+						</span>
+					</td>
+					<td>
+						<span
+							class="bg-pink-100 text-pink-800 px-2 py-1 rounded text-sm font-medium"
+						>
+							{{ listing.totalFemale }}
+						</span>
+					</td>
+					<td>
+						<span
+							class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium"
+						>
+							{{ getTotalMembers(listing) }}
+						</span>
+					</td>
+					<td>
+						<span class="text-gray-600" *ngIf="listing.phoneNumber">{{
+							listing.phoneNumber
+						}}</span>
+						<span class="text-gray-400 italic" *ngIf="!listing.phoneNumber"
+							>Not provided</span
+						>
+					</td>
+					<td>
+						<div class="flex gap-1">
+							<p-button
+								icon="pi pi-eye"
+								severity="info"
+								size="small"
+								[text]="true"
+								pTooltip="View Details"
+								(click)="viewHouseholdDetails(listing)"
+							></p-button>
+							<p-button
+								icon="pi pi-pencil"
+								severity="warn"
+								size="small"
+								[text]="true"
+								pTooltip="Edit Household"
+								(click)="editHousehold(listing)"
+							></p-button>
+							<p-button
+								icon="pi pi-trash"
+								severity="danger"
+								size="small"
+								[text]="true"
+								pTooltip="Delete Household"
+								(click)="deleteHousehold(listing)"
+							></p-button>
+						</div>
+					</td>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="emptymessage">
+				<tr>
+					<td colspan="9" class="text-center py-4">
+						<div class="text-gray-500">
+							<i class="pi pi-info-circle mr-2"></i>
+							No household listings found for this enumeration area.
+						</div>
+					</td>
+				</tr>
+			</ng-template>
+		</p-table>
+	</div>
+
+	<!-- Add Household Dialog -->
+	<p-dialog
+		header="Add New Household"
+		[(visible)]="showAddDialog"
+		[style]="{ width: '600px' }"
+		[modal]="true"
+		[closable]="!submitting"
+	>
+		<form (ngSubmit)="submitHousehold()" #householdForm="ngForm">
+			<div class="grid grid-cols-2 gap-4">
+				<!-- Structure Number -->
+				<div class="flex flex-col">
+					<label
+						for="structureNumber"
+						class="text-sm font-medium text-gray-700 mb-1"
+					>
+						Structure Number *
+					</label>
+					<input
+						pInputText
+						id="structureNumber"
+						[(ngModel)]="newHousehold.structureNumber"
+						name="structureNumber"
+						required
+						placeholder="e.g., H001"
+						[disabled]="submitting"
+						class="w-full"
+					/>
+				</div>
+
+				<!-- Serial Number -->
+				<div class="flex flex-col">
+					<label
+						for="serialNumber"
+						class="text-sm font-medium text-gray-700 mb-1"
+					>
+						Serial Number
+					</label>
+					<p-inputNumber
+						[(ngModel)]="newHousehold.householdSerialNumber"
+						name="serialNumber"
+						[min]="1"
+						[disabled]="submitting"
+						inputId="serialNumber"
+						styleClass="w-full"
+					></p-inputNumber>
+				</div>
+
+				<!-- Household Identification -->
+				<div class="flex flex-col col-span-2">
+					<label
+						for="householdId"
+						class="text-sm font-medium text-gray-700 mb-1"
+					>
+						Household Identification *
+					</label>
+					<input
+						pInputText
+						id="householdId"
+						[(ngModel)]="newHousehold.householdIdentification"
+						name="householdId"
+						required
+						placeholder="e.g., HH-EA001-001"
+						[disabled]="submitting"
+						class="w-full"
+					/>
+				</div>
+
+				<!-- Head of Household -->
+				<div class="flex flex-col col-span-2">
+					<label for="hohName" class="text-sm font-medium text-gray-700 mb-1">
+						Head of Household Name *
+					</label>
+					<input
+						pInputText
+						id="hohName"
+						[(ngModel)]="newHousehold.nameOfHOH"
+						name="hohName"
+						required
+						placeholder="Enter full name"
+						[disabled]="submitting"
+						class="w-full"
+					/>
+				</div>
+
+				<!-- Male Count -->
+				<div class="flex flex-col">
+					<label for="totalMale" class="text-sm font-medium text-gray-700 mb-1">
+						Total Male Members
+					</label>
+					<p-inputNumber
+						[(ngModel)]="newHousehold.totalMale"
+						name="totalMale"
+						[min]="0"
+						[disabled]="submitting"
+						inputId="totalMale"
+						styleClass="w-full"
+					></p-inputNumber>
+				</div>
+
+				<!-- Female Count -->
+				<div class="flex flex-col">
+					<label
+						for="totalFemale"
+						class="text-sm font-medium text-gray-700 mb-1"
+					>
+						Total Female Members
+					</label>
+					<p-inputNumber
+						[(ngModel)]="newHousehold.totalFemale"
+						name="totalFemale"
+						[min]="0"
+						[disabled]="submitting"
+						inputId="totalFemale"
+						styleClass="w-full"
+					></p-inputNumber>
+				</div>
+
+				<!-- Phone Number -->
+				<div class="flex flex-col">
+					<label
+						for="phoneNumber"
+						class="text-sm font-medium text-gray-700 mb-1"
+					>
+						Phone Number
+					</label>
+					<input
+						pInputText
+						id="phoneNumber"
+						[(ngModel)]="newHousehold.phoneNumber"
+						name="phoneNumber"
+						placeholder="e.g., 17123456"
+						[disabled]="submitting"
+						class="w-full"
+					/>
+				</div>
+
+				<!-- Total Members Display -->
+				<div class="flex flex-col">
+					<label class="text-sm font-medium text-gray-700 mb-1">
+						Total Members
+					</label>
+					<div class="p-2 bg-gray-50 rounded border text-center font-medium">
+						{{
+							(newHousehold.totalMale || 0) + (newHousehold.totalFemale || 0)
+						}}
+					</div>
+				</div>
+
+				<!-- Remarks -->
+				<div class="flex flex-col col-span-2">
+					<label for="remarks" class="text-sm font-medium text-gray-700 mb-1">
+						Remarks
+					</label>
+					<textarea
+						pInputTextarea
+						id="remarks"
+						[(ngModel)]="newHousehold.remarks"
+						name="remarks"
+						placeholder="Additional notes (optional)"
+						[disabled]="submitting"
+						rows="3"
+						class="w-full"
+					></textarea>
+				</div>
+			</div>
+
+			<!-- Form Actions -->
+			<div class="flex justify-end gap-2 mt-6 pt-4 border-t">
+				<p-button
+					label="Cancel"
+					severity="secondary"
+					[disabled]="submitting"
+					(click)="showAddDialog = false"
+					type="button"
+				></p-button>
+				<p-button
+					label="Add Household"
+					[loading]="submitting"
+					type="submit"
+					[disabled]="!householdForm.valid"
+				></p-button>
+			</div>
+		</form>
+	</p-dialog>
+
+	<!-- Toast Messages -->
+	<p-toast></p-toast>
+</div>

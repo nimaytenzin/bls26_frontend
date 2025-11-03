@@ -1,0 +1,190 @@
+.survey-viewer {
+	background-color: #f8fafc;
+	min-height: 100vh;
+}
+
+.survey-details {
+	line-height: 1.4;
+}
+
+.survey-details .font-semibold:hover {
+	text-decoration: underline;
+}
+
+.duration-info {
+	font-size: 0.875rem;
+}
+
+.progress-indicators {
+	font-size: 0.75rem;
+}
+
+.action-buttons {
+	justify-content: center;
+}
+
+.empty-state {
+	padding: 2rem;
+	text-align: center;
+}
+
+.empty-state i {
+	display: block;
+	margin: 0 auto 1rem;
+}
+
+/* Form styling */
+.field label.required::after {
+	content: " *";
+	color: #ef4444;
+}
+
+.field label {
+	font-weight: 500;
+	color: #374151;
+	margin-bottom: 0.25rem;
+	display: block;
+}
+
+/* Table improvements */
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+	background-color: #f9fafb;
+	border-color: #e5e7eb;
+	font-weight: 600;
+	color: #374151;
+	font-size: 0.875rem;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+	border-color: #e5e7eb;
+	padding: 0.75rem;
+	vertical-align: top;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr:nth-child(even) {
+	background-color: #f9fafb;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
+	background-color: #f3f4f6;
+}
+
+/* Button improvements */
+:host ::ng-deep .p-button.p-button-sm {
+	padding: 0.25rem 0.5rem;
+	font-size: 0.75rem;
+}
+
+:host ::ng-deep .p-button.p-button-text {
+	background: transparent;
+	border-color: transparent;
+}
+
+/* Dialog improvements */
+:host ::ng-deep .p-dialog .p-dialog-header {
+	background-color: #f9fafb;
+	border-bottom: 1px solid #e5e7eb;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-content {
+	padding: 1.5rem;
+}
+
+/* Tag improvements */
+:host ::ng-deep .p-tag {
+	font-size: 0.75rem;
+	font-weight: 500;
+}
+
+:host ::ng-deep .p-tag.p-tag-success {
+	background-color: #10b981;
+	color: white;
+}
+
+:host ::ng-deep .p-tag.p-tag-secondary {
+	background-color: #6b7280;
+	color: white;
+}
+
+/* Input improvements */
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .p-dropdown,
+:host ::ng-deep .p-calendar {
+	font-size: 0.875rem;
+}
+
+:host ::ng-deep .p-inputtext:focus,
+:host ::ng-deep .p-dropdown:not(.p-disabled):hover,
+:host ::ng-deep .p-calendar:not(.p-disabled) .p-inputtext:hover {
+	border-color: #3b82f6;
+}
+
+/* Checkbox improvements */
+:host ::ng-deep .p-checkbox .p-checkbox-box {
+	width: 1rem;
+	height: 1rem;
+}
+
+:host ::ng-deep .p-checkbox .p-checkbox-box .p-checkbox-icon {
+	font-size: 0.75rem;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+	.survey-viewer .p-6 {
+		padding: 1rem;
+	}
+	
+	.action-buttons {
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+	
+	:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+		padding: 0.5rem;
+		font-size: 0.875rem;
+	}
+	
+	.duration-info,
+	.survey-details {
+		font-size: 0.75rem;
+	}
+}
+
+/* Loading state */
+:host ::ng-deep .p-datatable .p-datatable-loading-overlay {
+	background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Status colors */
+.text-green-600 {
+	color: #10b981;
+}
+
+.text-red-600 {
+	color: #ef4444;
+}
+
+.text-orange-600 {
+	color: #f59e0b;
+}
+
+.text-blue-600 {
+	color: #3b82f6;
+}
+
+.text-blue-800 {
+	color: #1e40af;
+}
+
+.text-gray-600 {
+	color: #6b7280;
+}
+
+.text-gray-500 {
+	color: #9ca3af;
+}
+
+.text-gray-300 {
+	color: #d1d5db;
+}

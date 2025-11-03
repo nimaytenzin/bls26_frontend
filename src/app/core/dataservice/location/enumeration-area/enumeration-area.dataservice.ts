@@ -69,6 +69,20 @@ export class EnumerationAreaDataService {
 	}
 
 	/**
+	 * Get single enumeration area as GeoJSON
+	 * @param id - Enumeration Area ID
+	 * @returns GeoJSON Feature
+	 */
+	findOneAsGeoJson(id: number): Observable<any> {
+		return this.http.get<any>(`${this.apiUrl}/geojson/${id}`).pipe(
+			catchError((error) => {
+				console.error('Error fetching enumeration area as GeoJSON:', error);
+				return throwError(() => error);
+			})
+		);
+	}
+
+	/**
 	 * Get all enumeration areas by sub-administrative zone ID as GeoJSON
 	 */
 	getEnumerationAreaGeojsonBySubAdministrativeZone(

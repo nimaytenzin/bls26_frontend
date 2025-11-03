@@ -1,0 +1,539 @@
+<div class="survey-detail-viewer">
+	<!-- Loading State -->
+	<div *ngIf="loading" class="flex justify-center items-center h-64">
+		<p-progressSpinner></p-progressSpinner>
+	</div>
+
+	<!-- Not Found State -->
+	<div *ngIf="notFound && !loading" class="text-center py-16">
+		<i class="pi pi-exclamation-triangle text-6xl text-gray-400 mb-4"></i>
+		<h2 class="text-2xl font-bold text-gray-700 mb-2">Survey Not Found</h2>
+		<p class="text-gray-500 mb-6">
+			The survey you're looking for doesn't exist or has been removed.
+		</p>
+		<p-button
+			label="Back to Survey List"
+			icon="pi pi-arrow-left"
+			(onClick)="navigateToMasterSurvey()"
+			styleClass="p-button-outlined"
+		>
+		</p-button>
+	</div>
+
+	<!-- Survey Details Content -->
+	<div *ngIf="survey && !loading && !notFound">
+		<!-- Header Section -->
+		<div class="bg-white shadow-sm border-b border-gray-200 p-6">
+			<div class="flex justify-between items-start">
+				<div class="flex items-start gap-4">
+					<p-button
+						icon="pi pi-arrow-left"
+						(onClick)="navigateToMasterSurvey()"
+						styleClass="p-button-text p-button-sm"
+						pTooltip="Back to Survey List"
+					>
+					</p-button>
+					<div>
+						<h1 class="text-3xl font-bold text-gray-900">{{ survey.name }}</h1>
+						<p class="text-gray-600 mt-2" *ngIf="survey.description">
+							{{ survey.description }}
+						</p>
+						<div class="flex items-center gap-4 mt-3">
+							<span class="text-sm text-gray-500"
+								>Survey ID: {{ survey.id }}</span
+							>
+							<p-tag
+								[value]="survey.status"
+								[severity]="getStatusSeverity(survey.status)"
+								[ngClass]="getStatusColor()"
+							>
+							</p-tag>
+							<span class="text-sm text-gray-500">Year: {{ survey.year }}</span>
+						</div>
+					</div>
+				</div>
+				<div class="flex gap-2">
+					<p-button
+						label="Edit"
+						icon="pi pi-pencil"
+						(onClick)="editSurvey()"
+						styleClass="p-button-outlined p-button-info"
+					>
+					</p-button>
+					<p-button
+						label="Manage Areas"
+						icon="pi pi-map-marker"
+						(onClick)="manageEnumerationAreas()"
+						styleClass="p-button-outlined p-button-success"
+						[disabled]="getEACount() === 0"
+					>
+					</p-button>
+					<p-button
+						label="Delete"
+						icon="pi pi-trash"
+						(onClick)="deleteSurvey()"
+						styleClass="p-button-outlined p-button-danger"
+					>
+					</p-button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Survey Statistics Cards -->
+		<div class="p-6 bg-gray-50">
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+				<!-- Duration Card -->
+				<div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+					<div class="flex items-center">
+						<div class="p-3 rounded-full bg-blue-100">
+							<i class="pi pi-calendar text-blue-600 text-xl"></i>
+						</div>
+						<div class="ml-4">
+							<p class="text-sm font-medium text-gray-600">Duration</p>
+							<p class="text-2xl font-bold text-gray-900">
+								{{ getSurveyDuration() }}
+							</p>
+							<p class="text-xs text-gray-500">days</p>
+						</div>
+					</div>
+				</div>
+
+				<!-- Status Card -->
+				<div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+					<div class="flex items-center">
+						<div
+							class="p-3 rounded-full"
+							[ngClass]="isSurveyActive() ? 'bg-green-100' : 'bg-gray-100'"
+						>
+							<i
+								class="text-xl"
+								[ngClass]="
+									isSurveyActive()
+										? 'pi pi-check-circle text-green-600'
+										: 'pi pi-pause-circle text-gray-600'
+								"
+							></i>
+						</div>
+						<div class="ml-4">
+							<p class="text-sm font-medium text-gray-600">Status</p>
+							<p class="text-lg font-bold" [ngClass]="getStatusColor()">
+								{{ survey.status }}
+							</p>
+							<p
+								class="text-xs text-gray-500"
+								*ngIf="isSurveyActive() && getDaysRemaining() > 0"
+							>
+								{{ getDaysRemaining() }} days remaining
+							</p>
+							<p class="text-xs text-orange-600" *ngIf="isSurveyEndingSoon()">
+								<i class="pi pi-exclamation-triangle"></i> Ending soon
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<!-- Progress Card -->
+				<div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+					<div class="flex items-center">
+						<div class="p-3 rounded-full bg-purple-100">
+							<i class="pi pi-chart-line text-purple-600 text-xl"></i>
+						</div>
+						<div class="ml-4">
+							<p class="text-sm font-medium text-gray-600">Progress</p>
+							<p class="text-2xl font-bold text-gray-900">
+								{{ getProgressPercentage() }}%
+							</p>
+							<div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+								<div
+									class="bg-purple-600 h-2 rounded-full transition-all duration-300"
+									[style.width.%]="getProgressPercentage()"
+								></div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Enumeration Areas Card -->
+				<div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+					<div class="flex items-center">
+						<div class="p-3 rounded-full bg-yellow-100">
+							<i class="pi pi-map-marker text-yellow-600 text-xl"></i>
+						</div>
+						<div class="ml-4">
+							<p class="text-sm font-medium text-gray-600">Areas</p>
+							<p class="text-2xl font-bold text-gray-900">{{ getEACount() }}</p>
+							<p class="text-xs text-gray-500">enumeration areas</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Detailed Information Tabs -->
+		<div class="p-6">
+			<p-tabView [(activeIndex)]="activeTabIndex" styleClass="custom-tabview">
+				<!-- Survey Information Tab -->
+				<p-tabPanel header="Survey Information" leftIcon="pi pi-info-circle">
+					<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+						<!-- Basic Information -->
+						<div class="space-y-6">
+							<h3
+								class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2"
+							>
+								Basic Information
+							</h3>
+
+							<div class="space-y-4">
+								<div>
+									<label class="block text-sm font-medium text-gray-700"
+										>Survey Name</label
+									>
+									<p class="mt-1 text-sm text-gray-900">{{ survey.name }}</p>
+								</div>
+
+								<div>
+									<label class="block text-sm font-medium text-gray-700"
+										>Description</label
+									>
+									<p class="mt-1 text-sm text-gray-900">
+										{{ survey.description || "No description provided" }}
+									</p>
+								</div>
+
+								<div>
+									<label class="block text-sm font-medium text-gray-700"
+										>Survey Year</label
+									>
+									<p class="mt-1 text-sm text-gray-900">{{ survey.year }}</p>
+								</div>
+
+								<div>
+									<label class="block text-sm font-medium text-gray-700"
+										>Status</label
+									>
+									<p-tag
+										[value]="survey.status"
+										[severity]="getStatusSeverity(survey.status)"
+										[ngClass]="getStatusColor()"
+									>
+									</p-tag>
+								</div>
+							</div>
+						</div>
+
+						<!-- Timeline Information -->
+						<div class="space-y-6">
+							<h3
+								class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2"
+							>
+								Timeline & Progress
+							</h3>
+
+							<div class="space-y-4">
+								<div>
+									<label class="block text-sm font-medium text-gray-700"
+										>Start Date</label
+									>
+									<p class="mt-1 text-sm text-gray-900">
+										{{ formatDate(survey.startDate) }}
+									</p>
+								</div>
+
+								<div>
+									<label class="block text-sm font-medium text-gray-700"
+										>End Date</label
+									>
+									<p class="mt-1 text-sm text-gray-900">
+										{{ formatDate(survey.endDate) }}
+									</p>
+								</div>
+
+								<div>
+									<label class="block text-sm font-medium text-gray-700"
+										>Duration</label
+									>
+									<p class="mt-1 text-sm text-gray-900">
+										{{ getSurveyDuration() }} days
+									</p>
+								</div>
+
+								<div>
+									<label class="block text-sm font-medium text-gray-700"
+										>Submission Status</label
+									>
+									<div class="mt-1 flex items-center gap-2">
+										<i
+											class="pi"
+											[ngClass]="
+												survey.isSubmitted
+													? 'pi-check text-green-600'
+													: 'pi-times text-red-600'
+											"
+										></i>
+										<span
+											class="text-sm"
+											[ngClass]="
+												survey.isSubmitted ? 'text-green-600' : 'text-red-600'
+											"
+										>
+											{{ survey.isSubmitted ? "Submitted" : "Not Submitted" }}
+										</span>
+									</div>
+								</div>
+
+								<div>
+									<label class="block text-sm font-medium text-gray-700"
+										>Verification Status</label
+									>
+									<div class="mt-1 flex items-center gap-2">
+										<i
+											class="pi"
+											[ngClass]="
+												survey.isVerified
+													? 'pi-check text-green-600'
+													: 'pi-times text-red-600'
+											"
+										></i>
+										<span
+											class="text-sm"
+											[ngClass]="
+												survey.isVerified ? 'text-green-600' : 'text-red-600'
+											"
+										>
+											{{ survey.isVerified ? "Verified" : "Not Verified" }}
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</p-tabPanel>
+
+				<!-- Enumeration Areas Tab -->
+				<p-tabPanel header="Enumeration Areas" leftIcon="pi pi-map-marker">
+					<div class="space-y-6">
+						<div class="flex justify-between items-center">
+							<h3 class="text-lg font-semibold text-gray-900">
+								Assigned Enumeration Areas ({{ getEACount() }})
+							</h3>
+							<p-button
+								label="Manage Areas"
+								icon="pi pi-cog"
+								(onClick)="manageEnumerationAreas()"
+								styleClass="p-button-outlined p-button-success"
+								[disabled]="getEACount() === 0"
+							>
+							</p-button>
+						</div>
+
+						<!-- Enumeration Areas Table -->
+						<div *ngIf="getEACount() > 0; else noAreasTemplate">
+							<p-table
+								[value]="enumerationAreas"
+								[loading]="loadingEAs"
+								responsiveLayout="scroll"
+								styleClass="p-datatable-sm p-datatable-striped"
+							>
+								<ng-template pTemplate="header">
+									<tr>
+										<th>Area Code</th>
+										<th>Name</th>
+										<th>Population</th>
+										<th>Area (sq km)</th>
+									</tr>
+								</ng-template>
+
+								<ng-template pTemplate="body" let-ea>
+									<tr>
+										<td>
+											<span
+												class="font-mono text-sm bg-gray-100 px-2 py-1 rounded"
+											>
+												{{ ea.areaCode }}
+											</span>
+										</td>
+										<td>
+											<div class="font-medium text-gray-900">{{ ea.name }}</div>
+										</td>
+										<td>
+											<span class="text-sm text-gray-700">
+												{{ ea.population || "N/A" }}
+											</span>
+										</td>
+										<td>
+											<span class="text-sm text-gray-700">
+												{{ ea.areaInSquareKm || "N/A" }}
+											</span>
+										</td>
+									</tr>
+								</ng-template>
+
+								<ng-template pTemplate="emptymessage">
+									<tr>
+										<td colspan="4" class="text-center py-4 text-gray-500">
+											No enumeration areas assigned
+										</td>
+									</tr>
+								</ng-template>
+							</p-table>
+						</div>
+
+						<ng-template #noAreasTemplate>
+							<div class="text-center py-12">
+								<i class="pi pi-map-marker text-4xl text-gray-300 mb-4"></i>
+								<h4 class="text-lg font-medium text-gray-700 mb-2">
+									No Areas Assigned
+								</h4>
+								<p class="text-gray-500 mb-4">
+									This survey doesn't have any enumeration areas assigned yet.
+								</p>
+								<p-button
+									label="Assign Areas"
+									icon="pi pi-plus"
+									(onClick)="manageEnumerationAreas()"
+									styleClass="p-button-outlined"
+								>
+								</p-button>
+							</div>
+						</ng-template>
+					</div>
+				</p-tabPanel>
+			</p-tabView>
+		</div>
+	</div>
+
+	<!-- Edit Survey Dialog -->
+	<p-dialog
+		header="Edit Survey"
+		[(visible)]="showEditDialog"
+		[modal]="true"
+		[closable]="!submitting"
+		[style]="{ width: '500px' }"
+		[draggable]="false"
+		[resizable]="false"
+	>
+		<form (ngSubmit)="submitEditSurvey()" #editForm="ngForm" *ngIf="survey">
+			<div class="formgrid grid">
+				<div class="field col-12">
+					<label for="editSurveyName" class="required">Survey Name</label>
+					<input
+						id="editSurveyName"
+						type="text"
+						pInputText
+						[(ngModel)]="editSurveyData.name"
+						name="editSurveyName"
+						required
+						placeholder="Enter survey name"
+						class="w-full"
+					/>
+				</div>
+
+				<div class="field col-12">
+					<label for="editSurveyDescription">Description</label>
+					<textarea
+						id="editSurveyDescription"
+						pInputTextarea
+						[(ngModel)]="editSurveyData.description"
+						name="editSurveyDescription"
+						placeholder="Enter survey description"
+						rows="3"
+						class="w-full"
+					>
+					</textarea>
+				</div>
+
+				<div class="field col-6">
+					<label for="editSurveyStatus" class="required">Status</label>
+					<p-dropdown
+						id="editSurveyStatus"
+						[options]="[
+							{ label: 'Active', value: SurveyStatus.ACTIVE },
+							{ label: 'Ended', value: SurveyStatus.ENDED }
+						]"
+						[(ngModel)]="editSurveyData.status"
+						name="editSurveyStatus"
+						optionLabel="label"
+						optionValue="value"
+						placeholder="Select Status"
+						class="w-full"
+					>
+					</p-dropdown>
+				</div>
+
+				<div class="field col-6">
+					<div class="flex flex-col gap-2">
+						<label class="text-sm font-medium">Flags</label>
+						<div class="flex items-center gap-2">
+							<p-checkbox
+								[(ngModel)]="editSurveyData.isSubmitted"
+								name="editIsSubmitted"
+								inputId="editIsSubmitted"
+							>
+							</p-checkbox>
+							<label for="editIsSubmitted" class="text-sm">Submitted</label>
+						</div>
+						<div class="flex items-center gap-2">
+							<p-checkbox
+								[(ngModel)]="editSurveyData.isVerified"
+								name="editIsVerified"
+								inputId="editIsVerified"
+							>
+							</p-checkbox>
+							<label for="editIsVerified" class="text-sm">Verified</label>
+						</div>
+					</div>
+				</div>
+
+				<div class="field col-6">
+					<label for="editStartDate">Start Date</label>
+					<p-calendar
+						id="editStartDate"
+						[(ngModel)]="editSurveyData.startDate"
+						name="editStartDate"
+						dateFormat="yy-mm-dd"
+						placeholder="Select start date"
+						class="w-full"
+					>
+					</p-calendar>
+				</div>
+
+				<div class="field col-6">
+					<label for="editEndDate">End Date</label>
+					<p-calendar
+						id="editEndDate"
+						[(ngModel)]="editSurveyData.endDate"
+						name="editEndDate"
+						dateFormat="yy-mm-dd"
+						placeholder="Select end date"
+						class="w-full"
+					>
+					</p-calendar>
+				</div>
+			</div>
+
+			<div class="flex justify-end gap-2 mt-4">
+				<p-button
+					label="Cancel"
+					icon="pi pi-times"
+					(onClick)="showEditDialog = false"
+					[disabled]="submitting"
+					styleClass="p-button-text"
+				>
+				</p-button>
+				<p-button
+					label="Update"
+					icon="pi pi-check"
+					type="submit"
+					[loading]="submitting"
+				>
+				</p-button>
+			</div>
+		</form>
+	</p-dialog>
+
+	<!-- Toast Messages -->
+	<p-toast position="top-right"></p-toast>
+
+	<!-- Confirmation Dialog -->
+	<p-confirmDialog></p-confirmDialog>
+</div>

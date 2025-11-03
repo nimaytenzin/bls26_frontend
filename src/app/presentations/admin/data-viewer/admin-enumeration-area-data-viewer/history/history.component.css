@@ -1,0 +1,17 @@
+/* History Component Styles */
+
+.p-button {
+  border-radius: 6px;
+}
+
+.text-center i {
+  opacity: 0.6;
+}
+
+.text-center h4 {
+  margin-bottom: 0.5rem;
+}
+
+.text-center p {
+  line-height: 1.5;
+}

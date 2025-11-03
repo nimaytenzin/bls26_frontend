@@ -12,6 +12,7 @@ import { AdminDzongkhagDataViewerComponent } from './data-viewer/admin-dzongkhag
 import { AdminAdminstrativeZoneDataViewerComponent } from './data-viewer/admin-adminstrative-zone-data-viewer/admin-adminstrative-zone-data-viewer.component';
 import { AdminSubAdminstrativeZoneDataViewerComponent } from './data-viewer/admin-sub-adminstrative-zone-data-viewer/admin-sub-adminstrative-zone-data-viewer.component';
 import { AdminEnumerationAreaDataViewerComponent } from './data-viewer/admin-enumeration-area-data-viewer/admin-enumeration-area-data-viewer.component';
+import { AdminSurveyViewerComponent } from './survey/admin-survey-viewer/admin-survey-viewer.component';
 
 export const adminRoutes: Routes = [
 	{
@@ -64,6 +65,22 @@ export const adminRoutes: Routes = [
 					{
 						path: 'master',
 						component: AdminMasterSurveyComponent,
+					},
+					{
+						path: 'viewer',
+						component: AdminSurveyViewerComponent,
+					},
+					{
+						path: 'viewer/:id',
+						component: AdminSurveyViewerComponent,
+					},
+					{
+						path: 'details/:id',
+						component: AdminSurveyViewerComponent,
+					},
+					{
+						path: 'manage-areas/:id',
+						component: AdminSurveyViewerComponent, // For now, reuse the same component
 					},
 				],
 			},

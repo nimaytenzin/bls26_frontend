@@ -53,205 +53,350 @@
 			</div>
 		</div>
 
-		<!-- EA Information Card -->
-		<div class="bg-white rounded-lg shadow-sm p-6">
-			<h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-				<i class="pi pi-map-marker text-blue-500 mr-2"></i>
-				Enumeration Area Information
-			</h2>
+		<!-- Main Content -->
+		<div class="flex gap-4">
+			<!-- Left Panel - Tabs -->
+			<div class="w-1/2">
+				<p-tabView>
+					<!-- Details Tab -->
+					<p-tabPanel header="Details" leftIcon="pi pi-info-circle">
+						<!-- Enumeration Area Details Card -->
+						<p-card class="mb-4">
+							<ng-template pTemplate="header">
+								<div class="px-4 pt-4 pb-2">
+									<h2 class="text-xl font-semibold text-gray-800 m-0">
+										Enumeration Area Details
+									</h2>
+								</div>
+							</ng-template>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-				<div class="space-y-1">
-					<p class="text-sm text-gray-500">Name</p>
-					<p class="font-semibold text-gray-900">
-						{{ enumerationArea.name || "N/A" }}
-					</p>
-				</div>
+							<div class="p-4">
+								<table class="w-full border-none">
+									<tbody>
+										<tr>
+											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
+												Name:
+											</td>
+											<td class="py-2 text-lg font-semibold text-gray-800">
+												{{ enumerationArea.name }}
+											</td>
+										</tr>
+										<tr *ngIf="enumerationArea.areaCode">
+											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
+												Area Code:
+											</td>
+											<td class="py-2 text-gray-800">
+												{{ enumerationArea.areaCode }}
+											</td>
+										</tr>
+										<tr *ngIf="enumerationArea.areaCode">
+											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
+												Full EA Code:
+											</td>
+											<td class="py-2 text-gray-800">
+												{{ enumerationArea.areaCode }}
+											</td>
+										</tr>
+										<tr *ngIf="enumerationArea.description">
+											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
+												Description:
+											</td>
+											<td class="py-2 text-gray-800">
+												{{ enumerationArea.description }}
+											</td>
+										</tr>
+										<tr *ngIf="enumerationArea.areaSqKm">
+											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
+												Area:
+											</td>
+											<td class="py-2 text-gray-800">
+												{{ enumerationArea.areaSqKm | number : "1.2-2" }} km²
+											</td>
+										</tr>
+										<tr>
+											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
+												Sub Administrative Zone:
+											</td>
+											<td class="py-2">
+												<div
+													class="text-blue-600 cursor-pointer hover:text-blue-800"
+													(click)="
+														navigateTo(
+															'subadminzone',
+															subAdministrativeZone!.id
+														)
+													"
+													*ngIf="subAdministrativeZone"
+												>
+													{{ subAdministrativeZone.name }}
+												</div>
+											</td>
+										</tr>
+										<tr>
+											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
+												Administrative Zone:
+											</td>
+											<td class="py-2">
+												<div
+													class="text-blue-600 cursor-pointer hover:text-blue-800"
+													(click)="
+														navigateTo('adminzone', administrativeZone!.id)
+													"
+													*ngIf="administrativeZone"
+												>
+													{{ administrativeZone.name }}
+												</div>
+											</td>
+										</tr>
+										<tr>
+											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
+												Dzongkhag:
+											</td>
+											<td class="py-2">
+												<div
+													class="text-blue-600 cursor-pointer hover:text-blue-800"
+													(click)="navigateTo('dzongkhag', dzongkhag!.id)"
+													*ngIf="dzongkhag"
+												>
+													{{ dzongkhag.name }} Dzongkhag
+												</div>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</p-card>
+					</p-tabPanel>
 
-				<div class="space-y-1">
-					<p class="text-sm text-gray-500">Area Code</p>
-					<p class="font-semibold text-gray-900">
-						{{ enumerationArea.areaCode || "N/A" }}
-					</p>
-				</div>
+					<!-- Current Household Listing Tab -->
+					<p-tabPanel header="Current Household Listing" leftIcon="pi pi-home">
+						<app-current-household-listing
+							[enumerationAreaId]="enumerationArea.id"
+						>
+						</app-current-household-listing>
+					</p-tabPanel>
 
-				<div class="space-y-1" *ngIf="enumerationArea.areaSqKm">
-					<p class="text-sm text-gray-500">Area</p>
-					<p class="font-semibold text-gray-900">
-						{{ enumerationArea.areaSqKm }} km²
-					</p>
-				</div>
-			</div>
-
-			<div
-				*ngIf="enumerationArea.description"
-				class="mt-4 pt-4 border-t border-gray-200"
-			>
-				<p class="text-sm text-gray-500 mb-1">Description</p>
-				<p class="text-gray-700">{{ enumerationArea.description }}</p>
-			</div>
-		</div>
-
-		<!-- Hierarchical Context Cards -->
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-			<!-- Dzongkhag Card -->
-			<div
-				*ngIf="dzongkhag"
-				(click)="navigateTo('dzongkhag', dzongkhag.id!)"
-				class="bg-white rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow border-l-4 border-red-500"
-			>
-				<div class="flex items-center justify-between mb-2">
-					<h3 class="font-semibold text-gray-900">Dzongkhag</h3>
-					<i class="pi pi-external-link text-red-500"></i>
-				</div>
-				<p class="text-lg font-bold text-red-600">{{ dzongkhag.name }}</p>
-				<p class="text-sm text-gray-500">{{ dzongkhag.areaCode }}</p>
-			</div>
-
-			<!-- Administrative Zone Card -->
-			<div
-				*ngIf="administrativeZone"
-				(click)="navigateTo('adminzone', administrativeZone.id!)"
-				class="bg-white rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow border-l-4 border-orange-500"
-			>
-				<div class="flex items-center justify-between mb-2">
-					<h3 class="font-semibold text-gray-900">Administrative Zone</h3>
-					<i class="pi pi-external-link text-orange-500"></i>
-				</div>
-				<p class="text-lg font-bold text-orange-600">
-					{{ administrativeZone.name }}
-				</p>
-				<p class="text-sm text-gray-500">
-					{{ administrativeZone.areaCode }} • {{ administrativeZone.type }}
-				</p>
-			</div>
-
-			<!-- Sub-Administrative Zone Card -->
-			<div
-				*ngIf="subAdministrativeZone"
-				(click)="navigateTo('subadminzone', subAdministrativeZone.id!)"
-				class="bg-white rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow border-l-4 border-green-500"
-			>
-				<div class="flex items-center justify-between mb-2">
-					<h3 class="font-semibold text-gray-900">Sub-Administrative Zone</h3>
-					<i class="pi pi-external-link text-green-500"></i>
-				</div>
-				<p class="text-lg font-bold text-green-600">
-					{{ subAdministrativeZone.name }}
-				</p>
-				<p class="text-sm text-gray-500">
-					{{ subAdministrativeZone.areaCode || "N/A" }} •
-					{{ subAdministrativeZone.type }}
-				</p>
-			</div>
-		</div>
-
-		<!-- Maps Section -->
-		<div class="space-y-6">
-			<!-- Primary EA Map -->
-			<div class="bg-white rounded-lg shadow-sm p-6">
-				<h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-					<i class="pi pi-map text-blue-500 mr-2"></i>
-					Enumeration Area Boundary
-				</h2>
-				<div
-					id="eaMap"
-					class="w-full h-[500px] rounded-lg border border-gray-300"
-				></div>
-				<p class="text-sm text-gray-500 mt-2">
-					<span class="inline-block w-4 h-4 bg-blue-500 mr-2 rounded"></span>
-					Enumeration Area boundary and location
-				</p>
-			</div>
-
-			<!-- Context Maps Grid -->
-			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-				<!-- Dzongkhag Context Map -->
-				<div class="bg-white rounded-lg shadow-sm p-6">
-					<h3
-						class="text-lg font-semibold text-gray-900 mb-4 flex items-center"
+					<!-- Buildings Tab -->
+					<p-tabPanel
+						header="Buildings"
+						leftIcon="pi pi-building"
+						*ngIf="buildings.length > 0"
 					>
-						<i class="pi pi-map text-red-500 mr-2"></i>
-						Dzongkhag Context
+						<div class="space-y-4">
+							<!-- Buildings Summary -->
+							<div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+								<div class="flex items-center justify-between">
+									<div>
+										<h3 class="text-lg font-semibold text-orange-800 mb-1">
+											Buildings in {{ enumerationArea.name }}
+										</h3>
+										<p class="text-sm text-orange-600">
+											Total: {{ buildings.length }} buildings
+										</p>
+									</div>
+									<i class="pi pi-building text-3xl text-orange-600"></i>
+								</div>
+							</div>
+
+							<!-- Buildings Table -->
+							<p-table
+								[value]="buildings"
+								[scrollable]="true"
+								scrollHeight="400px"
+							>
+								<ng-template pTemplate="header">
+									<tr>
+										<th>ID</th>
+										<th>Status</th>
+										<th>Type</th>
+										<th>Actions</th>
+									</tr>
+								</ng-template>
+								<ng-template pTemplate="body" let-building>
+									<tr>
+										<td>{{ building.id }}</td>
+										<td>
+											<span
+												class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs"
+											>
+												{{ building.status || "N/A" }}
+											</span>
+										</td>
+										<td>{{ building.buildingType || "N/A" }}</td>
+										<td>
+											<p-button
+												icon="pi pi-eye"
+												size="small"
+												severity="info"
+												[text]="true"
+												pTooltip="View Details"
+											></p-button>
+										</td>
+									</tr>
+								</ng-template>
+								<ng-template pTemplate="emptymessage">
+									<tr>
+										<td colspan="4" class="text-center py-4">
+											<i
+												class="pi pi-info-circle text-2xl text-gray-400 mb-2 block"
+											></i>
+											<p class="text-gray-500">
+												No buildings found for this enumeration area.
+											</p>
+										</td>
+									</tr>
+								</ng-template>
+							</p-table>
+						</div>
+					</p-tabPanel>
+
+					<!-- History Tab -->
+					<p-tabPanel header="History" leftIcon="pi pi-clock">
+						<app-history [enumerationAreaId]="enumerationArea.id">
+						</app-history>
+					</p-tabPanel>
+				</p-tabView>
+			</div>
+			<!-- Right Panel - Map -->
+			<div class="w-1/2">
+				<div class="px-4 pt-4 pb-2">
+					<h3 class="text-lg font-semibold text-gray-800 m-0">
+						Geographic View
 					</h3>
-					<div
-						id="dzongkhagMap"
-						class="w-full h-[400px] rounded-lg border border-gray-300"
-					></div>
-					<p class="text-sm text-gray-500 mt-2">
-						<span class="inline-block w-4 h-4 bg-red-500 mr-2 rounded"></span>
-						EA location within {{ dzongkhag?.name }}
-					</p>
 				</div>
 
-				<!-- Administrative Zone Context Map -->
-				<div class="bg-white rounded-lg shadow-sm p-6">
-					<h3
-						class="text-lg font-semibold text-gray-900 mb-4 flex items-center"
-					>
-						<i class="pi pi-map text-orange-500 mr-2"></i>
-						Admin Zone Context
-					</h3>
+				<div class="relative">
+					<!-- Map Container -->
 					<div
-						id="adminZoneMap"
-						class="w-full h-[400px] rounded-lg border border-gray-300"
+						id="enumerationAreaMap"
+						class="w-full"
+						style="height: 70vh; min-height: 400px"
 					></div>
-					<p class="text-sm text-gray-500 mt-2">
-						<span
-							class="inline-block w-4 h-4 bg-orange-500 mr-2 rounded"
-						></span>
-						EA location within {{ administrativeZone?.name }}
-					</p>
-				</div>
 
-				<!-- Sub-Administrative Zone Context Map -->
-				<div class="bg-white rounded-lg shadow-sm p-6">
-					<h3
-						class="text-lg font-semibold text-gray-900 mb-4 flex items-center"
-					>
-						<i class="pi pi-map text-green-500 mr-2"></i>
-						Sub-Admin Zone Context
-					</h3>
+					<!-- Map Legend -->
 					<div
-						id="subAdminZoneMap"
-						class="w-full h-[400px] rounded-lg border border-gray-300"
-					></div>
-					<p class="text-sm text-gray-500 mt-2">
-						<span class="inline-block w-4 h-4 bg-green-500 mr-2 rounded"></span>
-						EA location within {{ subAdministrativeZone?.name }}
-					</p>
+						class="absolute top-0 right-0 bg-white border-round shadow-2 p-2 m-2"
+						style="z-index: 1000"
+					>
+						<div class="text-xs font-semibold text-gray-800 mb-2">Legend</div>
+
+						<!-- EA Area Fill -->
+						<div
+							class="flex align-items-center gap-2 mb-1"
+							*ngIf="enumerationArea.geom"
+						>
+							<div
+								class="w-1rem h-1rem border-round"
+								style="
+									background-color: #1d4ed8;
+									opacity: 0.3;
+									border: 2px solid #1d4ed8;
+								"
+							></div>
+							<span class="text-xs text-gray-600">Enumeration Area</span>
+						</div>
+
+						<!-- EA Boundary -->
+						<div class="flex align-items-center gap-2 mb-1">
+							<div
+								class="w-1rem h-1rem border-round"
+								style="background-color: transparent; border: 2px solid #1d4ed8"
+							></div>
+							<span class="text-xs text-gray-600">EA Boundary</span>
+						</div>
+
+						<!-- Sub-Admin Zone Boundary -->
+						<div class="flex align-items-center gap-2 mb-2">
+							<div
+								class="w-1rem h-1rem border-round"
+								style="background-color: transparent; border: 2px solid #dc2626"
+							></div>
+							<span class="text-xs text-gray-600">Sub-Admin Zone Boundary</span>
+						</div>
+
+						<!-- Buildings Layer -->
+						<div
+							class="flex align-items-center gap-2 mb-2"
+							*ngIf="buildingsGeoJsonData"
+						>
+							<div
+								class="w-1rem h-1rem border-round"
+								style="
+									background-color: #f59e0b;
+									opacity: 0.7;
+									border: 2px solid #f59e0b;
+								"
+							></div>
+							<span class="text-xs text-gray-600"
+								>Buildings ({{ buildingStatistics?.totalBuildings || 0 }})</span
+							>
+						</div>
+
+						<!-- Layer Toggle Controls -->
+						<div class="border-t border-gray-200 pt-2 mt-2">
+							<div class="text-xs font-semibold text-gray-800 mb-2">Layers</div>
+
+							<!-- Google Satellite Toggle -->
+							<div class="flex align-items-center justify-between mb-1">
+								<span class="text-xs text-gray-600">Google Satellite</span>
+								<p-inputSwitch
+									[(ngModel)]="showSatelliteLayer"
+									(onChange)="toggleSatelliteLayer()"
+									[style]="{ transform: 'scale(0.7)' }"
+								></p-inputSwitch>
+							</div>
+
+							<!-- Buildings Layer Toggle -->
+							<div
+								class="flex align-items-center justify-between mb-1"
+								*ngIf="buildingsGeoJsonData"
+							>
+								<span class="text-xs text-gray-600">Buildings</span>
+								<p-inputSwitch
+									[(ngModel)]="showBuildingsLayer"
+									(onChange)="toggleBuildingsLayer()"
+									[style]="{ transform: 'scale(0.7)' }"
+								></p-inputSwitch>
+							</div>
+						</div>
+					</div>
+
+					<!-- Map Loading Overlay -->
+					<div
+						*ngIf="!mapInitialized"
+						class="absolute inset-0 bg-gray-50 flex items-center justify-center"
+					>
+						<div class="text-center">
+							<div
+								class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
+							></div>
+							<p class="text-sm text-gray-600">Loading map data...</p>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
 
-		<!-- Additional Metadata (if available) -->
-		<div
-			*ngIf="enumerationArea.createdAt || enumerationArea.updatedAt"
-			class="bg-white rounded-lg shadow-sm p-6"
-		>
-			<h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-				<i class="pi pi-info-circle text-gray-500 mr-2"></i>
-				Metadata
-			</h2>
-
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<div *ngIf="enumerationArea.createdAt" class="space-y-1">
-					<p class="text-sm text-gray-500">Created At</p>
-					<p class="font-semibold text-gray-900">
-						{{ enumerationArea.createdAt | date : "medium" }}
-					</p>
-				</div>
-
-				<div *ngIf="enumerationArea.updatedAt" class="space-y-1">
-					<p class="text-sm text-gray-500">Last Updated</p>
-					<p class="font-semibold text-gray-900">
-						{{ enumerationArea.updatedAt | date : "medium" }}
-					</p>
-				</div>
-			</div>
+		<!-- Error State -->
+		<div *ngIf="!loading && !enumerationArea" class="text-center py-8">
+			<i
+				class="pi pi-exclamation-triangle text-4xl text-orange-500 mb-3 block"
+			></i>
+			<h3 class="text-xl font-semibold text-gray-800 mb-2">
+				Enumeration Area Not Found
+			</h3>
+			<p class="text-gray-600 mb-4">
+				The requested enumeration area could not be found.
+			</p>
+			<p-button
+				label="Go Back"
+				icon="pi pi-arrow-left"
+				severity="secondary"
+				(click)="goBack()"
+			></p-button>
 		</div>
+
+		<!-- Toast Messages -->
+		<p-toast></p-toast>
 	</div>
 </div>
-
-<!-- Toast Messages -->
-<p-toast position="top-right"></p-toast>

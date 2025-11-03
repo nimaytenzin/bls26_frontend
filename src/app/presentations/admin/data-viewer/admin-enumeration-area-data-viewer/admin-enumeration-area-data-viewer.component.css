@@ -1,8 +1,5 @@
 /* Map Container Styling */
-#eaMap,
-#dzongkhagMap,
-#adminZoneMap,
-#subAdminZoneMap {
+#enumerationAreaMap {
   z-index: 0;
 }
 
@@ -30,14 +27,8 @@
 
 /* Responsive Map Heights */
 @media (max-width: 768px) {
-  #eaMap {
+  #enumerationAreaMap {
     height: 400px !important;
-  }
-  
-  #dzongkhagMap,
-  #adminZoneMap,
-  #subAdminZoneMap {
-    height: 350px !important;
   }
 }
 

@@ -1,0 +1,336 @@
+<div class="p-4">
+	<!-- Header with Statistics -->
+	<div class="flex items-center justify-between mb-4">
+		<div>
+			<h3 class="text-lg font-semibold text-gray-800 m-0 mb-1">
+				Household Listing History
+			</h3>
+			<div
+				class="flex items-center gap-4 text-sm text-gray-600"
+				*ngIf="!loading && statistics"
+			>
+				<span>{{ statistics.totalYears }} Records</span>
+				<span *ngIf="statistics.firstYear !== statistics.lastYear">
+					{{ statistics.firstYear }} - {{ statistics.lastYear }}
+				</span>
+				<span class="flex items-center gap-1" [ngClass]="getTrendColor()">
+					<i [class]="'pi ' + getTrendIcon()"></i>
+					{{ getTrendLabel() }}
+				</span>
+			</div>
+		</div>
+		<div class="flex gap-2">
+			<p-button
+				label="Add Record"
+				icon="pi pi-plus"
+				size="small"
+				severity="primary"
+				(click)="addHistoricalRecord()"
+			></p-button>
+		</div>
+	</div>
+
+	<!-- Loading State -->
+	<div *ngIf="loading" class="text-center py-8">
+		<i class="pi pi-spin pi-spinner text-2xl text-blue-500 mb-3 block"></i>
+		<p class="text-gray-600">Loading historical data...</p>
+	</div>
+
+	<!-- Empty State -->
+	<div
+		*ngIf="!loading && historicalListings.length === 0"
+		class="text-center py-8"
+	>
+		<i class="pi pi-clock text-4xl text-gray-400 mb-3 block"></i>
+		<h4 class="text-lg font-medium text-gray-600 mb-2">No Historical Data</h4>
+		<p class="text-gray-500 mb-4">
+			No historical household listings have been recorded for this enumeration
+			area yet.
+		</p>
+		<p-button
+			label="Add First Record"
+			icon="pi pi-plus"
+			severity="secondary"
+			(click)="addHistoricalRecord()"
+		></p-button>
+	</div>
+
+	<!-- Historical Data Display -->
+	<div *ngIf="!loading && historicalListings.length > 0">
+		<!-- Statistics Cards -->
+		<div class="grid grid-cols-4 gap-4 mb-6">
+			<div class="bg-blue-50 rounded-lg p-3">
+				<div class="text-blue-600 text-sm font-medium">Years Recorded</div>
+				<div class="text-blue-900 text-xl font-bold">
+					{{ statistics?.totalYears }}
+				</div>
+				<div class="text-blue-600 text-xs">+ {{ currentYear }} (Current)</div>
+			</div>
+			<div class="bg-green-50 rounded-lg p-3">
+				<div class="text-green-600 text-sm font-medium">Average Households</div>
+				<div class="text-green-900 text-xl font-bold">
+					{{ statistics?.averageHouseholds }}
+				</div>
+			</div>
+			<div class="bg-purple-50 rounded-lg p-3">
+				<div class="text-purple-600 text-sm font-medium">
+					Current Year ({{ currentYear }})
+				</div>
+				<div class="text-purple-900 text-xl font-bold">
+					{{ currentYearCount }}
+				</div>
+				<div class="text-purple-600 text-xs">Live count</div>
+			</div>
+			<div class="bg-orange-50 rounded-lg p-3">
+				<div class="text-orange-600 text-sm font-medium">Trend</div>
+				<div
+					class="text-orange-900 text-lg font-bold flex items-center gap-1"
+					[ngClass]="getTrendColor()"
+				>
+					<i [class]="'pi ' + getTrendIcon()"></i>
+					{{ getTrendLabel() }}
+				</div>
+			</div>
+		</div>
+
+		<!-- Chart Section -->
+		<div class="bg-white rounded-lg border p-4 mb-6" *ngIf="chartData">
+			<h4 class="text-md font-semibold text-gray-800 mb-4">
+				Household Count Trend
+			</h4>
+			<div style="height: 300px">
+				<p-chart
+					type="line"
+					[data]="chartData"
+					[options]="chartOptions"
+					[responsive]="true"
+				></p-chart>
+			</div>
+		</div>
+
+		<!-- Data Table -->
+		<div class="bg-white rounded-lg border">
+			<div class="px-4 py-3 border-b">
+				<h4 class="text-md font-semibold text-gray-800 m-0">
+					Historical Records
+				</h4>
+			</div>
+			<p-table
+				[value]="combinedData"
+				[paginator]="true"
+				[rows]="10"
+				[showCurrentPageReport]="true"
+				currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
+				styleClass="p-datatable-sm"
+				[sortField]="'year'"
+				[sortOrder]="-1"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th pSortableColumn="year">
+							Year
+							<p-sortIcon field="year"></p-sortIcon>
+						</th>
+						<th pSortableColumn="householdCount">
+							Household Count
+							<p-sortIcon field="householdCount"></p-sortIcon>
+						</th>
+						<th>Change from Previous</th>
+						<th>Actions</th>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="body" let-record let-rowIndex="rowIndex">
+					<tr [ngClass]="{ 'bg-green-50': record.year === currentYear }">
+						<td>
+							<div class="flex items-center gap-2">
+								<span class="font-medium text-blue-600">{{ record.year }}</span>
+								<span
+									*ngIf="record.year === currentYear"
+									class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium"
+								>
+									Current
+								</span>
+							</div>
+						</td>
+						<td>
+							<span
+								class="px-2 py-1 rounded text-sm font-medium"
+								[ngClass]="{
+									'bg-green-100 text-green-800': record.year === currentYear,
+									'bg-blue-100 text-blue-800': record.year !== currentYear
+								}"
+							>
+								{{ record.householdCount }}
+								<span *ngIf="record.year === currentYear" class="text-xs ml-1"
+									>(Live)</span
+								>
+							</span>
+						</td>
+						<td>
+							<span
+								*ngIf="rowIndex < combinedData.length - 1"
+								class="flex items-center gap-1"
+								[ngClass]="{
+									'text-green-600':
+										record.householdCount >
+										combinedData[rowIndex + 1].householdCount,
+									'text-red-600':
+										record.householdCount <
+										combinedData[rowIndex + 1].householdCount,
+									'text-gray-600':
+										record.householdCount ===
+										combinedData[rowIndex + 1].householdCount
+								}"
+							>
+								<i
+									class="pi"
+									[ngClass]="{
+										'pi-arrow-up':
+											record.householdCount >
+											combinedData[rowIndex + 1].householdCount,
+										'pi-arrow-down':
+											record.householdCount <
+											combinedData[rowIndex + 1].householdCount,
+										'pi-minus':
+											record.householdCount ===
+											combinedData[rowIndex + 1].householdCount
+									}"
+								></i>
+								{{
+									record.householdCount -
+										combinedData[rowIndex + 1].householdCount
+								}}
+							</span>
+							<span
+								*ngIf="rowIndex === combinedData.length - 1"
+								class="text-gray-400 italic"
+							>
+								Initial record
+							</span>
+						</td>
+						<td>
+							<div class="flex gap-1">
+								<p-button
+									*ngIf="record.year !== currentYear"
+									icon="pi pi-pencil"
+									severity="warn"
+									size="small"
+									[text]="true"
+									pTooltip="Edit Record"
+									(click)="editHistoricalRecord(record)"
+								></p-button>
+								<p-button
+									*ngIf="record.year !== currentYear"
+									icon="pi pi-trash"
+									severity="danger"
+									size="small"
+									[text]="true"
+									pTooltip="Delete Record"
+									(click)="deleteHistoricalRecord(record)"
+								></p-button>
+								<span
+									*ngIf="record.year === currentYear"
+									class="text-green-600 text-sm font-medium"
+								>
+									Live Data
+								</span>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="4" class="text-center py-4">
+							<div class="text-gray-500">
+								<i class="pi pi-info-circle mr-2"></i>
+								No historical records found for this enumeration area.
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</div>
+	</div>
+
+	<!-- Add Historical Record Dialog -->
+	<p-dialog
+		header="Add Historical Record"
+		[(visible)]="showAddDialog"
+		[style]="{ width: '400px' }"
+		[modal]="true"
+		[closable]="!submitting"
+	>
+		<form (ngSubmit)="submitHistoricalRecord()" #historicalForm="ngForm">
+			<div class="flex flex-col gap-4">
+				<!-- Year -->
+				<div class="flex flex-col">
+					<label for="year" class="text-sm font-medium text-gray-700 mb-1">
+						Year *
+					</label>
+					<p-inputNumber
+						[(ngModel)]="newHistoricalRecord.year"
+						name="year"
+						inputId="year"
+						[min]="1900"
+						[max]="currentYear - 1"
+						[useGrouping]="false"
+						[disabled]="submitting"
+						required
+						styleClass="w-full"
+					></p-inputNumber>
+				</div>
+
+				<!-- Household Count -->
+				<div class="flex flex-col">
+					<label
+						for="householdCount"
+						class="text-sm font-medium text-gray-700 mb-1"
+					>
+						Household Count *
+					</label>
+					<p-inputNumber
+						[(ngModel)]="newHistoricalRecord.householdCount"
+						name="householdCount"
+						inputId="householdCount"
+						[min]="0"
+						[disabled]="submitting"
+						required
+						styleClass="w-full"
+					></p-inputNumber>
+				</div>
+
+				<!-- Info Message -->
+				<div class="bg-blue-50 border border-blue-200 rounded p-3">
+					<div class="flex items-start gap-2">
+						<i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
+						<div class="text-blue-700 text-sm">
+							This will create a historical record for the specified year.
+							Current year ({{ currentYear }}) data is automatically calculated
+							from existing household listings and cannot be added manually.
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Form Actions -->
+			<div class="flex justify-end gap-2 mt-6 pt-4 border-t">
+				<p-button
+					label="Cancel"
+					severity="secondary"
+					[disabled]="submitting"
+					(click)="showAddDialog = false"
+					type="button"
+				></p-button>
+				<p-button
+					label="Add Record"
+					[loading]="submitting"
+					type="submit"
+					[disabled]="!historicalForm.valid"
+				></p-button>
+			</div>
+		</form>
+	</p-dialog>
+
+	<!-- Toast Messages -->
+	<p-toast></p-toast>
+</div>

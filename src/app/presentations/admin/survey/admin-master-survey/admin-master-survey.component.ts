@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
 import {
 	Survey,
@@ -95,7 +96,8 @@ export class AdminMasterSurveyComponent implements OnInit {
 		private administrativeZoneService: AdministrativeZoneDataService,
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
 		private messageService: MessageService,
-		private dialogService: DialogService
+		private dialogService: DialogService,
+		private router: Router
 	) {}
 
 	ngOnInit() {
@@ -405,6 +407,11 @@ export class AdminMasterSurveyComponent implements OnInit {
 			detail: 'Edit functionality with dynamic dialogs coming soon',
 			life: 3000,
 		});
+	}
+
+	viewSurvey(survey: Survey) {
+		// Navigate to the survey viewer component with survey ID as path parameter
+		this.router.navigate(['/admin/survey/viewer', survey.id]);
 	}
 
 	confirmDelete(survey: Survey) {

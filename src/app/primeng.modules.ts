@@ -44,6 +44,7 @@ import { StepsModule } from 'primeng/steps';
 import { DataViewModule } from 'primeng/dataview';
 import { PaginatorModule } from 'primeng/paginator';
 import { DrawerModule } from 'primeng/drawer';
+import { InputSwitchModule } from 'primeng/inputswitch';
 const PRIME_NG_MODULES = [
 	CardModule,
 	InputTextModule,
@@ -90,6 +91,7 @@ const PRIME_NG_MODULES = [
 	DataViewModule,
 	PaginatorModule,
 	DrawerModule,
+	InputSwitchModule,
 ];
 
 @NgModule({
