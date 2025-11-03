@@ -23,35 +23,7 @@ export const ADMINSIDEBARITEMS = [
 			},
 		],
 	},
-	{
-		label: 'Data Viewer',
-		items: [
-			{
-				label: 'Dzongkhag  Viewer',
-				icon: 'pi pi-fw pi-plus-circle',
-				routerLink: ['/admin/master-bookings/create'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'Admin Zone Viewer',
-				icon: 'pi pi-fw pi-plus-circle',
-				routerLink: ['/admin/master-bookings/create'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'Sub Adm Zone  Viewer',
-				icon: 'pi pi-fw pi-plus-circle',
-				routerLink: ['/admin/master-bookings/create'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'EA Zone  Viewer',
-				icon: 'pi pi-fw pi-plus-circle',
-				routerLink: ['/admin/master-bookings/create'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-		],
-	},
+
 	{
 		label: 'Master Data',
 		items: [
@@ -108,49 +80,15 @@ export const ADMINSIDEBARITEMS = [
 				roles: [USERROLESENUM.ADMIN],
 			},
 			{
-				label: 'Admin',
+				label: 'Supervisors',
 				icon: 'pi pi-fw pi-users',
 				routerLink: ['/admin/user-management'],
 				roles: [USERROLESENUM.ADMIN],
 			},
-		],
-	},
-	{
-		label: 'Transactions',
-		items: [
 			{
-				label: 'Transactions',
-				icon: 'pi pi-fw pi-credit-card',
-				routerLink: ['/admin/master-transactions'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			// {
-			// 	label: 'Payouts',
-			// 	icon: 'pi pi-fw pi-credit-card',
-			// 	routerLink: ['/admin/master-payout-settings'],
-			// 	roles: [USERROLESENUM.ADMIN],
-			// },
-		],
-	},
-	{
-		label: 'System Configuration',
-		items: [
-			{
-				label: 'Locations',
-				icon: 'pi pi-fw pi-map-marker',
-				routerLink: ['/admin/master-locations'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'Languages',
-				icon: 'pi pi-fw pi-globe',
-				routerLink: ['/admin/master-languages'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'Genres',
-				icon: 'pi pi-fw pi-tags',
-				routerLink: ['/admin/master-genres'],
+				label: 'Enumerators',
+				icon: 'pi pi-fw pi-users',
+				routerLink: ['/admin/user-management'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 		],

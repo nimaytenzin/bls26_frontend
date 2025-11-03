@@ -1,0 +1,184 @@
+/* Edit Enumeration Area Component Styles */
+
+.p-fluid .p-inputtext,
+.p-fluid .p-dropdown,
+.p-fluid .p-inputtextarea {
+  width: 100%;
+}
+
+/* Form styling */
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+/* Error state styling */
+.ng-invalid.ng-touched {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 1px #ef4444 !important;
+}
+
+/* Success state for valid fields */
+.ng-valid.ng-touched:not(.ng-pristine) {
+  border-color: #10b981 !important;
+}
+
+/* Custom styling for area code input */
+input[style*="text-transform: uppercase"] {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Dropdown item styling */
+.p-dropdown-item {
+  padding: 0.75rem 1rem;
+}
+
+/* Tag styling in dropdown */
+.p-tag {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Info box styling */
+.bg-gray-50 {
+  background-color: #f9fafb;
+}
+
+.border-gray-200 {
+  border-color: #e5e7eb;
+}
+
+.text-gray-600 {
+  color: #4b5563;
+}
+
+.text-gray-700 {
+  color: #374151;
+}
+
+.text-gray-900 {
+  color: #111827;
+}
+
+/* Status boxes */
+.bg-orange-50 {
+  background-color: #fff7ed;
+}
+
+.border-orange-200 {
+  border-color: #fed7aa;
+}
+
+.text-orange-600 {
+  color: #ea580c;
+}
+
+.text-orange-800 {
+  color: #9a3412;
+}
+
+.bg-blue-50 {
+  background-color: #eff6ff;
+}
+
+.border-blue-200 {
+  border-color: #bfdbfe;
+}
+
+.text-blue-600 {
+  color: #2563eb;
+}
+
+.text-blue-800 {
+  color: #1e40af;
+}
+
+.text-green-600 {
+  color: #16a34a;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  .p-dialog {
+    width: 95vw !important;
+    margin: 0 !important;
+  }
+}
+
+/* Loading state */
+.p-dropdown[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Form validation feedback */
+.p-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Button styling adjustments */
+.p-button.p-button-text {
+  color: #6b7280;
+}
+
+.p-button.p-button-text:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+/* Smooth transitions */
+.p-inputtext,
+.p-dropdown,
+.p-inputtextarea {
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+/* Focus states */
+.p-inputtext:focus,
+.p-dropdown:focus,
+.p-inputtextarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Current data info styling */
+.bg-gray-50 .text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+/* Changed data highlighting */
+.form-field-changed {
+  background-color: #fef3c7;
+  border-color: #f59e0b;
+}
+
+.form-field-changed:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.1);
+}
+
+/* Save state indicators */
+.unsaved-changes-indicator {
+  position: relative;
+}
+
+.unsaved-changes-indicator::before {
+  content: '';
+  position: absolute;
+  left: -0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.25rem;
+  height: 1rem;
+  background-color: #f59e0b;
+  border-radius: 0.125rem;
+}

@@ -1,0 +1,58 @@
+/* Custom Map Styles */
+.leaflet-container {
+	border-radius: 8px;
+}
+
+/* Borderless Table Styles */
+:host ::ng-deep table.border-none {
+	border: none;
+	border-collapse: collapse;
+}
+
+:host ::ng-deep table.border-none td {
+	border: none;
+	padding: 0.5rem 0;
+	vertical-align: top;
+}
+
+:host ::ng-deep table.border-none tbody tr:nth-child(even) {
+	background-color: transparent;
+}
+
+:host ::ng-deep table.border-none tbody tr:hover {
+	background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Header separator line */
+.border-l {
+	border-left: 1px solid;
+}
+
+.border-gray-300 {
+	border-color: #d1d5db;
+}
+
+.h-4 {
+	height: 1rem;
+}
+
+.mx-2 {
+	margin-left: 0.5rem;
+	margin-right: 0.5rem;
+}
+
+/* Dialog positioning */
+:host ::ng-deep .p-dialog {
+	z-index: 1000;
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 768px) {
+	.flex {
+		flex-direction: column;
+	}
+	
+	.w-1\/2 {
+		width: 100%;
+	}
+}

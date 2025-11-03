@@ -119,6 +119,45 @@ export class DzongkhagDataService {
 		);
 	}
 
+	/**
+	 * Get enumeration areas by dzongkhag with administrative hierarchy
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @param withGeom - Include geometry for enumeration areas (default: false)
+	 * @param includeHierarchy - Include full administrative hierarchy (default: true)
+	 * @returns Observable<any> - Hierarchical or flat response based on includeHierarchy
+	 *
+	 * @example
+	 * // Get complete hierarchy (default)
+	 * getEnumerationAreasByDzongkhag(1)
+	 *
+	 * // Get flat list with geometry
+	 * getEnumerationAreasByDzongkhag(1, true, false)
+	 *
+	 * // Get hierarchy with geometry
+	 * getEnumerationAreasByDzongkhag(1, true, true)
+	 */
+	getEnumerationAreasByDzongkhag(
+		dzongkhagId: number,
+		withGeom: boolean = true,
+		includeHierarchy: boolean = true
+	): Observable<any> {
+		let params = new HttpParams();
+		if (withGeom) params = params.set('withGeom', 'true');
+		if (!includeHierarchy) params = params.set('includeHierarchy', 'false');
+
+		return this.http
+			.get<any>(`${this.apiUrl}/${dzongkhagId}/enumeration-areas`, { params })
+			.pipe(
+				catchError((error) => {
+					console.error(
+						'Error fetching enumeration areas by dzongkhag:',
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
 	// ============ ADMIN OPERATIONS ============
 
 	/**

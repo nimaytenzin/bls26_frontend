@@ -7,6 +7,8 @@ import { APPNAME, APPSLOGAN } from '../../core/constants/constants';
 @Component({
 	selector: 'app-admin-sidebar',
 	templateUrl: './admin-sidebar.component.html',
+	styleUrls: ['./admin-sidebar.component.css'],
+	standalone: true,
 	imports: [AdminMenuComponent, DividerModule],
 })
 export class AdminSidebarComponent {

@@ -243,6 +243,14 @@
 											<button
 												pButton
 												type="button"
+												icon="pi pi-eye"
+												class="p-button-outlined p-button-sm p-button-secondary"
+												(click)="viewSubAdministrativeZoneDetails(zone)"
+												pTooltip="View Details"
+											></button>
+											<button
+												pButton
+												type="button"
 												icon="pi pi-pencil"
 												class="p-button-outlined p-button-sm p-button-info"
 												(click)="editSubAdministrativeZone(zone)"
@@ -406,6 +414,14 @@
 						</td>
 						<td>
 							<div class="flex items-center gap-1">
+								<button
+									pButton
+									type="button"
+									icon="pi pi-eye"
+									class="p-button-outlined p-button-sm p-button-secondary"
+									(click)="viewSubAdministrativeZoneDetails(zone)"
+									pTooltip="View Details"
+								></button>
 								<button
 									pButton
 									type="button"

@@ -69,8 +69,51 @@
 			</div>
 		</div>
 
+		<!-- Dzongkhag Selection Controls -->
+		<div class="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+			<div class="flex items-center justify-between">
+				<div class="flex items-center gap-4">
+					<!-- Dzongkhag Dropdown -->
+					<div class="flex items-center gap-2">
+						<label
+							for="dzongkhagSelect"
+							class="text-sm font-medium text-gray-700"
+						>
+							Dzongkhag:
+						</label>
+						<p-dropdown
+							id="dzongkhagSelect"
+							[options]="dzongkhags"
+							[(ngModel)]="selectedDzongkhag"
+							optionLabel="name"
+							placeholder="Select Dzongkhag"
+							[loading]="loading"
+							[showClear]="true"
+							(onChange)="onDzongkhagChange()"
+							styleClass="min-w-48"
+						></p-dropdown>
+					</div>
+				</div>
+
+				<!-- Loading Indicator -->
+				<div *ngIf="loadingEAs" class="flex items-center gap-2 text-gray-600">
+					<i class="pi pi-spin pi-spinner"></i>
+					<span class="text-sm">Loading enumeration areas...</span>
+				</div>
+
+				<!-- Selected Dzongkhag Info -->
+				<div
+					*ngIf="selectedDzongkhag && !loadingEAs"
+					class="text-sm text-gray-600"
+				>
+					Selected:
+					<span class="font-medium">{{ selectedDzongkhag.name }}</span>
+				</div>
+			</div>
+		</div>
+
 		<!-- Statistics Cards -->
-		<div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+		<div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
 			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
 				<div class="flex items-center">
 					<div class="flex-shrink-0">
@@ -81,7 +124,13 @@
 						</div>
 					</div>
 					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Total Areas</p>
+						<p class="text-sm font-medium text-gray-500">
+							{{
+								selectedDzongkhag
+									? selectedDzongkhag.name + " Areas"
+									: "Total Areas"
+							}}
+						</p>
 						<p class="text-lg font-semibold text-gray-900">
 							{{ enumerationAreas.length }}
 						</p>
@@ -93,33 +142,15 @@
 				<div class="flex items-center">
 					<div class="flex-shrink-0">
 						<div
-							class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
-						>
-							<i class="pi pi-chart-bar text-blue-600"></i>
-						</div>
-					</div>
-					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Total Area</p>
-						<p class="text-lg font-semibold text-gray-900">
-							{{ totalArea | number : "1.2-2" }} km²
-						</p>
-					</div>
-				</div>
-			</div>
-
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
 							class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
 						>
-							<i class="pi pi-calculator text-green-600"></i>
+							<i class="pi pi-sitemap text-green-600"></i>
 						</div>
 					</div>
 					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Avg Area</p>
+						<p class="text-sm font-medium text-gray-500">Admin Zones</p>
 						<p class="text-lg font-semibold text-gray-900">
-							{{ averageArea | number : "1.2-2" }} km²
+							{{ administrativeZoneCount }}
 						</p>
 					</div>
 				</div>
@@ -131,13 +162,20 @@
 						<div
 							class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
 						>
-							<i class="pi pi-eye text-purple-600"></i>
+							<i class="pi pi-objects-column text-purple-600"></i>
 						</div>
 					</div>
 					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Selected</p>
+						<p class="text-sm font-medium text-gray-500">
+							{{ selectedDzongkhag ? "Sub-Admin Zones" : "Selected" }}
+						</p>
 						<p class="text-lg font-semibold text-gray-900">
-							{{ selectedEnumerationArea?.name || "None" }}
+							<span *ngIf="selectedDzongkhag">{{
+								subAdministrativeZoneCount
+							}}</span>
+							<span *ngIf="!selectedDzongkhag">{{
+								selectedEnumerationArea?.name || "None"
+							}}</span>
 						</p>
 					</div>
 				</div>
@@ -171,146 +209,239 @@
 							</div>
 						</div>
 
-						<p-table
-							#dt
-							[value]="enumerationAreas"
-							[rows]="10"
-							[paginator]="true"
-							responsiveLayout="scroll"
-							[loading]="loading"
-							selectionMode="single"
-							[(selection)]="selectedEnumerationArea"
-							(onRowSelect)="onRowSelect($event)"
-							styleClass="p-datatable-sm"
-							[globalFilterFields]="['name', 'areaCode', 'description']"
-							[filterDelay]="0"
-						>
-							<ng-template pTemplate="header">
-								<tr>
-									<th pSortableColumn="name">
-										Name <p-sortIcon field="name"></p-sortIcon>
-									</th>
-									<th pSortableColumn="areaCode">Code</th>
-									<th pSortableColumn="subAdministrativeZoneId">
-										Sub-Admin Zone
-									</th>
-									<th pSortableColumn="areaSqKm">
-										Area (km²) <p-sortIcon field="areaSqKm"></p-sortIcon>
-									</th>
-									<th>Geometry</th>
-									<th>Actions</th>
-								</tr>
-							</ng-template>
+						<!-- No Dzongkhag Selected Message -->
+						<div *ngIf="!selectedDzongkhag" class="text-center py-12">
+							<div class="text-gray-400 mb-4">
+								<i class="pi pi-map-marker text-6xl"></i>
+							</div>
+							<h3 class="text-lg font-medium text-gray-900 mb-2">
+								Select a Dzongkhag
+							</h3>
+							<p class="text-gray-500">
+								Please select a dzongkhag from the dropdown above to view
+								enumeration areas.
+							</p>
+						</div>
 
-							<ng-template pTemplate="body" let-area>
-								<tr
-									[class.bg-blue-50]="selectedEnumerationArea?.id === area.id"
-								>
-									<td>
-										<div class="font-medium text-gray-900">
-											{{ area.name }}
-										</div>
-										<div class="text-sm text-gray-500">
-											{{ area.description }}
-										</div>
-									</td>
-									<td>
-										<span class="font-mono text-xs text-gray-600">
-											{{ area.areaCode }}
-										</span>
-									</td>
-									<td>
-										<span class="text-sm text-gray-700">
-											{{
-												getSubAdministrativeZoneName(
-													area.subAdministrativeZoneId
-												)
-											}}
-										</span>
-									</td>
-									<td>
-										<span class="text-sm font-medium text-gray-900">
-											{{
-												area.areaSqKm
-													? (getSafeAreaValue(area.areaSqKm) | number : "1.2-2")
-													: "N/A"
-											}}
-										</span>
-									</td>
-									<td>
-										<span
-											*ngIf="area.geom"
-											class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-										>
-											<i class="pi pi-check-circle mr-1.5"></i>
-											Exists
-										</span>
-										<span
-											*ngIf="!area.geom"
-											class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
-										>
-											<i class="pi pi-exclamation-circle mr-1.5"></i>
-											Not uploaded
-										</span>
-									</td>
-									<td>
-										<div class="flex items-center gap-2">
+						<!-- Table Content -->
+						<div *ngIf="selectedDzongkhag">
+							<!-- Hierarchical Table -->
+							<p-table
+								#dt
+								[value]="hierarchicalTableData"
+								[rows]="50"
+								[paginator]="false"
+								responsiveLayout="scroll"
+								[loading]="loadingEAs"
+								styleClass="p-datatable-sm hierarchical-table"
+								[globalFilterFields]="['name', 'areaCode', 'description']"
+								[filterDelay]="0"
+							>
+								<ng-template pTemplate="header">
+									<tr>
+										<th style="width: 50%">Name / Area Code</th>
+										<th style="width: 20%">Type</th>
+										<th style="width: 15%">Count / Geometry</th>
+										<th style="width: 15%">Actions</th>
+									</tr>
+								</ng-template>
+
+								<ng-template pTemplate="body" let-item>
+									<!-- Administrative Zone Row -->
+									<tr
+										*ngIf="item.type === 'admin-zone'"
+										class="bg-blue-50 font-semibold border-b-2 border-blue-200"
+									>
+										<td>
+											<div class="flex items-center py-2">
+												<div>
+													<div class="font-bold text-blue-900 text-lg">
+														{{ item.name }}
+													</div>
+													<div class="text-blue-700 font-mono">
+														{{ item.areaCode }}
+													</div>
+												</div>
+											</div>
+										</td>
+										<td>
+											<span class="font-medium text-blue-800">
+												{{ "ADMINISTRATIVE ZONE" }}
+											</span>
+										</td>
+										<td>
+											<span
+												class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded"
+											>
+												{{ item.totalEAs }} EAs
+											</span>
+										</td>
+										<td>
 											<button
 												pButton
 												type="button"
 												icon="pi pi-eye"
-												class="p-button-outlined p-button-sm p-button-secondary"
-												(click)="viewEnumerationAreaDetails(area)"
-												pTooltip="View Details"
-												tooltipPosition="top"
-											></button>
-											<button
-												pButton
-												type="button"
-												icon="pi pi-pencil"
 												class="p-button-outlined p-button-sm p-button-info"
-												(click)="editEnumerationArea(area)"
-												pTooltip="Edit"
+												pTooltip="View Administrative Zone"
 												tooltipPosition="top"
 											></button>
-											<button
-												pButton
-												type="button"
-												[icon]="area.geom ? 'pi pi-refresh' : 'pi pi-upload'"
-												class="p-button-outlined p-button-sm"
-												[class.p-button-success]="!area.geom"
-												[class.p-button-warning]="area.geom"
-												(click)="openUploadGeojson(area)"
-												[pTooltip]="
-													area.geom ? 'Replace GeoJSON' : 'Upload GeoJSON'
-												"
-												tooltipPosition="top"
-											></button>
-											<button
-												pButton
-												type="button"
-												icon="pi pi-trash"
-												class="p-button-outlined p-button-sm p-button-danger"
-												(click)="confirmDelete(area)"
-												pTooltip="Delete"
-												tooltipPosition="top"
-											></button>
-										</div>
-									</td>
-								</tr>
-							</ng-template>
+										</td>
+									</tr>
 
-							<ng-template pTemplate="emptymessage">
-								<tr>
-									<td colspan="6" class="text-center py-8">
-										<div class="text-gray-500">
-											<i class="pi pi-info-circle text-2xl mb-2 block"></i>
-											No enumeration areas found
-										</div>
-									</td>
-								</tr>
-							</ng-template>
-						</p-table>
+									<!-- Sub-Administrative Zone Row -->
+									<tr
+										*ngIf="item.type === 'sub-admin-zone'"
+										class="bg-amber-50 font-medium border-b border-amber-200"
+									>
+										<td>
+											<div class="flex items-center py-1 pl-6">
+												<div>
+													<div class="font-semibold text-amber-900">
+														{{ item.name }}
+													</div>
+													<div class="text-amber-700 font-mono">
+														{{ item.areaCode }}
+													</div>
+												</div>
+											</div>
+										</td>
+										<td>
+											<span class="font-medium text-amber-800">
+												{{
+													(item.zoneType === "chiwog" ? "Chiwog" : "Lap")
+														| uppercase
+												}}
+											</span>
+										</td>
+										<td>
+											<span
+												class="bg-amber-100 text-amber-800 text-xs font-medium px-2 py-1 rounded"
+											>
+												{{ item.totalEAs }} EAs
+											</span>
+										</td>
+										<td>
+											<button
+												pButton
+												type="button"
+												icon="pi pi-eye"
+												class="p-button-outlined p-button-sm p-button-warning"
+												(click)="viewSubAdministrativeZoneDetails(item.data)"
+												pTooltip="View Sub-Administrative Zone"
+												tooltipPosition="top"
+											></button>
+										</td>
+									</tr>
+
+									<!-- Enumeration Area Row -->
+									<tr
+										*ngIf="item.type === 'enumeration-area'"
+										class="hover:bg-gray-50"
+										[class.bg-blue-50]="
+											selectedEnumerationArea?.id === item.data.id
+										"
+										(click)="onRowSelectHierarchical(item)"
+									>
+										<td>
+											<div class="flex items-center py-1 pl-12">
+												<div>
+													<div class="flex items-center gap-3">
+														<div class="font-medium text-gray-900">
+															{{ item.name }}
+														</div>
+														<div class="text-gray-400 font-mono">
+															{{ item.areaCode }}
+														</div>
+													</div>
+													<div class="text-gray-500 mt-1">
+														{{ item.description }}
+													</div>
+												</div>
+											</div>
+										</td>
+										<td>
+											<span class="font-medium text-gray-800">
+												{{ "ENUMERATION AREA" }}
+											</span>
+											<span
+												*ngIf="item.hasGeom"
+												class="font-medium text-green-800 ml-2"
+											>
+												(HAS GEOMETRY)
+											</span>
+										</td>
+										<td>
+											<div class="flex items-center gap-1">
+												<button
+													pButton
+													type="button"
+													icon="pi pi-eye"
+													class="p-button-outlined p-button-sm p-button-secondary"
+													(click)="
+														viewEnumerationAreaDetails(item.data);
+														$event.stopPropagation()
+													"
+													pTooltip="View Details"
+													tooltipPosition="top"
+												></button>
+												<button
+													pButton
+													type="button"
+													icon="pi pi-pencil"
+													class="p-button-outlined p-button-sm p-button-info"
+													(click)="
+														editEnumerationArea(item.data);
+														$event.stopPropagation()
+													"
+													pTooltip="Edit"
+													tooltipPosition="top"
+												></button>
+												<button
+													pButton
+													type="button"
+													[icon]="
+														item.hasGeom ? 'pi pi-refresh' : 'pi pi-upload'
+													"
+													class="p-button-outlined p-button-sm"
+													[class.p-button-success]="!item.hasGeom"
+													[class.p-button-warning]="item.hasGeom"
+													(click)="
+														openUploadGeojson(item.data);
+														$event.stopPropagation()
+													"
+													[pTooltip]="
+														item.hasGeom ? 'Replace GeoJSON' : 'Upload GeoJSON'
+													"
+													tooltipPosition="top"
+												></button>
+												<button
+													pButton
+													type="button"
+													icon="pi pi-trash"
+													class="p-button-outlined p-button-sm p-button-danger"
+													(click)="
+														confirmDelete(item.data); $event.stopPropagation()
+													"
+													pTooltip="Delete"
+													tooltipPosition="top"
+												></button>
+											</div>
+										</td>
+									</tr>
+								</ng-template>
+
+								<ng-template pTemplate="emptymessage">
+									<tr>
+										<td colspan="5" class="text-center py-8">
+											<div class="text-gray-500">
+												<i class="pi pi-info-circle text-2xl mb-2 block"></i>
+												No hierarchical data available
+											</div>
+										</td>
+									</tr>
+								</ng-template>
+							</p-table>
+						</div>
 					</div>
 				</p-tabPanel>
 
@@ -362,555 +493,600 @@
 	</div>
 
 	<!-- Split View -->
-	<div *ngIf="currentView === 'split'" class="grid grid-cols-2 gap-6">
-		<!-- Table Section -->
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
-			<div class="p-4 border-b border-gray-200">
-				<div class="flex justify-between items-center">
-					<h2 class="text-lg font-semibold text-gray-900">
-						Enumeration Areas List
-					</h2>
-					<div class="flex items-center gap-3">
-						<span class="p-input-icon-left">
-							<input
-								pInputText
-								type="text"
-								[(ngModel)]="globalFilterValue"
-								placeholder="Search areas..."
-								class="p-inputtext-sm"
-								(input)="onGlobalFilterSplit($event)"
-							/>
-						</span>
+	<div *ngIf="currentView === 'split'">
+		<!-- No Dzongkhag Selected Message -->
+		<div
+			*ngIf="!selectedDzongkhag"
+			class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center"
+		>
+			<div class="text-gray-400 mb-4">
+				<i class="pi pi-map-marker text-6xl"></i>
+			</div>
+			<h3 class="text-lg font-medium text-gray-900 mb-2">Select a Dzongkhag</h3>
+			<p class="text-gray-500">
+				Please select a dzongkhag from the dropdown above to view enumeration
+				areas in split view.
+			</p>
+		</div>
+
+		<!-- Split View Content -->
+		<div *ngIf="selectedDzongkhag" class="grid grid-cols-2 gap-6">
+			<!-- Table Section -->
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+				<div class="p-4 border-b border-gray-200">
+					<div class="flex justify-between items-center">
+						<h2 class="text-lg font-semibold text-gray-900">
+							Enumeration Areas List
+						</h2>
+						<div class="flex items-center gap-3">
+							<span class="p-input-icon-left">
+								<input
+									pInputText
+									type="text"
+									[(ngModel)]="globalFilterValue"
+									placeholder="Search areas..."
+									class="p-inputtext-sm"
+									(input)="onGlobalFilterSplit($event)"
+								/>
+							</span>
+						</div>
 					</div>
 				</div>
-			</div>
 
-			<p-table
-				#dtSplit
-				[value]="enumerationAreas"
-				[rows]="10"
-				[paginator]="true"
-				responsiveLayout="scroll"
-				[loading]="loading"
-				selectionMode="single"
-				[(selection)]="selectedEnumerationArea"
-				(onRowSelect)="onRowSelect($event)"
-				styleClass="p-datatable-sm"
-				[globalFilterFields]="['name', 'areaCode', 'description']"
-				[filterDelay]="0"
-			>
-				<ng-template pTemplate="header">
-					<tr>
-						<th pSortableColumn="name">
-							Name <p-sortIcon field="name"></p-sortIcon>
-						</th>
-						<th pSortableColumn="areaCode">Code</th>
-						<th>Geometry</th>
-						<th>Actions</th>
-					</tr>
-				</ng-template>
+				<!-- Hierarchical Table for Split View -->
+				<p-table
+					#dtSplit
+					[value]="hierarchicalTableData"
+					[rows]="20"
+					[paginator]="false"
+					responsiveLayout="scroll"
+					[loading]="loadingEAs"
+					styleClass="p-datatable-sm hierarchical-table"
+					[globalFilterFields]="['name', 'areaCode', 'description']"
+					[filterDelay]="0"
+				>
+					<ng-template pTemplate="header">
+						<tr>
+							<th style="width: 60%">Name / Code</th>
+							<th style="width: 20%">Type</th>
+							<th style="width: 20%">Actions</th>
+						</tr>
+					</ng-template>
 
-				<ng-template pTemplate="body" let-area>
-					<tr [class.bg-blue-50]="selectedEnumerationArea?.id === area.id">
-						<td>
-							<div class="font-medium text-gray-900 text-sm">
-								{{ area.name }}
-							</div>
-							<div class="text-xs text-gray-500">{{ area.description }}</div>
-						</td>
-						<td>
-							<span class="font-mono text-xs text-gray-600">
-								{{ area.areaCode }}
-							</span>
-						</td>
-						<td>
-							<span
-								*ngIf="area.geom"
-								class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-							>
-								<i class="pi pi-check-circle text-xs mr-1"></i>
-								Exists
-							</span>
-							<span
-								*ngIf="!area.geom"
-								class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
-							>
-								<i class="pi pi-exclamation-circle text-xs mr-1"></i>
-								None
-							</span>
-						</td>
-						<td>
-							<div class="flex items-center gap-1">
+					<ng-template pTemplate="body" let-item>
+						<!-- Administrative Zone Row -->
+						<tr
+							*ngIf="item.type === 'admin-zone'"
+							class="bg-blue-50 font-semibold"
+						>
+							<td>
+								<div class="flex items-center py-1">
+									<div>
+										<div class="font-bold text-blue-900">
+											{{ item.name }}
+										</div>
+										<div class="text-blue-700 font-mono">
+											{{ item.areaCode }}
+										</div>
+									</div>
+								</div>
+							</td>
+							<td>
+								<span class="font-medium text-blue-800">
+									{{ "ADMIN ZONE" }} ({{ item.totalEAs }} EAs)
+								</span>
+							</td>
+							<td>
 								<button
 									pButton
 									type="button"
 									icon="pi pi-eye"
-									class="p-button-outlined p-button-sm p-button-secondary"
-									(click)="viewEnumerationAreaDetails(area)"
-									pTooltip="View Details"
-									tooltipPosition="top"
-								></button>
-								<button
-									pButton
-									type="button"
-									icon="pi pi-pencil"
 									class="p-button-outlined p-button-sm p-button-info"
-									(click)="editEnumerationArea(area)"
-									pTooltip="Edit"
-									tooltipPosition="top"
+									pTooltip="View Zone"
 								></button>
+							</td>
+						</tr>
+
+						<!-- Sub-Administrative Zone Row -->
+						<tr
+							*ngIf="item.type === 'sub-admin-zone'"
+							class="bg-amber-50 font-medium"
+						>
+							<td>
+								<div class="flex items-center py-1 pl-4">
+									<div>
+										<div class="font-semibold text-amber-900">
+											{{ item.name }}
+										</div>
+										<div class="text-amber-700 font-mono">
+											{{ item.areaCode }}
+										</div>
+									</div>
+								</div>
+							</td>
+							<td>
+								<span class="font-medium text-amber-800">
+									{{
+										(item.zoneType === "chiwog" ? "Chiwog" : "Lap") | uppercase
+									}}
+									({{ item.totalEAs }} EAs)
+								</span>
+							</td>
+							<td>
 								<button
 									pButton
 									type="button"
-									[icon]="area.geom ? 'pi pi-refresh' : 'pi pi-upload'"
-									class="p-button-outlined p-button-sm"
-									[class.p-button-success]="!area.geom"
-									[class.p-button-warning]="area.geom"
-									(click)="openUploadGeojson(area)"
-									[pTooltip]="area.geom ? 'Replace GeoJSON' : 'Upload GeoJSON'"
-									tooltipPosition="top"
+									icon="pi pi-eye"
+									class="p-button-outlined p-button-sm p-button-warning"
+									(click)="viewSubAdministrativeZoneDetails(item.data)"
+									pTooltip="View Sub-Zone"
 								></button>
-								<button
-									pButton
-									type="button"
-									icon="pi pi-trash"
-									class="p-button-outlined p-button-sm p-button-danger"
-									(click)="confirmDelete(area)"
-									pTooltip="Delete"
-									tooltipPosition="top"
-								></button>
-							</div>
-						</td>
-					</tr>
-				</ng-template>
+							</td>
+						</tr>
 
-				<ng-template pTemplate="emptymessage">
-					<tr>
-						<td colspan="4" class="text-center py-6">
-							<div class="text-gray-500">
-								<i class="pi pi-info-circle text-xl mb-2 block"></i>
-								No areas found
-							</div>
-						</td>
-					</tr>
-				</ng-template>
-			</p-table>
-		</div>
+						<!-- Enumeration Area Row -->
+						<tr
+							*ngIf="item.type === 'enumeration-area'"
+							class="hover:bg-gray-50 cursor-pointer"
+							[class.bg-blue-50]="selectedEnumerationArea?.id === item.data.id"
+							(click)="onRowSelectHierarchical(item)"
+						>
+							<td>
+								<div class="flex items-center py-1 pl-8">
+									<div>
+										<div class="flex items-center gap-3">
+											<div class="font-medium text-gray-900">
+												{{ item.name }}
+											</div>
+											<div class="text-gray-400 font-mono">
+												{{ item.areaCode }}
+											</div>
+										</div>
+									</div>
+								</div>
+							</td>
+							<td>
+								<span class="font-medium text-gray-800">
+									{{ "ENUMERATION AREA" }}
+								</span>
+								<span
+									*ngIf="item.hasGeom"
+									class="font-medium text-green-800 ml-2"
+								>
+									(HAS GEOMETRY)
+								</span>
+							</td>
+							<td>
+								<div class="flex items-center gap-1">
+									<button
+										pButton
+										type="button"
+										icon="pi pi-eye"
+										class="p-button-outlined p-button-sm p-button-secondary"
+										(click)="
+											viewEnumerationAreaDetails(item.data);
+											$event.stopPropagation()
+										"
+										pTooltip="View Details"
+									></button>
+									<button
+										pButton
+										type="button"
+										icon="pi pi-pencil"
+										class="p-button-outlined p-button-sm p-button-info"
+										(click)="
+											editEnumerationArea(item.data); $event.stopPropagation()
+										"
+										pTooltip="Edit"
+									></button>
+								</div>
+							</td>
+						</tr>
+					</ng-template>
+				</p-table>
 
-		<!-- Map Section -->
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
-			<div class="p-4 border-b border-gray-200">
-				<div class="flex justify-between items-center">
-					<div>
-						<h2 class="text-lg font-semibold text-gray-900">Geographic View</h2>
-						<div class="text-sm text-gray-600">Interactive Map</div>
+				<!-- Map Section -->
+				<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+					<div class="p-4 border-b border-gray-200">
+						<div class="flex justify-between items-center">
+							<div>
+								<h2 class="text-lg font-semibold text-gray-900">
+									Geographic View
+								</h2>
+								<div class="text-sm text-gray-600">Interactive Map</div>
+							</div>
+							<button
+								pButton
+								type="button"
+								label="Reload Map"
+								icon="pi pi-refresh"
+								class="p-button-outlined p-button-sm p-button-secondary"
+								(click)="reloadMap()"
+								pTooltip="Refresh map data"
+								tooltipPosition="bottom"
+							></button>
+						</div>
 					</div>
-					<button
-						pButton
-						type="button"
-						label="Reload Map"
-						icon="pi pi-refresh"
-						class="p-button-outlined p-button-sm p-button-secondary"
-						(click)="reloadMap()"
-						pTooltip="Refresh map data"
-						tooltipPosition="bottom"
-					></button>
-				</div>
-			</div>
 
-			<div class="relative" style="height: 600px">
-				<div id="enumeration-area-map" class="w-full h-full rounded-b-lg"></div>
-
-				<!-- Map Loading Overlay -->
-				<div
-					*ngIf="!enumerationAreaGeoJSON"
-					class="absolute inset-0 bg-gray-50 flex items-center justify-center rounded-b-lg"
-				>
-					<div class="text-center">
+					<div class="relative" style="height: 600px">
 						<div
-							class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
+							id="enumeration-area-map"
+							class="w-full h-full rounded-b-lg"
 						></div>
-						<p class="text-sm text-gray-600">Loading map data...</p>
+
+						<!-- Map Loading Overlay -->
+						<div
+							*ngIf="!enumerationAreaGeoJSON"
+							class="absolute inset-0 bg-gray-50 flex items-center justify-center rounded-b-lg"
+						>
+							<div class="text-center">
+								<div
+									class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
+								></div>
+								<p class="text-sm text-gray-600">Loading map data...</p>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-</div>
 
-<!-- Add/Edit Dialog -->
-<p-dialog
-	[(visible)]="enumerationAreaDialog"
-	[style]="{ width: '500px' }"
-	[header]="isEditMode ? 'Edit Enumeration Area' : 'Add New Enumeration Area'"
-	[modal]="true"
-	styleClass="p-fluid"
->
-	<ng-template pTemplate="content">
-		<form [formGroup]="enumerationAreaForm" class="space-y-4">
-			<!-- Name Field -->
-			<div>
-				<label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-					Area Name *
-				</label>
-				<input
-					id="name"
-					type="text"
-					pInputText
-					formControlName="name"
-					placeholder="Enter area name"
-					[class.ng-invalid]="hasFormError('name')"
-					class="w-full"
-				/>
-				<small *ngIf="hasFormError('name')" class="p-error">
-					{{ getFormError("name") }}
-				</small>
-			</div>
-
-			<!-- Description Field -->
-			<div>
-				<label
-					for="description"
-					class="block text-sm font-medium text-gray-700 mb-2"
-				>
-					Description *
-				</label>
-				<textarea
-					id="description"
-					pInputTextarea
-					formControlName="description"
-					placeholder="Enter description"
-					[class.ng-invalid]="hasFormError('description')"
-					rows="3"
-					class="w-full"
-				></textarea>
-				<small *ngIf="hasFormError('description')" class="p-error">
-					{{ getFormError("description") }}
-				</small>
-			</div>
-
-			<!-- Area Code Field -->
-			<div>
-				<label
-					for="areaCode"
-					class="block text-sm font-medium text-gray-700 mb-2"
-				>
-					Area Code *
-				</label>
-				<input
-					id="areaCode"
-					type="text"
-					pInputText
-					formControlName="areaCode"
-					placeholder="e.g., EA001"
-					[class.ng-invalid]="hasFormError('areaCode')"
-					class="w-full"
-				/>
-				<small *ngIf="hasFormError('areaCode')" class="p-error">
-					{{ getFormError("areaCode") }}
-				</small>
-			</div>
-
-			<!-- Sub-Administrative Zone Field -->
-			<div>
-				<label
-					for="subAdministrativeZoneId"
-					class="block text-sm font-medium text-gray-700 mb-2"
-				>
-					Sub-Administrative Zone *
-				</label>
-				<p-dropdown
-					id="subAdministrativeZoneId"
-					[options]="subAdministrativeZones"
-					formControlName="subAdministrativeZoneId"
-					optionLabel="name"
-					optionValue="id"
-					placeholder="Select sub-administrative zone"
-					[class.ng-invalid]="hasFormError('subAdministrativeZoneId')"
-					styleClass="w-full"
-					[filter]="true"
-					filterBy="name"
-					appendTo="body"
-				></p-dropdown>
-				<small *ngIf="hasFormError('subAdministrativeZoneId')" class="p-error">
-					{{ getFormError("subAdministrativeZoneId") }}
-				</small>
-			</div>
-
-			<!-- Area Field -->
-			<div>
-				<label
-					for="areaSqKm"
-					class="block text-sm font-medium text-gray-700 mb-2"
-				>
-					Area (km²)
-				</label>
-				<p-inputNumber
-					id="areaSqKm"
-					formControlName="areaSqKm"
-					placeholder="Enter area in square kilometers"
-					[minFractionDigits]="2"
-					[maxFractionDigits]="2"
-					[min]="0"
-					[class.ng-invalid]="hasFormError('areaSqKm')"
-					styleClass="w-full"
-				>
-				</p-inputNumber>
-				<small *ngIf="hasFormError('areaSqKm')" class="p-error">
-					{{ getFormError("areaSqKm") }}
-				</small>
-			</div>
-		</form>
-	</ng-template>
-
-	<ng-template pTemplate="footer">
-		<button
-			pButton
-			type="button"
-			label="Cancel"
-			icon="pi pi-times"
-			class="p-button-text"
-			(click)="enumerationAreaDialog = false"
-		></button>
-		<button
-			pButton
-			type="button"
-			[label]="isEditMode ? 'Update' : 'Save'"
-			icon="pi pi-check"
-			class="p-button-primary"
-			[disabled]="enumerationAreaForm.invalid"
-			(click)="saveEnumerationArea()"
-		></button>
-	</ng-template>
-</p-dialog>
-
-<!-- Delete Confirmation Dialog -->
-<p-confirmDialog></p-confirmDialog>
-
-<!-- Custom Delete Dialog -->
-<p-dialog
-	[(visible)]="deleteDialog"
-	[style]="{ width: '450px' }"
-	header="Confirm Delete"
-	[modal]="true"
->
-	<ng-template pTemplate="content">
-		<div class="flex items-center mb-4">
-			<i class="pi pi-exclamation-triangle text-orange-500 text-2xl mr-3"></i>
-			<span
-				>Are you sure you want to delete
-				<strong>{{ selectedEnumerationArea?.name }}</strong
-				>?</span
-			>
-		</div>
-		<p class="text-sm text-gray-600">This action cannot be undone.</p>
-	</ng-template>
-
-	<ng-template pTemplate="footer">
-		<button
-			pButton
-			type="button"
-			label="Cancel"
-			icon="pi pi-times"
-			class="p-button-text"
-			(click)="deleteDialog = false"
-		></button>
-		<button
-			pButton
-			type="button"
-			label="Delete"
-			icon="pi pi-trash"
-			class="p-button-danger"
-			(click)="deleteEnumerationArea()"
-		></button>
-	</ng-template>
-</p-dialog>
-
-<!-- Upload GeoJSON Dialog -->
-<p-dialog
-	[(visible)]="uploadGeojsonDialog"
-	[style]="{ width: '600px' }"
-	header="Upload GeoJSON"
-	[modal]="true"
-	styleClass="p-fluid"
->
-	<ng-template pTemplate="content">
-		<div class="space-y-4">
-			<!-- Info Section -->
-			<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-				<div class="flex items-start">
-					<i class="pi pi-info-circle text-blue-600 text-xl mr-3 mt-0.5"></i>
-					<div>
-						<h4 class="font-semibold text-blue-900 mb-2">
-							Important Guidelines
-						</h4>
-						<ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
-							<li>
-								Ensure the GeoJSON file is in
-								<strong>WGS84 (EPSG:4326)</strong> projection
-							</li>
-							<li>
-								The file must contain a <strong>single Feature</strong> or
-								FeatureCollection with one feature
-							</li>
-							<li>Supported geometry types: Polygon, MultiPolygon</li>
-							<li>File format: .json or .geojson</li>
-						</ul>
-					</div>
+	<!-- Add/Edit Dialog -->
+	<p-dialog
+		[(visible)]="enumerationAreaDialog"
+		[style]="{ width: '500px' }"
+		[header]="isEditMode ? 'Edit Enumeration Area' : 'Add New Enumeration Area'"
+		[modal]="true"
+		styleClass="p-fluid"
+	>
+		<ng-template pTemplate="content">
+			<form [formGroup]="enumerationAreaForm" class="space-y-4">
+				<!-- Name Field -->
+				<div>
+					<label
+						for="name"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						Area Name *
+					</label>
+					<input
+						id="name"
+						type="text"
+						pInputText
+						formControlName="name"
+						placeholder="Enter area name"
+						[class.ng-invalid]="hasFormError('name')"
+						class="w-full"
+					/>
+					<small *ngIf="hasFormError('name')" class="p-error">
+						{{ getFormError("name") }}
+					</small>
 				</div>
-			</div>
 
-			<!-- Selected Enumeration Area -->
-			<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-sm text-gray-600">Uploading for:</p>
-						<p class="font-semibold text-gray-900 text-lg">
-							{{ selectedEnumerationArea?.name }}
-						</p>
-						<p class="text-sm text-gray-500 mt-1">
-							{{ selectedEnumerationArea?.description }}
-						</p>
-					</div>
-					<div class="text-right">
-						<p class="text-sm text-gray-600">Area Code:</p>
-						<p class="font-mono font-semibold text-gray-900">
-							{{ selectedEnumerationArea?.areaCode }}
-						</p>
-						<div class="mt-2">
-							<span
-								*ngIf="selectedEnumerationArea?.geom"
-								class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800"
-							>
-								<i class="pi pi-exclamation-triangle mr-1.5"></i>
-								Geometry exists - will be replaced
-							</span>
-							<span
-								*ngIf="!selectedEnumerationArea?.geom"
-								class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-							>
-								<i class="pi pi-info-circle mr-1.5"></i>
-								No geometry yet
-							</span>
+				<!-- Description Field -->
+				<div>
+					<label
+						for="description"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						Description *
+					</label>
+					<textarea
+						id="description"
+						pInputTextarea
+						formControlName="description"
+						placeholder="Enter description"
+						[class.ng-invalid]="hasFormError('description')"
+						rows="3"
+						class="w-full"
+					></textarea>
+					<small *ngIf="hasFormError('description')" class="p-error">
+						{{ getFormError("description") }}
+					</small>
+				</div>
+
+				<!-- Area Code Field -->
+				<div>
+					<label
+						for="areaCode"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						Area Code *
+					</label>
+					<input
+						id="areaCode"
+						type="text"
+						pInputText
+						formControlName="areaCode"
+						placeholder="e.g., EA001"
+						[class.ng-invalid]="hasFormError('areaCode')"
+						class="w-full"
+					/>
+					<small *ngIf="hasFormError('areaCode')" class="p-error">
+						{{ getFormError("areaCode") }}
+					</small>
+				</div>
+
+				<!-- Sub-Administrative Zone Field -->
+				<div>
+					<label
+						for="subAdministrativeZoneId"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						Sub-Administrative Zone *
+					</label>
+					<p-dropdown
+						id="subAdministrativeZoneId"
+						[options]="subAdministrativeZones"
+						formControlName="subAdministrativeZoneId"
+						optionLabel="name"
+						optionValue="id"
+						placeholder="Select sub-administrative zone"
+						[class.ng-invalid]="hasFormError('subAdministrativeZoneId')"
+						styleClass="w-full"
+						[filter]="true"
+						filterBy="name"
+						appendTo="body"
+					></p-dropdown>
+					<small
+						*ngIf="hasFormError('subAdministrativeZoneId')"
+						class="p-error"
+					>
+						{{ getFormError("subAdministrativeZoneId") }}
+					</small>
+				</div>
+			</form>
+		</ng-template>
+
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				icon="pi pi-times"
+				class="p-button-text"
+				(click)="enumerationAreaDialog = false"
+			></button>
+			<button
+				pButton
+				type="button"
+				[label]="isEditMode ? 'Update' : 'Save'"
+				icon="pi pi-check"
+				class="p-button-primary"
+				[disabled]="enumerationAreaForm.invalid"
+				(click)="saveEnumerationArea()"
+			></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Delete Confirmation Dialog -->
+	<p-confirmDialog></p-confirmDialog>
+
+	<!-- Custom Delete Dialog -->
+	<p-dialog
+		[(visible)]="deleteDialog"
+		[style]="{ width: '450px' }"
+		header="Confirm Delete"
+		[modal]="true"
+	>
+		<ng-template pTemplate="content">
+			<div class="flex items-center mb-4">
+				<i class="pi pi-exclamation-triangle text-orange-500 text-2xl mr-3"></i>
+				<span
+					>Are you sure you want to delete
+					<strong>{{ selectedEnumerationArea?.name }}</strong
+					>?</span
+				>
+			</div>
+			<p class="text-sm text-gray-600">This action cannot be undone.</p>
+		</ng-template>
+
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				icon="pi pi-times"
+				class="p-button-text"
+				(click)="deleteDialog = false"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Delete"
+				icon="pi pi-trash"
+				class="p-button-danger"
+				(click)="deleteEnumerationArea()"
+			></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Upload GeoJSON Dialog -->
+	<p-dialog
+		[(visible)]="uploadGeojsonDialog"
+		[style]="{ width: '600px' }"
+		header="Upload GeoJSON"
+		[modal]="true"
+		styleClass="p-fluid"
+	>
+		<ng-template pTemplate="content">
+			<div class="space-y-4">
+				<!-- Info Section -->
+				<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+					<div class="flex items-start">
+						<i class="pi pi-info-circle text-blue-600 text-xl mr-3 mt-0.5"></i>
+						<div>
+							<h4 class="font-semibold text-blue-900 mb-2">
+								Important Guidelines
+							</h4>
+							<ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
+								<li>
+									Ensure the GeoJSON file is in
+									<strong>WGS84 (EPSG:4326)</strong> projection
+								</li>
+								<li>
+									The file must contain a <strong>single Feature</strong> or
+									FeatureCollection with one feature
+								</li>
+								<li>Supported geometry types: Polygon, MultiPolygon</li>
+								<li>File format: .json or .geojson</li>
+							</ul>
 						</div>
 					</div>
 				</div>
-			</div>
 
-			<!-- File Upload -->
-			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-2">
-					Select GeoJSON File *
-				</label>
-				<p-fileUpload
-					mode="basic"
-					[auto]="false"
-					accept=".json,.geojson"
-					[maxFileSize]="10000000"
-					chooseLabel="Choose File"
-					chooseIcon="pi pi-upload"
-					(onSelect)="onFileSelect($event)"
-					[showUploadButton]="false"
-					[showCancelButton]="false"
-					styleClass="w-full"
-				></p-fileUpload>
-				<small class="text-gray-500 mt-1 block">
-					Maximum file size: 10 MB
-				</small>
-			</div>
-
-			<!-- Selected File Info -->
-			<div
-				*ngIf="selectedFile"
-				class="bg-green-50 border border-green-200 rounded-lg p-3"
-			>
-				<div class="flex items-center">
-					<i class="pi pi-file text-green-600 text-xl mr-3"></i>
-					<div class="flex-1">
-						<p class="font-medium text-green-900">{{ selectedFile.name }}</p>
-						<p class="text-sm text-green-700">
-							{{ (selectedFile.size / 1024).toFixed(2) }} KB
-						</p>
-					</div>
-					<i class="pi pi-check-circle text-green-600 text-xl"></i>
-				</div>
-			</div>
-		</div>
-	</ng-template>
-
-	<ng-template pTemplate="footer">
-		<button
-			pButton
-			type="button"
-			label="Cancel"
-			icon="pi pi-times"
-			class="p-button-text"
-			(click)="uploadGeojsonDialog = false; selectedFile = null"
-			[disabled]="uploadLoading"
-		></button>
-		<button
-			pButton
-			type="button"
-			label="Upload"
-			icon="pi pi-upload"
-			class="p-button-success"
-			[disabled]="!selectedFile || uploadLoading"
-			[loading]="uploadLoading"
-			(click)="uploadGeojson()"
-		></button>
-	</ng-template>
-</p-dialog>
-
-<!-- Bulk Upload GeoJSON Dialog -->
-<p-dialog
-	[(visible)]="bulkUploadDialog"
-	[style]="{ width: '700px' }"
-	header="Bulk Upload Enumeration Areas"
-	[modal]="true"
-	styleClass="p-fluid"
->
-	<ng-template pTemplate="content">
-		<div class="space-y-4">
-			<!-- Info Section -->
-			<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-				<div class="flex items-start">
-					<i class="pi pi-info-circle text-blue-600 text-xl mr-3 mt-0.5"></i>
-					<div>
-						<h4 class="font-semibold text-blue-900 mb-2">
-							Bulk Upload Requirements
-						</h4>
-						<ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
-							<li>
-								Upload a <strong>FeatureCollection</strong> with multiple
-								enumeration areas
-							</li>
-							<li>
-								Each feature must have properties:
-								<strong
-									>subAdministrativeZoneId, name, areaCode, description,
-									areaSqKm</strong
+				<!-- Selected Enumeration Area -->
+				<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+					<div class="flex items-center justify-between">
+						<div>
+							<p class="text-sm text-gray-600">Uploading for:</p>
+							<p class="font-semibold text-gray-900 text-lg">
+								{{ selectedEnumerationArea?.name }}
+							</p>
+							<p class="text-sm text-gray-500 mt-1">
+								{{ selectedEnumerationArea?.description }}
+							</p>
+						</div>
+						<div class="text-right">
+							<p class="text-sm text-gray-600">Area Code:</p>
+							<p class="font-mono font-semibold text-gray-900">
+								{{ selectedEnumerationArea?.areaCode }}
+							</p>
+							<div class="mt-2">
+								<span
+									*ngIf="selectedEnumerationArea?.geom"
+									class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800"
 								>
-							</li>
-							<li>Projection: <strong>WGS84 (EPSG:4326)</strong></li>
-							<li>Supported geometry types: Polygon, MultiPolygon</li>
-							<li>
-								Existing areas (same areaCode + subAdministrativeZoneId) will be
-								skipped
-							</li>
-						</ul>
+									<i class="pi pi-exclamation-triangle mr-1.5"></i>
+									Geometry exists - will be replaced
+								</span>
+								<span
+									*ngIf="!selectedEnumerationArea?.geom"
+									class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+								>
+									<i class="pi pi-info-circle mr-1.5"></i>
+									No geometry yet
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- File Upload -->
+				<div>
+					<label class="block text-sm font-medium text-gray-700 mb-2">
+						Select GeoJSON File *
+					</label>
+					<p-fileUpload
+						mode="basic"
+						[auto]="false"
+						accept=".json,.geojson"
+						[maxFileSize]="10000000"
+						chooseLabel="Choose File"
+						chooseIcon="pi pi-upload"
+						(onSelect)="onFileSelect($event)"
+						[showUploadButton]="false"
+						[showCancelButton]="false"
+						styleClass="w-full"
+					></p-fileUpload>
+					<small class="text-gray-500 mt-1 block">
+						Maximum file size: 10 MB
+					</small>
+				</div>
+
+				<!-- Selected File Info -->
+				<div
+					*ngIf="selectedFile"
+					class="bg-green-50 border border-green-200 rounded-lg p-3"
+				>
+					<div class="flex items-center">
+						<i class="pi pi-file text-green-600 text-xl mr-3"></i>
+						<div class="flex-1">
+							<p class="font-medium text-green-900">{{ selectedFile.name }}</p>
+							<p class="text-sm text-green-700">
+								{{ (selectedFile.size / 1024).toFixed(2) }} KB
+							</p>
+						</div>
+						<i class="pi pi-check-circle text-green-600 text-xl"></i>
 					</div>
 				</div>
 			</div>
+		</ng-template>
 
-			<!-- Example Structure -->
-			<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-				<h4 class="font-semibold text-gray-900 mb-2 flex items-center">
-					<i class="pi pi-file-edit text-gray-600 mr-2"></i>
-					Expected GeoJSON Structure
-				</h4>
-				<pre
-					class="text-xs bg-gray-900 text-gray-100 p-3 rounded overflow-x-auto"
-				><code>&#123;
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				icon="pi pi-times"
+				class="p-button-text"
+				(click)="uploadGeojsonDialog = false; selectedFile = null"
+				[disabled]="uploadLoading"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Upload"
+				icon="pi pi-upload"
+				class="p-button-success"
+				[disabled]="!selectedFile || uploadLoading"
+				[loading]="uploadLoading"
+				(click)="uploadGeojson()"
+			></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Bulk Upload GeoJSON Dialog -->
+	<p-dialog
+		[(visible)]="bulkUploadDialog"
+		[style]="{ width: '700px' }"
+		header="Bulk Upload Enumeration Areas"
+		[modal]="true"
+		styleClass="p-fluid"
+	>
+		<ng-template pTemplate="content">
+			<div class="space-y-4">
+				<!-- Info Section -->
+				<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+					<div class="flex items-start">
+						<i class="pi pi-info-circle text-blue-600 text-xl mr-3 mt-0.5"></i>
+						<div>
+							<h4 class="font-semibold text-blue-900 mb-2">
+								Bulk Upload Requirements
+							</h4>
+							<ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
+								<li>
+									Upload a <strong>FeatureCollection</strong> with multiple
+									enumeration areas
+								</li>
+								<li>
+									Each feature must have properties:
+									<strong
+										>subAdministrativeZoneId, name, areaCode,
+										description</strong
+									>
+								</li>
+								<li>Projection: <strong>WGS84 (EPSG:4326)</strong></li>
+								<li>Supported geometry types: Polygon, MultiPolygon</li>
+								<li>
+									Existing areas (same areaCode + subAdministrativeZoneId) will
+									be skipped
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+
+				<!-- Example Structure -->
+				<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+					<h4 class="font-semibold text-gray-900 mb-2 flex items-center">
+						<i class="pi pi-file-edit text-gray-600 mr-2"></i>
+						Expected GeoJSON Structure
+					</h4>
+					<pre
+						class="text-xs bg-gray-900 text-gray-100 p-3 rounded overflow-x-auto"
+					><code>&#123;
   "type": "FeatureCollection",
   "features": [
     &#123;
@@ -919,8 +1095,7 @@
         "subAdministrativeZoneId": 1,
         "name": "EA Zone 1",
         "areaCode": "EA001",
-        "description": "Enumeration Area 1",
-        "areaSqKm": 10.5
+        "description": "Enumeration Area 1"
       &#125;,
       "geometry": &#123;
         "type": "MultiPolygon",
@@ -929,148 +1104,153 @@
     &#125;
   ]
 &#125;</code></pre>
-			</div>
-
-			<!-- File Upload -->
-			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-2">
-					Select GeoJSON FeatureCollection File *
-				</label>
-				<p-fileUpload
-					mode="basic"
-					[auto]="false"
-					accept=".json,.geojson"
-					[maxFileSize]="50000000"
-					chooseLabel="Choose File"
-					chooseIcon="pi pi-cloud-upload"
-					(onSelect)="onBulkFileSelect($event)"
-					[showUploadButton]="false"
-					[showCancelButton]="false"
-					styleClass="w-full"
-				></p-fileUpload>
-				<small class="text-gray-500 mt-1 block">
-					Maximum file size: 50 MB
-				</small>
-			</div>
-
-			<!-- Selected File Info -->
-			<div
-				*ngIf="bulkUploadFile"
-				class="bg-green-50 border border-green-200 rounded-lg p-3"
-			>
-				<div class="flex items-center">
-					<i class="pi pi-file text-green-600 text-xl mr-3"></i>
-					<div class="flex-1">
-						<p class="font-medium text-green-900">{{ bulkUploadFile.name }}</p>
-						<p class="text-sm text-green-700">
-							{{ (bulkUploadFile.size / 1024).toFixed(2) }} KB
-						</p>
-					</div>
-					<i class="pi pi-check-circle text-green-600 text-xl"></i>
 				</div>
-			</div>
 
-			<!-- Upload Results -->
-			<div
-				*ngIf="bulkUploadResults"
-				class="bg-white border border-gray-300 rounded-lg p-4 space-y-3"
-			>
-				<h4 class="font-semibold text-gray-900 flex items-center">
-					<i class="pi pi-chart-bar text-purple-600 mr-2"></i>
-					Upload Results
-				</h4>
+				<!-- File Upload -->
+				<div>
+					<label class="block text-sm font-medium text-gray-700 mb-2">
+						Select GeoJSON FeatureCollection File *
+					</label>
+					<p-fileUpload
+						mode="basic"
+						[auto]="false"
+						accept=".json,.geojson"
+						[maxFileSize]="50000000"
+						chooseLabel="Choose File"
+						chooseIcon="pi pi-cloud-upload"
+						(onSelect)="onBulkFileSelect($event)"
+						[showUploadButton]="false"
+						[showCancelButton]="false"
+						styleClass="w-full"
+					></p-fileUpload>
+					<small class="text-gray-500 mt-1 block">
+						Maximum file size: 50 MB
+					</small>
+				</div>
 
-				<!-- Statistics -->
-				<div class="grid grid-cols-3 gap-3">
-					<div class="bg-green-50 border border-green-200 rounded-lg p-3">
-						<p class="text-xs text-green-600 font-medium">Created</p>
-						<p class="text-2xl font-bold text-green-700">
-							{{ bulkUploadResults.success }}
-						</p>
-					</div>
-					<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-						<p class="text-xs text-yellow-600 font-medium">Skipped</p>
-						<p class="text-2xl font-bold text-yellow-700">
-							{{ bulkUploadResults.skipped }}
-						</p>
-					</div>
-					<div class="bg-red-50 border border-red-200 rounded-lg p-3">
-						<p class="text-xs text-red-600 font-medium">Errors</p>
-						<p class="text-2xl font-bold text-red-700">
-							{{ bulkUploadResults.errors.length }}
-						</p>
+				<!-- Selected File Info -->
+				<div
+					*ngIf="bulkUploadFile"
+					class="bg-green-50 border border-green-200 rounded-lg p-3"
+				>
+					<div class="flex items-center">
+						<i class="pi pi-file text-green-600 text-xl mr-3"></i>
+						<div class="flex-1">
+							<p class="font-medium text-green-900">
+								{{ bulkUploadFile.name }}
+							</p>
+							<p class="text-sm text-green-700">
+								{{ (bulkUploadFile.size / 1024).toFixed(2) }} KB
+							</p>
+						</div>
+						<i class="pi pi-check-circle text-green-600 text-xl"></i>
 					</div>
 				</div>
 
-				<!-- Created Items -->
-				<div *ngIf="bulkUploadResults.created.length > 0">
-					<p class="text-sm font-semibold text-green-700 mb-2">
-						✓ Successfully Created ({{ bulkUploadResults.created.length }})
-					</p>
-					<div class="max-h-32 overflow-y-auto space-y-1">
-						<div
-							*ngFor="let item of bulkUploadResults.created"
-							class="text-xs bg-green-50 border border-green-200 rounded px-2 py-1"
-						>
-							<span class="font-mono font-semibold">{{ item.areaCode }}</span> -
-							{{ item.name }}
+				<!-- Upload Results -->
+				<div
+					*ngIf="bulkUploadResults"
+					class="bg-white border border-gray-300 rounded-lg p-4 space-y-3"
+				>
+					<h4 class="font-semibold text-gray-900 flex items-center">
+						<i class="pi pi-chart-bar text-purple-600 mr-2"></i>
+						Upload Results
+					</h4>
+
+					<!-- Statistics -->
+					<div class="grid grid-cols-3 gap-3">
+						<div class="bg-green-50 border border-green-200 rounded-lg p-3">
+							<p class="text-xs text-green-600 font-medium">Created</p>
+							<p class="text-2xl font-bold text-green-700">
+								{{ bulkUploadResults.success }}
+							</p>
+						</div>
+						<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+							<p class="text-xs text-yellow-600 font-medium">Skipped</p>
+							<p class="text-2xl font-bold text-yellow-700">
+								{{ bulkUploadResults.skipped }}
+							</p>
+						</div>
+						<div class="bg-red-50 border border-red-200 rounded-lg p-3">
+							<p class="text-xs text-red-600 font-medium">Errors</p>
+							<p class="text-2xl font-bold text-red-700">
+								{{ bulkUploadResults.errors.length }}
+							</p>
+						</div>
+					</div>
+
+					<!-- Created Items -->
+					<div *ngIf="bulkUploadResults.created.length > 0">
+						<p class="text-sm font-semibold text-green-700 mb-2">
+							✓ Successfully Created ({{ bulkUploadResults.created.length }})
+						</p>
+						<div class="max-h-32 overflow-y-auto space-y-1">
+							<div
+								*ngFor="let item of bulkUploadResults.created"
+								class="text-xs bg-green-50 border border-green-200 rounded px-2 py-1"
+							>
+								<span class="font-mono font-semibold">{{ item.areaCode }}</span>
+								-
+								{{ item.name }}
+							</div>
+						</div>
+					</div>
+
+					<!-- Skipped Items -->
+					<div *ngIf="bulkUploadResults.skippedItems.length > 0">
+						<p class="text-sm font-semibold text-yellow-700 mb-2">
+							⚠ Skipped Items ({{ bulkUploadResults.skippedItems.length }})
+						</p>
+						<div class="max-h-32 overflow-y-auto space-y-1">
+							<div
+								*ngFor="let item of bulkUploadResults.skippedItems"
+								class="text-xs bg-yellow-50 border border-yellow-200 rounded px-2 py-1"
+							>
+								<span class="font-mono font-semibold">{{ item.areaCode }}</span>
+								-
+								{{ item.reason }}
+							</div>
+						</div>
+					</div>
+
+					<!-- Errors -->
+					<div *ngIf="bulkUploadResults.errors.length > 0">
+						<p class="text-sm font-semibold text-red-700 mb-2">
+							✗ Errors ({{ bulkUploadResults.errors.length }})
+						</p>
+						<div class="max-h-32 overflow-y-auto space-y-1">
+							<div
+								*ngFor="let error of bulkUploadResults.errors"
+								class="text-xs bg-red-50 border border-red-200 rounded px-2 py-1"
+							>
+								{{ error.error }}
+							</div>
 						</div>
 					</div>
 				</div>
-
-				<!-- Skipped Items -->
-				<div *ngIf="bulkUploadResults.skippedItems.length > 0">
-					<p class="text-sm font-semibold text-yellow-700 mb-2">
-						⚠ Skipped Items ({{ bulkUploadResults.skippedItems.length }})
-					</p>
-					<div class="max-h-32 overflow-y-auto space-y-1">
-						<div
-							*ngFor="let item of bulkUploadResults.skippedItems"
-							class="text-xs bg-yellow-50 border border-yellow-200 rounded px-2 py-1"
-						>
-							<span class="font-mono font-semibold">{{ item.areaCode }}</span> -
-							{{ item.reason }}
-						</div>
-					</div>
-				</div>
-
-				<!-- Errors -->
-				<div *ngIf="bulkUploadResults.errors.length > 0">
-					<p class="text-sm font-semibold text-red-700 mb-2">
-						✗ Errors ({{ bulkUploadResults.errors.length }})
-					</p>
-					<div class="max-h-32 overflow-y-auto space-y-1">
-						<div
-							*ngFor="let error of bulkUploadResults.errors"
-							class="text-xs bg-red-50 border border-red-200 rounded px-2 py-1"
-						>
-							{{ error.error }}
-						</div>
-					</div>
-				</div>
 			</div>
-		</div>
-	</ng-template>
+		</ng-template>
 
-	<ng-template pTemplate="footer">
-		<button
-			pButton
-			type="button"
-			label="Close"
-			icon="pi pi-times"
-			class="p-button-text"
-			(click)="closeBulkUpload()"
-			[disabled]="bulkUploadLoading"
-		></button>
-		<button
-			pButton
-			type="button"
-			label="Upload All"
-			icon="pi pi-cloud-upload"
-			class="p-button-success"
-			[disabled]="!bulkUploadFile || bulkUploadLoading"
-			[loading]="bulkUploadLoading"
-			(click)="executeBulkUpload()"
-		></button>
-	</ng-template>
-</p-dialog>
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Close"
+				icon="pi pi-times"
+				class="p-button-text"
+				(click)="closeBulkUpload()"
+				[disabled]="bulkUploadLoading"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Upload All"
+				icon="pi pi-cloud-upload"
+				class="p-button-success"
+				[disabled]="!bulkUploadFile || bulkUploadLoading"
+				[loading]="bulkUploadLoading"
+				(click)="executeBulkUpload()"
+			></button>
+		</ng-template>
+	</p-dialog>
+</div>

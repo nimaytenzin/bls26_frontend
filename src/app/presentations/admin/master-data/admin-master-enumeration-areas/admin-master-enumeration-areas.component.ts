@@ -16,13 +16,36 @@ import {
 } from '@angular/forms';
 import { EnumerationAreaDataService } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
 import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
+import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
 import {
 	EnumerationArea,
 	CreateEnumerationAreaDto,
 	UpdateEnumerationAreaDto,
 	BulkUploadResponse,
 } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
-import { SubAdministrativeZone } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
+import {
+	Dzongkhag,
+	DzongkhagHierarchicalResponse,
+	DzongkhagEnumerationAreasResponse,
+} from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
+import { AdministrativeZone } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import {
+	SubAdministrativeZone,
+	SubAdministrativeZoneType,
+} from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
+
+// Hierarchical interfaces for the component
+interface HierarchicalAdministrativeZone extends AdministrativeZone {
+	subAdministrativeZones?: HierarchicalSubAdministrativeZone[];
+}
+
+interface HierarchicalSubAdministrativeZone extends SubAdministrativeZone {
+	enumerationAreas?: EnumerationArea[];
+}
+
+interface HierarchicalDzongkhagResponse extends Dzongkhag {
+	administrativeZones: HierarchicalAdministrativeZone[];
+}
 import { PrimeNgModules } from '../../../../primeng.modules';
 import { Table } from 'primeng/table';
 import * as L from 'leaflet';
@@ -44,19 +67,24 @@ export class AdminMasterEnumerationAreasComponent
 	@ViewChild('dtSplit') dtSplit!: Table;
 
 	// Data properties
+	dzongkhags: Dzongkhag[] = [];
+	selectedDzongkhag: Dzongkhag | null = null;
+	hierarchicalData: HierarchicalDzongkhagResponse | null = null;
 	enumerationAreas: EnumerationArea[] = [];
+	hierarchicalTableData: any[] = []; // For hierarchical table display
 	selectedEnumerationArea: EnumerationArea | null = null;
 	subAdministrativeZones: SubAdministrativeZone[] = [];
 	loading = false;
+	loadingEAs = false;
+
+	// View control
+	currentView: 'table' | 'split' = 'table';
 
 	// Map properties
 	private map?: L.Map;
 	enumerationAreaGeoJSON: any;
 	private allEnumerationAreasLayer?: L.GeoJSON;
 	private baseLayer?: L.TileLayer;
-
-	// View control
-	currentView: 'table' | 'split' = 'table';
 
 	// Dialog states
 	enumerationAreaDialog = false;
@@ -83,6 +111,7 @@ export class AdminMasterEnumerationAreasComponent
 	constructor(
 		private enumerationAreaService: EnumerationAreaDataService,
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
+		private dzongkhagService: DzongkhagDataService,
 		private fb: FormBuilder,
 		private messageService: MessageService,
 		private router: Router
@@ -92,20 +121,17 @@ export class AdminMasterEnumerationAreasComponent
 			description: ['', [Validators.required]],
 			areaCode: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]+$/)]],
 			subAdministrativeZoneId: ['', [Validators.required]],
-			areaSqKm: ['', [Validators.min(0)]],
 		});
 	}
 
 	ngOnInit() {
-		this.loadSubAdministrativeZones();
-		this.loadEnumerationAreas();
+		this.loadDzongkhags();
 
 		// Create global function for map popup navigation
 		(window as any).navigateToEADetails = (id: number) => {
 			this.viewEnumerationAreaDetails({ id } as EnumerationArea);
 		};
 	}
-
 	ngAfterViewInit() {
 		// Map initialization will happen when views are switched or tabs are changed
 	}
@@ -134,43 +160,222 @@ export class AdminMasterEnumerationAreasComponent
 		delete (window as any).navigateToEADetails;
 	}
 
-	loadSubAdministrativeZones() {
-		this.subAdministrativeZoneService
-			.findAllSubAdministrativeZones()
+	loadDzongkhags() {
+		this.loading = true;
+		this.dzongkhagService.findAllDzongkhags().subscribe({
+			next: (data) => {
+				this.dzongkhags = data;
+				this.loading = false;
+
+				// Default to Thimphu dzongkhag
+				const thimphu = data.find(
+					(d) =>
+						d.name.toLowerCase().includes('thimphu') ||
+						d.name.toLowerCase().includes('thimpu')
+				);
+
+				if (thimphu) {
+					this.selectedDzongkhag = thimphu;
+					this.loadEnumerationAreasByDzongkhag();
+				} else if (data.length > 0) {
+					// Fallback to first dzongkhag if Thimphu not found
+					this.selectedDzongkhag = data[0];
+					this.loadEnumerationAreasByDzongkhag();
+				}
+			},
+			error: (error) => {
+				this.loading = false;
+				console.error('Error loading dzongkhags:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: 'Failed to load dzongkhags',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	loadEnumerationAreasByDzongkhag() {
+		if (!this.selectedDzongkhag) return;
+
+		this.loadingEAs = true;
+		const withGeom = true; // Always load with geometry
+		const includeHierarchy = true; // Always include hierarchy
+
+		this.dzongkhagService
+			.getEnumerationAreasByDzongkhag(
+				this.selectedDzongkhag.id,
+				withGeom,
+				includeHierarchy
+			)
 			.subscribe({
 				next: (data) => {
-					this.subAdministrativeZones = data;
+					this.hierarchicalData = data;
+					this.enumerationAreas = this.flattenEnumerationAreas(data);
+					this.buildHierarchicalTableData(); // Build hierarchical table structure
+					this.loadingEAs = false;
+
+					// Load sub-administrative zones for form dropdown
+					this.loadSubAdministrativeZonesForDzongkhag();
 				},
 				error: (error) => {
-					console.error('Error loading sub-administrative zones:', error);
+					this.loadingEAs = false;
+					console.error('Error loading enumeration areas by dzongkhag:', error);
 					this.messageService.add({
 						severity: 'error',
 						summary: 'Error',
-						detail: 'Failed to load sub-administrative zones',
+						detail: 'Failed to load enumeration areas',
 						life: 3000,
 					});
 				},
 			});
 	}
 
-	loadEnumerationAreas() {
-		this.loading = true;
-		this.enumerationAreaService.findAllEnumerationAreas().subscribe({
-			next: (data) => {
-				this.enumerationAreas = data;
-				this.loading = false;
-			},
-			error: (error) => {
-				this.loading = false;
-				console.error('Error loading enumeration areas:', error);
-				this.messageService.add({
-					severity: 'error',
-					summary: 'Error',
-					detail: 'Failed to load enumeration areas',
-					life: 3000,
+	loadSubAdministrativeZonesForDzongkhag() {
+		if (!this.selectedDzongkhag) return;
+
+		// Extract sub-administrative zones from hierarchical data
+		if (this.hierarchicalData?.administrativeZones) {
+			this.subAdministrativeZones = [];
+			this.hierarchicalData.administrativeZones.forEach(
+				(adminZone: HierarchicalAdministrativeZone) => {
+					if (adminZone.subAdministrativeZones) {
+						this.subAdministrativeZones.push(
+							...adminZone.subAdministrativeZones.map(
+								(subZone: HierarchicalSubAdministrativeZone) => {
+									const mappedType =
+										subZone.type === 'chiwog'
+											? SubAdministrativeZoneType.CHIWOG
+											: SubAdministrativeZoneType.LAP;
+									return {
+										id: subZone.id,
+										name: subZone.name,
+										areaCode: subZone.areaCode,
+										type: mappedType,
+										administrativeZoneId: subZone.administrativeZoneId,
+										geom: subZone.geom,
+									} as SubAdministrativeZone;
+								}
+							)
+						);
+					}
+				}
+			);
+		}
+	}
+
+	flattenEnumerationAreas(
+		hierarchicalData: HierarchicalDzongkhagResponse
+	): EnumerationArea[] {
+		const flatAreas: EnumerationArea[] = [];
+
+		hierarchicalData.administrativeZones?.forEach(
+			(adminZone: HierarchicalAdministrativeZone) => {
+				adminZone.subAdministrativeZones?.forEach(
+					(subAdminZone: HierarchicalSubAdministrativeZone) => {
+						if (subAdminZone.enumerationAreas) {
+							flatAreas.push(...subAdminZone.enumerationAreas);
+						}
+					}
+				);
+			}
+		);
+
+		return flatAreas;
+	}
+
+	buildHierarchicalTableData() {
+		this.hierarchicalTableData = [];
+
+		if (!this.hierarchicalData?.administrativeZones) return;
+
+		this.hierarchicalData.administrativeZones.forEach(
+			(adminZone: HierarchicalAdministrativeZone) => {
+				// Add Administrative Zone header row
+				this.hierarchicalTableData.push({
+					type: 'admin-zone',
+					id: `admin-${adminZone.id}`,
+					name: adminZone.name,
+					areaCode: adminZone.areaCode,
+					level: 0,
+					isHeader: true,
+					totalEAs: this.getAdminZoneEACount(adminZone),
+					data: adminZone,
 				});
-			},
-		});
+
+				// Add Sub-Administrative Zones
+				adminZone.subAdministrativeZones?.forEach(
+					(subAdminZone: HierarchicalSubAdministrativeZone) => {
+						// Add Sub-Administrative Zone header row
+						this.hierarchicalTableData.push({
+							type: 'sub-admin-zone',
+							id: `sub-admin-${subAdminZone.id}`,
+							name: subAdminZone.name,
+							areaCode: subAdminZone.areaCode,
+							level: 1,
+							isHeader: true,
+							zoneType: subAdminZone.type,
+							totalEAs: subAdminZone.enumerationAreas?.length || 0,
+							data: subAdminZone,
+						});
+
+						// Add Enumeration Areas under this Sub-Administrative Zone
+						subAdminZone.enumerationAreas?.forEach((ea: EnumerationArea) => {
+							this.hierarchicalTableData.push({
+								type: 'enumeration-area',
+								id: `ea-${ea.id}`,
+								name: ea.name,
+								areaCode: ea.areaCode,
+								description: ea.description,
+								level: 2,
+								isHeader: false,
+								hasGeom: !!ea.geom,
+								data: ea,
+								parentSubAdminZone: subAdminZone,
+								parentAdminZone: adminZone,
+							});
+						});
+					}
+				);
+			}
+		);
+	}
+
+	private getAdminZoneEACount(
+		adminZone: HierarchicalAdministrativeZone
+	): number {
+		return (
+			adminZone.subAdministrativeZones?.reduce(
+				(total: number, subZone: HierarchicalSubAdministrativeZone) =>
+					total + (subZone.enumerationAreas?.length || 0),
+				0
+			) || 0
+		);
+	}
+
+	onDzongkhagChange() {
+		if (this.selectedDzongkhag) {
+			this.loadEnumerationAreasByDzongkhag();
+		} else {
+			this.enumerationAreas = [];
+			this.subAdministrativeZones = [];
+			this.hierarchicalData = null;
+		}
+	}
+
+	loadSubAdministrativeZones() {
+		// This method is kept for backward compatibility but now uses dzongkhag-based loading
+		if (this.selectedDzongkhag) {
+			this.loadSubAdministrativeZonesForDzongkhag();
+		}
+	}
+
+	loadEnumerationAreas() {
+		// This method is now replaced by loadEnumerationAreasByDzongkhag
+		if (this.selectedDzongkhag) {
+			this.loadEnumerationAreasByDzongkhag();
+		}
 	}
 
 	loadEnumerationAreaGeoJSON() {
@@ -284,9 +489,6 @@ export class AdminMasterEnumerationAreasComponent
     <div><span style="font-weight: 600; color: #6b7280;">Code:</span> <span style="color: #374151;">${
 			props.areaCode || 'N/A'
 		}</span></div>
-    <div><span style="font-weight: 600; color: #6b7280;">Area:</span> <span style="color: #374151;">${
-			props.areaSqKm || 'N/A'
-		} km²</span></div>
     <div><span style="font-weight: 600; color: #6b7280;">Description:</span> <span style="color: #374151;">${
 			props.description || 'N/A'
 		}</span></div>
@@ -353,7 +555,10 @@ export class AdminMasterEnumerationAreasComponent
 			(a) => a.id === properties.id || a.areaCode === properties.areaCode
 		);
 		if (area) {
-			this.selectedEnumerationArea = area;
+			this.selectedEnumerationArea = {
+				...area,
+				description: area.description || '',
+			} as EnumerationArea;
 		}
 	}
 
@@ -375,7 +580,6 @@ export class AdminMasterEnumerationAreasComponent
 			description: area.description,
 			areaCode: area.areaCode,
 			subAdministrativeZoneId: area.subAdministrativeZoneId,
-			areaSqKm: area.areaSqKm,
 		});
 		this.selectedEnumerationArea = area;
 		this.isEditMode = true;
@@ -478,26 +682,14 @@ export class AdminMasterEnumerationAreasComponent
 		this.globalFilterValue = '';
 	}
 
-	get totalArea(): number {
-		return this.enumerationAreas.reduce((sum, a) => {
-			const area =
-				typeof a.areaSqKm === 'string' ? parseFloat(a.areaSqKm) : a.areaSqKm;
-			return sum + (area && !isNaN(area) ? area : 0);
-		}, 0);
-	}
-
-	get averageArea(): number {
-		return this.enumerationAreas.length
-			? this.totalArea / this.enumerationAreas.length
-			: 0;
-	}
-
-	onRowSelect(event: any) {
-		if (event.data) {
-			this.selectEnumerationArea(event.data);
+	onRowSelectHierarchical(item: any) {
+		if (item.type === 'enumeration-area') {
+			this.selectedEnumerationArea = {
+				...item.data,
+				description: item.data.description || '',
+			} as EnumerationArea;
 		}
 	}
-
 	onGlobalFilter(event: Event) {
 		const target = event.target as HTMLInputElement;
 		this.globalFilterValue = target.value;
@@ -515,11 +707,6 @@ export class AdminMasterEnumerationAreasComponent
 		if (this.dtSplit) {
 			this.dtSplit.filterGlobal(target.value, 'contains');
 		}
-	}
-
-	getSafeAreaValue(area: any): number {
-		const value = typeof area === 'string' ? parseFloat(area) : area;
-		return isNaN(value) ? 0 : value;
 	}
 
 	getSubAdministrativeZoneName(subAdministrativeZoneId: number): string {
@@ -698,5 +885,19 @@ export class AdminMasterEnumerationAreasComponent
 	// Navigate to detail viewer
 	viewEnumerationAreaDetails(area: EnumerationArea) {
 		this.router.navigate(['/admin/data-view/eazone', area.id]);
+	}
+
+	// Navigate to sub-administrative zone detail viewer
+	viewSubAdministrativeZoneDetails(subAdminZone: any) {
+		this.router.navigate(['/admin/data-view/sub-admzone', subAdminZone.id]);
+	}
+
+	// Additional computed properties for statistics
+	get administrativeZoneCount(): number {
+		return this.hierarchicalData?.administrativeZones?.length || 0;
+	}
+
+	get subAdministrativeZoneCount(): number {
+		return this.subAdministrativeZones.length;
 	}
 }

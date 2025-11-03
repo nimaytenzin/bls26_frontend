@@ -1,3 +1,6 @@
+import { AdministrativeZone } from '../administrative-zone/administrative-zone.dto';
+import { EnumerationArea } from '../enumeration-area/enumeration-area.dto';
+
 export interface Dzongkhag {
 	id: number;
 	name: string;
@@ -6,6 +9,18 @@ export interface Dzongkhag {
 	geom: any; // GeoJSON geometry
 	createdAt: Date;
 	updatedAt: Date;
+	administrativeZones?: AdministrativeZone[]; // For hierarchical responses
+}
+
+export interface DzongkhagEnumerationAreasResponse {
+	dzongkhagId: number;
+	dzongkhagName: string;
+	totalCount: number;
+	enumerationAreas: EnumerationArea[];
+}
+
+export interface DzongkhagHierarchicalResponse extends Dzongkhag {
+	administrativeZones: AdministrativeZone[];
 }
 
 export interface DzongkhagGeoJSON {

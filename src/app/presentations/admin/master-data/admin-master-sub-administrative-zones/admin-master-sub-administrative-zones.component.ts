@@ -6,6 +6,7 @@ import {
 	ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import {
 	FormsModule,
 	ReactiveFormsModule,
@@ -81,7 +82,8 @@ export class AdminMasterSubAdministrativeZonesComponent
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
 		private administrativeZoneService: AdministrativeZoneDataService,
 		private fb: FormBuilder,
-		private messageService: MessageService
+		private messageService: MessageService,
+		private router: Router
 	) {
 		this.subAdministrativeZoneForm = this.fb.group({
 			name: ['', [Validators.required, Validators.minLength(2)]],
@@ -573,5 +575,10 @@ export class AdminMasterSubAdministrativeZonesComponent
 					});
 				},
 			});
+	}
+
+	// Navigate to sub-administrative zone detail viewer
+	viewSubAdministrativeZoneDetails(zone: SubAdministrativeZone) {
+		this.router.navigate(['/admin/data-view/sub-admzone', zone.id]);
 	}
 }

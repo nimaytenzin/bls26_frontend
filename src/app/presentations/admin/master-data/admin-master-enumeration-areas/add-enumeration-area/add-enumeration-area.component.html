@@ -1,0 +1,244 @@
+<!-- Dialog Wrapper (when used as dialog) -->
+<p-dialog
+	*ngIf="asDialog"
+	[(visible)]="visible"
+	[style]="{ width: '600px' }"
+	[header]="dialogHeader"
+	[modal]="true"
+	styleClass="p-fluid"
+	[closable]="true"
+	[dismissableMask]="false"
+	(onHide)="onCancel_()"
+>
+	<ng-template pTemplate="content">
+		<ng-container *ngTemplateOutlet="formContent"></ng-container>
+	</ng-template>
+
+	<ng-template pTemplate="footer">
+		<ng-container *ngTemplateOutlet="formFooter"></ng-container>
+	</ng-template>
+</p-dialog>
+
+<!-- Embedded Form (when not used as dialog) -->
+<div *ngIf="!asDialog" class="p-4">
+	<div class="mb-4">
+		<h2 class="text-xl font-semibold text-gray-800">{{ dialogHeader }}</h2>
+		<p class="text-sm text-gray-600 mt-1">
+			Fill in the details to create a new enumeration area.
+		</p>
+	</div>
+
+	<ng-container *ngTemplateOutlet="formContent"></ng-container>
+
+	<div class="mt-6">
+		<ng-container *ngTemplateOutlet="formFooter"></ng-container>
+	</div>
+</div>
+
+<!-- Form Content Template -->
+<ng-template #formContent>
+	<form
+		[formGroup]="enumerationAreaForm"
+		class="space-y-4"
+		(ngSubmit)="onSubmit()"
+	>
+		<!-- Context Info (when pre-selected sub-admin zone) -->
+		<div
+			*ngIf="subAdminZoneId"
+			class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4"
+		>
+			<div class="flex items-center">
+				<i class="pi pi-info-circle text-blue-600 text-lg mr-3"></i>
+				<div>
+					<h4 class="font-semibold text-blue-900 mb-1">
+						Adding to Sub-Administrative Zone
+					</h4>
+					<p class="text-sm text-blue-800">
+						This enumeration area will be added to:
+						<span class="font-semibold">{{
+							getSubAdministrativeZoneName(subAdminZoneId)
+						}}</span>
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Name Field -->
+		<div>
+			<label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+				Area Name *
+			</label>
+			<input
+				id="name"
+				type="text"
+				pInputText
+				formControlName="name"
+				placeholder="Enter enumeration area name"
+				[class.ng-invalid]="hasFormError('name')"
+				class="w-full"
+				autocomplete="off"
+			/>
+			<small *ngIf="hasFormError('name')" class="p-error block mt-1">
+				{{ getFormError("name") }}
+			</small>
+		</div>
+
+		<!-- Description Field -->
+		<div>
+			<label
+				for="description"
+				class="block text-sm font-medium text-gray-700 mb-2"
+			>
+				Description *
+			</label>
+			<textarea
+				id="description"
+				pInputTextarea
+				formControlName="description"
+				placeholder="Enter a detailed description of the enumeration area"
+				[class.ng-invalid]="hasFormError('description')"
+				rows="3"
+				class="w-full"
+				[autoResize]="true"
+			></textarea>
+			<small *ngIf="hasFormError('description')" class="p-error block mt-1">
+				{{ getFormError("description") }}
+			</small>
+		</div>
+
+		<!-- Area Code Field -->
+		<div>
+			<label
+				for="areaCode"
+				class="block text-sm font-medium text-gray-700 mb-2"
+			>
+				Area Code *
+			</label>
+			<input
+				id="areaCode"
+				type="text"
+				pInputText
+				formControlName="areaCode"
+				placeholder="e.g., EA001, EA002"
+				[class.ng-invalid]="hasFormError('areaCode')"
+				class="w-full"
+				style="text-transform: uppercase"
+				autocomplete="off"
+			/>
+			<small class="text-gray-500 block mt-1">
+				Use uppercase letters and numbers only (e.g., EA001, ZONE01)
+			</small>
+			<small *ngIf="hasFormError('areaCode')" class="p-error block mt-1">
+				{{ getFormError("areaCode") }}
+			</small>
+		</div>
+
+		<!-- Sub-Administrative Zone Field -->
+		<div>
+			<label
+				for="subAdministrativeZoneId"
+				class="block text-sm font-medium text-gray-700 mb-2"
+			>
+				Sub-Administrative Zone *
+			</label>
+			<p-dropdown
+				id="subAdministrativeZoneId"
+				[options]="subAdministrativeZones"
+				formControlName="subAdministrativeZoneId"
+				optionLabel="name"
+				optionValue="id"
+				placeholder="Select sub-administrative zone"
+				[class.ng-invalid]="hasFormError('subAdministrativeZoneId')"
+				styleClass="w-full"
+				[filter]="true"
+				filterBy="name"
+				[loading]="loadingZones"
+				[disabled]="!!subAdminZoneId"
+				appendTo="body"
+			>
+				<ng-template pTemplate="selectedItem" let-selectedOption>
+					<div *ngIf="selectedOption" class="flex align-items-center">
+						<span class="mr-2">{{ selectedOption.name }}</span>
+						<p-tag
+							[value]="selectedOption.type === 'chiwog' ? 'Chiwog' : 'Lap'"
+							[severity]="selectedOption.type === 'chiwog' ? 'success' : 'info'"
+							[rounded]="true"
+						></p-tag>
+					</div>
+				</ng-template>
+
+				<ng-template pTemplate="item" let-zone>
+					<div class="flex align-items-center justify-content-between">
+						<div>
+							<div class="font-medium">{{ zone.name }}</div>
+							<div class="text-sm text-gray-500">{{ zone.areaCode }}</div>
+						</div>
+						<p-tag
+							[value]="zone.type === 'chiwog' ? 'Chiwog' : 'Lap'"
+							[severity]="zone.type === 'chiwog' ? 'success' : 'info'"
+							[rounded]="true"
+						></p-tag>
+					</div>
+				</ng-template>
+			</p-dropdown>
+			<small
+				*ngIf="hasFormError('subAdministrativeZoneId')"
+				class="p-error block mt-1"
+			>
+				{{ getFormError("subAdministrativeZoneId") }}
+			</small>
+			<small
+				*ngIf="!hasFormError('subAdministrativeZoneId') && hasSelectedZone"
+				class="text-gray-500 block mt-1"
+			>
+				Selected:
+				{{
+					getSubAdministrativeZoneName(
+						enumerationAreaForm.get("subAdministrativeZoneId")?.value
+					)
+				}}
+			</small>
+		</div>
+
+		<!-- Form Status Info -->
+		<div
+			*ngIf="!formValid && enumerationAreaForm.touched"
+			class="bg-orange-50 border border-orange-200 rounded-lg p-3"
+		>
+			<div class="flex items-center">
+				<i class="pi pi-exclamation-triangle text-orange-600 text-sm mr-2"></i>
+				<span class="text-sm text-orange-800"
+					>Please fill in all required fields correctly.</span
+				>
+			</div>
+		</div>
+	</form>
+</ng-template>
+
+<!-- Form Footer Template -->
+<ng-template #formFooter>
+	<div class="flex justify-content-end gap-2">
+		<p-button
+			type="button"
+			label="Cancel"
+			icon="pi pi-times"
+			severity="secondary"
+			[text]="true"
+			(onClick)="onCancel_()"
+			[disabled]="saving"
+		></p-button>
+
+		<p-button
+			type="button"
+			label="Create Area"
+			icon="pi pi-plus"
+			severity="primary"
+			[disabled]="!formValid || saving"
+			[loading]="saving"
+			(onClick)="onSubmit()"
+		></p-button>
+	</div>
+</ng-template>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>
