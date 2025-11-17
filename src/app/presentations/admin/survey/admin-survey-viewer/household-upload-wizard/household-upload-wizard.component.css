@@ -1,0 +1,123 @@
+/* Wizard specific styles */
+.wizard-header {
+	border-bottom: 1px solid #e5e7eb;
+	padding-bottom: 1rem;
+}
+
+.step-content {
+	min-height: 400px;
+}
+
+/* File upload area styles */
+.file-upload-area {
+	transition: all 0.3s ease;
+}
+
+.file-upload-area.drag-over {
+	transform: scale(1.02);
+}
+
+/* Preview table styles */
+.preview-table {
+	font-size: 0.875rem;
+}
+
+.preview-table th {
+	background-color: #f9fafb;
+	font-weight: 600;
+}
+
+.preview-table td {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 150px;
+}
+
+/* Progress indicator styles */
+.step-indicator {
+	position: relative;
+}
+
+.step-connector {
+	position: absolute;
+	top: 50%;
+	left: 2rem;
+	right: -2rem;
+	height: 2px;
+	z-index: -1;
+}
+
+/* Summary cards */
+.summary-card {
+	background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+}
+
+/* Status indicators */
+.status-success {
+	color: #10b981;
+}
+
+.status-error {
+	color: #ef4444;
+}
+
+.status-warning {
+	color: #f59e0b;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+	.wizard-content {
+		padding: 1rem 0;
+	}
+	
+	.step-content {
+		min-height: 300px;
+	}
+}
+
+/* Animation for step transitions */
+.step-content {
+	animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Upload progress styles */
+.upload-progress {
+	background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+/* Household list styles */
+.household-list {
+	max-height: 300px;
+	overflow-y: auto;
+}
+
+.household-list::-webkit-scrollbar {
+	width: 6px;
+}
+
+.household-list::-webkit-scrollbar-track {
+	background: #f1f5f9;
+	border-radius: 3px;
+}
+
+.household-list::-webkit-scrollbar-thumb {
+	background: #cbd5e1;
+	border-radius: 3px;
+}
+
+.household-list::-webkit-scrollbar-thumb:hover {
+	background: #94a3b8;
+}

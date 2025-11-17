@@ -38,11 +38,11 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 			password: ['', [Validators.required, Validators.minLength(6)]],
 		});
 
-		// Check if user is already authenticated
-		if (this.authService.isAuthenticated()) {
-			this.redirectToUserDashboard();
-			return;
-		}
+		// // Check if user is already authenticated
+		// if (this.authService.isAuthenticated()) {
+		// 	this.redirectToUserDashboard();
+		// 	return;
+		// }
 	}
 
 	ngAfterViewInit(): void {
@@ -50,18 +50,58 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 	}
 
 	ngOnDestroy(): void {
-		// Cleanup if needed
+		// Cleanup particles if needed
+		try {
+			const particlesElement = document.getElementById('particles-js');
+			if (particlesElement) {
+				particlesElement.innerHTML = '';
+			}
+		} catch (error) {
+			// Ignore cleanup errors
+		}
 	}
 
 	private loadParticlesJS(): void {
-		// Particles.js is loaded from CDN, initialize directly
-		setTimeout(() => {
+		// Wait for particles.js to load from CDN with multiple retry attempts
+		this.waitForParticlesJS(0);
+	}
+
+	private waitForParticlesJS(attempt: number): void {
+		const maxAttempts = 10;
+		const retryDelay = 200;
+
+		if (attempt >= maxAttempts) {
+			console.warn(
+				'Particles.js failed to load after multiple attempts. Continuing without particles.'
+			);
+			return;
+		}
+
+		if (typeof particlesJS !== 'undefined') {
+			// particlesJS is loaded, initialize it
 			this.initializeParticles();
-		}, 100);
+		} else {
+			// Not loaded yet, try again after a delay
+			setTimeout(() => {
+				this.waitForParticlesJS(attempt + 1);
+			}, retryDelay);
+		}
 	}
 
 	private initializeParticles(): void {
-		if (typeof particlesJS !== 'undefined') {
+		// Check if particles element exists and particlesJS is available
+		const particlesElement = document.getElementById('particles-js');
+		if (!particlesElement) {
+			console.warn('Particles element not found');
+			return;
+		}
+
+		if (typeof particlesJS === 'undefined') {
+			console.warn('Particles.js library not available');
+			return;
+		}
+
+		try {
 			particlesJS('particles-js', {
 				particles: {
 					number: {
@@ -146,6 +186,13 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 				},
 				retina_detect: true,
 			});
+			console.log('Particles.js initialized successfully');
+		} catch (error) {
+			console.warn(
+				'Error initializing particles.js, continuing without particles:',
+				error
+			);
+			// Don't throw error - let the login page continue to work
 		}
 	}
 
@@ -163,6 +210,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 			password: this.loginForm.value.password,
 		};
 
+		console.log('Attempting login with:', loginDto);
 		this.authService.login(loginDto).subscribe({
 			next: (response) => {
 				console.log('Login successful:', response);
@@ -184,12 +232,16 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 		const user = this.authService.getCurrentUser();
 		console.log(user);
 		if (user) {
+			console.log('Redirecting based on user role:', user.role);
+			console.log('IsSupervisor:', this.authService.isSupervisor());
+			console.log('IsAdmin:', this.authService.isAdmin());
+			console.log('IsEnumerator:', this.authService.isEnumerator());
 			if (this.authService.isAdmin()) {
 				this.router.navigate(['/admin']);
-			} else if (this.authService.isCounterStaff()) {
-				this.router.navigate(['/counter-staff/sell-tickets']);
-			} else if (this.authService.isExecutiveProducer()) {
-				this.router.navigate(['/executive-producer']);
+			} else if (this.authService.isSupervisor()) {
+				this.router.navigate(['/supervisor']);
+			} else if (this.authService.isEnumerator()) {
+				this.router.navigate(['/enumerator']);
 			} else {
 				this.router.navigate(['/']);
 			}

@@ -1,0 +1,236 @@
+<div class="p-6">
+	<!-- Header -->
+	<div class="mb-6">
+		<h3 class="text-xl font-semibold text-gray-900 mb-2">
+			Create {{ getUserTypeTitle() }}
+		</h3>
+		<p class="text-sm text-gray-600">
+			Enter the details to create a new {{ userType }} account
+		</p>
+	</div>
+
+	<!-- Form -->
+	<form [formGroup]="userForm" class="space-y-4">
+		<!-- Full Name -->
+		<div>
+			<label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+				Full Name *
+			</label>
+			<input
+				id="name"
+				type="text"
+				pInputText
+				formControlName="name"
+				placeholder="Enter full name"
+				[class.ng-invalid]="hasFormError('name')"
+				class="w-full"
+			/>
+			<small *ngIf="hasFormError('name')" class="p-error">
+				{{ getFormError("name") }}
+			</small>
+		</div>
+
+		<!-- CID -->
+		<div>
+			<label for="cid" class="block text-sm font-medium text-gray-700 mb-2">
+				CID (Citizenship ID) *
+			</label>
+			<input
+				id="cid"
+				type="text"
+				pInputText
+				formControlName="cid"
+				placeholder="Enter 11-digit CID"
+				maxlength="11"
+				[class.ng-invalid]="hasFormError('cid')"
+				class="w-full"
+			/>
+			<small *ngIf="hasFormError('cid')" class="p-error">
+				{{ getFormError("cid") }}
+			</small>
+			<small class="text-gray-500 block mt-1">
+				Enter exactly 11 digits (e.g., 10234567890)
+			</small>
+		</div>
+
+		<!-- Email Address -->
+		<div>
+			<label
+				for="emailAddress"
+				class="block text-sm font-medium text-gray-700 mb-2"
+			>
+				Email Address *
+			</label>
+			<input
+				id="emailAddress"
+				type="email"
+				pInputText
+				formControlName="emailAddress"
+				placeholder="Enter email address"
+				[class.ng-invalid]="hasFormError('emailAddress')"
+				class="w-full"
+			/>
+			<small *ngIf="hasFormError('emailAddress')" class="p-error">
+				{{ getFormError("emailAddress") }}
+			</small>
+		</div>
+
+		<!-- Phone Number -->
+		<div>
+			<label
+				for="phoneNumber"
+				class="block text-sm font-medium text-gray-700 mb-2"
+			>
+				Phone Number *
+			</label>
+			<input
+				id="phoneNumber"
+				type="text"
+				pInputText
+				formControlName="phoneNumber"
+				placeholder="Enter phone number"
+				maxlength="8"
+				[class.ng-invalid]="hasFormError('phoneNumber')"
+				class="w-full"
+			/>
+			<small *ngIf="hasFormError('phoneNumber')" class="p-error">
+				{{ getFormError("phoneNumber") }}
+			</small>
+			<small class="text-gray-500 block mt-1">
+				8 digits starting with 1, 7, 6, 8, or 9 (e.g., 17123456)
+			</small>
+		</div>
+
+		<!-- Role Selection (Only for Admin User Type) -->
+		<div *ngIf="userType === UserRole.ADMIN">
+			<label for="role" class="block text-sm font-medium text-gray-700 mb-2">
+				Role *
+			</label>
+			<p-dropdown
+				id="role"
+				formControlName="role"
+				[options]="roleOptions"
+				placeholder="Select role"
+				optionLabel="label"
+				optionValue="value"
+				[class.ng-invalid]="hasFormError('role')"
+				styleClass="w-full"
+			></p-dropdown>
+			<small *ngIf="hasFormError('role')" class="p-error">
+				{{ getFormError("role") }}
+			</small>
+		</div>
+
+		<!-- Password Fields -->
+		<div class="grid grid-cols-2 gap-4">
+			<div>
+				<label
+					for="password"
+					class="block text-sm font-medium text-gray-700 mb-2"
+				>
+					Password *
+				</label>
+				<p-password
+					id="password"
+					formControlName="password"
+					placeholder="Enter password"
+					[toggleMask]="true"
+					[feedback]="true"
+					[class.ng-invalid]="hasFormError('password')"
+					styleClass="w-full"
+					inputStyleClass="w-full"
+				></p-password>
+				<small *ngIf="hasFormError('password')" class="p-error">
+					{{ getFormError("password") }}
+				</small>
+			</div>
+
+			<div>
+				<label
+					for="confirmPassword"
+					class="block text-sm font-medium text-gray-700 mb-2"
+				>
+					Confirm Password *
+				</label>
+				<p-password
+					id="confirmPassword"
+					formControlName="confirmPassword"
+					placeholder="Confirm password"
+					[toggleMask]="true"
+					[feedback]="false"
+					[class.ng-invalid]="
+						hasFormError('confirmPassword') || getPasswordMismatchError()
+					"
+					styleClass="w-full"
+					inputStyleClass="w-full"
+				></p-password>
+				<small
+					*ngIf="hasFormError('confirmPassword') || getPasswordMismatchError()"
+					class="p-error"
+				>
+					{{ getPasswordMismatchError() || getFormError("confirmPassword") }}
+				</small>
+			</div>
+		</div>
+
+		<!-- Summary Card -->
+		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+			<h4 class="text-sm font-semibold text-blue-900 mb-3">Account Summary</h4>
+			<div class="space-y-2 text-sm">
+				<div class="flex justify-between">
+					<span class="text-blue-700">User Type:</span>
+					<span class="font-semibold text-blue-900">{{
+						getUserTypeTitle()
+					}}</span>
+				</div>
+				<div class="flex justify-between" *ngIf="userForm.value.name">
+					<span class="text-blue-700">Name:</span>
+					<span class="font-semibold text-blue-900">{{
+						userForm.value.name
+					}}</span>
+				</div>
+				<div class="flex justify-between" *ngIf="userForm.value.cid">
+					<span class="text-blue-700">CID:</span>
+					<span class="font-semibold text-blue-900 font-mono">{{
+						userForm.value.cid
+					}}</span>
+				</div>
+				<div class="flex justify-between" *ngIf="userForm.value.emailAddress">
+					<span class="text-blue-700">Email:</span>
+					<span class="font-semibold text-blue-900">{{
+						userForm.value.emailAddress
+					}}</span>
+				</div>
+				<div class="flex justify-between" *ngIf="userForm.value.phoneNumber">
+					<span class="text-blue-700">Phone:</span>
+					<span class="font-semibold text-blue-900">{{
+						userForm.value.phoneNumber
+					}}</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Action Buttons -->
+		<div class="flex justify-end gap-3 mt-6 pt-4 border-t">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				icon="pi pi-times"
+				class="p-button-text"
+				(click)="cancel()"
+				[disabled]="saving"
+			></button>
+			<button
+				pButton
+				type="button"
+				[label]="'Create ' + getUserTypeTitle()"
+				icon="pi pi-check"
+				class="p-button-primary"
+				(click)="createUser()"
+				[loading]="saving"
+				[disabled]="userForm.invalid"
+			></button>
+		</div>
+	</form>
+</div>

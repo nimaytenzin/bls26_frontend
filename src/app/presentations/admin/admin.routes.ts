@@ -1,18 +1,19 @@
 import { Routes } from '@angular/router';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard.component';
 import { LayoutComponent } from '../../layout/layout.component';
-import { AdminUserManagementComponent } from './user-mangement/admin-user-management/admin-user-management.component';
 import { AdminMasterDzongkhagsComponent } from './master-data/admin-master-dzongkhags/admin-master-dzongkhags.component';
 import { AdminMasterAdministrativeZonesComponent } from './master-data/admin-master-administrative-zones/admin-master-administrative-zones.component';
 import { AdminMasterSubAdministrativeZonesComponent } from './master-data/admin-master-sub-administrative-zones/admin-master-sub-administrative-zones.component';
 import { AdminMasterEnumerationAreasComponent } from './master-data/admin-master-enumeration-areas/admin-master-enumeration-areas.component';
-import { AdminMasterCurrentHouseholdListingsComponent } from './master-data/admin-master-current-household-listings/admin-master-current-household-listings.component';
 import { AdminMasterSurveyComponent } from './survey/admin-master-survey/admin-master-survey.component';
 import { AdminDzongkhagDataViewerComponent } from './data-viewer/admin-dzongkhag-data-viewer/admin-dzongkhag-data-viewer.component';
 import { AdminAdminstrativeZoneDataViewerComponent } from './data-viewer/admin-adminstrative-zone-data-viewer/admin-adminstrative-zone-data-viewer.component';
 import { AdminSubAdminstrativeZoneDataViewerComponent } from './data-viewer/admin-sub-adminstrative-zone-data-viewer/admin-sub-adminstrative-zone-data-viewer.component';
 import { AdminEnumerationAreaDataViewerComponent } from './data-viewer/admin-enumeration-area-data-viewer/admin-enumeration-area-data-viewer.component';
 import { AdminSurveyViewerComponent } from './survey/admin-survey-viewer/admin-survey-viewer.component';
+import { AdminSupervisorManagementComponent } from './user-mangement/admin-supervisor-management/admin-supervisor-management.component';
+import { AdminSurveyCreatorComponent } from './survey/survey-creator/admin-survey-creator.component';
+import { AdminEnumeratorManagementComponent } from './user-mangement/admin-enumerator-management/admin-enumerator-management.component';
 
 export const adminRoutes: Routes = [
 	{
@@ -30,7 +31,20 @@ export const adminRoutes: Routes = [
 			// User Management Routes
 			{
 				path: 'user-management',
-				component: AdminUserManagementComponent,
+				children: [
+					// {
+					// 	path: '',
+					// 	component: AdminUserManagementComponent,
+					// },
+					{
+						path: 'supervisors',
+						component: AdminSupervisorManagementComponent,
+					},
+					{
+						path: 'enumerators',
+						component: AdminEnumeratorManagementComponent,
+					},
+				],
 			},
 
 			//Mater data managmenet
@@ -53,18 +67,22 @@ export const adminRoutes: Routes = [
 						path: 'enumeration-areas',
 						component: AdminMasterEnumerationAreasComponent,
 					},
-					{
-						path: 'current-household-listings',
-						component: AdminMasterCurrentHouseholdListingsComponent,
-					},
 				],
 			},
 			{
 				path: 'survey',
 				children: [
 					{
+						path: '',
+						component: AdminMasterSurveyComponent,
+					},
+					{
 						path: 'master',
 						component: AdminMasterSurveyComponent,
+					},
+					{
+						path: 'create',
+						component: AdminSurveyCreatorComponent,
 					},
 					{
 						path: 'viewer',
@@ -84,7 +102,6 @@ export const adminRoutes: Routes = [
 					},
 				],
 			},
-
 			{
 				path: 'data-view',
 				children: [

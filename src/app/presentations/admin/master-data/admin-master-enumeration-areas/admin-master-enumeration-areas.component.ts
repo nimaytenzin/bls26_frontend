@@ -35,15 +35,18 @@ import {
 } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
 
 // Hierarchical interfaces for the component
-interface HierarchicalAdministrativeZone extends AdministrativeZone {
-	subAdministrativeZones?: HierarchicalSubAdministrativeZone[];
-}
-
-interface HierarchicalSubAdministrativeZone extends SubAdministrativeZone {
+interface HierarchicalSubAdministrativeZone
+	extends Omit<SubAdministrativeZone, 'enumerationAreas'> {
 	enumerationAreas?: EnumerationArea[];
 }
 
-interface HierarchicalDzongkhagResponse extends Dzongkhag {
+interface HierarchicalAdministrativeZone
+	extends Omit<AdministrativeZone, 'subAdministrativeZones'> {
+	subAdministrativeZones?: HierarchicalSubAdministrativeZone[];
+}
+
+interface HierarchicalDzongkhagResponse
+	extends Omit<Dzongkhag, 'administrativeZones'> {
 	administrativeZones: HierarchicalAdministrativeZone[];
 }
 import { PrimeNgModules } from '../../../../primeng.modules';

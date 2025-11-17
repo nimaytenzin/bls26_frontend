@@ -120,6 +120,119 @@ export class DzongkhagDataService {
 	}
 
 	/**
+	 * Get a single dzongkhag as GeoJSON Feature
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @returns Observable<any> - GeoJSON Feature
+	 */
+	getDzongkhagGeojson(dzongkhagId: number): Observable<any> {
+		return this.http.get<any>(`${this.apiUrl}/geojson/${dzongkhagId}`).pipe(
+			catchError((error) => {
+				console.error('Error fetching dzongkhag geojson:', error);
+				return throwError(() => error);
+			})
+		);
+	}
+
+	/**
+	 * Get administrative zones by dzongkhag
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @param withGeom - Include geometry (default: false)
+	 * @param includeSubAdminZones - Include sub-administrative zones (default: false)
+	 * @param includeEAs - Include enumeration areas (default: false)
+	 * @returns Observable<any[]>
+	 */
+	getAdministrativeZonesByDzongkhag(
+		dzongkhagId: number,
+		withGeom: boolean = false,
+		includeSubAdminZones: boolean = false,
+		includeEAs: boolean = false
+	): Observable<any[]> {
+		let params = new HttpParams();
+		if (withGeom) params = params.set('withGeom', 'true');
+		if (includeSubAdminZones)
+			params = params.set('includeSubAdminZones', 'true');
+		if (includeEAs) params = params.set('includeEAs', 'true');
+
+		return this.http
+			.get<any[]>(`${this.apiUrl}/${dzongkhagId}/administrative-zones`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching administrative zones:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get sub-administrative zones by dzongkhag
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @param withGeom - Include geometry (default: false)
+	 * @param includeEAs - Include enumeration areas (default: false)
+	 * @returns Observable<any[]>
+	 */
+	getSubAdministrativeZonesByDzongkhag(
+		dzongkhagId: number,
+		withGeom: boolean = false,
+		includeEAs: boolean = false
+	): Observable<any[]> {
+		let params = new HttpParams();
+		if (withGeom) params = params.set('withGeom', 'true');
+		if (includeEAs) params = params.set('includeEAs', 'true');
+
+		return this.http
+			.get<any[]>(`${this.apiUrl}/${dzongkhagId}/sub-administrative-zones`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching sub-administrative zones:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get sub-administrative zones as GeoJSON by dzongkhag
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @returns Observable<any> - GeoJSON FeatureCollection
+	 */
+	getSubAdministrativeZonesGeojsonByDzongkhag(
+		dzongkhagId: number
+	): Observable<any> {
+		return this.http
+			.get<any>(
+				`${this.apiUrl}/${dzongkhagId}/sub-administrative-zones/geojson`
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						'Error fetching sub-administrative zones geojson:',
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get enumeration areas as GeoJSON by dzongkhag
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @returns Observable<any> - GeoJSON FeatureCollection
+	 */
+	getEnumerationAreasGeojsonByDzongkhag(dzongkhagId: number): Observable<any> {
+		return this.http
+			.get<any>(`${this.apiUrl}/${dzongkhagId}/enumeration-areas/geojson`)
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching enumeration areas geojson:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
 	 * Get enumeration areas by dzongkhag with administrative hierarchy
 	 * @param dzongkhagId - Dzongkhag ID
 	 * @param withGeom - Include geometry for enumeration areas (default: false)

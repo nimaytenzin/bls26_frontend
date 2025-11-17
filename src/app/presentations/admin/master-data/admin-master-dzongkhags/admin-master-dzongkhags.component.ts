@@ -6,6 +6,7 @@ import {
 	ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import {
 	FormsModule,
 	ReactiveFormsModule,
@@ -73,7 +74,8 @@ export class AdminMasterDzongkhagsComponent
 	constructor(
 		private dzongkhagService: DzongkhagDataService,
 		private fb: FormBuilder,
-		private messageService: MessageService
+		private messageService: MessageService,
+		private router: Router
 	) {
 		this.dzongkhagForm = this.fb.group({
 			name: ['', [Validators.required, Validators.minLength(2)]],
@@ -302,6 +304,13 @@ export class AdminMasterDzongkhagsComponent
 		this.dzongkhagForm.reset();
 		this.isEditMode = false;
 		this.dzongkhagDialog = true;
+	}
+
+	/**
+	 * Navigate to dzongkhag data viewer
+	 */
+	viewDzongkhagData(dzongkhag: Dzongkhag) {
+		this.router.navigate(['/admin/data-view/dzongkhag', dzongkhag.id]);
 	}
 
 	editDzongkhag(dzongkhag: Dzongkhag) {

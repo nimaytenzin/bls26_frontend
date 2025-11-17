@@ -1,0 +1,528 @@
+<div class="p-4 space-y-4">
+	<!-- Header -->
+	<div class="flex justify-between items-center">
+		<div>
+			<h3 class="text-xl font-semibold text-slate-800">
+				Enumeration Area Management
+			</h3>
+			<p class="text-sm text-slate-500 mt-1">
+				Manage enumeration areas assigned to this survey
+			</p>
+		</div>
+		<div class="flex gap-2">
+			<button
+				pButton
+				label="Add EA"
+				icon="pi pi-plus"
+				size="small"
+				(click)="openAddDialog()"
+			></button>
+
+			<button
+				pButton
+				label="Bulk Upload"
+				icon="pi pi-upload"
+				size="small"
+				class="p-button-secondary"
+				(click)="openBulkUploadDialog()"
+			></button>
+		</div>
+	</div>
+
+	<!-- Statistics Cards -->
+	<div class="grid grid-cols-4 gap-4">
+		<div class="bg-white border border-slate-200 rounded-lg p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm text-slate-500">Total EAs</p>
+					<p class="text-2xl font-bold text-primary-600">
+						{{ getTotalEACount() }}
+					</p>
+				</div>
+				<i class="pi pi-map text-3xl text-primary-300"></i>
+			</div>
+		</div>
+
+		<div class="bg-white border border-slate-200 rounded-lg p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm text-slate-500">Validated</p>
+					<p class="text-2xl font-bold text-green-600">
+						{{ getValidatedEACount() }}
+					</p>
+				</div>
+				<i class="pi pi-check-circle text-3xl text-green-300"></i>
+			</div>
+		</div>
+
+		<div class="bg-white border border-slate-200 rounded-lg p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm text-slate-500">Submitted</p>
+					<p class="text-2xl font-bold text-yellow-600">
+						{{ getSubmittedEACount() }}
+					</p>
+				</div>
+				<i class="pi pi-send text-3xl text-yellow-300"></i>
+			</div>
+		</div>
+
+		<div class="bg-white border border-slate-200 rounded-lg p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm text-slate-500">Pending</p>
+					<p class="text-2xl font-bold text-slate-600">
+						{{ getTotalEACount() - getSubmittedEACount() }}
+					</p>
+				</div>
+				<i class="pi pi-clock text-3xl text-slate-300"></i>
+			</div>
+		</div>
+	</div>
+
+	<!-- EA Table -->
+	<div class="bg-white border border-slate-200 rounded-lg">
+		<div class="p-4 border-b border-slate-200">
+			<h4 class="font-semibold text-slate-800">Assigned Enumeration Areas</h4>
+		</div>
+		<div class="p-4">
+			<!-- Loading State -->
+			<div
+				*ngIf="loadingSurveyEAs"
+				class="flex items-center justify-center py-8"
+			>
+				<p-progressSpinner
+					styleClass="w-12 h-12"
+					strokeWidth="4"
+				></p-progressSpinner>
+			</div>
+
+			<!-- Table -->
+			<div *ngIf="!loadingSurveyEAs && surveyEAs.length > 0">
+				<p-table
+					[value]="surveyEAs"
+					[paginator]="true"
+					[rows]="10"
+					[rowsPerPageOptions]="[10, 25, 50, 100]"
+					[globalFilterFields]="[
+						'enumerationArea.name',
+						'enumerationArea.areaCode',
+						'enumerationArea.subAdministrativeZone.name',
+						'enumerationArea.subAdministrativeZone.administrativeZone.name',
+						'enumerationArea.subAdministrativeZone.administrativeZone.dzongkhag.name'
+					]"
+					styleClass="p-datatable-sm"
+				>
+					<ng-template pTemplate="caption">
+						<div class="flex justify-between items-center">
+							<span class="p-input-icon-left w-full max-w-md">
+								<input
+									pInputText
+									type="text"
+									placeholder="Search by name, code, location..."
+									class="w-full"
+									(input)="onTableSearch($event)"
+								/>
+							</span>
+							<button
+								pButton
+								label="Remove Selected"
+								icon="pi pi-trash"
+								size="small"
+								class="p-button-danger"
+								[disabled]="getSelectedEANodes().length === 0"
+								(click)="removeSelectedEAs()"
+							></button>
+						</div>
+					</ng-template>
+
+					<ng-template pTemplate="header">
+						<tr>
+							<th style="width: 3rem">
+								<p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+							</th>
+							<th
+								pSortableColumn="enumerationArea.subAdministrativeZone.administrativeZone.dzongkhag.name"
+							>
+								Dzongkhag
+								<p-sortIcon
+									field="enumerationArea.subAdministrativeZone.administrativeZone.dzongkhag.name"
+								></p-sortIcon>
+							</th>
+							<th
+								pSortableColumn="enumerationArea.subAdministrativeZone.administrativeZone.name"
+							>
+								Admin Zone
+								<p-sortIcon
+									field="enumerationArea.subAdministrativeZone.administrativeZone.name"
+								></p-sortIcon>
+							</th>
+							<th pSortableColumn="enumerationArea.subAdministrativeZone.name">
+								Sub-Admin Zone
+								<p-sortIcon
+									field="enumerationArea.subAdministrativeZone.name"
+								></p-sortIcon>
+							</th>
+							<th pSortableColumn="enumerationArea.name">
+								EA Name <p-sortIcon field="enumerationArea.name"></p-sortIcon>
+							</th>
+							<th pSortableColumn="enumerationArea.areaCode">
+								Code <p-sortIcon field="enumerationArea.areaCode"></p-sortIcon>
+							</th>
+							<th pSortableColumn="isValidated">
+								Status <p-sortIcon field="isValidated"></p-sortIcon>
+							</th>
+						</tr>
+					</ng-template>
+
+					<ng-template pTemplate="body" let-ea>
+						<tr>
+							<td>
+								<p-tableCheckbox
+									[value]="ea"
+									[(ngModel)]="selectedEAsToRemove"
+								></p-tableCheckbox>
+							</td>
+							<td>
+								<span class="text-sm">{{
+									ea.enumerationArea?.subAdministrativeZone?.administrativeZone
+										?.dzongkhag?.name
+								}}</span>
+							</td>
+							<td>
+								<span class="text-sm">{{
+									ea.enumerationArea?.subAdministrativeZone?.administrativeZone
+										?.name
+								}}</span>
+							</td>
+							<td>
+								<span class="text-sm">{{
+									ea.enumerationArea?.subAdministrativeZone?.name
+								}}</span>
+							</td>
+							<td>
+								<div class="flex items-center gap-2">
+									<i class="pi pi-map-marker text-slate-400 text-sm"></i>
+									<span class="font-medium">{{
+										ea.enumerationArea?.name
+									}}</span>
+								</div>
+							</td>
+							<td>
+								<span class="text-sm text-slate-600">{{
+									ea.enumerationArea?.areaCode
+								}}</span>
+							</td>
+							<td>
+								<p-tag
+									*ngIf="ea.isValidated"
+									value="Validated"
+									severity="success"
+									styleClass="text-xs"
+								></p-tag>
+								<p-tag
+									*ngIf="!ea.isValidated && ea.isSubmitted"
+									value="Submitted"
+									severity="warning"
+									styleClass="text-xs"
+								></p-tag>
+								<p-tag
+									*ngIf="!ea.isValidated && !ea.isSubmitted"
+									value="Pending"
+									severity="secondary"
+									styleClass="text-xs"
+								></p-tag>
+							</td>
+						</tr>
+					</ng-template>
+
+					<ng-template pTemplate="emptymessage">
+						<tr>
+							<td colspan="7" class="text-center text-slate-500 py-8">
+								No enumeration areas found
+							</td>
+						</tr>
+					</ng-template>
+				</p-table>
+			</div>
+
+			<!-- Empty State -->
+			<div
+				*ngIf="!loadingSurveyEAs && surveyEAs.length === 0"
+				class="text-center py-8 text-slate-500"
+			>
+				<i class="pi pi-inbox text-4xl mb-2"></i>
+				<p>No enumeration areas assigned to this survey</p>
+				<button
+					pButton
+					label="Add Enumeration Areas"
+					icon="pi pi-plus"
+					class="p-button-text mt-2"
+					(click)="openAddDialog()"
+				></button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Add EA Dialog -->
+<p-dialog
+	[(visible)]="showAddDialog"
+	[modal]="true"
+	[closable]="true"
+	[style]="{ width: '50vw', minWidth: '600px' }"
+	header="Add Enumeration Areas"
+>
+	<div class="space-y-4">
+		<!-- Instructions -->
+		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+			<div class="flex items-start gap-2">
+				<i class="pi pi-info-circle text-blue-600 mt-0.5"></i>
+				<div class="text-sm text-blue-800">
+					<p class="font-semibold mb-1">How to add enumeration areas:</p>
+					<ol class="list-decimal list-inside space-y-1 ml-2">
+						<li>Select a Dzongkhag from the dropdown</li>
+						<li>Select an Administrative Zone</li>
+						<li>Select a Sub-Administrative Zone</li>
+						<li>Select one or more Enumeration Areas</li>
+						<li>Click "Add to Survey" to assign them</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+
+		<!-- Cascading Dropdowns -->
+		<div class="grid grid-cols-2 gap-4">
+			<!-- Dzongkhag -->
+			<div class="flex flex-col">
+				<label class="text-sm font-medium text-slate-700 mb-1"
+					>Dzongkhag <span class="text-red-500">*</span></label
+				>
+				<p-dropdown
+					[(ngModel)]="selectedDzongkhag"
+					[options]="dzongkhags"
+					optionLabel="name"
+					placeholder="Select Dzongkhag"
+					[filter]="true"
+					filterBy="name"
+					[loading]="loadingDzongkhags"
+					(onChange)="onDzongkhagChange()"
+					[style]="{ width: '100%' }"
+					appendTo="body"
+				></p-dropdown>
+			</div>
+
+			<!-- Administrative Zone -->
+			<div class="flex flex-col">
+				<label class="text-sm font-medium text-slate-700 mb-1"
+					>Administrative Zone <span class="text-red-500">*</span></label
+				>
+				<p-dropdown
+					[(ngModel)]="selectedAdminZone"
+					[options]="administrativeZones"
+					optionLabel="name"
+					placeholder="Select Admin Zone"
+					[filter]="true"
+					filterBy="name"
+					[disabled]="!selectedDzongkhag"
+					[loading]="loadingAdminZones"
+					(onChange)="onAdminZoneChange()"
+					[style]="{ width: '100%' }"
+					appendTo="body"
+				></p-dropdown>
+			</div>
+
+			<!-- Sub-Administrative Zone -->
+			<div class="flex flex-col">
+				<label class="text-sm font-medium text-slate-700 mb-1"
+					>Sub-Administrative Zone <span class="text-red-500">*</span></label
+				>
+				<p-dropdown
+					[(ngModel)]="selectedSubAdminZone"
+					[options]="subAdministrativeZones"
+					optionLabel="name"
+					placeholder="Select Sub-Admin Zone"
+					[filter]="true"
+					filterBy="name"
+					[disabled]="!selectedAdminZone"
+					[loading]="loadingSubAdminZones"
+					(onChange)="onSubAdminZoneChange()"
+					[style]="{ width: '100%' }"
+					appendTo="body"
+				></p-dropdown>
+			</div>
+		</div>
+
+		<!-- Enumeration Areas List -->
+		<div class="flex flex-col" *ngIf="selectedSubAdminZone">
+			<label class="text-sm font-medium text-slate-700 mb-1"
+				>Enumeration Areas <span class="text-red-500">*</span></label
+			>
+			<p-listbox
+				[(ngModel)]="selectedEAsToAdd"
+				[options]="enumerationAreas"
+				optionLabel="name"
+				[multiple]="true"
+				[checkbox]="true"
+				[filter]="true"
+				filterPlaceholder="Search EAs..."
+				[style]="{ width: '100%' }"
+				[listStyle]="{ 'max-height': '300px' }"
+				appendTo="body"
+			>
+				<ng-template let-ea pTemplate="item">
+					<div class="flex items-center justify-between w-full">
+						<span>{{ ea.name }}</span>
+						<span class="text-xs text-slate-500">{{ ea.areaCode }}</span>
+					</div>
+				</ng-template>
+			</p-listbox>
+
+			<div
+				*ngIf="loadingEAs"
+				class="flex items-center justify-center py-4 border border-slate-200 rounded"
+			>
+				<p-progressSpinner
+					styleClass="w-8 h-8"
+					strokeWidth="4"
+				></p-progressSpinner>
+			</div>
+
+			<div
+				*ngIf="!loadingEAs && enumerationAreas.length === 0"
+				class="text-center py-4 text-slate-500 border border-slate-200 rounded"
+			>
+				<i class="pi pi-info-circle"></i>
+				<p class="text-sm">
+					No available enumeration areas in this sub-administrative zone
+				</p>
+			</div>
+		</div>
+
+		<!-- Selected Count -->
+		<div *ngIf="selectedEAsToAdd.length > 0" class="text-sm text-slate-600">
+			<i class="pi pi-check-circle text-green-600"></i>
+			{{ selectedEAsToAdd.length }} enumeration area(s) selected
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<button
+			pButton
+			label="Cancel"
+			icon="pi pi-times"
+			class="p-button-text"
+			(click)="showAddDialog = false"
+		></button>
+		<button
+			pButton
+			label="Add to Survey"
+			icon="pi pi-check"
+			class="p-button-success"
+			[disabled]="selectedEAsToAdd.length === 0"
+			(click)="addEAsToSurvey()"
+		></button>
+	</ng-template>
+</p-dialog>
+
+<!-- Bulk Upload Dialog (Dummy) -->
+<p-dialog
+	[(visible)]="showBulkUploadDialog"
+	[modal]="true"
+	[closable]="true"
+	[style]="{ width: '40vw', minWidth: '500px' }"
+	header="Bulk Upload Enumeration Areas"
+>
+	<div class="space-y-4">
+		<!-- Info Message -->
+		<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+			<div class="flex items-start gap-2">
+				<i class="pi pi-exclamation-triangle text-yellow-600 mt-0.5"></i>
+				<div class="text-sm text-yellow-800">
+					<p class="font-semibold">Feature Coming Soon</p>
+					<p>This is a placeholder for bulk upload functionality.</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Instructions -->
+		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+			<div class="flex items-start gap-2">
+				<i class="pi pi-info-circle text-blue-600 mt-0.5"></i>
+				<div class="text-sm text-blue-800">
+					<p class="font-semibold mb-1">How to use bulk upload:</p>
+					<ol class="list-decimal list-inside space-y-1 ml-2">
+						<li>Download the CSV template</li>
+						<li>Fill in the enumeration area codes</li>
+						<li>Upload the completed CSV file</li>
+						<li>Review the results and confirm</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+
+		<!-- Template Download -->
+		<div
+			class="flex items-center justify-between p-3 bg-slate-50 rounded border border-slate-200"
+		>
+			<span class="text-sm font-medium text-slate-700">CSV Template</span>
+			<button
+				pButton
+				label="Download Template"
+				icon="pi pi-download"
+				class="p-button-sm p-button-outlined"
+			></button>
+		</div>
+
+		<!-- File Upload -->
+		<div>
+			<label class="text-sm font-medium text-slate-700 mb-1 block"
+				>Upload CSV File</label
+			>
+			<p-fileUpload
+				#fileUpload
+				mode="basic"
+				chooseLabel="Select CSV File"
+				accept=".csv"
+				[maxFileSize]="5000000"
+				(onSelect)="onBulkFileSelect($event)"
+				[auto]="false"
+				[showUploadButton]="false"
+				[showCancelButton]="false"
+			></p-fileUpload>
+		</div>
+
+		<!-- File Info -->
+		<div
+			*ngIf="bulkUploadFile"
+			class="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded"
+		>
+			<i class="pi pi-file text-green-600"></i>
+			<span class="text-sm text-green-800">{{ bulkUploadFile.name }}</span>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<button
+			pButton
+			label="Cancel"
+			icon="pi pi-times"
+			class="p-button-text"
+			(click)="showBulkUploadDialog = false"
+		></button>
+		<button
+			pButton
+			label="Upload"
+			icon="pi pi-upload"
+			class="p-button-primary"
+			[disabled]="!bulkUploadFile"
+			(click)="executeBulkUpload()"
+		></button>
+	</ng-template>
+</p-dialog>
+
+<!-- Toast -->
+<p-toast></p-toast>
+
+<!-- Confirmation Dialog -->
+<p-confirmDialog></p-confirmDialog>

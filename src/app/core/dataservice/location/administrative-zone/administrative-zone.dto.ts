@@ -1,4 +1,5 @@
 import { Dzongkhag } from '../dzongkhag/dzongkhag.interface';
+import { SubAdministrativeZone } from '../sub-administrative-zone/sub-administrative-zone.dto';
 export enum AdministrativeZoneType {
 	Gewog = 'Gewog',
 	Thromde = 'Thromde',
@@ -12,6 +13,7 @@ export interface AdministrativeZone {
 	areaSqKm: number;
 	geom: any; // GeoJSON geometry
 	dzongkhag?: Dzongkhag;
+	subAdministrativeZones: SubAdministrativeZone[];
 }
 
 export interface AdministrativeZoneGeoJSON {

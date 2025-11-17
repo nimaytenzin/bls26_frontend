@@ -1,402 +1,525 @@
-<div class="p-6 min-h-screen bg-gray-50">
-	<!-- Loading Spinner -->
-	<div *ngIf="!enumerationArea" class="flex items-center justify-center h-96">
-		<i class="pi pi-spin pi-spinner text-4xl text-blue-500"></i>
-	</div>
-
-	<!-- Content -->
-	<div *ngIf="enumerationArea" class="space-y-6">
-		<!-- Header with Breadcrumb -->
-		<div class="bg-white rounded-lg shadow-sm p-6">
-			<div class="flex items-center justify-between mb-4">
-				<h1 class="text-3xl font-bold text-gray-900">
-					Enumeration Area Details
-				</h1>
-				<button
-					(click)="goBack()"
-					class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-				>
-					<i class="pi pi-arrow-left mr-2"></i>
-					Back to List
-				</button>
-			</div>
-
-			<!-- Hierarchical Breadcrumb Navigation -->
-			<div class="flex items-center space-x-2 text-sm text-gray-600">
-				<span
-					*ngIf="dzongkhag"
-					(click)="navigateTo('dzongkhag', dzongkhag.id!)"
-					class="cursor-pointer hover:text-blue-600 hover:underline font-medium"
-				>
-					{{ dzongkhag.name }}
-				</span>
-				<i *ngIf="dzongkhag" class="pi pi-angle-right"></i>
-				<span
-					*ngIf="administrativeZone"
-					(click)="navigateTo('adminzone', administrativeZone.id!)"
-					class="cursor-pointer hover:text-blue-600 hover:underline font-medium"
-				>
-					{{ administrativeZone.name }}
-				</span>
-				<i *ngIf="administrativeZone" class="pi pi-angle-right"></i>
-				<span
-					*ngIf="subAdministrativeZone"
-					(click)="navigateTo('subadminzone', subAdministrativeZone.id!)"
-					class="cursor-pointer hover:text-blue-600 hover:underline font-medium"
-				>
-					{{ subAdministrativeZone.name }}
-				</span>
-				<i *ngIf="subAdministrativeZone" class="pi pi-angle-right"></i>
-				<span class="text-blue-600 font-semibold">{{
-					enumerationArea.name
-				}}</span>
+<!-- Admin Enumeration Area Data Viewer -->
+<div class="h-[calc(100vh-5rem)]">
+	<!-- Loading State -->
+	<section
+		*ngIf="loading"
+		class="rounded-lg border border-slate-200 bg-white p-10 text-center shadow-sm"
+	>
+		<div class="flex flex-col items-center gap-4 text-slate-600">
+			<p-progressSpinner styleClass="w-12 h-12"></p-progressSpinner>
+			<div>
+				<p class="text-lg font-semibold text-slate-900">
+					Preparing the enumeration area view
+				</p>
+				<p class="text-sm text-slate-500">
+					Fetching boundary layers, statistics, and household data…
+				</p>
 			</div>
 		</div>
+	</section>
 
-		<!-- Main Content -->
-		<div class="flex gap-4">
-			<!-- Left Panel - Tabs -->
-			<div class="w-1/2">
-				<p-tabView>
-					<!-- Details Tab -->
-					<p-tabPanel header="Details" leftIcon="pi pi-info-circle">
-						<!-- Enumeration Area Details Card -->
-						<p-card class="mb-4">
-							<ng-template pTemplate="header">
-								<div class="px-4 pt-4 pb-2">
-									<h2 class="text-xl font-semibold text-gray-800 m-0">
-										Enumeration Area Details
-									</h2>
-								</div>
-							</ng-template>
+	<!-- Main Content -->
+	<ng-container *ngIf="!loading && enumerationArea">
+		<!-- Split UI Layout -->
+		<section class="flex gap-4 h-[calc(100vh-5rem)] bg-white">
+			<!-- Left Pane: Data and Statistics -->
+			<div class="w-[25vw] flex flex-col gap-4 overflow-y-auto p-6">
+				<!-- Header Section -->
+				<div class="space-y-4">
+					<!-- Back Button -->
+					<div>
+						<button
+							type="button"
+							(click)="goBack()"
+							class="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:border-slate-300"
+						>
+							<i class="pi pi-arrow-left text-xs"></i>
+							<span>Back to Enumeration Areas</span>
+						</button>
+					</div>
 
-							<div class="p-4">
-								<table class="w-full border-none">
-									<tbody>
-										<tr>
-											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
-												Name:
-											</td>
-											<td class="py-2 text-lg font-semibold text-gray-800">
-												{{ enumerationArea.name }}
-											</td>
-										</tr>
-										<tr *ngIf="enumerationArea.areaCode">
-											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
-												Area Code:
-											</td>
-											<td class="py-2 text-gray-800">
-												{{ enumerationArea.areaCode }}
-											</td>
-										</tr>
-										<tr *ngIf="enumerationArea.areaCode">
-											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
-												Full EA Code:
-											</td>
-											<td class="py-2 text-gray-800">
-												{{ enumerationArea.areaCode }}
-											</td>
-										</tr>
-										<tr *ngIf="enumerationArea.description">
-											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
-												Description:
-											</td>
-											<td class="py-2 text-gray-800">
+					<!-- Title -->
+					<div>
+						<h1 class="text-3xl font-semibold text-slate-900">
+							{{ enumerationArea.name || "Enumeration Area Data Viewer" }}
+						</h1>
+						<p class="mt-2 text-sm text-slate-600">
+							Comprehensive household data, geographic layers, and insights
+						</p>
+					</div>
+				</div>
+
+				<!-- Tabs Section -->
+				<div class="p-4">
+					<div class="space-y-4">
+						<!-- Main Tabs -->
+						<div class="flex gap-2 border-b border-slate-200">
+							<button
+								type="button"
+								(click)="activeMainTab = 'insights'"
+								class="px-4 py-2 font-semibold transition border-b-2"
+								[ngClass]="
+									activeMainTab === 'insights'
+										? 'border-primary-600 text-primary-600'
+										: 'border-transparent text-slate-600 hover:text-slate-900'
+								"
+							>
+								Area Details
+							</button>
+							<button
+								type="button"
+								(click)="activeMainTab = 'households'"
+								class="px-4 py-2 font-semibold transition border-b-2"
+								[ngClass]="
+									activeMainTab === 'households'
+										? 'border-primary-600 text-primary-600'
+										: 'border-transparent text-slate-600 hover:text-slate-900'
+								"
+							>
+								Households
+							</button>
+							<button
+								type="button"
+								(click)="activeMainTab = 'downloads'"
+								class="px-4 py-2 font-semibold transition border-b-2"
+								[ngClass]="
+									activeMainTab === 'downloads'
+										? 'border-primary-600 text-primary-600'
+										: 'border-transparent text-slate-600 hover:text-slate-900'
+								"
+							>
+								Downloads
+							</button>
+						</div>
+
+						<!-- Area Details Tab Content -->
+						<div *ngIf="activeMainTab === 'insights'" class="space-y-4">
+							<div class="space-y-4 text-base text-slate-600">
+								<!-- Basic Information -->
+								<div
+									class="space-y-3 rounded-lg border border-slate-200 bg-white p-4"
+								>
+									<p class="text-lg font-semibold text-slate-800">
+										Basic Information
+									</p>
+									<div class="space-y-2 text-base">
+										<div class="flex justify-between">
+											<span class="text-slate-500">Name:</span>
+											<span class="font-semibold text-slate-900">{{
+												enumerationArea.name || "—"
+											}}</span>
+										</div>
+										<div class="flex justify-between">
+											<span class="text-slate-500">Area Code:</span>
+											<span class="font-semibold text-slate-900">{{
+												enumerationArea.areaCode || "—"
+											}}</span>
+										</div>
+										<div class="flex justify-between" *ngIf="enumerationArea">
+											<span class="text-slate-500">Full EA Code:</span>
+											<span class="font-mono font-semibold text-primary-600">{{
+												getFullEACode(enumerationArea)
+											}}</span>
+										</div>
+										<div
+											*ngIf="enumerationArea.description"
+											class="pt-2 border-t border-slate-100"
+										>
+											<p class="text-sm text-slate-500 mb-1">Description:</p>
+											<p class="text-base text-slate-700">
 												{{ enumerationArea.description }}
-											</td>
-										</tr>
-										<tr *ngIf="enumerationArea.areaSqKm">
-											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
-												Area:
-											</td>
-											<td class="py-2 text-gray-800">
-												{{ enumerationArea.areaSqKm | number : "1.2-2" }} km²
-											</td>
-										</tr>
-										<tr>
-											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
-												Sub Administrative Zone:
-											</td>
-											<td class="py-2">
-												<div
-													class="text-blue-600 cursor-pointer hover:text-blue-800"
-													(click)="
-														navigateTo(
-															'subadminzone',
-															subAdministrativeZone!.id
-														)
-													"
-													*ngIf="subAdministrativeZone"
-												>
-													{{ subAdministrativeZone.name }}
-												</div>
-											</td>
-										</tr>
-										<tr>
-											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
-												Administrative Zone:
-											</td>
-											<td class="py-2">
-												<div
-													class="text-blue-600 cursor-pointer hover:text-blue-800"
-													(click)="
-														navigateTo('adminzone', administrativeZone!.id)
-													"
-													*ngIf="administrativeZone"
-												>
-													{{ administrativeZone.name }}
-												</div>
-											</td>
-										</tr>
-										<tr>
-											<td class="py-2 text-sm font-medium text-gray-600 w-1/3">
-												Dzongkhag:
-											</td>
-											<td class="py-2">
-												<div
-													class="text-blue-600 cursor-pointer hover:text-blue-800"
-													(click)="navigateTo('dzongkhag', dzongkhag!.id)"
-													*ngIf="dzongkhag"
-												>
-													{{ dzongkhag.name }} Dzongkhag
-												</div>
-											</td>
-										</tr>
-									</tbody>
-								</table>
-							</div>
-						</p-card>
-					</p-tabPanel>
-
-					<!-- Current Household Listing Tab -->
-					<p-tabPanel header="Current Household Listing" leftIcon="pi pi-home">
-						<app-current-household-listing
-							[enumerationAreaId]="enumerationArea.id"
-						>
-						</app-current-household-listing>
-					</p-tabPanel>
-
-					<!-- Buildings Tab -->
-					<p-tabPanel
-						header="Buildings"
-						leftIcon="pi pi-building"
-						*ngIf="buildings.length > 0"
-					>
-						<div class="space-y-4">
-							<!-- Buildings Summary -->
-							<div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
-								<div class="flex items-center justify-between">
-									<div>
-										<h3 class="text-lg font-semibold text-orange-800 mb-1">
-											Buildings in {{ enumerationArea.name }}
-										</h3>
-										<p class="text-sm text-orange-600">
-											Total: {{ buildings.length }} buildings
-										</p>
+											</p>
+										</div>
 									</div>
-									<i class="pi pi-building text-3xl text-orange-600"></i>
+								</div>
+
+								<!-- Location Hierarchy -->
+								<div
+									class="space-y-3 rounded-lg border border-slate-200 bg-white p-4"
+								>
+									<p class="text-lg font-semibold text-slate-800">
+										Location Hierarchy
+									</p>
+									<div class="space-y-2 text-base">
+										<div
+											class="flex justify-between items-center"
+											*ngIf="subAdministrativeZone"
+										>
+											<span class="text-slate-500">Sub-Admin Zone:</span>
+											<span
+												class="font-semibold text-primary-600 cursor-pointer hover:text-primary-700"
+												(click)="
+													navigateTo('subadminzone', subAdministrativeZone.id!)
+												"
+											>
+												{{ subAdministrativeZone.name }}
+											</span>
+										</div>
+										<div
+											class="flex justify-between items-center"
+											*ngIf="administrativeZone"
+										>
+											<span class="text-slate-500">Admin Zone:</span>
+											<span
+												class="font-semibold text-primary-600 cursor-pointer hover:text-primary-700"
+												(click)="
+													navigateTo('adminzone', administrativeZone.id!)
+												"
+											>
+												{{ administrativeZone.name }}
+											</span>
+										</div>
+										<div
+											class="flex justify-between items-center"
+											*ngIf="dzongkhag"
+										>
+											<span class="text-slate-500">Dzongkhag:</span>
+											<span
+												class="font-semibold text-primary-600 cursor-pointer hover:text-primary-700"
+												(click)="navigateTo('dzongkhag', dzongkhag.id!)"
+											>
+												{{ dzongkhag.name }}
+											</span>
+										</div>
+									</div>
 								</div>
 							</div>
+						</div>
 
-							<!-- Buildings Table -->
-							<p-table
-								[value]="buildings"
-								[scrollable]="true"
-								scrollHeight="400px"
-							>
-								<ng-template pTemplate="header">
-									<tr>
-										<th>ID</th>
-										<th>Status</th>
-										<th>Type</th>
-										<th>Actions</th>
-									</tr>
-								</ng-template>
-								<ng-template pTemplate="body" let-building>
-									<tr>
-										<td>{{ building.id }}</td>
-										<td>
-											<span
-												class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs"
+						<!-- Households Tab Content -->
+						<div *ngIf="activeMainTab === 'households'" class="space-y-4">
+							<div class="space-y-3">
+								<!-- Nested Tabs for Current and Historical -->
+								<div class="flex gap-2 border-b border-slate-200">
+									<button
+										type="button"
+										(click)="activeHouseholdTab = 'current'"
+										class="px-3 py-2 font-semibold transition border-b-2"
+										[ngClass]="
+											activeHouseholdTab === 'current'
+												? 'border-primary-600 text-primary-600'
+												: 'border-transparent text-slate-600 hover:text-slate-900'
+										"
+									>
+										Current Listing
+									</button>
+									<button
+										type="button"
+										(click)="activeHouseholdTab = 'Trends'"
+										class="px-3 py-2 font-semibold transition border-b-2"
+										[ngClass]="
+											activeHouseholdTab === 'Trends'
+												? 'border-primary-600 text-primary-600'
+												: 'border-transparent text-slate-600 hover:text-slate-900'
+										"
+									>
+										Trends
+									</button>
+								</div>
+
+								<!-- Current Household Listing -->
+								<div *ngIf="activeHouseholdTab === 'current'" class="pt-2">
+									<app-current-household-listing
+										[enumerationAreaId]="enumerationArea.id!"
+									>
+									</app-current-household-listing>
+								</div>
+
+								<!-- Historical Data -->
+								<div *ngIf="activeHouseholdTab === 'Trends'" class="pt-2">
+									<app-admin-enumeration-area-trends
+										[enumerationAreaId]="enumerationArea.id!"
+									>
+									</app-admin-enumeration-area-trends>
+								</div>
+							</div>
+						</div>
+
+						<!-- Downloads Tab Content -->
+						<div *ngIf="activeMainTab === 'downloads'" class="space-y-4">
+							<div>
+								<h3 class="text-lg font-semibold text-slate-800">
+									Data Downloads
+								</h3>
+								<div class="mt-3 space-y-2 text-base">
+									<div class="pt-2">
+										<p class="text-sm font-semibold text-slate-500 mb-3">
+											Spatial Data Downloads
+										</p>
+
+										<!-- Enumeration Area -->
+										<div
+											class="flex items-center justify-between py-2 border-b border-slate-100"
+										>
+											<span class="text-base font-medium text-slate-700"
+												>Enumeration Area</span
 											>
-												{{ building.status || "N/A" }}
-											</span>
-										</td>
-										<td>{{ building.buildingType || "N/A" }}</td>
-										<td>
-											<p-button
-												icon="pi pi-eye"
-												size="small"
-												severity="info"
-												[text]="true"
-												pTooltip="View Details"
-											></p-button>
-										</td>
-									</tr>
-								</ng-template>
-								<ng-template pTemplate="emptymessage">
-									<tr>
-										<td colspan="4" class="text-center py-4">
-											<i
-												class="pi pi-info-circle text-2xl text-gray-400 mb-2 block"
-											></i>
-											<p class="text-gray-500">
-												No buildings found for this enumeration area.
-											</p>
-										</td>
-									</tr>
-								</ng-template>
-							</p-table>
-						</div>
-					</p-tabPanel>
-
-					<!-- History Tab -->
-					<p-tabPanel header="History" leftIcon="pi pi-clock">
-						<app-history [enumerationAreaId]="enumerationArea.id">
-						</app-history>
-					</p-tabPanel>
-				</p-tabView>
-			</div>
-			<!-- Right Panel - Map -->
-			<div class="w-1/2">
-				<div class="px-4 pt-4 pb-2">
-					<h3 class="text-lg font-semibold text-gray-800 m-0">
-						Geographic View
-					</h3>
-				</div>
-
-				<div class="relative">
-					<!-- Map Container -->
-					<div
-						id="enumerationAreaMap"
-						class="w-full"
-						style="height: 70vh; min-height: 400px"
-					></div>
-
-					<!-- Map Legend -->
-					<div
-						class="absolute top-0 right-0 bg-white border-round shadow-2 p-2 m-2"
-						style="z-index: 1000"
-					>
-						<div class="text-xs font-semibold text-gray-800 mb-2">Legend</div>
-
-						<!-- EA Area Fill -->
-						<div
-							class="flex align-items-center gap-2 mb-1"
-							*ngIf="enumerationArea.geom"
-						>
-							<div
-								class="w-1rem h-1rem border-round"
-								style="
-									background-color: #1d4ed8;
-									opacity: 0.3;
-									border: 2px solid #1d4ed8;
-								"
-							></div>
-							<span class="text-xs text-gray-600">Enumeration Area</span>
-						</div>
-
-						<!-- EA Boundary -->
-						<div class="flex align-items-center gap-2 mb-1">
-							<div
-								class="w-1rem h-1rem border-round"
-								style="background-color: transparent; border: 2px solid #1d4ed8"
-							></div>
-							<span class="text-xs text-gray-600">EA Boundary</span>
-						</div>
-
-						<!-- Sub-Admin Zone Boundary -->
-						<div class="flex align-items-center gap-2 mb-2">
-							<div
-								class="w-1rem h-1rem border-round"
-								style="background-color: transparent; border: 2px solid #dc2626"
-							></div>
-							<span class="text-xs text-gray-600">Sub-Admin Zone Boundary</span>
-						</div>
-
-						<!-- Buildings Layer -->
-						<div
-							class="flex align-items-center gap-2 mb-2"
-							*ngIf="buildingsGeoJsonData"
-						>
-							<div
-								class="w-1rem h-1rem border-round"
-								style="
-									background-color: #f59e0b;
-									opacity: 0.7;
-									border: 2px solid #f59e0b;
-								"
-							></div>
-							<span class="text-xs text-gray-600"
-								>Buildings ({{ buildingStatistics?.totalBuildings || 0 }})</span
-							>
-						</div>
-
-						<!-- Layer Toggle Controls -->
-						<div class="border-t border-gray-200 pt-2 mt-2">
-							<div class="text-xs font-semibold text-gray-800 mb-2">Layers</div>
-
-							<!-- Google Satellite Toggle -->
-							<div class="flex align-items-center justify-between mb-1">
-								<span class="text-xs text-gray-600">Google Satellite</span>
-								<p-inputSwitch
-									[(ngModel)]="showSatelliteLayer"
-									(onChange)="toggleSatelliteLayer()"
-									[style]="{ transform: 'scale(0.7)' }"
-								></p-inputSwitch>
+											<div class="flex gap-2">
+												<button
+													type="button"
+													(click)="downloadKML()"
+													[disabled]="loading"
+													class="inline-flex items-center gap-1 rounded px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-60"
+													title="Download KML"
+												>
+													<svg
+														class="w-4 h-4"
+														fill="none"
+														stroke="currentColor"
+														viewBox="0 0 24 24"
+													>
+														<path
+															stroke-linecap="round"
+															stroke-linejoin="round"
+															stroke-width="2"
+															d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+														/>
+													</svg>
+													KML
+												</button>
+												<button
+													type="button"
+													(click)="downloadGeoJSON()"
+													[disabled]="loading"
+													class="inline-flex items-center gap-1 rounded px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-60"
+													title="Download GeoJSON"
+												>
+													<svg
+														class="w-4 h-4"
+														fill="none"
+														stroke="currentColor"
+														viewBox="0 0 24 24"
+													>
+														<path
+															stroke-linecap="round"
+															stroke-linejoin="round"
+															stroke-width="2"
+															d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+														/>
+													</svg>
+													JSON
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
-
-							<!-- Buildings Layer Toggle -->
-							<div
-								class="flex align-items-center justify-between mb-1"
-								*ngIf="buildingsGeoJsonData"
-							>
-								<span class="text-xs text-gray-600">Buildings</span>
-								<p-inputSwitch
-									[(ngModel)]="showBuildingsLayer"
-									(onChange)="toggleBuildingsLayer()"
-									[style]="{ transform: 'scale(0.7)' }"
-								></p-inputSwitch>
-							</div>
-						</div>
-					</div>
-
-					<!-- Map Loading Overlay -->
-					<div
-						*ngIf="!mapInitialized"
-						class="absolute inset-0 bg-gray-50 flex items-center justify-center"
-					>
-						<div class="text-center">
-							<div
-								class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
-							></div>
-							<p class="text-sm text-gray-600">Loading map data...</p>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
 
-		<!-- Error State -->
-		<div *ngIf="!loading && !enumerationArea" class="text-center py-8">
-			<i
-				class="pi pi-exclamation-triangle text-4xl text-orange-500 mb-3 block"
-			></i>
-			<h3 class="text-xl font-semibold text-gray-800 mb-2">
-				Enumeration Area Not Found
-			</h3>
-			<p class="text-gray-600 mb-4">
-				The requested enumeration area could not be found.
-			</p>
-			<p-button
-				label="Go Back"
-				icon="pi pi-arrow-left"
-				severity="secondary"
-				(click)="goBack()"
-			></p-button>
-		</div>
+			<!-- Right Pane: Map -->
+			<div class="flex-1 relative rounded-lg overflow-hidden shadow-sm">
+				<!-- Map Container -->
+				<div
+					id="enumerationAreaMap"
+					class="w-full h-full bg-slate-100"
+					[class.opacity-60]="loading"
+					[class.pointer-events-none]="loading"
+				></div>
 
-		<!-- Toast Messages -->
-		<p-toast></p-toast>
-	</div>
+				<!-- Popovers for Download and Filter (Top Left) -->
+				<div class="absolute top-4 left-4 flex gap-2 z-[1001]">
+					<!-- Download Popover -->
+					<p-button
+						(click)="downloadPopover.toggle($event)"
+						icon="pi pi-save"
+						severity="secondary"
+						[label]="'Download'"
+						size="small"
+					/>
+					<p-popover #downloadPopover>
+						<div class="flex flex-col gap-3 w-[18rem]">
+							<div>
+								<span class="font-semibold text-slate-900 block mb-3 text-sm">
+									Download Data
+								</span>
+								<div class="flex flex-col gap-2">
+									<button
+										type="button"
+										(click)="downloadGeoJSON(); downloadPopover.hide()"
+										class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition flex items-center justify-center gap-2"
+									>
+										<i class="pi pi-download text-xs"></i>
+										Download GeoJSON
+									</button>
+									<button
+										type="button"
+										(click)="downloadKML(); downloadPopover.hide()"
+										class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition flex items-center justify-center gap-2"
+									>
+										<i class="pi pi-download text-xs"></i>
+										Download KML
+									</button>
+								</div>
+							</div>
+						</div>
+					</p-popover>
+
+					<!-- Filter/Navigation Popover -->
+					<p-button
+						(click)="filterPopover.toggle($event)"
+						icon="pi pi-map-marker"
+						severity="secondary"
+						size="small"
+						[label]="'Navigate'"
+					/>
+					<p-popover #filterPopover>
+						<div class="flex flex-col gap-3 w-[20rem]">
+							<div>
+								<span class="font-semibold text-slate-900 block mb-3 text-sm">
+									Navigate to Location
+								</span>
+
+								<div class="space-y-3">
+									<!-- Dzongkhag Dropdown -->
+									<div>
+										<label
+											class="block text-xs font-semibold text-slate-700 mb-1"
+										>
+											Dzongkhag
+										</label>
+										<p-dropdown
+											[options]="dzongkhagOptions"
+											[(ngModel)]="selectedDzongkhag"
+											placeholder="Select Dzongkhag"
+											optionLabel="label"
+											optionValue="value"
+											(onChange)="onDzongkhagChange()"
+											[showClear]="true"
+											styleClass="w-full"
+										></p-dropdown>
+									</div>
+
+									<!-- Admin Zone Dropdown -->
+									<div>
+										<label
+											class="block text-xs font-semibold text-slate-700 mb-1"
+										>
+											Administrative Zone
+										</label>
+										<p-dropdown
+											[options]="adminZoneOptions"
+											[(ngModel)]="selectedAdminZone"
+											placeholder="Select Admin Zone"
+											optionLabel="label"
+											optionValue="value"
+											(onChange)="onAdminZoneChange()"
+											[disabled]="
+												!selectedDzongkhag || adminZoneOptions.length === 0
+											"
+											[showClear]="true"
+											styleClass="w-full"
+										></p-dropdown>
+									</div>
+
+									<!-- Sub Admin Zone Dropdown -->
+									<div>
+										<label
+											class="block text-xs font-semibold text-slate-700 mb-1"
+										>
+											Sub Administrative Zone
+										</label>
+										<p-dropdown
+											[options]="subAdminZoneOptions"
+											[(ngModel)]="selectedSubAdminZone"
+											placeholder="Select Sub Admin Zone"
+											optionLabel="label"
+											optionValue="value"
+											(onChange)="onSubAdminZoneChange()"
+											[disabled]="
+												!selectedAdminZone || subAdminZoneOptions.length === 0
+											"
+											[showClear]="true"
+											styleClass="w-full"
+										></p-dropdown>
+									</div>
+
+									<!-- EA Dropdown -->
+									<div>
+										<label
+											class="block text-xs font-semibold text-slate-700 mb-1"
+										>
+											Enumeration Area
+										</label>
+										<p-dropdown
+											[options]="eaOptions"
+											[(ngModel)]="selectedEAFilter"
+											placeholder="Select EA"
+											optionLabel="label"
+											optionValue="value"
+											[disabled]="
+												!selectedSubAdminZone || eaOptions.length === 0
+											"
+											[showClear]="true"
+											styleClass="w-full"
+										></p-dropdown>
+									</div>
+
+									<!-- Navigate Button -->
+									<div class="pt-2">
+										<button
+											type="button"
+											(click)="submitNavigation(); filterPopover.hide()"
+											[disabled]="!selectedDzongkhag"
+											class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+										>
+											<i class="pi pi-map-marker"></i>
+											Navigate to Location
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</p-popover>
+				</div>
+
+				<!-- Map Controls Overlay -->
+				<div
+					class="absolute top-4 right-4 bg-white rounded-lg border border-slate-200 shadow-lg p-3 space-y-3 z-[1000]"
+				>
+					<div>
+						<p class="text-sm font-semibold text-slate-700 mb-2">
+							Map Controls
+						</p>
+
+						<!-- Basemap Selector -->
+						<div class="mb-3">
+							<label class="text-xs text-slate-600 mb-1 block">Basemap:</label>
+							<select
+								[(ngModel)]="selectedBasemapId"
+								(change)="switchBasemap()"
+								class="w-full text-sm border border-slate-300 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+							>
+								<ng-container
+									*ngFor="let category of basemapCategories | keyvalue"
+								>
+									<optgroup [label]="$any(category.value).label">
+										<option
+											*ngFor="let basemap of $any(category.value).basemaps"
+											[value]="basemap.id"
+										>
+											{{ basemap.name }}
+										</option>
+									</optgroup>
+								</ng-container>
+							</select>
+						</div>
+					</div>
+				</div>
+
+				<!-- Loading Overlay -->
+				<div
+					*ngIf="loading"
+					class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center"
+				>
+					<p-progressSpinner styleClass="w-12 h-12"></p-progressSpinner>
+				</div>
+			</div>
+		</section>
+	</ng-container>
 </div>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>

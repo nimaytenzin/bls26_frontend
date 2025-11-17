@@ -1,0 +1,104 @@
+<div class="enumerator-layout min-h-screen bg-gray-50 flex flex-col">
+	<!-- Top Header -->
+	<header
+		*ngIf="showHeader"
+		class="shadow-md sticky top-0 z-40 safe-area-top bg-white"
+	>
+		<div class="px-4 py-3 flex items-center justify-between">
+			<!-- Logo/Title -->
+			<div class="flex items-center gap-3">
+				<img src="logo.png" alt="" class="w-8" />
+				<div>
+					<h1 class="text-lg font-bold leading-tight">NSFD</h1>
+					<p class="text-xs text-primary-100">Enumerator</p>
+				</div>
+			</div>
+
+			<!-- User Info -->
+			<div class="flex items-center gap-3">
+				<div class="text-right hidden sm:block">
+					<p class="text-sm font-semibold">{{ currentUser?.name }}</p>
+					<p class="text-xs text-primary-100">{{ currentUser?.phoneNumber }}</p>
+				</div>
+				<div
+					class="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center font-bold text-sm"
+				>
+					{{ getUserInitials() }}
+				</div>
+			</div>
+		</div>
+	</header>
+
+	<!-- Main Content Area -->
+	<main class="flex-1 overflow-y-auto pb-20">
+		<router-outlet></router-outlet>
+	</main>
+
+	<!-- Bottom Navigation Bar (Mobile-First) -->
+	<nav
+		*ngIf="showBottomNav"
+		class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg safe-area-bottom z-50"
+	>
+		<div class="grid grid-cols-3 h-16">
+			<!-- Active Surveys Tab -->
+			<button
+				(click)="navigateToTab('active-surveys')"
+				[class.text-primary-600]="activeTab === 'active-surveys'"
+				[class.text-gray-500]="activeTab !== 'active-surveys'"
+				class="flex flex-col items-center justify-center gap-1 hover:bg-gray-50 transition-colors active:bg-gray-100"
+			>
+				<i class="pi pi-briefcase text-xl"></i>
+				<span
+					class="text-xs font-medium"
+					[class.font-semibold]="activeTab === 'active-surveys'"
+				>
+					Active
+				</span>
+				<div
+					*ngIf="activeTab === 'active-surveys'"
+					class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600"
+				></div>
+			</button>
+
+			<!-- Past Surveys Tab -->
+			<button
+				(click)="navigateToTab('past-surveys')"
+				[class.text-primary-600]="activeTab === 'past-surveys'"
+				[class.text-gray-500]="activeTab !== 'past-surveys'"
+				class="flex flex-col items-center justify-center gap-1 hover:bg-gray-50 transition-colors active:bg-gray-100 relative"
+			>
+				<i class="pi pi-history text-xl"></i>
+				<span
+					class="text-xs font-medium"
+					[class.font-semibold]="activeTab === 'past-surveys'"
+				>
+					Past
+				</span>
+				<div
+					*ngIf="activeTab === 'past-surveys'"
+					class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600"
+				></div>
+			</button>
+
+			<!-- Profile Tab -->
+			<button
+				(click)="navigateToTab('profile')"
+				[class.text-primary-600]="activeTab === 'profile'"
+				[class.text-gray-500]="activeTab !== 'profile'"
+				class="flex flex-col items-center justify-center gap-1 hover:bg-gray-50 transition-colors active:bg-gray-100 relative"
+			>
+				<i class="pi pi-user text-xl"></i>
+				<span
+					class="text-xs font-medium"
+					[class.font-semibold]="activeTab === 'profile'"
+				>
+					Profile
+				</span>
+				<div
+					*ngIf="activeTab === 'profile'"
+					class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600"
+				></div>
+			</button>
+		</div>
+	</nav>
+</div>

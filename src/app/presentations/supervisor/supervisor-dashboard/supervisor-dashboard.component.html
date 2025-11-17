@@ -1,0 +1,109 @@
+<div class="container mx-auto px-4 py-8">
+	<div class="mb-8">
+		<h1 class="text-4xl font-bold text-gray-800 mb-2">Supervisor Dashboard</h1>
+		<p class="text-gray-600">
+			Welcome to the National Sampling Frame Dashboard
+		</p>
+	</div>
+
+	<!-- Quick Actions -->
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+		<!-- Survey Management Card -->
+		<p-card class="hover:shadow-xl transition-shadow">
+			<ng-template pTemplate="header">
+				<div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
+					<i class="pi pi-file-edit text-5xl text-white"></i>
+				</div>
+			</ng-template>
+			<div class="space-y-4">
+				<h3 class="text-xl font-bold text-gray-800">Survey Management</h3>
+				<p class="text-gray-600">
+					View and manage active surveys, upload household data, and track
+					progress.
+				</p>
+			</div>
+			<ng-template pTemplate="footer">
+				<p-button
+					label="Go to Surveys"
+					icon="pi pi-arrow-right"
+					(onClick)="goToSurveys()"
+					[outlined]="true"
+					styleClass="w-full"
+				></p-button>
+			</ng-template>
+		</p-card>
+
+		<!-- Data Upload Card -->
+		<p-card class="hover:shadow-xl transition-shadow">
+			<ng-template pTemplate="header">
+				<div class="p-6 bg-gradient-to-r from-green-500 to-green-600">
+					<i class="pi pi-upload text-5xl text-white"></i>
+				</div>
+			</ng-template>
+			<div class="space-y-4">
+				<h3 class="text-xl font-bold text-gray-800">Data Upload</h3>
+				<p class="text-gray-600">
+					Download templates and upload household listing data for enumeration
+					areas.
+				</p>
+			</div>
+			<ng-template pTemplate="footer">
+				<p-button
+					label="Go to Surveys"
+					icon="pi pi-arrow-right"
+					(onClick)="goToSurveys()"
+					[outlined]="true"
+					styleClass="w-full"
+				></p-button>
+			</ng-template>
+		</p-card>
+
+		<!-- Progress Tracking Card -->
+		<p-card class="hover:shadow-xl transition-shadow">
+			<ng-template pTemplate="header">
+				<div class="p-6 bg-gradient-to-r from-purple-500 to-purple-600">
+					<i class="pi pi-chart-bar text-5xl text-white"></i>
+				</div>
+			</ng-template>
+			<div class="space-y-4">
+				<h3 class="text-xl font-bold text-gray-800">Progress Tracking</h3>
+				<p class="text-gray-600">
+					Monitor submission and validation progress across all enumeration
+					areas.
+				</p>
+			</div>
+			<ng-template pTemplate="footer">
+				<p-button
+					label="Go to Surveys"
+					icon="pi pi-arrow-right"
+					(onClick)="goToSurveys()"
+					[outlined]="true"
+					styleClass="w-full"
+				></p-button>
+			</ng-template>
+		</p-card>
+	</div>
+
+	<!-- Instructions Section -->
+	<div class="mt-12">
+		<p-card header="Getting Started">
+			<div class="space-y-4">
+				<h3 class="text-lg font-semibold text-gray-800">
+					How to manage surveys:
+				</h3>
+				<ol class="list-decimal list-inside space-y-2 text-gray-700">
+					<li>
+						Click on "Go to Surveys" to view all active surveys assigned to you
+					</li>
+					<li>Select a survey to see details and enumeration areas</li>
+					<li>Download CSV templates for each enumeration area</li>
+					<li>
+						Fill in the household data offline following the template format
+					</li>
+					<li>Upload the completed CSV files through the Data Upload tab</li>
+					<li>Track your progress and monitor submission statistics</li>
+				</ol>
+			</div>
+		</p-card>
+	</div>
+</div>

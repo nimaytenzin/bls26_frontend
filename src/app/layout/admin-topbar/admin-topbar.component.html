@@ -39,7 +39,7 @@
 	<div class="flex items-center gap-3 mr-4">
 		<div class="text-right">
 			<p class="text-sm font-medium text-gray-800 m-0 leading-tight">
-				{{ userProfile?.firstName }} {{ userProfile?.lastName }}
+				{{ userProfile?.name }}
 			</p>
 			<p class="text-xs text-gray-500 m-0 leading-tight">
 				{{ userProfile?.role }}
@@ -51,9 +51,7 @@
 			class="ring-2 ring-gray-200 cursor-pointer hover:shadow-xl transition-all"
 			[image]="userProfile?.profileImage"
 			[label]="
-				!userProfile?.profileImage
-					? userProfile?.firstName?.charAt(0)
-					: undefined
+				!userProfile?.profileImage ? userProfile?.name?.charAt(0) : undefined
 			"
 			(click)="profileSideBarVisible = true"
 		></p-avatar>
@@ -90,14 +88,12 @@
 				class="ring-4 ring-blue-100"
 				[image]="userProfile?.profileImage"
 				[label]="
-					!userProfile?.profileImage
-						? userProfile?.firstName?.charAt(0)
-						: undefined
+					!userProfile?.profileImage ? userProfile?.name?.charAt(0) : undefined
 				"
 			></p-avatar>
 			<div>
 				<h3 class="text-xl font-semibold text-gray-800 m-0">
-					{{ userProfile?.firstName }} {{ userProfile?.lastName }}
+					{{ userProfile?.name }}
 				</h3>
 				<p class="text-sm text-blue-600 font-medium m-0">
 					{{ userProfile?.role }}
@@ -113,7 +109,7 @@
 					<div class="flex-1">
 						<p class="text-xs text-gray-500 m-0">Email</p>
 						<p class="text-sm font-medium text-gray-800 m-0">
-							{{ userProfile?.email }}
+							{{ userProfile?.emailAddress }}
 						</p>
 					</div>
 				</div>

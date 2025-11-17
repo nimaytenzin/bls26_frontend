@@ -1,0 +1,16 @@
+:host {
+	display: block;
+}
+
+/* Label styling for map tooltips */
+::ng-deep .dzongkhag-label,
+::ng-deep .admin-zone-label {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	pointer-events: none;
+
+	&::before {
+		display: none !important;
+	}
+}

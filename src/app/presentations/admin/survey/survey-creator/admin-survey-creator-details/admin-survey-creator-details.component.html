@@ -1,0 +1,168 @@
+<div class="survey-details-form">
+	<form [formGroup]="surveyForm" (ngSubmit)="onSubmit()">
+		<!-- Form Header -->
+		<div class="mb-6">
+			<h3 class="text-xl font-semibold text-gray-900 mb-2">Survey Details</h3>
+			<p class="text-gray-600">Enter the basic information about the survey</p>
+		</div>
+
+		<!-- Form Fields -->
+		<div class="grid grid-cols-1 gap-6">
+			<!-- Survey Name -->
+			<div class="field">
+				<label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+					Survey Name <span class="text-red-500">*</span>
+				</label>
+				<input
+					pInputText
+					id="name"
+					formControlName="name"
+					placeholder="e.g., National Housing Survey 2025"
+					class="w-full"
+					[ngClass]="{ 'ng-invalid ng-dirty': isFieldInvalid('name') }"
+				/>
+				<small *ngIf="isFieldInvalid('name')" class="p-error block mt-1">
+					{{ getErrorMessage("name") }}
+				</small>
+			</div>
+
+			<!-- Description -->
+			<div class="field">
+				<label
+					for="description"
+					class="block text-sm font-medium text-gray-700 mb-2"
+				>
+					Description <span class="text-red-500">*</span>
+				</label>
+				<textarea
+					pInputTextarea
+					id="description"
+					formControlName="description"
+					placeholder="Describe the purpose and scope of this survey"
+					rows="4"
+					class="w-full"
+					[ngClass]="{ 'ng-invalid ng-dirty': isFieldInvalid('description') }"
+				></textarea>
+				<small *ngIf="isFieldInvalid('description')" class="p-error block mt-1">
+					{{ getErrorMessage("description") }}
+				</small>
+			</div>
+
+			<!-- Year -->
+			<div class="field">
+				<label for="year" class="block text-sm font-medium text-gray-700 mb-2">
+					Survey Year <span class="text-red-500">*</span>
+				</label>
+				<p-dropdown
+					[options]="yearOptions"
+					formControlName="year"
+					placeholder="Select Year"
+					[showClear]="false"
+					styleClass="w-full"
+					[ngClass]="{ 'ng-invalid ng-dirty': isFieldInvalid('year') }"
+				>
+				</p-dropdown>
+				<small *ngIf="isFieldInvalid('year')" class="p-error block mt-1">
+					{{ getErrorMessage("year") }}
+				</small>
+			</div>
+
+			<!-- Date Range -->
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<!-- Start Date -->
+				<div class="field">
+					<label
+						for="startDate"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						Start Date <span class="text-red-500">*</span>
+					</label>
+					<p-calendar
+						formControlName="startDate"
+						dateFormat="yy-mm-dd"
+						[showIcon]="true"
+						[minDate]="minDate"
+						[maxDate]="maxDate"
+						placeholder="Select start date"
+						styleClass="w-full"
+						[ngClass]="{ 'ng-invalid ng-dirty': isFieldInvalid('startDate') }"
+					>
+					</p-calendar>
+					<small *ngIf="isFieldInvalid('startDate')" class="p-error block mt-1">
+						{{ getErrorMessage("startDate") }}
+					</small>
+				</div>
+
+				<!-- End Date -->
+				<div class="field">
+					<label
+						for="endDate"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						End Date <span class="text-red-500">*</span>
+					</label>
+					<p-calendar
+						formControlName="endDate"
+						dateFormat="yy-mm-dd"
+						[showIcon]="true"
+						[minDate]="minDate"
+						[maxDate]="maxDate"
+						placeholder="Select end date"
+						styleClass="w-full"
+						[ngClass]="{ 'ng-invalid ng-dirty': isFieldInvalid('endDate') }"
+					>
+					</p-calendar>
+					<small *ngIf="isFieldInvalid('endDate')" class="p-error block mt-1">
+						{{ getErrorMessage("endDate") }}
+					</small>
+				</div>
+			</div>
+
+			<!-- Date Range Error -->
+			<div *ngIf="hasDateRangeError()" class="field">
+				<small class="p-error"> End date must be after start date </small>
+			</div>
+
+			<!-- Status -->
+			<div class="field">
+				<label
+					for="status"
+					class="block text-sm font-medium text-gray-700 mb-2"
+				>
+					Status <span class="text-red-500">*</span>
+				</label>
+				<p-dropdown
+					[options]="statusOptions"
+					formControlName="status"
+					optionLabel="label"
+					optionValue="value"
+					placeholder="Select Status"
+					[showClear]="false"
+					styleClass="w-full"
+					[ngClass]="{ 'ng-invalid ng-dirty': isFieldInvalid('status') }"
+				>
+				</p-dropdown>
+				<small *ngIf="isFieldInvalid('status')" class="p-error block mt-1">
+					{{ getErrorMessage("status") }}
+				</small>
+			</div>
+		</div>
+
+		<!-- Form Actions -->
+		<div class="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
+			<p-button
+				label="Cancel"
+				icon="pi pi-times"
+				(onClick)="onCancel()"
+				styleClass="p-button-text p-button-plain"
+			></p-button>
+			<p-button
+				label="Next: Select Enumeration Areas"
+				icon="pi pi-arrow-right"
+				iconPos="right"
+				type="submit"
+				[disabled]="surveyForm.invalid"
+			></p-button>
+		</div>
+	</form>
+</div>

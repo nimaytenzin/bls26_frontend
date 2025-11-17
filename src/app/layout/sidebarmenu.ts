@@ -1,14 +1,7 @@
 export enum USERROLESENUM {
 	'ADMIN' = 'ADMIN',
-	'THEATRE_MANAGER' = 'THEATRE_MANAGER',
-	'EXECUTIVE_PRODUCER' = 'EXECUTIVE_PRODUCER',
-	'COUNTER_STAFF' = 'COUNTER_STAFF',
-	'CUSTOMER' = 'CUSTOMER',
-	// Legacy roles - keeping for backward compatibility
-	'OWNER' = 'OWNER',
-	'TENANT' = 'TENANT',
-	'SUPERADMIN' = 'SUPERADMIN',
-	'MANAGER' = 'MANAGER',
+	'SUPERVISOR' = 'SUPERVISOR',
+	'ENUMERATOR' = 'ENUMERATOR',
 }
 // Admin Sidebar Menu - Full system access
 export const ADMINSIDEBARITEMS = [
@@ -19,6 +12,23 @@ export const ADMINSIDEBARITEMS = [
 				label: 'Overview',
 				icon: 'pi pi-fw pi-chart-bar',
 				routerLink: ['/admin'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+		],
+	},
+	{
+		label: 'Survey Management',
+		items: [
+			{
+				label: 'All Surveys',
+				icon: 'pi pi-fw pi-list-check',
+				routerLink: ['/admin/survey/master'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'Create Survey',
+				icon: 'pi pi-fw pi-plus-circle',
+				routerLink: ['/admin/survey/create'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 		],
@@ -34,13 +44,13 @@ export const ADMINSIDEBARITEMS = [
 				roles: [USERROLESENUM.ADMIN],
 			},
 			{
-				label: 'Administrative Zones',
+				label: 'Gewog/Thromdes',
 				icon: 'pi pi-fw pi-map-marker',
 				routerLink: ['/admin/master/administrative-zones'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 			{
-				label: 'Sub Administrative Zones',
+				label: 'Chiwogs/LAPs',
 				icon: 'pi pi-fw pi-th-large',
 				routerLink: ['/admin/master/sub-administrative-zones'],
 				roles: [USERROLESENUM.ADMIN],
@@ -60,120 +70,151 @@ export const ADMINSIDEBARITEMS = [
 		],
 	},
 	{
-		label: 'Survey Manager',
-		items: [
-			{
-				label: 'Surveys',
-				icon: 'pi pi-fw pi-list-check',
-				routerLink: ['/admin/survey/master'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-		],
-	},
-	{
 		label: 'User Management',
 		items: [
 			{
-				label: 'Admin',
-				icon: 'pi pi-fw pi-users',
-				routerLink: ['/admin/user-management'],
+				label: 'Admins',
+				icon: 'pi pi-fw pi-shield',
+				routerLink: ['/admin/user-management/admins'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 			{
 				label: 'Supervisors',
 				icon: 'pi pi-fw pi-users',
-				routerLink: ['/admin/user-management'],
+				routerLink: ['/admin/user-management/supervisors'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 			{
 				label: 'Enumerators',
-				icon: 'pi pi-fw pi-users',
-				routerLink: ['/admin/user-management'],
+				icon: 'pi pi-fw pi-user',
+				routerLink: ['/admin/user-management/enumerators'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+		],
+	},
+	{
+		label: 'Download',
+		items: [
+			{
+				label: 'Reports & Data',
+				icon: 'pi pi-fw pi-chart-pie',
+				routerLink: ['/admin/reports/statistics'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 		],
 	},
 ];
 
-// Theatre Manager Sidebar Menu - Theatre-specific management
-export const THEATREMANAGERSIDEBARITEMS = [
+// Supervisor Menu - Survey field operations and data submission
+export const SUPERVISORMENUSIDEBARITEMS = [
 	{
 		label: 'Dashboard',
 		items: [
 			{
-				label: 'Theatre Overview',
+				label: 'Overview',
+				icon: 'pi pi-fw pi-home',
+				routerLink: ['/supervisor'],
+				roles: [USERROLESENUM.SUPERVISOR],
+			},
+		],
+	},
+	{
+		label: 'My Surveys',
+		items: [
+			{
+				label: 'Active Surveys',
+				icon: 'pi pi-fw pi-list-check',
+				routerLink: ['/supervisor/survey/active'],
+				roles: [USERROLESENUM.SUPERVISOR],
+			},
+		],
+	},
+];
+
+// Enumerator Sidebar Menu - Field data collection
+export const ENUMERATORMENUSIDEBARITEMS = [
+	{
+		label: 'Dashboard',
+		items: [
+			{
+				label: 'My Dashboard',
+				icon: 'pi pi-fw pi-home',
+				routerLink: ['/enumerator'],
+				roles: [USERROLESENUM.ENUMERATOR],
+			},
+		],
+	},
+	{
+		label: 'My Assignments',
+		items: [
+			{
+				label: 'Active Surveys',
+				icon: 'pi pi-fw pi-list-check',
+				routerLink: ['/enumerator/surveys'],
+				roles: [USERROLESENUM.ENUMERATOR],
+			},
+			{
+				label: 'Assigned Areas',
+				icon: 'pi pi-fw pi-map-marker',
+				routerLink: ['/enumerator/areas'],
+				roles: [USERROLESENUM.ENUMERATOR],
+			},
+		],
+	},
+	{
+		label: 'Data Collection',
+		items: [
+			{
+				label: 'Download Templates',
+				icon: 'pi pi-fw pi-download',
+				routerLink: ['/enumerator/templates'],
+				roles: [USERROLESENUM.ENUMERATOR],
+			},
+			{
+				label: 'Add Household',
+				icon: 'pi pi-fw pi-plus-circle',
+				routerLink: ['/enumerator/household/add'],
+				roles: [USERROLESENUM.ENUMERATOR],
+			},
+			{
+				label: 'My Submissions',
+				icon: 'pi pi-fw pi-check-circle',
+				routerLink: ['/enumerator/submissions'],
+				roles: [USERROLESENUM.ENUMERATOR],
+			},
+		],
+	},
+	{
+		label: 'Household Listings',
+		items: [
+			{
+				label: 'View All',
+				icon: 'pi pi-fw pi-list',
+				routerLink: ['/enumerator/households'],
+				roles: [USERROLESENUM.ENUMERATOR],
+			},
+			{
+				label: 'Search Household',
+				icon: 'pi pi-fw pi-search',
+				routerLink: ['/enumerator/households/search'],
+				roles: [USERROLESENUM.ENUMERATOR],
+			},
+		],
+	},
+	{
+		label: 'Progress',
+		items: [
+			{
+				label: 'My Statistics',
 				icon: 'pi pi-fw pi-chart-bar',
-				routerLink: ['/theatre-manager'],
-				roles: [USERROLESENUM.THEATRE_MANAGER],
+				routerLink: ['/enumerator/statistics'],
+				roles: [USERROLESENUM.ENUMERATOR],
 			},
 			{
-				label: 'Performance Analytics',
-				icon: 'pi pi-fw pi-chart-line',
-				routerLink: ['/theatre-manager/analytics'],
-				roles: [USERROLESENUM.THEATRE_MANAGER],
-			},
-		],
-	},
-	{
-		label: 'Theatre Operations',
-		items: [
-			{
-				label: 'My Theatres',
-				icon: 'pi pi-fw pi-building',
-				routerLink: ['/theatre-manager/theatres'],
-				roles: [USERROLESENUM.THEATRE_MANAGER],
-			},
-			{
-				label: 'Hall Management',
-				icon: 'pi pi-fw pi-th-large',
-				routerLink: ['/theatre-manager/halls'],
-				roles: [USERROLESENUM.THEATRE_MANAGER],
-			},
-			{
-				label: 'Screenings',
-				icon: 'pi pi-fw pi-calendar',
-				routerLink: ['/theatre-manager/screenings'],
-				roles: [USERROLESENUM.THEATRE_MANAGER],
-			},
-		],
-	},
-	{
-		label: 'Bookings & Sales',
-		items: [
-			{
-				label: 'Bookings',
-				icon: 'pi pi-fw pi-ticket',
-				routerLink: ['/theatre-manager/bookings'],
-				roles: [USERROLESENUM.THEATRE_MANAGER],
-			},
-			{
-				label: 'Walk-in Sales',
-				icon: 'pi pi-fw pi-shopping-cart',
-				routerLink: ['/theatre-manager/walk-in-sales'],
-				roles: [USERROLESENUM.THEATRE_MANAGER],
-			},
-			{
-				label: 'Reports',
-				icon: 'pi pi-fw pi-file-pdf',
-				routerLink: ['/theatre-manager/reports'],
-				roles: [USERROLESENUM.THEATRE_MANAGER],
-			},
-		],
-	},
-	{
-		label: 'Staff Management',
-		items: [
-			{
-				label: 'Counter Staff',
-				icon: 'pi pi-fw pi-users',
-				routerLink: ['/theatre-manager/counter-staff'],
-				roles: [USERROLESENUM.THEATRE_MANAGER],
-			},
-			{
-				label: 'Staff Schedules',
-				icon: 'pi pi-fw pi-calendar-plus',
-				routerLink: ['/theatre-manager/staff-schedules'],
-				roles: [USERROLESENUM.THEATRE_MANAGER],
+				label: 'Collection Progress',
+				icon: 'pi pi-fw pi-percentage',
+				routerLink: ['/enumerator/progress'],
+				roles: [USERROLESENUM.ENUMERATOR],
 			},
 		],
 	},
@@ -183,143 +224,8 @@ export const THEATREMANAGERSIDEBARITEMS = [
 			{
 				label: 'My Profile',
 				icon: 'pi pi-fw pi-user',
-				routerLink: ['/theatre-manager/profile'],
-				roles: [USERROLESENUM.THEATRE_MANAGER],
-			},
-		],
-	},
-];
-
-// Executive Producer Sidebar Menu - Content and financial management
-export const EXECUTIVEPRODUCERSIDEBARITEMS = [
-	{
-		label: 'Dashboard',
-		items: [
-			{
-				label: 'Overview',
-				icon: 'pi pi-fw pi-chart-bar',
-				routerLink: ['/executive-producer'],
-				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
-			},
-		],
-	},
-	{
-		label: 'Content Management',
-		items: [
-			{
-				label: 'Movies',
-				icon: 'pi pi-fw pi-video',
-				routerLink: ['/executive-producer/movies'],
-				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
-			},
-			{
-				label: 'Screenings',
-				icon: 'pi pi-fw pi-calendar',
-				routerLink: ['/executive-producer/screenings'],
-				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
-			},
-		],
-	},
-	{
-		label: 'Operations',
-		items: [
-			{
-				label: 'Bookings',
-				icon: 'pi pi-fw pi-ticket',
-				routerLink: ['/executive-producer/bookings'],
-				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
-			},
-		],
-	},
-	{
-		label: 'Financial Management',
-		items: [
-			{
-				label: 'Revenue',
-				icon: 'pi pi-fw pi-money-bill',
-				routerLink: ['/executive-producer/revenue'],
-				roles: [USERROLESENUM.EXECUTIVE_PRODUCER],
-			},
-		],
-	},
-];
-
-// Counter Staff Sidebar Menu - Basic operations
-export const COUNTERSTAFFSIDEBARITEMS = [
-	{
-		label: 'Ticket Operations',
-		items: [
-			{
-				label: 'Sell Tickets',
-				icon: 'pi pi-fw pi-shopping-cart',
-				routerLink: ['/counter-staff/sell-tickets'],
-				roles: [USERROLESENUM.COUNTER_STAFF],
-			},
-			{
-				label: 'Check Bookings',
-				icon: 'pi pi-fw pi-search',
-				routerLink: ['/counter-staff/check-bookings'],
-				roles: [USERROLESENUM.COUNTER_STAFF],
-			},
-			{
-				label: 'Scan Ticket',
-				icon: 'pi pi-fw pi-barcode',
-				routerLink: ['/counter-staff/scan-ticket'],
-				roles: [USERROLESENUM.COUNTER_STAFF],
-			},
-		],
-	},
-];
-
-export const OWNERSIDEBARITEMS = [
-	{
-		label: 'Home',
-		items: [
-			{
-				label: 'Dashboard',
-				icon: 'pi pi-fw pi-home',
-				routerLink: ['/owner'],
-			},
-		],
-	},
-	{
-		label: 'Properties',
-		items: [
-			{
-				label: 'Thram & Plots',
-				icon: 'pi pi-fw pi-th-large',
-				routerLink: ['/owner/properties'],
-			},
-			{
-				label: 'Building & Units',
-				icon: 'pi pi-fw pi-th-large',
-				routerLink: ['/owner/properties'],
-			},
-		],
-	},
-
-	{
-		label: 'Lease',
-		items: [
-			{
-				label: 'Listing',
-				icon: 'pi pi-fw pi-th-large',
-				routerLink: ['/owner/lease'],
-			},
-		],
-	},
-	{
-		label: 'Payments',
-		items: [
-			{
-				label: 'Payments',
-				icon: 'pi pi-fw pi-th-large',
-				routerLink: ['/owner/payments'],
-			},
-			{
-				label: 'Invoices',
-				icon: 'pi pi-fw pi-th-large',
-				routerLink: ['/owner/payments'],
+				routerLink: ['/enumerator/profile'],
+				roles: [USERROLESENUM.ENUMERATOR],
 			},
 		],
 	},

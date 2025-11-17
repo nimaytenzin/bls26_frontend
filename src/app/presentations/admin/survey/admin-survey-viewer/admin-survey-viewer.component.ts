@@ -1,9 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PrimeNgModules } from '../../../../primeng.modules';
-import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
 import { EnumerationAreaDataService } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
 import {
 	Survey,
@@ -12,16 +11,33 @@ import {
 } from '../../../../core/dataservice/survey/survey.dto';
 import { EnumerationArea } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { AdminMasterSurveyEditComponent } from '../shared/admin-master-survey-edit/admin-master-survey-edit.component';
+import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
+import { AdminSurveySupervisorsEnumeratorsComponent } from './admin-survey-supervisors-enumerators/admin-survey-supervisors-enumerators.component';
+import { AdminSurveyEnumerationAreaHouseholdListingsComponent } from './admin-survey-enumeration-area-household-listings/admin-survey-enumeration-area-household-listings.component';
+import { AdminSurveyOverviewComponent } from './admin-survey-overview/admin-survey-overview.component';
+import { AdminSurveyEaManagementComponent } from './admin-survey-ea-management/admin-survey-ea-management.component';
+import { AdminSurveySamplingComponent } from './admin-survey-sampling/admin-survey-sampling.component';
 
 @Component({
 	selector: 'app-admin-survey-viewer',
 	templateUrl: './admin-survey-viewer.component.html',
 	styleUrls: ['./admin-survey-viewer.component.css'],
 	standalone: true,
-	imports: [CommonModule, FormsModule, PrimeNgModules],
-	providers: [MessageService, ConfirmationService],
+	imports: [
+		CommonModule,
+		FormsModule,
+		PrimeNgModules,
+		AdminSurveySupervisorsEnumeratorsComponent,
+		AdminSurveyEnumerationAreaHouseholdListingsComponent,
+		AdminSurveyOverviewComponent,
+		AdminSurveyEaManagementComponent,
+		AdminSurveySamplingComponent,
+	],
+	providers: [MessageService, ConfirmationService, DialogService],
 })
-export class AdminSurveyViewerComponent implements OnInit {
+export class AdminSurveyViewerComponent implements OnInit, OnDestroy {
 	// Main survey data
 	survey: Survey | null = null;
 	surveyId: number | null = null;
@@ -29,9 +45,8 @@ export class AdminSurveyViewerComponent implements OnInit {
 	notFound = false;
 
 	// Edit functionality
-	showEditDialog = false;
+	editDialogRef: DynamicDialogRef | undefined;
 	submitting = false;
-	editSurveyData: UpdateSurveyDto = {};
 
 	// Enumeration Areas
 	enumerationAreas: EnumerationArea[] = [];
@@ -48,6 +63,7 @@ export class AdminSurveyViewerComponent implements OnInit {
 		private enumerationAreaService: EnumerationAreaDataService,
 		private messageService: MessageService,
 		private confirmationService: ConfirmationService,
+		private dialogService: DialogService,
 		private router: Router,
 		private route: ActivatedRoute
 	) {}
@@ -71,6 +87,13 @@ export class AdminSurveyViewerComponent implements OnInit {
 				});
 			}
 		});
+	}
+
+	ngOnDestroy(): void {
+		// Clean up any open dialogs
+		if (this.editDialogRef) {
+			this.editDialogRef.close();
+		}
 	}
 
 	loadSurvey(): void {
@@ -125,53 +148,58 @@ export class AdminSurveyViewerComponent implements OnInit {
 	editSurvey(): void {
 		if (!this.survey) return;
 
-		this.editSurveyData = {
-			name: this.survey.name,
-			description: this.survey.description,
-			status: this.survey.status,
-			startDate:
-				typeof this.survey.startDate === 'string'
-					? this.survey.startDate
-					: this.survey.startDate.toISOString().split('T')[0],
-			endDate:
-				typeof this.survey.endDate === 'string'
-					? this.survey.endDate
-					: this.survey.endDate.toISOString().split('T')[0],
-			isSubmitted: this.survey.isSubmitted,
-			isVerified: this.survey.isVerified,
-		};
-		this.showEditDialog = true;
+		this.editDialogRef = this.dialogService.open(
+			AdminMasterSurveyEditComponent,
+			{
+				header: 'Edit Survey Details',
+				width: '700px',
+				modal: true,
+				closable: true,
+				data: {
+					survey: this.survey,
+				},
+			}
+		);
+
+		this.editDialogRef.onClose.subscribe((result) => {
+			if (result) {
+				this.onSurveySubmit(result);
+			}
+		});
 	}
 
-	submitEditSurvey(): void {
+	onSurveySubmit(editSurveyData: UpdateSurveyDto): void {
 		if (!this.survey) return;
 
 		this.submitting = true;
-		this.surveyService
-			.updateSurvey(this.survey.id, this.editSurveyData)
-			.subscribe({
-				next: (updatedSurvey) => {
-					this.survey = updatedSurvey;
-					this.showEditDialog = false;
-					this.submitting = false;
-					this.messageService.add({
-						severity: 'success',
-						summary: 'Success',
-						detail: 'Survey updated successfully',
-						life: 3000,
-					});
-				},
-				error: (error) => {
-					this.submitting = false;
-					console.error('Error updating survey:', error);
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Error',
-						detail: error?.error?.message || 'Failed to update survey',
-						life: 3000,
-					});
-				},
-			});
+		this.surveyService.updateSurvey(this.survey.id, editSurveyData).subscribe({
+			next: (updatedSurvey) => {
+				this.survey = updatedSurvey;
+				this.editDialogRef?.close();
+				this.submitting = false;
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: 'Survey updated successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				this.submitting = false;
+				console.error('Error updating survey:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: error?.error?.message || 'Failed to update survey',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	onSurveyCancel(): void {
+		this.editDialogRef?.close();
+		this.submitting = false;
 	}
 
 	deleteSurvey(): void {
@@ -214,15 +242,7 @@ export class AdminSurveyViewerComponent implements OnInit {
 		this.router.navigate(['/admin/survey/master']);
 	}
 
-	manageEnumerationAreas(): void {
-		if (!this.survey) return;
-		this.router.navigate(['/admin/survey/manage-areas', this.survey.id]);
-	}
-
 	// Utility methods for display
-	getSurveyDuration(): number {
-		return this.survey ? this.surveyService.getSurveyDuration(this.survey) : 0;
-	}
 
 	isSurveyActive(): boolean {
 		return this.survey ? this.surveyService.isSurveyActive(this.survey) : false;
@@ -232,14 +252,6 @@ export class AdminSurveyViewerComponent implements OnInit {
 		return this.survey
 			? this.surveyService.isSurveyEndingSoon(this.survey)
 			: false;
-	}
-
-	formatDate(date: string | Date): string {
-		return this.surveyService.formatDate(date);
-	}
-
-	getEACount(): number {
-		return this.survey ? this.surveyService.getEACount(this.survey) : 0;
 	}
 
 	getStatusSeverity(status: SurveyStatus): string {
@@ -253,16 +265,6 @@ export class AdminSurveyViewerComponent implements OnInit {
 			return this.isSurveyEndingSoon() ? 'text-orange-600' : 'text-green-600';
 		}
 		return 'text-gray-600';
-	}
-
-	// Get progress percentage for display
-	getProgressPercentage(): number {
-		if (!this.survey) return 0;
-
-		let progress = 0;
-		if (this.survey.isSubmitted) progress += 50;
-		if (this.survey.isVerified) progress += 50;
-		return progress;
 	}
 
 	// Get days remaining

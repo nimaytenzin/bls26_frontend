@@ -1,0 +1,6 @@
+/* Profile component styles */
+
+/* Add touch feedback for mobile */
+button {
+	-webkit-tap-highlight-color: transparent;
+}

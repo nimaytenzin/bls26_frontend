@@ -5,17 +5,17 @@ import Aura from '@primeng/themes/aura';
 const CustomTheme = definePreset(Aura, {
 	semantic: {
 		primary: {
-			50: '#eef3fe',
-			100: '#dce7fd',
-			200: '#b9cffc',
-			300: '#96b7fa',
-			400: '#739ff9',
-			500: '#14428D', // Base primary
-			600: '#355ac3',
-			700: '#284392',
-			800: '#1a2d62',
-			900: '#0d1631',
-			950: '#070b18',
+			50: '#edf0fe',
+			100: '#d6dffd',
+			200: '#b0c2fb',
+			300: '#82a4f9',
+			400: '#4d88f7',
+			500: '#226cd7',
+			600: '#1a57af',
+			700: '#114084',
+			800: '#092d60',
+			900: '#03183a',
+			950: '#02102a',
 		},
 		accent: {
 			50: '#fff3e0',

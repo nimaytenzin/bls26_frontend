@@ -1,3 +1,6 @@
+import { SurveyEnumerationArea } from '../../survey/survey.dto';
+import { SubAdministrativeZone } from '../sub-administrative-zone/sub-administrative-zone.dto';
+
 export interface EnumerationArea {
 	id: number;
 	subAdministrativeZoneId: number;
@@ -8,6 +11,9 @@ export interface EnumerationArea {
 	geom?: any; // GeoJSON geometry
 	createdAt?: Date;
 	updatedAt?: Date;
+
+	subAdministrativeZone?: SubAdministrativeZone;
+	surveyEnumerationAreas: SurveyEnumerationArea[];
 }
 
 export interface EnumerationAreaGeoJSON {

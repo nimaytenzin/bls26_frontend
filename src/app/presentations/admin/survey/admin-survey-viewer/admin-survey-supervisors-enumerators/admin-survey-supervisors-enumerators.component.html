@@ -1,0 +1,370 @@
+<div class="space-y-6 p-6">
+	<!-- Supervisors Section -->
+	<div class="space-y-4">
+		<div class="flex items-center justify-between">
+			<h2 class="text-xl font-semibold text-slate-800">
+				Supervisors
+				<span class="text-sm font-normal text-slate-500 ml-2"
+					>({{ supervisors.length }})</span
+				>
+			</h2>
+		</div>
+
+		<!-- Loading State -->
+		<div
+			*ngIf="loadingSupervisors"
+			class="flex justify-center items-center py-12"
+		>
+			<p-progressSpinner styleClass="w-12 h-12"></p-progressSpinner>
+		</div>
+
+		<!-- Supervisors Cards -->
+		<div
+			*ngIf="!loadingSupervisors && supervisors.length > 0"
+			class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+		>
+			<div
+				*ngFor="let supervisor of supervisors"
+				class="bg-white rounded-lg border border-slate-200 p-5 hover:shadow-md transition-shadow"
+			>
+				<div class="flex items-start gap-4">
+					<div class="flex-shrink-0">
+						<div
+							class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center"
+						>
+							<i class="pi pi-user text-blue-600 text-xl"></i>
+						</div>
+					</div>
+					<div class="flex-1 min-w-0">
+						<h3 class="font-semibold text-slate-800 truncate">
+							{{ supervisor.user?.name || supervisor.name }}
+						</h3>
+						<div class="mt-2 space-y-2">
+							<div class="flex items-center gap-2 text-sm text-slate-600">
+								<i class="pi pi-envelope text-slate-400"></i>
+								<span class="truncate">{{
+									supervisor.user?.emailAddress || supervisor.emailAddress
+								}}</span>
+							</div>
+							<div class="flex items-start gap-2 text-sm text-slate-600">
+								<i class="pi pi-map-marker text-slate-400 mt-0.5"></i>
+								<div class="flex-1">
+									<span class="font-medium text-slate-700">Dzongkhags:</span>
+									<p class="mt-1">{{ getDzongkhagNames(supervisor) }}</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Empty State -->
+		<div
+			*ngIf="!loadingSupervisors && supervisors.length === 0"
+			class="text-center py-12 bg-slate-50 rounded-lg border border-slate-200"
+		>
+			<i class="pi pi-users text-4xl text-slate-300 mb-3"></i>
+			<p class="text-slate-500">No supervisors assigned to this survey</p>
+		</div>
+	</div>
+
+	<!-- Enumerators Section -->
+	<div class="space-y-4">
+		<div class="flex items-center justify-between">
+			<h2 class="text-xl font-semibold text-slate-800">
+				Enumerators
+				<span class="text-sm font-normal text-slate-500 ml-2"
+					>({{ enumerators.length }})</span
+				>
+			</h2>
+			<div class="flex gap-2">
+				<button
+					pButton
+					label="Delete Selected"
+					icon="pi pi-trash"
+					severity="danger"
+					styleClass="p-button-sm"
+					size="small"
+					[disabled]="selectedEnumerators.length === 0"
+					(click)="deleteSelectedEnumerators()"
+				></button>
+				<button
+					pButton
+					label="Bulk Upload"
+					icon="pi pi-upload"
+					severity="secondary"
+					styleClass="p-button-sm"
+					size="small"
+					(click)="openUploadDialog()"
+				></button>
+			</div>
+		</div>
+
+		<!-- Loading State -->
+		<div
+			*ngIf="loadingEnumerators"
+			class="flex justify-center items-center py-12"
+		>
+			<p-progressSpinner styleClass="w-12 h-12"></p-progressSpinner>
+		</div>
+
+		<!-- Enumerators Table -->
+		<div *ngIf="!loadingEnumerators" class="rounded-lg border border-slate-200">
+			<p-table
+				[value]="enumerators"
+				[(selection)]="selectedEnumerators"
+				[paginator]="true"
+				[rows]="10"
+				[rowsPerPageOptions]="[10, 25, 50]"
+				styleClass="p-datatable-sm"
+				[globalFilterFields]="['user.name', 'user.cid', 'user.emailAddress']"
+			>
+				<ng-template pTemplate="caption">
+					<div class="flex justify-between items-center">
+						<span class="p-input-icon-left w-full max-w-md">
+							<input
+								pInputText
+								type="text"
+								placeholder="Search enumerators..."
+								class="w-full"
+								(input)="
+									$any($event.target)?.value &&
+										$any($any($event.target).closest('p-table'))?.filterGlobal(
+											$any($event.target).value,
+											'contains'
+										)
+								"
+							/>
+						</span>
+					</div>
+				</ng-template>
+
+				<ng-template pTemplate="header">
+					<tr>
+						<th style="width: 3rem">
+							<p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+						</th>
+						<th pSortableColumn="user.name">
+							Name <p-sortIcon field="user.name"></p-sortIcon>
+						</th>
+						<th pSortableColumn="user.cid">
+							CID <p-sortIcon field="user.cid"></p-sortIcon>
+						</th>
+						<th pSortableColumn="user.emailAddress">
+							Email <p-sortIcon field="user.emailAddress"></p-sortIcon>
+						</th>
+						<th>Phone</th>
+
+						<th style="width: 8rem">Actions</th>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="body" let-enumerator>
+					<tr>
+						<td>
+							<p-tableCheckbox [value]="enumerator"></p-tableCheckbox>
+						</td>
+						<td>{{ enumerator.user?.name }}</td>
+						<td>{{ enumerator.user?.cid }}</td>
+						<td>{{ enumerator.user?.emailAddress }}</td>
+						<td>{{ enumerator.user?.phoneNumber }}</td>
+						<td>
+							<button
+								pButton
+								icon="pi pi-trash"
+								severity="danger"
+								styleClass="p-button-sm p-button-text"
+								pTooltip="Delete"
+								tooltipPosition="top"
+								size="small"
+								(click)="deleteEnumerator(enumerator)"
+							></button>
+						</td>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="7" class="text-center text-slate-500 py-8">
+							No enumerators assigned to this survey
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</div>
+	</div>
+</div>
+
+<!-- Bulk Upload Dialog -->
+<p-dialog
+	[(visible)]="showUploadDialog"
+	[modal]="true"
+	[closable]="!uploading"
+	[closeOnEscape]="!uploading"
+	styleClass="w-[90vw] max-w-4xl"
+>
+	<ng-template pTemplate="header">
+		<h3 class="text-lg font-semibold">Bulk Upload Enumerators</h3>
+	</ng-template>
+
+	<div class="space-y-4">
+		<!-- Instructions -->
+		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+			<h4 class="font-semibold text-blue-900 mb-2">Instructions:</h4>
+			<ul class="list-disc list-inside text-sm text-blue-800 space-y-1">
+				<li>Download the CSV template below</li>
+				<li>
+					Fill in the enumerator details (name, cid, email, phone are required)
+				</li>
+				<li>Upload the completed CSV file</li>
+				<li>
+					If an enumerator with the same CID exists, they will be assigned to
+					the survey
+				</li>
+				<li>
+					If an enumerator doesn't exist, a new user account will be created
+				</li>
+			</ul>
+		</div>
+
+		<!-- Download Template Button -->
+		<div class="flex justify-center">
+			<button
+				pButton
+				label="Download CSV Template"
+				icon="pi pi-download"
+				severity="secondary"
+				(click)="downloadTemplate()"
+			></button>
+		</div>
+
+		<!-- File Upload -->
+		<div class="border-2 border-dashed border-slate-300 rounded-lg p-6">
+			<p-fileUpload
+				mode="basic"
+				chooseLabel="Choose CSV File"
+				accept=".csv"
+				[auto]="true"
+				[disabled]="parsing || uploading"
+				(onSelect)="onFileSelect($event)"
+			></p-fileUpload>
+
+			<div *ngIf="selectedFile" class="mt-4">
+				<div class="flex items-center justify-between">
+					<span class="text-sm text-slate-600"
+						>Selected: {{ selectedFile.name }}</span
+					>
+					<button
+						pButton
+						icon="pi pi-times"
+						severity="secondary"
+						styleClass="p-button-sm p-button-text"
+						[disabled]="parsing || uploading"
+						(click)="clearFile()"
+					></button>
+				</div>
+			</div>
+
+			<div *ngIf="parsing" class="mt-4 text-center">
+				<p-progressSpinner styleClass="w-8 h-8"></p-progressSpinner>
+				<p class="text-sm text-slate-600 mt-2">Parsing CSV file...</p>
+			</div>
+		</div>
+
+		<!-- Preview Table -->
+		<div *ngIf="showPreview && parsedData" class="space-y-3">
+			<!-- Valid Data -->
+			<div *ngIf="parsedData.valid.length > 0">
+				<h4 class="font-semibold text-slate-800 mb-2">
+					Valid Enumerators ({{ parsedData.valid.length }})
+				</h4>
+				<div class="rounded-lg border border-slate-200 max-h-96 overflow-auto">
+					<p-table
+						[value]="parsedData.valid"
+						[paginator]="false"
+						styleClass="p-datatable-sm"
+					>
+						<ng-template pTemplate="header">
+							<tr>
+								<th>Name</th>
+								<th>CID</th>
+								<th>Email</th>
+								<th>Phone</th>
+							</tr>
+						</ng-template>
+						<ng-template pTemplate="body" let-enumerator>
+							<tr>
+								<td>{{ enumerator.name }}</td>
+								<td>{{ enumerator.cid }}</td>
+								<td>{{ enumerator.emailAddress || "-" }}</td>
+								<td>{{ enumerator.phoneNumber || "-" }}</td>
+							</tr>
+						</ng-template>
+					</p-table>
+				</div>
+			</div>
+
+			<!-- Invalid Data -->
+			<div *ngIf="parsedData.invalid.length > 0">
+				<h4 class="font-semibold text-red-800 mb-2">
+					Invalid Rows ({{ parsedData.invalid.length }})
+				</h4>
+				<div class="rounded-lg border border-red-200 max-h-64 overflow-auto">
+					<p-table
+						[value]="parsedData.invalid"
+						[paginator]="false"
+						styleClass="p-datatable-sm"
+					>
+						<ng-template pTemplate="header">
+							<tr>
+								<th>Row</th>
+								<th>Name</th>
+								<th>CID</th>
+								<th>Errors</th>
+							</tr>
+						</ng-template>
+						<ng-template pTemplate="body" let-item>
+							<tr>
+								<td>{{ item.row }}</td>
+								<td>{{ item.data.name || "-" }}</td>
+								<td>{{ item.data.cid || "-" }}</td>
+								<td>
+									<ul class="list-disc list-inside text-xs text-red-600">
+										<li *ngFor="let error of item.errors">{{ error }}</li>
+									</ul>
+								</td>
+							</tr>
+						</ng-template>
+					</p-table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				label="Cancel"
+				severity="secondary"
+				[disabled]="uploading"
+				(click)="showUploadDialog = false"
+			></button>
+			<button
+				pButton
+				label="Upload"
+				icon="pi pi-upload"
+				[loading]="uploading"
+				[disabled]="!parsedData || parsedData.valid.length === 0"
+				(click)="uploadEnumerators()"
+			></button>
+		</div>
+	</ng-template>
+</p-dialog>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>
+
+<!-- Confirmation Dialog -->
+<p-confirmDialog></p-confirmDialog>

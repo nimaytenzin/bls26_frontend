@@ -1,51 +1,104 @@
-// Auth-related interfaces and types
+// Auth-related interfaces and types for NSFD
+
+import { AdministrativeZone } from '../location/administrative-zone/administrative-zone.dto';
 
 export interface LoginDto {
-	email: number;
+	email: string;
 	password: string;
 }
 
-export interface LoginResponse {
-	statusCode: number;
-	message: string;
-	token: string;
-	user: User;
+export interface RegisterDto {
+	name: string;
+	cid: string;
+	emailAddress: string;
+	phoneNumber: string;
+	password: string;
+	role: UserRole;
 }
 
-export interface AdminResetPassword {
-	newPassword: string;
-	newPasswordAgain: string;
+export interface LoginResponse {
+	user: User;
+	token: string;
 }
+
+export interface RegisterResponse {
+	user: User;
+	token: string;
+}
+
+export interface ChangePasswordDto {
+	currentPassword: string;
+	newPassword: string;
+}
+
+export interface CreateSupervisorDto {
+	name: string;
+	cid: string;
+	emailAddress: string;
+	phoneNumber: string;
+	password: string;
+}
+
+export interface CreateEnumeratorDto {
+	name: string;
+	cid: string;
+	emailAddress: string;
+	phoneNumber: string;
+	password: string;
+}
+
+export interface UpdateUserDto {
+	name?: string;
+	phoneNumber?: string;
+	emailAddress?: string;
+	role?: UserRole;
+}
+
 export interface User {
 	id: number;
-	email: string;
-	phoneNumber: number;
-	firstName: string;
-	lastName: string;
+	name: string;
+	cid: string;
+	emailAddress: string;
+	phoneNumber: string;
 	role: UserRole;
-	isVerified: boolean;
-	hasLoginAccess: boolean;
-	profileImage: string;
-	createdAt: Date;
-	updatedAt: Date;
+	profileImage?: string;
+	isVerified?: boolean;
+	hasLoginAccess?: boolean;
+	createdAt?: Date;
+	updatedAt?: Date;
+}
+
+export interface Supervisor extends User {
+	dzongkhags?: Dzongkhag[];
+}
+
+export interface Dzongkhag {
+	id: number;
+	name: string;
+	areaCode?: string;
+	areaSqKm?: number;
+	createdAt?: Date;
+	updatedAt?: Date;
+
+	administrativeZones: AdministrativeZone[];
 }
 
 export interface UserJwtPayload {
-	id: string;
-	email: string;
-	phoneNumber: number;
-	firstName: string;
-	lastName: string;
+	id: number;
+	name: string;
+	cid: string;
+	emailAddress: string;
+	phoneNumber: string;
 	role: UserRole;
-	isVerified: boolean;
 }
 
 export enum UserRole {
 	ADMIN = 'ADMIN',
+	SUPERVISOR = 'SUPERVISOR',
+	ENUMERATOR = 'ENUMERATOR',
 	THEATRE_MANAGER = 'THEATRE_MANAGER',
 	EXECUTIVE_PRODUCER = 'EXECUTIVE_PRODUCER',
 	COUNTER_STAFF = 'COUNTER_STAFF',
-	CUSTOMER = 'CUSTOMER',
 }
 
 export interface AuthState {
@@ -60,20 +113,51 @@ export interface ApiError {
 	error?: string;
 }
 
+// Legacy interfaces for backward compatibility
+export interface AdminResetPassword {
+	newPassword: string;
+	newPasswordAgain: string;
+}
+
 export interface AdminSignupDto {
-	firstName: string;
-	lastName: string;
-	email: string;
+	name?: string;
+	firstName?: string;
+	lastName?: string;
+	email?: string;
+	cid: string;
+	emailAddress: string;
 	phoneNumber?: string;
 	password: string;
 	role: UserRole;
 	isVerified?: boolean;
 	hasLoginAccess?: boolean;
-	profileImage?: string;
 }
 
 export interface AdminSignupResponse {
 	statusCode: number;
 	message: string;
 	user: User;
+}
+
+// Supervisor-Dzongkhag Assignment interfaces
+export interface SupervisorDzongkhagAssignment {
+	id: number;
+	supervisorId: number;
+	dzongkhagId: number;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+export interface AssignDzongkhagDto {
+	dzongkhagIds: number[];
+}
+
+export interface AssignDzongkhagResponse {
+	message: string;
+	assigned: SupervisorDzongkhagAssignment[];
+}
+
+export interface RemoveDzongkhagResponse {
+	message: string;
+	removedCount: number;
 }

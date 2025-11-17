@@ -14,7 +14,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { MenubarModule } from 'primeng/menubar';
 import { AvatarModule } from 'primeng/avatar';
 import { ScrollPanelModule } from 'primeng/scrollpanel'; // optional
-import { DividerModule } from 'primeng/divider'; // optional
+import { Divider, DividerModule } from 'primeng/divider'; // optional
 import { ListboxModule } from 'primeng/listbox'; // optio
 import { ChipModule } from 'primeng/chip';
 import { TagModule } from 'primeng/tag';
@@ -45,6 +45,14 @@ import { DataViewModule } from 'primeng/dataview';
 import { PaginatorModule } from 'primeng/paginator';
 import { DrawerModule } from 'primeng/drawer';
 import { InputSwitchModule } from 'primeng/inputswitch';
+import { SplitButtonModule } from 'primeng/splitbutton';
+import { DynamicDialogModule } from 'primeng/dynamicdialog';
+import { ToolbarModule } from 'primeng/toolbar';
+import { Accordion, AccordionTab } from 'primeng/accordion';
+import { Popover } from 'primeng/popover';
+import { TreeModule } from 'primeng/tree';
+import { RadioButtonModule } from 'primeng/radiobutton';
+
 const PRIME_NG_MODULES = [
 	CardModule,
 	InputTextModule,
@@ -92,6 +100,15 @@ const PRIME_NG_MODULES = [
 	PaginatorModule,
 	DrawerModule,
 	InputSwitchModule,
+	SplitButtonModule,
+	DynamicDialogModule,
+	ToolbarModule,
+	Accordion,
+	AccordionTab,
+	Popover,
+	DividerModule,
+	TreeModule,
+	RadioButtonModule,
 ];
 
 @NgModule({

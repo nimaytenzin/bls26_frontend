@@ -1,0 +1,276 @@
+<div class="enumerators-step">
+	<div class="mb-6">
+		<h3 class="text-xl font-semibold text-gray-900 mb-2">
+			Add Enumerators (Optional)
+		</h3>
+		<p class="text-gray-600">
+			Upload enumerators CSV file or skip to add them later
+		</p>
+	</div>
+
+	<!-- Instructions Card -->
+	<div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+		<div class="flex items-start gap-3">
+			<i class="pi pi-info-circle text-blue-500 text-xl"></i>
+			<div class="flex-1">
+				<h4 class="font-semibold text-blue-900 mb-2">
+					CSV Format Instructions
+				</h4>
+				<p class="text-blue-800 mb-3">
+					Upload a CSV file with enumerator information. The system will
+					automatically create new users or use existing ones based on CID.
+				</p>
+				<div
+					class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800"
+				>
+					<div>
+						<p class="font-semibold mb-1">Required Columns:</p>
+						<ul class="list-disc list-inside space-y-1">
+							<li>
+								<code class="bg-blue-100 px-1 rounded">name</code> - Full name
+							</li>
+							<li>
+								<code class="bg-blue-100 px-1 rounded">cid</code> - 11-digit CID
+							</li>
+						</ul>
+					</div>
+					<div>
+						<p class="font-semibold mb-1">Optional Columns:</p>
+						<ul class="list-disc list-inside space-y-1">
+							<li>
+								<code class="bg-blue-100 px-1 rounded">emailAddress</code> -
+								Email
+							</li>
+							<li>
+								<code class="bg-blue-100 px-1 rounded">phoneNumber</code> -
+								8-digit phone
+							</li>
+							<li>
+								<code class="bg-blue-100 px-1 rounded">password</code> - User
+								password
+							</li>
+						</ul>
+					</div>
+				</div>
+				<p class="text-sm text-blue-700 mt-3">
+					<i class="pi pi-exclamation-circle mr-1"></i>
+					Missing fields will auto-generate: email as
+					<code class="bg-blue-100 px-1 rounded"
+						>{{ "{cid}" }}dummy.nsb.gov.bt</code
+					>, password as CID.
+				</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Download Template Button -->
+	<div class="flex justify-end mb-4">
+		<p-button
+			label="Download CSV Template"
+			icon="pi pi-download"
+			(onClick)="downloadTemplate()"
+			styleClass="p-button-outlined p-button-sm"
+		></p-button>
+	</div>
+
+	<!-- File Upload Section -->
+	<div class="mb-6" *ngIf="!showPreview">
+		<p-fileUpload
+			#fileUpload
+			name="enumerators"
+			accept=".csv"
+			[maxFileSize]="5000000"
+			(onSelect)="onFileSelect($event)"
+			[auto]="false"
+			chooseLabel="Choose CSV File"
+			[showUploadButton]="false"
+			[showCancelButton]="false"
+			[disabled]="parsing"
+		>
+			<ng-template pTemplate="content">
+				<div class="text-center py-8" *ngIf="!selectedFile && !parsing">
+					<i class="pi pi-cloud-upload text-6xl text-gray-400 mb-4"></i>
+					<p class="text-gray-600 text-lg mb-2">Drag and drop CSV file here</p>
+					<p class="text-gray-500 text-sm">or click to browse (Max 5MB)</p>
+				</div>
+				<div class="text-center py-8" *ngIf="parsing">
+					<p-progressSpinner styleClass="w-12 h-12"></p-progressSpinner>
+					<p class="text-gray-600 mt-4">Parsing CSV file...</p>
+				</div>
+			</ng-template>
+		</p-fileUpload>
+	</div>
+
+	<!-- Preview Section -->
+	<div *ngIf="showPreview && parsedData" class="mb-6">
+		<!-- Summary Cards -->
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+			<div class="bg-green-50 border border-green-200 rounded-lg p-4">
+				<div class="flex items-center gap-3">
+					<div
+						class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center"
+					>
+						<i class="pi pi-check text-green-600"></i>
+					</div>
+					<div>
+						<p class="text-sm text-green-700">Valid Records</p>
+						<p class="text-2xl font-bold text-green-900">
+							{{ parsedData.valid.length }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div
+				class="bg-red-50 border border-red-200 rounded-lg p-4"
+				*ngIf="parsedData.invalid.length > 0"
+			>
+				<div class="flex items-center gap-3">
+					<div
+						class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center"
+					>
+						<i class="pi pi-times text-red-600"></i>
+					</div>
+					<div>
+						<p class="text-sm text-red-700">Invalid Records</p>
+						<p class="text-2xl font-bold text-red-900">
+							{{ parsedData.invalid.length }}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+				<div class="flex items-center gap-3">
+					<div
+						class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center"
+					>
+						<i class="pi pi-file text-blue-600"></i>
+					</div>
+					<div>
+						<p class="text-sm text-blue-700">File Name</p>
+						<p class="text-sm font-semibold text-blue-900 truncate">
+							{{ selectedFile?.name }}
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Valid Records Table -->
+		<div class="mb-6" *ngIf="parsedData.valid.length > 0">
+			<div class="flex justify-between items-center mb-3">
+				<h4 class="text-lg font-semibold text-gray-900">
+					Valid Enumerators ({{ parsedData.valid.length }})
+				</h4>
+				<p-button
+					label="Clear"
+					icon="pi pi-times"
+					(onClick)="clearFile()"
+					styleClass="p-button-text p-button-sm"
+				></p-button>
+			</div>
+			<p-table
+				[value]="parsedData.valid"
+				[scrollable]="true"
+				scrollHeight="300px"
+				styleClass="p-datatable-sm"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th style="width: 50px">#</th>
+						<th>Name</th>
+						<th>CID</th>
+						<th>Email</th>
+						<th>Phone</th>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="body" let-item let-i="rowIndex">
+					<tr>
+						<td>{{ i + 1 }}</td>
+						<td>{{ item.name }}</td>
+						<td>{{ item.cid }}</td>
+						<td>
+							<span *ngIf="item.emailAddress">{{ item.emailAddress }}</span>
+							<span *ngIf="!item.emailAddress" class="text-gray-400 text-sm">
+								{{ item.cid }}dummy.nsb.gov.bt
+							</span>
+						</td>
+						<td>
+							<span *ngIf="item.phoneNumber">{{ item.phoneNumber }}</span>
+							<span *ngIf="!item.phoneNumber" class="text-gray-400">-</span>
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</div>
+
+		<!-- Invalid Records Table -->
+		<div class="mb-6" *ngIf="parsedData.invalid.length > 0">
+			<h4 class="text-lg font-semibold text-red-900 mb-3">
+				Invalid Records ({{ parsedData.invalid.length }})
+			</h4>
+			<p-table
+				[value]="parsedData.invalid"
+				[scrollable]="true"
+				scrollHeight="200px"
+				styleClass="p-datatable-sm"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th style="width: 70px">Row</th>
+						<th>Name</th>
+						<th>CID</th>
+						<th>Errors</th>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="body" let-item>
+					<tr class="bg-red-50">
+						<td>{{ item.row }}</td>
+						<td>{{ item.data.name || "-" }}</td>
+						<td>{{ item.data.cid || "-" }}</td>
+						<td>
+							<div class="flex flex-wrap gap-1">
+								<p-tag
+									*ngFor="let error of item.errors"
+									[value]="error"
+									severity="danger"
+									styleClass="text-xs"
+								></p-tag>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</div>
+	</div>
+
+	<!-- Action Buttons -->
+	<div class="flex justify-between mt-8 pt-6 border-t border-gray-200">
+		<p-button
+			label="Back"
+			icon="pi pi-arrow-left"
+			(onClick)="onBack()"
+			styleClass="p-button-text"
+			[disabled]="submitting"
+		></p-button>
+		<div class="flex gap-3">
+			<p-button
+				label="Skip & Create Survey"
+				(onClick)="onSkip()"
+				styleClass="p-button-text"
+				[disabled]="submitting"
+			></p-button>
+			<p-button
+				label="Create Survey with Enumerators"
+				icon="pi pi-check"
+				(onClick)="onSubmit()"
+				[loading]="submitting"
+				[disabled]="!parsedData || parsedData.valid.length === 0"
+			></p-button>
+		</div>
+	</div>
+
+	<!-- Toast Messages -->
+	<p-toast position="top-right"></p-toast>
+</div>

@@ -1,0 +1,83 @@
+<div class="p-4">
+	<!-- Profile Header -->
+	<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+		<div class="flex flex-col items-center text-center">
+			<!-- Avatar -->
+			<div
+				class="w-24 h-24 rounded-full bg-primary-600 text-white flex items-center justify-center text-3xl font-bold mb-4"
+			>
+				{{ getUserInitials() }}
+			</div>
+
+			<!-- User Name -->
+			<h2 class="text-2xl font-bold text-gray-800 mb-1">
+				{{ currentUser?.name }}
+			</h2>
+
+			<!-- Role -->
+			<p class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full mb-4">
+				Enumerator
+			</p>
+		</div>
+	</div>
+
+	<!-- User Details -->
+	<div class="bg-white rounded-lg shadow-sm p-6 mb-4">
+		<h3 class="text-lg font-semibold text-gray-800 mb-4">
+			Personal Information
+		</h3>
+
+		<div class="space-y-4">
+			<!-- CID -->
+			<div>
+				<label class="text-xs font-medium text-gray-500 uppercase block mb-1">
+					CID Number
+				</label>
+				<p class="text-gray-800 font-medium">{{ currentUser?.cid }}</p>
+			</div>
+
+			<!-- Email -->
+			<div>
+				<label class="text-xs font-medium text-gray-500 uppercase block mb-1">
+					Email Address
+				</label>
+				<p class="text-gray-800 font-medium">
+					{{ currentUser?.emailAddress }}
+				</p>
+			</div>
+
+			<!-- Phone -->
+			<div>
+				<label class="text-xs font-medium text-gray-500 uppercase block mb-1">
+					Phone Number
+				</label>
+				<p class="text-gray-800 font-medium">
+					{{ currentUser?.phoneNumber }}
+				</p>
+			</div>
+
+			<!-- Role -->
+			<div>
+				<label class="text-xs font-medium text-gray-500 uppercase block mb-1">
+					Role
+				</label>
+				<p class="text-gray-800 font-medium">{{ currentUser?.role }}</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Actions -->
+	<div class="space-y-3">
+		<!-- Logout Button -->
+		<button
+			(click)="logout()"
+			class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors active:bg-red-800"
+		>
+			<i class="pi pi-sign-out"></i>
+			<span>Logout</span>
+		</button>
+	</div>
+</div>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>

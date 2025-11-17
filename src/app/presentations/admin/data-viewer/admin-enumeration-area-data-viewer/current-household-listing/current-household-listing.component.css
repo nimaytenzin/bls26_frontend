@@ -1,17 +1,77 @@
 /* Current Household Listing Component Styles */
 
+:host ::ng-deep {
+  /* PrimeNG Table Enhancements */
+  .p-datatable-striped .p-datatable-tbody > tr:nth-child(even) {
+    background: #f9fafb;
+  }
+
+  .p-datatable .p-datatable-thead > tr > th {
+    background: #f9fafb;
+    border-bottom: 2px solid #e5e7eb;
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+  }
+
+  .p-datatable .p-datatable-tbody > tr > td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .p-datatable .p-datatable-tbody > tr:hover {
+    background: #f9fafb !important;
+  }
+
+  /* Paginator Styling */
+  .p-paginator {
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    padding: 1rem 1.25rem;
+  }
+
+  .p-paginator .p-paginator-current {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+}
+
 .p-button {
-  border-radius: 6px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
-.text-center i {
-  opacity: 0.6;
+.p-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.text-center h4 {
-  margin-bottom: 0.5rem;
+/* Smooth transitions for all interactive elements */
+[class*="hover:"] {
+  transition: all 0.2s ease;
 }
 
-.text-center p {
-  line-height: 1.5;
+/* Avatar gradients animation */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.bg-gradient-to-br {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Card hover effects */
+.hover\:shadow-md:hover {
+  transform: translateY(-2px);
+}
+
+/* Loading spinner enhancement */
+:host ::ng-deep .p-progress-spinner {
+  filter: drop-shadow(0 4px 6px rgba(59, 130, 246, 0.2));
 }

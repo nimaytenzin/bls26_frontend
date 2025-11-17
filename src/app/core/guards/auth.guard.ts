@@ -49,12 +49,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
 					const hasRequiredRole = this.authService.hasAnyRole(requiredRoles);
 
 					if (!hasRequiredRole) {
-						// Redirect to appropriate dashboard or show access denied
-						if (this.authService.isCustomer()) {
-							this.router.navigate(['/']);
-						} else {
-							this.router.navigate(['/access-denied']);
-						}
+						this.router.navigate(['/access-denied']);
 						return false;
 					}
 				}

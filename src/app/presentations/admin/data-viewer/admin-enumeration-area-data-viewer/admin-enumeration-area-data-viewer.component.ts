@@ -11,20 +11,15 @@ import { EnumerationAreaDataService } from '../../../../core/dataservice/locatio
 import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
-import { BuildingDataService } from '../../../../core/dataservice/buildings/buildings.dataservice';
 import { EnumerationArea } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 import { SubAdministrativeZone } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
 import { AdministrativeZone } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
 import { Dzongkhag } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
-import {
-	Building,
-	BuildingGeoJsonFeatureCollection,
-	BuildingStatistics,
-} from '../../../../core/dataservice/buildings/buildings.dto';
-
+import { BasemapService } from '../../../../core/utility/basemap.service';
 // Import child components
 import { CurrentHouseholdListingComponent } from './current-household-listing/current-household-listing.component';
-import { HistoryComponent } from './history/history.component';
+import { AdminEnumerationAreaTrendsComponent } from './admin-enumeration-area-trends/admin-enumeration-area-trends.component';
+import { GenerateFullEACode } from '../../../../core/utility/utility.service';
 
 @Component({
 	selector: 'app-admin-enumeration-area-data-viewer',
@@ -37,7 +32,7 @@ import { HistoryComponent } from './history/history.component';
 		RouterModule,
 		PrimeNgModules,
 		CurrentHouseholdListingComponent,
-		HistoryComponent,
+		AdminEnumerationAreaTrendsComponent,
 	],
 	providers: [MessageService],
 })
@@ -49,26 +44,64 @@ export class AdminEnumerationAreaDataViewerComponent
 	subAdministrativeZone: SubAdministrativeZone | null = null;
 	administrativeZone: AdministrativeZone | null = null;
 	dzongkhag: Dzongkhag | null = null;
-	buildings: Building[] = [];
-	buildingStatistics: BuildingStatistics | null = null;
 
 	// GeoJSON Data
 	eaGeoJsonData: any = null;
 	subAdminGeoJsonData: any = null;
-	buildingsGeoJsonData: BuildingGeoJsonFeatureCollection | null = null;
 
 	// Maps
 	enumerationAreaMap: L.Map | null = null;
 	satelliteLayer: L.TileLayer | null = null;
 	openStreetMapLayer: L.TileLayer | null = null;
-	buildingsLayer: L.GeoJSON | null = null;
 
 	// State
 	loading = true;
 	mapInitialized = false;
 	showSatelliteLayer = false;
-	showBuildingsLayer = true;
 	eaId: number = 0;
+	activeMainTab: 'insights' | 'households' | 'downloads' = 'insights';
+	activeHouseholdTab: 'current' | 'Trends' = 'current';
+	currentBaseMap: 'streets' | 'satellite' = 'streets';
+
+	// Filter/Navigation properties
+	dzongkhagOptions: any[] = [];
+	adminZoneOptions: any[] = [];
+	subAdminZoneOptions: any[] = [];
+	eaOptions: any[] = [];
+	selectedDzongkhag: number | null = null;
+	selectedAdminZone: number | null = null;
+	selectedSubAdminZone: number | null = null;
+	selectedEAFilter: number | null = null;
+
+	// Basemap properties
+	basemapCategories: any = {};
+	selectedBasemapId: string = 'positron';
+
+	// Color scale for visualizations
+	private readonly blueScale: string[] = [
+		'#015a8e',
+		'#066298',
+		'#0d6ba2',
+		'#1474ab',
+		'#1a7cb4',
+		'#1f84bd',
+		'#258dc5',
+		'#2a94ce',
+		'#309cd5',
+		'#35a4dd',
+		'#3aace4',
+		'#40b3eb',
+		'#45bbf3',
+		'#58c1f5',
+		'#6dc6f5',
+		'#7fccf6',
+		'#8fd1f6',
+		'#9dd6f7',
+		'#abdbf8',
+		'#b9e1f9',
+	];
+
+	getFullEACode = GenerateFullEACode;
 
 	// Tile layers
 	private readonly tileLayer =
@@ -83,11 +116,18 @@ export class AdminEnumerationAreaDataViewerComponent
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
 		private administrativeZoneService: AdministrativeZoneDataService,
 		private dzongkhagService: DzongkhagDataService,
-		private buildingService: BuildingDataService,
-		private messageService: MessageService
+		private messageService: MessageService,
+		private basemapService: BasemapService
 	) {}
 
 	ngOnInit() {
+		// Initialize basemap categories
+		this.basemapCategories = this.basemapService.getBasemapCategories();
+		this.selectedBasemapId = 'positron';
+
+		// Load all dzongkhags for filter dropdown
+		this.loadDzongkhags();
+
 		this.route.params.subscribe((params) => {
 			this.eaId = +params['id'];
 			if (this.eaId) {
@@ -161,39 +201,21 @@ export class AdminEnumerationAreaDataViewerComponent
 	loadGeoJsonData() {
 		if (!this.enumerationArea || !this.subAdministrativeZone) return;
 
-		// Load EA, sub-admin zone, and buildings GeoJSON data
+		// Load EA and sub-admin zone GeoJSON data
 		const eaGeoJson$ = this.enumerationAreaService.findOneAsGeoJson(this.eaId);
 		const subAdminGeoJson$ = this.subAdministrativeZoneService.findOneAsGeoJson(
 			this.subAdministrativeZone.id
-		);
-		const buildingsGeoJson$ =
-			this.buildingService.findAsGeoJsonByEnumerationArea(this.eaId);
-		const buildingsData$ = this.buildingService.findByEnumerationArea(
-			this.eaId
 		);
 
 		// Load all data in parallel
 		forkJoin({
 			eaGeoJson: eaGeoJson$,
 			subAdminGeoJson: subAdminGeoJson$,
-			buildingsGeoJson: buildingsGeoJson$,
-			buildingsData: buildingsData$,
 		}).subscribe({
-			next: ({
-				eaGeoJson,
-				subAdminGeoJson,
-				buildingsGeoJson,
-				buildingsData,
-			}) => {
+			next: ({ eaGeoJson, subAdminGeoJson }) => {
 				// Store GeoJSON data
 				this.eaGeoJsonData = eaGeoJson;
 				this.subAdminGeoJsonData = subAdminGeoJson;
-				this.buildingsGeoJsonData = buildingsGeoJson;
-				this.buildings = buildingsData;
-
-				// Calculate building statistics
-				this.buildingStatistics =
-					this.buildingService.calculateStatistics(buildingsData);
 
 				// Initialize map with GeoJSON data
 				setTimeout(() => this.initializeMaps(), 100);
@@ -216,7 +238,7 @@ export class AdminEnumerationAreaDataViewerComponent
 
 		try {
 			this.enumerationAreaMap = L.map('enumerationAreaMap', {
-				zoomControl: true,
+				zoomControl: false,
 				scrollWheelZoom: true,
 			});
 
@@ -240,7 +262,7 @@ export class AdminEnumerationAreaDataViewerComponent
 			if (this.subAdminGeoJsonData && this.subAdminGeoJsonData.geometry) {
 				const subAdminZoneLayer = L.geoJSON(this.subAdminGeoJsonData, {
 					style: {
-						color: '#dc2626',
+						color: '#1474ab',
 						weight: 2,
 						fillColor: 'transparent',
 						fillOpacity: 0,
@@ -258,7 +280,7 @@ export class AdminEnumerationAreaDataViewerComponent
 				// Fallback to embedded geometry
 				const subAdminZoneLayer = L.geoJSON(this.subAdministrativeZone.geom, {
 					style: {
-						color: '#dc2626',
+						color: '#1474ab',
 						weight: 2,
 						fillColor: 'transparent',
 						fillOpacity: 0,
@@ -277,9 +299,9 @@ export class AdminEnumerationAreaDataViewerComponent
 			if (this.eaGeoJsonData && this.eaGeoJsonData.geometry) {
 				eaLayer = L.geoJSON(this.eaGeoJsonData, {
 					style: {
-						color: '#1d4ed8',
-						weight: 2,
-						fillColor: '#1d4ed8',
+						color: '#1474ab',
+						weight: 3,
+						fillColor: '#6dc6f5',
 						fillOpacity: 0.3,
 					},
 				});
@@ -288,9 +310,9 @@ export class AdminEnumerationAreaDataViewerComponent
 				// Fallback to embedded geometry
 				eaLayer = L.geoJSON(this.enumerationArea.geom, {
 					style: {
-						color: '#1d4ed8',
-						weight: 2,
-						fillColor: '#1d4ed8',
+						color: '#1474ab',
+						weight: 3,
+						fillColor: '#6dc6f5',
 						fillOpacity: 0.3,
 					},
 				});
@@ -315,9 +337,6 @@ export class AdminEnumerationAreaDataViewerComponent
 				);
 			}
 
-			// Add buildings layer
-			this.addBuildingsLayer();
-
 			// If no valid geometry found, show default view
 			if (!hasValidGeometry) {
 				console.warn('No valid geometry found for map display');
@@ -333,46 +352,6 @@ export class AdminEnumerationAreaDataViewerComponent
 				detail: 'Failed to initialize map',
 				life: 3000,
 			});
-		}
-	}
-
-	addBuildingsLayer() {
-		if (!this.enumerationAreaMap || !this.buildingsGeoJsonData) return;
-
-		try {
-			this.buildingsLayer = L.geoJSON(this.buildingsGeoJsonData, {
-				style: {
-					color: '#f59e0b',
-					weight: 2,
-					fillColor: '#f59e0b',
-					fillOpacity: 0.7,
-				},
-				onEachFeature: (feature, layer) => {
-					if (feature.properties) {
-						const props = feature.properties;
-						layer.bindPopup(
-							`<strong>Building ID: ${props.id || 'N/A'}</strong><br/>
-							Source: ${props.source || 'N/A'}`
-						);
-					}
-				},
-			});
-
-			if (this.showBuildingsLayer) {
-				this.buildingsLayer.addTo(this.enumerationAreaMap);
-			}
-		} catch (error) {
-			console.error('Error adding buildings layer:', error);
-		}
-	}
-
-	toggleBuildingsLayer() {
-		if (!this.enumerationAreaMap || !this.buildingsLayer) return;
-
-		if (this.showBuildingsLayer) {
-			this.buildingsLayer.addTo(this.enumerationAreaMap);
-		} else {
-			this.enumerationAreaMap.removeLayer(this.buildingsLayer);
 		}
 	}
 
@@ -396,6 +375,38 @@ export class AdminEnumerationAreaDataViewerComponent
 		}
 	}
 
+	/**
+	 * Switch between base map layers
+	 */
+	switchBaseMap(mapType: 'streets' | 'satellite') {
+		if (
+			!this.enumerationAreaMap ||
+			!this.openStreetMapLayer ||
+			!this.satelliteLayer
+		) {
+			return;
+		}
+
+		this.currentBaseMap = mapType;
+
+		if (mapType === 'satellite') {
+			this.enumerationAreaMap.removeLayer(this.openStreetMapLayer);
+			this.enumerationAreaMap.addLayer(this.satelliteLayer);
+		} else {
+			this.enumerationAreaMap.removeLayer(this.satelliteLayer);
+			this.enumerationAreaMap.addLayer(this.openStreetMapLayer);
+		}
+	}
+
+	/**
+	 * Get button class for base map toggle
+	 */
+	getBaseMapButtonClass(mapType: 'streets' | 'satellite'): string {
+		return this.currentBaseMap === mapType
+			? 'bg-primary-600 text-white'
+			: 'bg-slate-100 text-slate-600 hover:bg-slate-200';
+	}
+
 	destroyMaps() {
 		if (this.enumerationAreaMap) {
 			this.enumerationAreaMap.remove();
@@ -407,10 +418,152 @@ export class AdminEnumerationAreaDataViewerComponent
 		if (this.satelliteLayer) {
 			this.satelliteLayer = null;
 		}
-		if (this.buildingsLayer) {
-			this.buildingsLayer = null;
-		}
 		this.mapInitialized = false;
+	}
+
+	// Filter/Navigation methods
+	loadDzongkhags() {
+		this.dzongkhagService.findAllDzongkhags().subscribe({
+			next: (dzongkhags) => {
+				this.dzongkhagOptions = dzongkhags.map((d) => ({
+					label: d.name,
+					value: d.id,
+				}));
+			},
+			error: (error) => {
+				console.error('Error loading dzongkhags:', error);
+			},
+		});
+	}
+
+	onDzongkhagChange() {
+		// Reset dependent selections
+		this.selectedAdminZone = null;
+		this.selectedSubAdminZone = null;
+		this.selectedEAFilter = null;
+		this.adminZoneOptions = [];
+		this.subAdminZoneOptions = [];
+		this.eaOptions = [];
+
+		if (this.selectedDzongkhag) {
+			this.administrativeZoneService
+				.findAdministrativeZonesByDzongkhag(this.selectedDzongkhag)
+				.subscribe({
+					next: (zones: AdministrativeZone[]) => {
+						this.adminZoneOptions = zones.map((z: AdministrativeZone) => ({
+							label: z.name,
+							value: z.id,
+						}));
+					},
+					error: (error: any) => {
+						console.error('Error loading administrative zones:', error);
+					},
+				});
+		}
+	}
+
+	onAdminZoneChange() {
+		// Reset dependent selections
+		this.selectedSubAdminZone = null;
+		this.selectedEAFilter = null;
+		this.subAdminZoneOptions = [];
+		this.eaOptions = [];
+
+		if (this.selectedAdminZone) {
+			this.subAdministrativeZoneService
+				.findSubAdministrativeZonesByAdministrativeZone(this.selectedAdminZone)
+				.subscribe({
+					next: (subZones: SubAdministrativeZone[]) => {
+						this.subAdminZoneOptions = subZones.map(
+							(sz: SubAdministrativeZone) => ({
+								label: sz.name,
+								value: sz.id,
+							})
+						);
+					},
+					error: (error: any) => {
+						console.error('Error loading sub administrative zones:', error);
+					},
+				});
+		}
+	}
+
+	onSubAdminZoneChange() {
+		// Reset dependent selections
+		this.selectedEAFilter = null;
+		this.eaOptions = [];
+
+		if (this.selectedSubAdminZone) {
+			this.enumerationAreaService
+				.findEnumerationAreasBySubAdministrativeZone(this.selectedSubAdminZone)
+				.subscribe({
+					next: (eas: EnumerationArea[]) => {
+						this.eaOptions = eas.map((ea: EnumerationArea) => ({
+							label: `${ea.name} (${ea.areaCode})`,
+							value: ea.id,
+						}));
+					},
+					error: (error: any) => {
+						console.error('Error loading enumeration areas:', error);
+					},
+				});
+		}
+	}
+
+	submitNavigation() {
+		if (this.selectedEAFilter) {
+			this.router.navigate([
+				'/admin/data-view/enumeration-area',
+				this.selectedEAFilter,
+			]);
+		} else if (this.selectedSubAdminZone) {
+			this.router.navigate([
+				'/admin/data-view/sub-admzone',
+				this.selectedSubAdminZone,
+			]);
+		} else if (this.selectedAdminZone) {
+			this.router.navigate([
+				'/admin/data-view/admzone',
+				this.selectedAdminZone,
+			]);
+		} else if (this.selectedDzongkhag) {
+			this.router.navigate([
+				'/admin/data-view/dzongkhag',
+				this.selectedDzongkhag,
+			]);
+		}
+	}
+
+	// Basemap methods
+	switchBasemap() {
+		if (!this.enumerationAreaMap || !this.selectedBasemapId) return;
+
+		const basemap = this.basemapService.getBasemap(this.selectedBasemapId);
+		if (!basemap) return;
+
+		// Remove existing tile layers
+		if (this.openStreetMapLayer) {
+			this.enumerationAreaMap.removeLayer(this.openStreetMapLayer);
+		}
+		if (this.satelliteLayer) {
+			this.enumerationAreaMap.removeLayer(this.satelliteLayer);
+		}
+
+		// Add new tile layer
+		const newLayer = L.tileLayer(basemap.url, {
+			attribution: basemap.attribution,
+			...basemap.options,
+		});
+		newLayer.addTo(this.enumerationAreaMap);
+
+		// Store reference for cleanup
+		if (basemap.id.includes('satellite') || basemap.id.includes('imagery')) {
+			this.satelliteLayer = newLayer;
+			this.currentBaseMap = 'satellite';
+		} else {
+			this.openStreetMapLayer = newLayer;
+			this.currentBaseMap = 'streets';
+		}
 	}
 
 	navigateTo(type: 'dzongkhag' | 'adminzone' | 'subadminzone', id: number) {
@@ -429,5 +582,180 @@ export class AdminEnumerationAreaDataViewerComponent
 
 	goBack() {
 		this.router.navigate(['/admin/master/enumeration-areas']);
+	}
+
+	onHouseholdListingUploadComplete() {
+		// Refresh the current household listing data
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Upload Complete',
+			detail: 'Household listing has been uploaded successfully',
+			life: 5000,
+		});
+
+		// You can add logic here to refresh the current household listing component
+		// or emit an event to refresh data
+	}
+
+	/**
+	 * Download enumeration area as KML
+	 */
+	downloadKML(): void {
+		if (!this.eaGeoJsonData && !this.enumerationArea?.geom) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Data',
+				detail: 'No geographic data available to download',
+			});
+			return;
+		}
+
+		const geoJson = this.eaGeoJsonData || {
+			type: 'Feature',
+			geometry: this.enumerationArea!.geom,
+			properties: {
+				name: this.enumerationArea!.name,
+				areaCode: this.enumerationArea!.areaCode,
+			},
+		};
+
+		const kml = this.convertGeoJsonToKML(geoJson);
+		const blob = new Blob([kml], {
+			type: 'application/vnd.google-earth.kml+xml',
+		});
+		const link = document.createElement('a');
+		const url = URL.createObjectURL(blob);
+
+		const fileName = `${this.enumerationArea?.name.replace(
+			/\s+/g,
+			'_'
+		)}_EA.kml`;
+
+		link.setAttribute('href', url);
+		link.setAttribute('download', fileName);
+		link.style.visibility = 'hidden';
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Downloaded',
+			detail: 'KML file downloaded successfully',
+		});
+	}
+
+	/**
+	 * Download enumeration area as GeoJSON
+	 */
+	downloadGeoJSON(): void {
+		if (!this.eaGeoJsonData && !this.enumerationArea?.geom) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Data',
+				detail: 'No geographic data available to download',
+			});
+			return;
+		}
+
+		const geoJson = this.eaGeoJsonData || {
+			type: 'Feature',
+			geometry: this.enumerationArea!.geom,
+			properties: {
+				name: this.enumerationArea!.name,
+				areaCode: this.enumerationArea!.areaCode,
+				areaSqKm: this.enumerationArea!.areaSqKm,
+				description: this.enumerationArea!.description,
+			},
+		};
+
+		const geoJsonString = JSON.stringify(geoJson, null, 2);
+		const blob = new Blob([geoJsonString], { type: 'application/json' });
+		const link = document.createElement('a');
+		const url = URL.createObjectURL(blob);
+
+		const fileName = `${this.enumerationArea?.name.replace(
+			/\s+/g,
+			'_'
+		)}_EA.geojson`;
+
+		link.setAttribute('href', url);
+		link.setAttribute('download', fileName);
+		link.style.visibility = 'hidden';
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Downloaded',
+			detail: 'GeoJSON file downloaded successfully',
+		});
+	}
+
+	/**
+	 * Convert GeoJSON to KML format
+	 */
+	private convertGeoJsonToKML(geoJson: any): string {
+		const name = geoJson.properties?.name || 'Enumeration Area';
+		const description = geoJson.properties?.description || '';
+		const coordinates = this.extractCoordinates(geoJson.geometry);
+
+		return `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>${this.escapeXml(name)}</name>
+    <description>${this.escapeXml(description)}</description>
+    <Placemark>
+      <name>${this.escapeXml(name)}</name>
+      <description>${this.escapeXml(description)}</description>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              ${coordinates}
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>`;
+	}
+
+	/**
+	 * Extract coordinates from GeoJSON geometry
+	 */
+	private extractCoordinates(geometry: any): string {
+		if (!geometry || !geometry.coordinates) return '';
+
+		// Handle Polygon
+		if (geometry.type === 'Polygon') {
+			return geometry.coordinates[0]
+				.map((coord: number[]) => `${coord[0]},${coord[1]},0`)
+				.join('\n              ');
+		}
+
+		// Handle MultiPolygon (use first polygon)
+		if (geometry.type === 'MultiPolygon') {
+			return geometry.coordinates[0][0]
+				.map((coord: number[]) => `${coord[0]},${coord[1]},0`)
+				.join('\n              ');
+		}
+
+		return '';
+	}
+
+	/**
+	 * Escape XML special characters
+	 */
+	private escapeXml(unsafe: string): string {
+		if (!unsafe) return '';
+		return unsafe
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&apos;');
 	}
 }

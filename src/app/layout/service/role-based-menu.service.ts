@@ -2,9 +2,8 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import {
 	ADMINSIDEBARITEMS,
-	THEATREMANAGERSIDEBARITEMS,
-	EXECUTIVEPRODUCERSIDEBARITEMS,
-	COUNTERSTAFFSIDEBARITEMS,
+	SUPERVISORMENUSIDEBARITEMS,
+	ENUMERATORMENUSIDEBARITEMS,
 	USERROLESENUM,
 } from '../sidebarmenu';
 import { UserRole } from '../../core/dataservice/auth/auth.interface';
@@ -28,30 +27,23 @@ export class RoleBasedMenuService {
 
 		switch (role) {
 			case USERROLESENUM.ADMIN:
-			case USERROLESENUM.SUPERADMIN:
 				menu = ADMINSIDEBARITEMS;
 				console.log('Returning ADMINSIDEBARITEMS');
 				break;
 
-			case USERROLESENUM.THEATRE_MANAGER:
-			case USERROLESENUM.MANAGER:
-				menu = THEATREMANAGERSIDEBARITEMS;
-				console.log('Returning THEATREMANAGERSIDEBARITEMS');
+			case USERROLESENUM.SUPERVISOR:
+				menu = SUPERVISORMENUSIDEBARITEMS;
+				console.log('Returning SUPERVISORMENUSIDEBARITEMS');
 				break;
 
-			case USERROLESENUM.EXECUTIVE_PRODUCER:
-				menu = EXECUTIVEPRODUCERSIDEBARITEMS;
-				console.log('Returning EXECUTIVEPRODUCERSIDEBARITEMS');
-				break;
-
-			case USERROLESENUM.COUNTER_STAFF:
-				menu = COUNTERSTAFFSIDEBARITEMS;
-				console.log('Returning COUNTERSTAFFSIDEBARITEMS');
+			case USERROLESENUM.ENUMERATOR:
+				menu = ENUMERATORMENUSIDEBARITEMS;
+				console.log('Returning ENUMERATORMENUSIDEBARITEMS');
 				break;
 
 			default:
-				console.warn('Unknown role, returning empty menu:', role);
-				menu = [];
+				console.warn('Unknown role, returning ADMIN menu as default:', role);
+				menu = ADMINSIDEBARITEMS;
 				break;
 		}
 
@@ -127,18 +119,13 @@ export class RoleBasedMenuService {
 	getDashboardRoute(role: USERROLESENUM): string {
 		switch (role) {
 			case USERROLESENUM.ADMIN:
-			case USERROLESENUM.SUPERADMIN:
 				return '/admin';
 
-			case USERROLESENUM.THEATRE_MANAGER:
-			case USERROLESENUM.MANAGER:
-				return '/theatre-manager';
+			case USERROLESENUM.SUPERVISOR:
+				return '/supervisor';
 
-			case USERROLESENUM.EXECUTIVE_PRODUCER:
-				return '/executive-producer';
-
-			case USERROLESENUM.COUNTER_STAFF:
-				return '/counter-staff';
+			case USERROLESENUM.ENUMERATOR:
+				return '/enumerator';
 
 			default:
 				return '/';

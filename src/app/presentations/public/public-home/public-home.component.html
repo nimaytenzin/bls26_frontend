@@ -1,251 +1,322 @@
-<div class="relative w-full" style="height: calc(100vh - 80px)">
-	<!-- Map Container - adjusted height to account for navbar and footer -->
-	<div id="map" class="w-full h-full"></div>
-
-	<!-- Title and Description Panel on the Left -->
-	<div
-		class="absolute top-5 left-5 w-96 bg-white backdrop-blur-sm rounded-md shadow-2xl z-[1000] p-6"
-	>
-		<h1 class="text-2xl font-bold text-gray-900 mb-3">
-			National Sampling Frame Dashboard
-		</h1>
-		<p class="text-sm text-gray-700 leading-relaxed text-justify">
-			A sampling frame is a population from which a sample can be drawn. It
-			serves as the source material that ensures survey samples are
-			representative, accurate, and reliable. A well-maintained sampling frame
-			is essential for statistical operations, as it determines the quality of
-			survey results and the credibility of official statistics.
-		</p>
-		<p class="text-sm text-gray-700 leading-relaxed mt-3 text-justify">
-			The National Statistics Bureau (NSB) maintains a sampling frame comprising
-			<strong>3,310 Enumeration Areas (EAs)</strong>, disaggregated into
-			<strong>1,464 urban</strong> and <strong>1,846 rural</strong> developed
-			from the Population and Housing Census of Bhutan (PHCB) 2017. Each EA has
-			a corresponding digital map and associated metadata.
-		</p>
-	</div>
-
-	<!-- Control Widget Panel with Tailwind CSS -->
-	<div
-		class="absolute top-5 right-5 w-80 max-h-[calc(100vh-80px-250px-2.5rem)] overflow-y-auto bg-white backdrop-blur-sm rounded-md shadow-2xl z-[1000]"
-	>
-		<!-- BaseMaps Section -->
-		<div class="border-b border-gray-200">
-			<div
-				class="flex justify-between items-center px-5 py-4 cursor-pointer transition-all hover:bg-gray-50 select-none"
-				[ngClass]="{
-					'bg-gray-100': expandedSection === 'basemaps',
-					'border-b': expandedSection === 'basemaps',
-					'border-gray-200': expandedSection === 'basemaps'
-				}"
-				(click)="toggleSection('basemaps')"
-			>
-				<span class="text-gray-900 font-semibold text-sm">BaseMaps</span>
-				<span class="text-gray-600 text-xs">{{
-					expandedSection === "basemaps" ? "▲" : "▼"
-				}}</span>
+<!-- Public Home Dashboard -->
+<div class="h-[100vh]">
+	<!-- Main Content -->
+	<section class="flex gap-4 h-[100vh] bg-white">
+		<!-- Left Pane: Information and Statistics -->
+		<div class="w-[25vw] flex flex-col gap-4 overflow-y-auto p-6">
+			<!-- Header with Login Button -->
+			<div class="flex items-start justify-between gap-4">
+				<div class="flex-1">
+					<h1 class="text-2xl font-bold text-gray-900 mb-3">
+						National Sampling Frame Dashboard
+					</h1>
+					<p class="text-sm text-gray-700 leading-relaxed text-justify">
+						A sampling frame is a population from which a sample can be drawn.
+						It serves as the source material that ensures survey samples are
+						representative, accurate, and reliable. A well-maintained sampling
+						frame is essential for statistical operations, as it determines the
+						quality of survey results and the credibility of official
+						statistics.
+					</p>
+					<p class="text-sm text-gray-700 leading-relaxed mt-3 text-justify">
+						The National Statistics Bureau (NSB) maintains a sampling frame
+						comprising <strong>3,310 Enumeration Areas (EAs)</strong>,
+						disaggregated into <strong>1,464 urban</strong> and
+						<strong>1,846 rural</strong> developed from the Population and
+						Housing Census of Bhutan (PHCB) 2017. Each EA has a corresponding
+						digital map and associated metadata.
+					</p>
+				</div>
 			</div>
-			<div
-				class="overflow-hidden transition-all duration-300"
-				[ngClass]="{
-					'max-h-0': expandedSection !== 'basemaps',
-					'max-h-96': expandedSection === 'basemaps'
-				}"
-			>
-				<div class="flex flex-col gap-3 p-4">
-					<div
-						*ngFor="let basemap of baseMaps"
-						class="flex items-center gap-3 p-2.5 rounded border-2 cursor-pointer transition-all hover:bg-gray-50"
-						[ngClass]="{
-							'border-blue-500': currentBasemap === basemap.key,
-							'bg-blue-50': currentBasemap === basemap.key,
-							'border-gray-300': currentBasemap !== basemap.key
-						}"
-						(click)="switchBasemap(basemap.key)"
-					>
-						<div
-							class="w-14 h-12 rounded border border-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0 bg-gray-100"
+
+			<div class="p-4">
+				<div class="space-y-4">
+					<!-- Tabs -->
+					<div class="flex gap-2 border-b border-slate-200">
+						<button
+							type="button"
+							(click)="activeTab = 'overview'"
+							class="px-4 py-2 font-semibold transition border-b-2"
+							[ngClass]="
+								activeTab === 'overview'
+									? 'border-primary-600 text-primary-600'
+									: 'border-transparent text-slate-600 hover:text-slate-900'
+							"
 						>
-							<img
-								[src]="basemap.iconUrl"
-								[alt]="basemap.name"
-								class="w-full h-full object-cover"
-							/>
+							Overview
+						</button>
+						<button
+							type="button"
+							(click)="activeTab = 'dzongkhags'"
+							class="px-4 py-2 font-semibold transition border-b-2"
+							[ngClass]="
+								activeTab === 'dzongkhags'
+									? 'border-primary-600 text-primary-600'
+									: 'border-transparent text-slate-600 hover:text-slate-900'
+							"
+						>
+							Dzongkhags
+						</button>
+					</div>
+
+					<!-- Overview Tab -->
+					<div *ngIf="activeTab === 'overview'" class="space-y-4">
+						<div class="space-y-4 text-base text-slate-600">
+							<!-- Information Cards -->
+							<div
+								class="p-4 rounded-lg border border-slate-200 bg-white shadow-sm"
+							>
+								<h3 class="text-lg font-semibold text-slate-800 mb-2">
+									About the Sampling Frame
+								</h3>
+								<p class="text-sm text-slate-600 leading-relaxed">
+									The National Sampling Frame provides a comprehensive database
+									of enumeration areas across Bhutan, enabling accurate survey
+									sampling and statistical analysis.
+								</p>
+							</div>
+
+							<div
+								class="p-4 rounded-lg border border-slate-200 bg-white shadow-sm"
+							>
+								<h3 class="text-lg font-semibold text-slate-800 mb-3">
+									Key Statistics
+								</h3>
+								<div class="space-y-3 text-sm">
+									<div class="flex items-center justify-between">
+										<span class="text-slate-600">Total EAs:</span>
+										<span class="font-bold text-primary-600">3,310</span>
+									</div>
+									<div class="flex items-center justify-between">
+										<span class="text-slate-600">Urban EAs:</span>
+										<span class="font-bold text-primary-600">1,464</span>
+									</div>
+									<div class="flex items-center justify-between">
+										<span class="text-slate-600">Rural EAs:</span>
+										<span class="font-bold text-primary-600">1,846</span>
+									</div>
+									<div class="flex items-center justify-between">
+										<span class="text-slate-600">Total Dzongkhags:</span>
+										<span class="font-bold text-primary-600">20</span>
+									</div>
+								</div>
+							</div>
+
+							<div
+								class="p-4 rounded-lg border border-slate-200 bg-white shadow-sm"
+							>
+								<h3 class="text-lg font-semibold text-slate-800 mb-2">
+									Data Source
+								</h3>
+								<p class="text-sm text-slate-600 leading-relaxed">
+									Based on the Population and Housing Census of Bhutan (PHCB)
+									2017, maintained and updated by the National Statistics
+									Bureau.
+								</p>
+							</div>
 						</div>
-						<div class="flex-1 text-gray-900 text-sm font-medium">
-							{{ basemap.name }}
+					</div>
+
+					<!-- Dzongkhags Tab -->
+					<div *ngIf="activeTab === 'dzongkhags'" class="space-y-3">
+						<div
+							*ngFor="let dzongkhag of dzongkhagList"
+							(click)="selectDzongkhag(dzongkhag)"
+							class="p-4 rounded-lg border border-slate-200 bg-white hover:border-primary-300 cursor-pointer transition"
+						>
+							<div class="flex items-center justify-between">
+								<p class="font-bold text-lg text-slate-900">
+									{{ dzongkhag.name }}
+								</p>
+								<i class="pi pi-chevron-right text-slate-400"></i>
+							</div>
 						</div>
-						<input
-							type="radio"
-							name="basemap"
-							class="accent-blue-500 cursor-pointer"
-							[checked]="currentBasemap === basemap.key"
-						/>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<!-- Layers Section -->
-		<div class="border-b border-gray-200">
-			<div
-				class="flex justify-between items-center px-5 py-4 cursor-pointer transition-all hover:bg-gray-50 select-none"
-				[ngClass]="{
-					'bg-gray-100': expandedSection === 'layers',
-					'border-b': expandedSection === 'layers',
-					'border-gray-200': expandedSection === 'layers'
-				}"
-				(click)="toggleSection('layers')"
-			>
-				<span class="text-gray-900 font-semibold text-sm">Layers</span>
-				<span class="text-gray-600 text-xs">{{
-					expandedSection === "layers" ? "▲" : "▼"
-				}}</span>
+		<!-- Right Pane: Map -->
+		<div class="flex-1 relative rounded-lg overflow-hidden shadow-sm">
+			<!-- Map Container -->
+			<div id="map" class="w-full h-full bg-slate-100"></div>
+
+			<!-- Download and Filter Buttons (Top Left) -->
+			<div class="absolute top-4 left-4 flex gap-2 z-[1001]">
+				<!-- Download Popover -->
+				<p-button
+					(click)="downloadPopover.toggle($event)"
+					icon="pi pi-save"
+					severity="secondary"
+					[label]="'Download'"
+					size="small"
+				/>
+				<p-popover #downloadPopover>
+					<div class="flex flex-col gap-3 w-[18rem]">
+						<div>
+							<span class="font-semibold text-slate-900 block mb-3 text-sm">
+								Download Data
+							</span>
+							<div class="flex flex-col gap-2">
+								<button
+									type="button"
+									(click)="downloadGeoJSON(); downloadPopover.hide()"
+									class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition flex items-center justify-center gap-2"
+								>
+									<i class="pi pi-download text-xs"></i>
+									Download GeoJSON
+								</button>
+								<button
+									type="button"
+									(click)="downloadKML(); downloadPopover.hide()"
+									class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition flex items-center justify-center gap-2"
+								>
+									<i class="pi pi-download text-xs"></i>
+									Download KML
+								</button>
+								<button
+									type="button"
+									(click)="downloadCSV(); downloadPopover.hide()"
+									class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition flex items-center justify-center gap-2"
+								>
+									<i class="pi pi-download text-xs"></i>
+									Download Attributes (CSV)
+								</button>
+							</div>
+						</div>
+					</div>
+				</p-popover>
+
+				<!-- Filter Popover -->
+				<p-button
+					(click)="filterPopover.toggle($event)"
+					icon="pi pi-filter"
+					severity="secondary"
+					size="small"
+					[label]="'Filter Locations'"
+				/>
+
+				<!-- Login Button -->
+				<p-button
+					(click)="navigateToLogin()"
+					icon="pi pi-sign-in"
+					severity="secondary"
+					size="small"
+					[label]="'Login'"
+				/>
+
+				<p-popover #filterPopover>
+					<div class="flex flex-col gap-3 w-[20rem]">
+						<div>
+							<span class="font-semibold text-slate-900 block mb-3 text-sm">
+								Filter Locations
+							</span>
+
+							<div class="space-y-3">
+								<!-- Dzongkhag Dropdown -->
+								<div>
+									<label class="block font-semibold text-slate-700 mb-1">
+										Select Dzongkhag
+									</label>
+									<p-dropdown
+										[options]="dzongkhagFilterOptions"
+										[(ngModel)]="selectedFilterDzongkhag"
+										placeholder="Choose Dzongkhag"
+										optionLabel="label"
+										optionValue="value"
+										[showClear]="true"
+										styleClass="w-full"
+									></p-dropdown>
+								</div>
+
+								<!-- Submit Button -->
+								<div class="pt-2">
+									<button
+										type="button"
+										(click)="applyFilter(); filterPopover.hide()"
+										[disabled]="!selectedFilterDzongkhag"
+										class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+									>
+										<i class="pi pi-search"></i>
+										View Details
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</p-popover>
 			</div>
+
+			<!-- Map Controls Overlay -->
 			<div
-				class="overflow-hidden transition-all duration-300"
-				[ngClass]="{
-					'max-h-0': expandedSection !== 'layers',
-					'max-h-96': expandedSection === 'layers'
-				}"
+				class="absolute top-4 right-4 bg-white rounded-lg border border-slate-200 shadow-lg p-3 space-y-3 z-[1000]"
 			>
-				<div class="flex flex-col gap-2 p-4">
-					<div
-						*ngFor="let layer of layers"
-						class="flex items-center gap-3 p-2 rounded hover:bg-gray-50 transition-colors"
-					>
+				<div>
+					<p class="text-sm font-semibold text-slate-700 mb-2">Map Controls</p>
+
+					<!-- Basemap Selector -->
+					<div class="mb-3">
+						<label class="text-xs text-slate-600 mb-1 block">Basemap:</label>
+						<select
+							[(ngModel)]="selectedBasemapId"
+							(change)="switchBasemap()"
+							class="w-full text-sm border border-slate-300 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+						>
+							<ng-container
+								*ngFor="let category of basemapCategories | keyvalue"
+							>
+								<optgroup [label]="category.value.label">
+									<option
+										*ngFor="let basemap of category.value.basemaps"
+										[value]="basemap.id"
+									>
+										{{ basemap.name }}
+									</option>
+								</optgroup>
+							</ng-container>
+						</select>
+					</div>
+
+					<!-- Dzongkhag Boundaries Toggle -->
+					<div class="flex items-center justify-between gap-2 mb-3">
+						<span class="text-sm text-slate-600">Show Boundaries:</span>
 						<input
 							type="checkbox"
-							class="w-4 h-4 cursor-pointer accent-blue-500"
-							[checked]="layer.enabled"
-							[id]="layer.id"
-							(change)="toggleLayer(layer.id)"
+							[(ngModel)]="showBoundaries"
+							(change)="toggleBoundaries()"
+							class="w-4 h-4 cursor-pointer accent-primary-600"
 						/>
-						<span
-							class="w-5 h-5 rounded border-2 border-gray-400 flex-shrink-0"
-							[style.background-color]="layer.color"
-						></span>
-						<label
-							[for]="layer.id"
-							class="flex-1 text-gray-900 text-sm font-medium cursor-pointer"
-							>{{ layer.name }}</label
-						>
+					</div>
+				</div>
+
+				<!-- Legend -->
+				<div class="pt-2 border-t border-slate-200">
+					<p class="text-sm font-semibold text-slate-700 mb-2">Legend</p>
+					<div class="space-y-1 text-xs">
+						<div class="flex items-center gap-2">
+							<div
+								class="w-5 h-3 rounded border border-slate-300"
+								style="background-color: #6d8aa3"
+							></div>
+							<span class="text-slate-600">Dzongkhag Boundaries</span>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-
-		<!-- Legend Section -->
-		<div class="border-b border-gray-200">
-			<div
-				class="flex justify-between items-center px-5 py-4 cursor-pointer transition-all hover:bg-gray-50 select-none"
-				[ngClass]="{
-					'bg-gray-100': expandedSection === 'legend',
-					'border-b': expandedSection === 'legend',
-					'border-gray-200': expandedSection === 'legend'
-				}"
-				(click)="toggleSection('legend')"
-			>
-				<span class="text-gray-900 font-semibold text-sm">Legend</span>
-				<span class="text-gray-600 text-xs">{{
-					expandedSection === "legend" ? "▲" : "▼"
-				}}</span>
-			</div>
-			<div
-				class="overflow-hidden transition-all duration-300"
-				[ngClass]="{
-					'max-h-0': expandedSection !== 'legend',
-					'max-h-96': expandedSection === 'legend'
-				}"
-			>
-				<div class="flex flex-col gap-3 p-4">
-					<div
-						*ngFor="let item of legendItems"
-						class="flex items-center gap-3 text-gray-900 text-sm"
-					>
-						<div
-							class="w-6 h-6 rounded border-2 border-gray-400 flex-shrink-0"
-							[class.flex]="item.type === 'text'"
-							[class.items-center]="item.type === 'text'"
-							[class.justify-center]="item.type === 'text'"
-							[class.font-bold]="item.type === 'text'"
-							[style.background-color]="item.color"
-						></div>
-						<span class="font-medium">{{ item.label }}</span>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- Download Section -->
-		<div>
-			<div
-				class="flex justify-between items-center px-5 py-4 cursor-pointer transition-all hover:bg-gray-50 select-none"
-				[ngClass]="{
-					'bg-gray-100': expandedSection === 'download',
-					'border-b': expandedSection === 'download',
-					'border-gray-200': expandedSection === 'download'
-				}"
-				(click)="toggleSection('download')"
-			>
-				<span class="text-gray-900 font-semibold text-sm">Download</span>
-				<span class="text-gray-600 text-xs">{{
-					expandedSection === "download" ? "▲" : "▼"
-				}}</span>
-			</div>
-			<div
-				class="overflow-hidden transition-all duration-300"
-				[ngClass]="{
-					'max-h-0': expandedSection !== 'download',
-					'max-h-96': expandedSection === 'download'
-				}"
-			>
-				<div class="flex flex-col gap-2 p-4">
-					<button
-						class="flex items-center gap-3 w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded text-gray-900 text-sm font-medium cursor-pointer transition-all hover:bg-gray-100 hover:border-blue-500 hover:translate-x-0.5"
-						(click)="downloadMap('geojson')"
-					>
-						<span class="text-lg flex-shrink-0">📥</span>
-						<span class="flex-1 text-left">Download as GeoJSON</span>
-					</button>
-					<button
-						class="flex items-center gap-3 w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded text-gray-900 text-sm font-medium cursor-pointer transition-all hover:bg-gray-100 hover:border-blue-500 hover:translate-x-0.5"
-						(click)="downloadMap('png')"
-					>
-						<span class="text-lg flex-shrink-0">📥</span>
-						<span class="flex-1 text-left">Export as PNG</span>
-					</button>
-					<button
-						class="flex items-center gap-3 w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded text-gray-900 text-sm font-medium cursor-pointer transition-all hover:bg-gray-100 hover:border-blue-500 hover:translate-x-0.5"
-						(click)="downloadMap('pdf')"
-					>
-						<span class="text-lg flex-shrink-0">📥</span>
-						<span class="flex-1 text-left">Export as PDF</span>
-					</button>
-					<button
-						class="flex items-center gap-3 w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded text-gray-900 text-sm font-medium cursor-pointer transition-all hover:bg-gray-100 hover:border-blue-500 hover:translate-x-0.5"
-						(click)="downloadMap('print')"
-					>
-						<span class="text-lg flex-shrink-0">🖨️</span>
-						<span class="flex-1 text-left">Print Map</span>
-					</button>
-				</div>
-			</div>
-		</div>
-	</div>
+	</section>
 
 	<!-- PrimeNG Drawer for Dzongkhag Details -->
 	<p-drawer
 		[(visible)]="drawerOpen"
 		[style]="{ width: '400px' }"
 		(onHide)="closeDrawer()"
-		styleClass="dzongkhag-drawer"
 	>
 		<ng-template pTemplate="header">
 			<div class="flex items-center gap-3">
 				<i class="pi pi-map-marker text-gray-700 text-lg"></i>
 				<span class="text-lg font-bold text-gray-900 tracking-tight">
-					{{ selectedDzongkhag.name }} Dzongkhag
+					{{ selectedDzongkhag?.name }} Dzongkhag
 				</span>
 			</div>
 		</ng-template>
@@ -265,18 +336,6 @@
 							</span>
 						</div>
 					</div>
-
-					<div class="border-b border-gray-100 pb-3">
-						<div class="flex justify-between items-baseline">
-							<span
-								class="text-sm font-medium text-gray-600 uppercase tracking-wide"
-								>Type</span
-							>
-							<span class="text-base font-medium text-gray-900">
-								{{ selectedDzongkhag.type || "Dzongkhag" }}
-							</span>
-						</div>
-					</div>
 				</div>
 			</div>
 
@@ -290,7 +349,7 @@
 				<div class="grid grid-cols-2 gap-6 mb-6">
 					<div class="text-center">
 						<div class="text-3xl font-bold text-gray-900 font-mono mb-1">
-							{{ selectedDzongkhag.stats.gewogs }}
+							{{ selectedDzongkhag.stats.gewogs || 0 }}
 						</div>
 						<div
 							class="text-sm font-medium text-gray-600 uppercase tracking-wide"
@@ -300,7 +359,7 @@
 					</div>
 					<div class="text-center">
 						<div class="text-3xl font-bold text-gray-900 font-mono mb-1">
-							{{ selectedDzongkhag.stats.thromdes }}
+							{{ selectedDzongkhag.stats.thromdes || 0 }}
 						</div>
 						<div
 							class="text-sm font-medium text-gray-600 uppercase tracking-wide"
@@ -310,7 +369,7 @@
 					</div>
 					<div class="text-center">
 						<div class="text-3xl font-bold text-gray-900 font-mono mb-1">
-							{{ selectedDzongkhag.stats.chiwogs }}
+							{{ selectedDzongkhag.stats.chiwogs || 0 }}
 						</div>
 						<div
 							class="text-sm font-medium text-gray-600 uppercase tracking-wide"
@@ -320,7 +379,7 @@
 					</div>
 					<div class="text-center">
 						<div class="text-3xl font-bold text-gray-900 font-mono mb-1">
-							{{ selectedDzongkhag.stats.laps }}
+							{{ selectedDzongkhag.stats.laps || 0 }}
 						</div>
 						<div
 							class="text-sm font-medium text-gray-600 uppercase tracking-wide"
@@ -334,39 +393,14 @@
 				<div class="border-t border-gray-200 pt-6">
 					<div class="text-center">
 						<div class="text-4xl font-bold text-gray-900 font-mono mb-2">
-							{{ selectedDzongkhag.stats.eaAreas }}
+							{{ selectedDzongkhag.stats.eaAreas || 0 }}
 						</div>
 						<div
 							class="text-base font-semibold text-gray-700 uppercase tracking-wide"
 						>
 							Enumeration Areas
 						</div>
-						<div class="text-sm text-gray-500 mt-1">
-							Primary Statistical Units
-						</div>
 					</div>
-				</div>
-			</div>
-
-			<!-- Additional Info -->
-			<div class="border-t border-gray-200 pt-6 mb-6">
-				<div class="text-xs text-gray-500 leading-relaxed space-y-2">
-					<p class="font-medium text-gray-700 mb-3">
-						Administrative Hierarchy:
-					</p>
-					<p>
-						<span class="font-semibold">Gewogs:</span> Administrative blocks
-					</p>
-					<p>
-						<span class="font-semibold">Thromdes:</span> Municipal corporations
-					</p>
-					<p><span class="font-semibold">Chiwogs:</span> Village communities</p>
-					<p>
-						<span class="font-semibold">LAPs:</span> Local area planning units
-					</p>
-					<p>
-						<span class="font-semibold">EAs:</span> Census enumeration areas
-					</p>
 				</div>
 			</div>
 
@@ -375,39 +409,12 @@
 				<button
 					pButton
 					type="button"
-					label="View Details"
-					icon="pi pi-chevron-right"
-					class="w-full p-button-sm justify-start"
-					(click)="viewDzongkhagDetails()"
-				></button>
-
-				<button
-					pButton
-					type="button"
-					label="Export Data"
-					icon="pi pi-download"
-					class="w-full p-button-sm justify-start"
-					(click)="downloadDzongkhagData()"
-				></button>
-
-				<button
-					pButton
-					type="button"
 					label="Close Panel"
 					icon="pi pi-times"
-					class="w-full p-button-sm justify-start text-gray-500"
+					class="w-full p-button-sm justify-start"
 					(click)="closeDrawer()"
 				></button>
 			</div>
 		</div>
-
-		<!-- Loading state when no dzongkhag selected -->
-		<div class="p-6 text-center" *ngIf="!selectedDzongkhag">
-			<div class="text-gray-500">
-				<i class="pi pi-map text-4xl mb-4 block"></i>
-				<p>Click on a dzongkhag on the map to view details</p>
-			</div>
-		</div>
 	</p-drawer>
 </div>
-<!-- End of map container wrapper -->

@@ -1,4 +1,12 @@
+import { User } from '../auth/auth.interface';
 import { EnumerationArea } from '../location/enumeration-area/enumeration-area.dto';
+
+// Import and re-export pagination interfaces from utility
+export type {
+	PaginationQueryDto,
+	PaginationMeta,
+	PaginatedResponse,
+} from '../../utility/pagination.utility.service';
 
 /**
  * Survey Status Enum
@@ -12,6 +20,7 @@ export enum SurveyStatus {
 /**
  * Survey Entity Interface
  * Main entity representing a survey with all its properties
+ * Note: isSubmitted and isVerified are properties of SurveyEnumerationArea, not Survey
  */
 export interface Survey {
 	id: number;
@@ -21,20 +30,35 @@ export interface Survey {
 	endDate: string | Date;
 	year: number;
 	status: SurveyStatus;
-	isSubmitted: boolean;
-	isVerified: boolean;
+	isFullyValidated?: boolean;
 	createdAt?: Date;
 	updatedAt?: Date;
 	enumerationAreas?: EnumerationArea[];
+	surveyEnumerationAreas?: SurveyEnumerationArea[];
 }
 
 /**
  * Survey Enumeration Area Junction Interface
  * Represents the many-to-many relationship between surveys and enumeration areas
+ * Contains submission and validation tracking at the EA level
  */
 export interface SurveyEnumerationArea {
+	id?: number;
 	surveyId: number;
 	enumerationAreaId: number;
+	isSubmitted?: boolean;
+	isValidated?: boolean;
+	submittedBy?: number;
+	submissionDate?: Date | string;
+	validatedBy?: number;
+	validationDate?: Date | string;
+	comments?: string;
+	createdAt?: Date;
+	updatedAt?: Date;
+	enumerationArea?: EnumerationArea;
+
+	submitter?: User;
+	validator?: User;
 }
 
 /**
@@ -46,10 +70,8 @@ export interface CreateSurveyDto {
 	description: string;
 	startDate: string; // ISO date string (YYYY-MM-DD)
 	endDate: string; // ISO date string (YYYY-MM-DD)
-	year: number; // survey year, could be drawn from the dates but just for make it faster
+	year: number; // Survey year
 	status?: SurveyStatus;
-	isSubmitted?: boolean;
-	isVerified?: boolean;
 	enumerationAreaIds?: number[]; // Array of EA IDs to associate
 }
 
@@ -64,8 +86,6 @@ export interface UpdateSurveyDto {
 	startDate?: string; // ISO date string (YYYY-MM-DD)
 	endDate?: string; // ISO date string (YYYY-MM-DD)
 	status?: SurveyStatus;
-	isSubmitted?: boolean;
-	isVerified?: boolean;
 	enumerationAreaIds?: number[]; // Update associated EAs
 }
 
@@ -85,4 +105,27 @@ export interface ApiResponse<T> {
  */
 export interface ManageEnumerationAreasDto {
 	enumerationAreaIds: number[];
+}
+
+export interface SurveyStatisticsResponseDto {
+	surveyId: number;
+	surveyName: string;
+	surveyStatus: SurveyStatus;
+	surveyYear: number;
+
+	isFullyValidated: boolean;
+	totalDzongkhags: number;
+	totalEnumerationAreas: number;
+	submittedEnumerationAreas: number;
+	validatedEnumerationAreas: number;
+	pendingEnumerationAreas: number;
+	submissionPercentage: string;
+	validationPercentage: string;
+	totalEnumerators: number;
+	totalHouseholds: number;
+
+	totalMale: number;
+	totalFemale: number;
+	totalPopulation: number;
+	averageHouseholdSize: string;
 }

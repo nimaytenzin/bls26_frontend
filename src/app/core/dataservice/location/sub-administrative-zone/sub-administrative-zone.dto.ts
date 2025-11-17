@@ -1,4 +1,5 @@
 import { AdministrativeZone } from '../administrative-zone/administrative-zone.dto';
+import { EnumerationArea } from '../enumeration-area/enumeration-area.dto';
 
 export enum SubAdministrativeZoneType {
 	CHIWOG = 'chiwog',
@@ -17,6 +18,7 @@ export interface SubAdministrativeZone {
 	updatedAt?: Date;
 
 	administrativeZone?: AdministrativeZone;
+	enumerationAreas: EnumerationArea[];
 }
 
 export interface SubAdministrativeZoneGeoJSON {

@@ -1,0 +1,255 @@
+<!-- Location Selector Card -->
+<p-card header="Select Location & Enumeration Area" class="mb-6">
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+		<!-- Dzongkhag Dropdown -->
+		<div>
+			<label class="block text-sm font-semibold text-gray-700 mb-2"
+				>Dzongkhag</label
+			>
+			<p-dropdown
+				[(ngModel)]="selectedDzongkhag"
+				[options]="dzongkhags"
+				optionLabel="name"
+				placeholder="Select Dzongkhag"
+				(onChange)="onDzongkhagChange()"
+				[style]="{ width: '100%' }"
+				[showClear]="true"
+			></p-dropdown>
+		</div>
+
+		<!-- Administrative Zone Dropdown -->
+		<div>
+			<label class="block text-sm font-semibold text-gray-700 mb-2"
+				>Gewog/Thromde</label
+			>
+			<p-dropdown
+				[(ngModel)]="selectedAdminZone"
+				[options]="administrativeZones"
+				optionLabel="name"
+				placeholder="Select Gewog/Thromde"
+				(onChange)="onAdminZoneChange()"
+				[disabled]="!selectedDzongkhag"
+				[style]="{ width: '100%' }"
+				[showClear]="true"
+			></p-dropdown>
+		</div>
+
+		<!-- Sub Administrative Zone Dropdown -->
+		<div>
+			<label class="block text-sm font-semibold text-gray-700 mb-2"
+				>Chiwog/Lap</label
+			>
+			<p-dropdown
+				[(ngModel)]="selectedSubAdminZone"
+				[options]="subAdministrativeZones"
+				optionLabel="name"
+				placeholder="Select Chiwog/Lap"
+				(onChange)="onSubAdminZoneChange()"
+				[disabled]="!selectedAdminZone"
+				[style]="{ width: '100%' }"
+				[showClear]="true"
+			></p-dropdown>
+		</div>
+
+		<!-- Enumeration Area Dropdown -->
+		<div>
+			<label class="block text-sm font-semibold text-gray-700 mb-2"
+				>Enumeration Area</label
+			>
+			<p-dropdown
+				[(ngModel)]="selectedEA"
+				[options]="enumerationAreaOptions"
+				optionLabel="name"
+				placeholder="Select EA"
+				(onChange)="onEAChange()"
+				[disabled]="!selectedSubAdminZone"
+				[style]="{ width: '100%' }"
+				[showClear]="true"
+			>
+				<ng-template let-ea pTemplate="item">
+					<div>
+						<div class="font-semibold">
+							{{ ea.name }}
+						</div>
+						<div class="text-xs text-gray-500">
+							{{ ea.areaCode }}
+						</div>
+					</div>
+				</ng-template>
+			</p-dropdown>
+		</div>
+	</div>
+</p-card>
+
+<!-- Loading Households -->
+<div *ngIf="loadingHouseholds" class="flex justify-center py-8">
+	<p-progressSpinner styleClass="w-12 h-12" />
+</div>
+
+<!-- Statistics and Details Row -->
+<div
+	*ngIf="!loadingHouseholds && householdListings.length > 0"
+	class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-6"
+>
+	<!-- Survey Statistics -->
+	<div class="border rounded-lg p-4">
+		<h3 class="text-lg font-semibold text-gray-800 mb-4">Statistics</h3>
+		<div class="space-y-3">
+			<div class="flex justify-between items-center">
+				<span class="text-gray-600">Total Households:</span>
+				<span class="font-semibold text-gray-800">{{ totalHouseholds }}</span>
+			</div>
+			<div class="flex justify-between items-center">
+				<span class="text-gray-600">Total Population:</span>
+				<span class="font-semibold text-gray-800">{{ totalPopulation }}</span>
+			</div>
+			<div class="flex justify-between items-center">
+				<span class="text-gray-600">Data Completeness:</span>
+				<span class="font-semibold text-gray-800"
+					>{{ dataCompletenessPercentage }}%</span
+				>
+			</div>
+		</div>
+	</div>
+
+	<!-- Submission & Validation Info -->
+	<div class="border rounded-lg p-4">
+		<h3 class="text-lg font-semibold text-gray-800 mb-4">
+			Submission & Validation
+		</h3>
+		<div class="space-y-3">
+			<div class="flex justify-between items-center">
+				<span class="text-gray-600">Submitted:</span>
+				<span class="font-semibold text-gray-800">
+					<i class="pi pi-check-circle text-green-600 mr-1"></i>
+					Yes
+				</span>
+			</div>
+			<div class="flex justify-between items-center">
+				<span class="text-gray-600">Validated:</span>
+				<span class="font-semibold text-gray-800">
+					<i class="pi pi-times-circle text-red-600 mr-1"></i>
+					Pending
+				</span>
+			</div>
+			<div class="flex justify-between items-center">
+				<span class="text-gray-600">Last Updated:</span>
+				<span class="text-sm text-gray-600">{{
+					formatDate(getLatestUpdate())
+				}}</span>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Household Listings Table -->
+<div *ngIf="!loadingHouseholds && householdListings.length > 0" class="mb-6">
+	<h2 class="text-xl font-semibold text-gray-800 mb-4">
+		Household Listings ({{ householdListings.length }})
+	</h2>
+
+	<p-table
+		[value]="householdListings"
+		[paginator]="true"
+		[rows]="10"
+		[rowsPerPageOptions]="[10, 25, 50, 100]"
+		[showCurrentPageReport]="true"
+		currentPageReportTemplate="Showing {first} to {last} of {totalRecords} households"
+		styleClass="p-datatable-sm"
+		[tableStyle]="{ 'min-width': '50rem' }"
+	>
+		<ng-template pTemplate="header">
+			<tr>
+				<th pSortableColumn="structureNumber">
+					Structure No. <p-sortIcon field="structureNumber"></p-sortIcon>
+				</th>
+				<th pSortableColumn="householdSerialNumber">
+					HH Serial No.
+					<p-sortIcon field="householdSerialNumber"></p-sortIcon>
+				</th>
+				<th pSortableColumn="householdIdentification">
+					Household ID
+					<p-sortIcon field="householdIdentification"></p-sortIcon>
+				</th>
+				<th pSortableColumn="nameOfHOH">
+					Head of Household <p-sortIcon field="nameOfHOH"></p-sortIcon>
+				</th>
+				<th pSortableColumn="phoneNumber">
+					Phone Number <p-sortIcon field="phoneNumber"></p-sortIcon>
+				</th>
+				<th pSortableColumn="totalMale">
+					Male <p-sortIcon field="totalMale"></p-sortIcon>
+				</th>
+				<th pSortableColumn="totalFemale">
+					Female <p-sortIcon field="totalFemale"></p-sortIcon>
+				</th>
+				<th>Total</th>
+				<th>Remarks</th>
+				<th pSortableColumn="submitter.username">
+					Submitted By <p-sortIcon field="submitter.username"></p-sortIcon>
+				</th>
+				<th pSortableColumn="createdAt">
+					Submitted Date <p-sortIcon field="createdAt"></p-sortIcon>
+				</th>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="body" let-household>
+			<tr>
+				<td>{{ household.structureNumber }}</td>
+				<td>{{ household.householdSerialNumber }}</td>
+				<td>
+					<span class="font-mono text-xs">{{
+						household.householdIdentification
+					}}</span>
+				</td>
+				<td>{{ household.nameOfHOH }}</td>
+				<td>{{ household.phoneNumber || "-" }}</td>
+				<td class="text-center">{{ household.totalMale || 0 }}</td>
+				<td class="text-center">{{ household.totalFemale || 0 }}</td>
+				<td class="text-center font-semibold">
+					{{ (household.totalMale || 0) + (household.totalFemale || 0) }}
+				</td>
+				<td>
+					<span class="text-xs">{{ household.remarks || "-" }}</span>
+				</td>
+				<td>
+					<div class="text-sm">{{ household.submitter?.name || "-" }}</div>
+					<div class="text-xs text-gray-500">
+						{{ household.submitter?.phoneNumber || "-" }}
+					</div>
+				</td>
+				<td>
+					<div class="text-sm">{{ formatDate(household.createdAt) }}</div>
+					<div class="text-xs text-gray-500">
+						{{ formatTime(household.createdAt) }}
+					</div>
+				</td>
+			</tr>
+		</ng-template>
+		<ng-template pTemplate="emptymessage">
+			<tr>
+				<td colspan="11" class="text-center py-8">
+					<i class="pi pi-inbox text-4xl text-gray-300 mb-4"></i>
+					<p class="text-gray-500">No household data available</p>
+				</td>
+			</tr>
+		</ng-template>
+	</p-table>
+</div>
+
+<!-- Empty State -->
+<div
+	*ngIf="!loadingHouseholds && selectedEA && householdListings.length === 0"
+	class="text-center py-12 bg-white rounded-lg shadow"
+>
+	<i class="pi pi-inbox text-6xl text-gray-300 mb-4"></i>
+	<p class="text-gray-500 text-lg">No household data available</p>
+</div>
+
+<!-- No EA Selected -->
+<div *ngIf="!selectedEA && !loadingHouseholds" class="text-center py-12">
+	<i class="pi pi-map-marker text-6xl text-gray-300 mb-4"></i>
+	<p class="text-gray-500 text-lg">
+		Please select a location to view household data
+	</p>
+</div>

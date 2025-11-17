@@ -1,0 +1,64 @@
+<div class="container mx-auto px-4 py-6">
+	<!-- Header -->
+	<div class="mb-6">
+		<p-button
+			icon="pi pi-arrow-left"
+			label="Back to Surveys"
+			[text]="true"
+			(onClick)="goBack()"
+			class="mb-2"
+		></p-button>
+		<h1 class="text-3xl font-bold text-gray-800" *ngIf="survey">
+			{{ survey.name }}
+		</h1>
+		<p-skeleton width="300px" height="2rem" *ngIf="!survey"></p-skeleton>
+	</div>
+
+	<!-- Loading State -->
+	<div *ngIf="loading" class="space-y-4">
+		<p-skeleton height="200px"></p-skeleton>
+		<p-skeleton height="400px"></p-skeleton>
+	</div>
+
+	<!-- Content -->
+	<div *ngIf="!loading && survey">
+		<!-- Survey Information Card -->
+		<p-card header="Survey Information" styleClass="mb-6">
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+				<div>
+					<label class="block text-sm font-semibold text-gray-700 mb-1"
+						>Description</label
+					>
+					<p class="text-gray-600">
+						{{ survey.description || "No description" }}
+					</p>
+				</div>
+				<div>
+					<label class="block text-sm font-semibold text-gray-700 mb-1"
+						>Year</label
+					>
+					<p class="text-gray-600">{{ survey.year }}</p>
+				</div>
+				<div>
+					<label class="block text-sm font-semibold text-gray-700 mb-1"
+						>Start Date</label
+					>
+					<p class="text-gray-600">{{ formatDate(survey.startDate) }}</p>
+				</div>
+				<div>
+					<label class="block text-sm font-semibold text-gray-700 mb-1"
+						>End Date</label
+					>
+					<p class="text-gray-600">{{ formatDate(survey.endDate) }}</p>
+				</div>
+			</div>
+		</p-card>
+
+		<!-- Household Listings Component -->
+		<app-supervisor-survey-household-listings [surveyId]="surveyId">
+		</app-supervisor-survey-household-listings>
+	</div>
+</div>
+
+<!-- Toast for notifications -->
+<p-toast></p-toast>

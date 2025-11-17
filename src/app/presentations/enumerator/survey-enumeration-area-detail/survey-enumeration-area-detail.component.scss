@@ -1,0 +1,188 @@
+// Mobile-first Survey Detail Screen Styles - Premium Design
+
+.mobile-survey-container {
+    // Smooth scrolling
+    scroll-behavior: smooth;
+
+    // Optimize touch interactions
+    input,
+    button {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+
+    // FAB with premium animations
+    button[aria-label="Add new household"] {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow:
+            0 20px 25px -5px rgba(59, 130, 246, 0.3),
+            0 10px 10px -5px rgba(59, 130, 246, 0.2);
+
+        &:active {
+            transform: scale(0.95);
+        }
+
+        &:hover {
+            transform: scale(1.05);
+            box-shadow:
+                0 25px 50px -12px rgba(59, 130, 246, 0.4),
+                0 12px 20px -8px rgba(59, 130, 246, 0.3);
+        }
+    }
+
+    // Card entrance and hover animations
+    .bg-white.rounded-2xl.shadow-md {
+        animation: slideUp 0.3s ease-out;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-origin: center;
+
+        &:active {
+            transform: scale(0.98);
+        }
+
+        &:hover {
+            transform: translateY(-2px);
+        }
+    }
+
+    // Search input focus effect
+    input[type="text"] {
+        transition: all 0.2s ease-in-out;
+
+        &:focus {
+            box-shadow: 0 0 0 3px rgba(19, 149, 211, 0.1);
+        }
+    }
+}
+
+// Custom animations
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+// Skeleton loading animation
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+// Custom scrollbar for webkit browsers
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(243, 244, 246, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(19, 149, 211, 0.3);
+    border-radius: 3px;
+
+    &:hover {
+        background: rgba(19, 149, 211, 0.5);
+    }
+} // Dialog customization for mobile
+::ng-deep {
+    .p-dialog {
+        border-radius: 1rem;
+        overflow: hidden;
+
+        .p-dialog-header {
+            background: #1395d3;
+            color: white;
+            padding: 1.25rem;
+            border-bottom: none;
+        }
+
+        .p-dialog-content {
+            padding: 1.5rem;
+        }
+
+        .p-dialog-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+    }
+}
+
+// Toast with enhanced styling
+::ng-deep {
+    .p-toast {
+        &.p-toast-top-center {
+            top: 5rem;
+        }
+
+        .p-toast-message {
+            margin: 0.5rem;
+            border-radius: 1rem;
+            box-shadow:
+                0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(8px);
+        }
+
+        .p-toast-message-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .p-toast-message-error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .p-toast-message-info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+    }
+}
+
+// Responsive adjustments
+@media (max-width: 640px) {
+    .mobile-survey-container {
+        .px-3 {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+    }
+}
+
+// Performance optimization
+button[aria-label="Add new household"],
+.bg-white.rounded-2xl {
+    will-change: transform;
+}

@@ -9,6 +9,9 @@ import {
 	UpdateSurveyDto,
 	ManageEnumerationAreasDto,
 	SurveyStatus,
+	SurveyStatisticsResponseDto,
+	PaginationQueryDto,
+	PaginatedResponse,
 } from './survey.dto';
 
 /**
@@ -56,17 +59,43 @@ export class SurveyDataService {
 	}
 
 	/**
-	 * Get all surveys with associated enumeration areas
+	 * Get all active surveys (status = ACTIVE)
 	 * @returns Observable of Survey array
 	 * @public No authentication required
 	 */
-	findAllSurveys(): Observable<Survey[]> {
-		return this.http.get<Survey[]>(this.apiUrl).pipe(
+	findAllActiveSurveys(): Observable<Survey[]> {
+		return this.http.get<Survey[]>(`${this.apiUrl}/active`).pipe(
 			catchError((error) => {
-				console.error('Error fetching surveys:', error);
+				console.error('Error fetching active surveys:', error);
 				return throwError(() => error);
 			})
 		);
+	}
+
+	/**
+	 * Get paginated surveys
+	 * @param query Pagination query parameters (page, limit, sortBy, sortOrder)
+	 * @returns Observable of PaginatedResponse<Survey>
+	 * @public No authentication required
+	 */
+	findAllSurveysPaginated(
+		query?: PaginationQueryDto
+	): Observable<PaginatedResponse<Survey>> {
+		// Build query parameters
+		const params: any = {};
+		if (query?.page) params.page = query.page.toString();
+		if (query?.limit) params.limit = query.limit.toString();
+		if (query?.sortBy) params.sortBy = query.sortBy;
+		if (query?.sortOrder) params.sortOrder = query.sortOrder;
+
+		return this.http
+			.get<PaginatedResponse<Survey>>(`${this.apiUrl}/paginated`, { params })
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching paginated surveys:', error);
+					return throwError(() => error);
+				})
+			);
 	}
 
 	/**
@@ -171,6 +200,101 @@ export class SurveyDataService {
 				catchError((error) => {
 					console.error(
 						`Error removing enumeration areas from survey ${surveyId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get supervisors assigned to a survey
+	 * Based on the relationship: Survey → EAs → Sub-Admin Zones → Admin Zones → Dzongkhags → Supervisors
+	 * @param surveyId Survey ID
+	 * @returns Observable of Supervisors with their assigned dzongkhags
+	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 */
+	getSupervisorsForSurvey(surveyId: number): Observable<any[]> {
+		return this.http
+			.get<any[]>(`${this.apiUrl}/${surveyId}/supervisors`, {
+				headers: this.getAuthHeaders(),
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error fetching supervisors for survey ${surveyId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get all active surveys for a supervisor
+	 * Returns surveys with enumeration areas falling under the supervisor's management
+	 * @param supervisorId Supervisor user ID
+	 * @returns Observable of Survey array with dzongkhags and enumeration areas
+	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 */
+	getSurveysForSupervisor(supervisorId: number): Observable<any[]> {
+		return this.http
+			.get<any[]>(`${this.apiUrl}/supervisor/${supervisorId}/active`, {
+				headers: this.getAuthHeaders(),
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error fetching surveys for supervisor ${supervisorId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get comprehensive statistics for a survey
+	 * Includes submission, validation, household, and population data
+	 * @param surveyId Survey ID
+	 * @returns Observable of SurveyStatisticsResponseDto
+	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 */
+	getSurveyStatistics(
+		surveyId: number
+	): Observable<SurveyStatisticsResponseDto> {
+		return this.http
+			.get<SurveyStatisticsResponseDto>(
+				`${this.apiUrl}/${surveyId}/statistics`,
+				{
+					headers: this.getAuthHeaders(),
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error fetching statistics for survey ${surveyId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get survey enumeration hierarchy
+	 * Returns complete hierarchical structure: Dzongkhag → Admin Zone → Sub-Admin Zone → EAs
+	 * @param surveyId Survey ID
+	 * @returns Observable of hierarchy response
+	 * @public No authentication required
+	 */
+	getSurveyEnumerationHierarchy(surveyId: number): Observable<any> {
+		return this.http
+			.get<any>(`${this.apiUrl}/${surveyId}/enumeration-hierarchy`)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error fetching hierarchy for survey ${surveyId}:`,
 						error
 					);
 					return throwError(() => error);
