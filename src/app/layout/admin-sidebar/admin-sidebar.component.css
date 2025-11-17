@@ -1,0 +1,136 @@
+/* Sidebar Styles */
+:host {
+	display: block;
+	height: 100%;
+	background-color: #ffffff;
+}
+
+/* Override parent layout-sidebar to prevent double borders */
+:host {
+	border: none;
+	border-right: none;
+}
+
+/* Target the parent .layout-sidebar wrapper to ensure single clean border */
+::ng-deep .layout-sidebar {
+	border-right: 1px solid #e2e8f0 !important;
+	box-shadow: none !important;
+}
+
+.sidebar-header {
+	padding: 1.5rem 0;
+}
+
+/* Menu Item Styles - Override global styles */
+:host ::ng-deep .layout-menu {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+}
+
+:host ::ng-deep .layout-root-menuitem {
+	margin-bottom: 0.5rem;
+}
+
+:host ::ng-deep .layout-root-menuitem > .layout-menuitem-root-text {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	font-weight: 600;
+	letter-spacing: 0.05em;
+	color: #64748b;
+	margin: 1.5rem 0 0.75rem 0;
+	padding: 0 1rem;
+}
+
+:host ::ng-deep .layout-menu ul {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+}
+
+:host ::ng-deep .layout-menu ul a {
+	display: flex;
+	align-items: center;
+	position: relative;
+	outline: 0 none;
+	color: #475569;
+	cursor: pointer;
+	padding: 0.625rem 1rem;
+	border-radius: 0.5rem;
+	transition: all 0.2s;
+	margin-bottom: 0.25rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+}
+
+:host ::ng-deep .layout-menu ul a .layout-menuitem-icon {
+	margin-right: 0.75rem;
+	font-size: 1rem;
+	color: #64748b;
+	width: 1.25rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+:host ::ng-deep .layout-menu ul a .layout-menuitem-text {
+	flex: 1;
+}
+
+:host ::ng-deep .layout-menu ul a .layout-submenu-toggler {
+	font-size: 0.75rem;
+	margin-left: auto;
+	transition: transform 0.2s;
+	color: #94a3b8;
+}
+
+:host ::ng-deep .layout-menu ul a:hover {
+	background-color: #f1f5f9;
+	color: #1e293b;
+}
+
+:host ::ng-deep .layout-menu ul a:hover .layout-menuitem-icon {
+	color: #3b82f6;
+}
+
+:host ::ng-deep .layout-menu ul a.active-route {
+	background-color: #eff6ff;
+	color: #1e40af;
+	font-weight: 600;
+}
+
+:host ::ng-deep .layout-menu ul a.active-route .layout-menuitem-icon {
+	color: #3b82f6;
+}
+
+:host ::ng-deep .layout-menu ul a.active-route::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 3px;
+	height: 60%;
+	background-color: #3b82f6;
+	border-radius: 0 2px 2px 0;
+}
+
+:host ::ng-deep .layout-menu ul a:focus {
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+:host ::ng-deep .layout-menu ul ul {
+	margin-left: 0.5rem;
+	padding-left: 0.5rem;
+	border-left: 1px solid #e2e8f0;
+}
+
+:host ::ng-deep .layout-menu ul ul a {
+	padding-left: 1.5rem;
+}
+
+:host ::ng-deep .layout-menu li.active-menuitem > a .layout-submenu-toggler {
+	transform: rotate(-180deg);
+}
+

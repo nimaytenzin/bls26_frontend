@@ -9,7 +9,10 @@ import { EnumerationAreaDataService } from '../../../../../core/dataservice/loca
 import { DzongkhagDataService } from '../../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
 import { AdministrativeZoneDataService } from '../../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { SubAdministrativeZoneDataService } from '../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
-import { SurveyEnumerationArea } from '../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
+import {
+	SurveyEnumerationArea,
+	BulkUploadResponse,
+} from '../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
 import { EnumerationArea } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 import { Dzongkhag } from '../../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
 import { AdministrativeZone } from '../../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
@@ -71,9 +74,11 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 	// Table reference for filtering
 	tableRef: any;
 
-	// Bulk Upload Dialog (Dummy)
+	// Bulk Upload Dialog
 	showBulkUploadDialog = false;
 	bulkUploadFile: File | null = null;
+	uploading = false;
+	uploadResult: BulkUploadResponse | null = null;
 
 	constructor(
 		private surveyService: SurveyDataService,
@@ -462,11 +467,13 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 	}
 
 	/**
-	 * Open bulk upload dialog (dummy)
+	 * Open bulk upload dialog
 	 */
 	openBulkUploadDialog() {
 		this.showBulkUploadDialog = true;
 		this.bulkUploadFile = null;
+		this.uploadResult = null;
+		this.uploading = false;
 	}
 
 	/**
@@ -476,11 +483,45 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 		const files = event.files;
 		if (files && files.length > 0) {
 			this.bulkUploadFile = files[0];
+			this.uploadResult = null; // Reset previous results
 		}
 	}
 
 	/**
-	 * Execute bulk upload (dummy)
+	 * Download CSV template
+	 */
+	downloadTemplate() {
+		this.surveyEAService.downloadTemplate().subscribe({
+			next: (blob: Blob) => {
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = 'enumeration_area_upload_template.csv';
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: 'Template downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading template:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: 'Failed to download template',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Execute bulk upload
 	 */
 	executeBulkUpload() {
 		if (!this.bulkUploadFile) {
@@ -493,15 +534,56 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 			return;
 		}
 
-		// Dummy success message
-		this.messageService.add({
-			severity: 'info',
-			summary: 'Feature Coming Soon',
-			detail: 'Bulk upload functionality will be implemented soon',
-			life: 5000,
-		});
+		if (!this.surveyId) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Error',
+				detail: 'Survey ID is missing',
+				life: 3000,
+			});
+			return;
+		}
 
+		this.uploading = true;
+		this.uploadResult = null;
+
+		this.surveyEAService.bulkUpload(this.surveyId, this.bulkUploadFile).subscribe({
+			next: (result) => {
+				this.uploadResult = result;
+				this.uploading = false;
+				this.messageService.add({
+					severity: result.success ? 'success' : 'warn',
+					summary: result.success ? 'Success' : 'Partial Success',
+					detail: `Uploaded: ${result.successful}/${result.totalRows} rows. Created: ${result.created}, Skipped: ${result.skipped}, Failed: ${result.failed}`,
+					life: 5000,
+				});
+
+				// Reload survey EAs if any were created
+				if (result.created > 0) {
+					this.loadSurveyEAs();
+				}
+			},
+			error: (error) => {
+				this.uploading = false;
+				console.error('Error uploading CSV:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Upload Failed',
+					detail: error.error?.message || 'Failed to upload file',
+					life: 5000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Close bulk upload dialog and reset
+	 */
+	closeBulkUploadDialog() {
 		this.showBulkUploadDialog = false;
+		this.bulkUploadFile = null;
+		this.uploadResult = null;
+		this.uploading = false;
 	}
 
 	/**

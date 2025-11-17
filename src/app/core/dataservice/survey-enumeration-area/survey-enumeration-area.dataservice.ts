@@ -8,6 +8,7 @@ import {
 	SurveyEnumerationArea,
 	SurveyEnumerationAreaStatistics,
 	ValidateSurveyEnumerationAreaDto,
+	BulkUploadResponse,
 } from './survey-enumeration-area.dto';
 import { DzongkhagHierarchicalResponse } from '../location/dzongkhag/dzongkhag.interface';
 /**
@@ -145,6 +146,51 @@ export class SurveyEnumerationAreaDataService {
 			.pipe(
 				catchError((error) => {
 					console.error(`Error fetching enumeration area ${id}:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download CSV template for bulk upload
+	 * @returns Observable of Blob (CSV file)
+	 * @requires No authentication (public endpoint)
+	 */
+	downloadTemplate(): Observable<Blob> {
+		return this.http.get(`${this.apiUrl}/template/csv`, {
+			responseType: 'blob',
+		}).pipe(
+			catchError((error) => {
+				console.error('Error downloading template:', error);
+				return throwError(() => error);
+			})
+		);
+	}
+
+	/**
+	 * Upload CSV file for bulk upload of enumeration areas
+	 * @param surveyId Survey ID
+	 * @param file CSV file to upload
+	 * @returns Observable of bulk upload result
+	 * @requires Authentication (ADMIN role)
+	 */
+	bulkUpload(surveyId: number, file: File): Observable<BulkUploadResponse> {
+		const formData = new FormData();
+		formData.append('file', file);
+
+		const token = localStorage.getItem('access_token');
+		const headers = new HttpHeaders({
+			Authorization: `Bearer ${token}`,
+			// Don't set Content-Type - let browser set it with boundary for multipart/form-data
+		});
+
+		return this.http
+			.post<BulkUploadResponse>(`${this.apiUrl}/bulk-upload/${surveyId}`, formData, {
+				headers: headers,
+			})
+			.pipe(
+				catchError((error: any) => {
+					console.error(`Error uploading CSV for survey ${surveyId}:`, error);
 					return throwError(() => error);
 				})
 			);

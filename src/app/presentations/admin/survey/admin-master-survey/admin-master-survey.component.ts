@@ -12,17 +12,19 @@ import { PrimeNgModules } from '../../../../primeng.modules';
 import { Table } from 'primeng/table';
 import { MessageService } from 'primeng/api';
 import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
+import { ActiveSurveysTableComponent } from './components/active-surveys-table.component';
+import { AllSurveysTableComponent } from './components/all-surveys-table.component';
 
 @Component({
 	selector: 'app-admin-master-survey',
 	templateUrl: './admin-master-survey.component.html',
 	styleUrls: ['./admin-master-survey.component.css'],
 	standalone: true,
-	imports: [CommonModule, FormsModule, PrimeNgModules],
+	imports: [CommonModule, FormsModule, PrimeNgModules, ActiveSurveysTableComponent, AllSurveysTableComponent],
 	providers: [MessageService],
 })
 export class AdminMasterSurveyComponent implements OnInit {
-	// Table references
+	// Table references (kept for backward compatibility if needed)
 	@ViewChild('dt') dt!: Table;
 
 	// Tab control
@@ -202,10 +204,28 @@ export class AdminMasterSurveyComponent implements OnInit {
 		}
 	}
 
-	onRowSelect(event: any) {
-		if (event.data) {
-			this.selectedSurvey = event.data;
-		}
+	onActiveSurveyFilterChange(value: string) {
+		this.globalFilterValue = value;
+	}
+
+	onAllSurveyFilterChange(value: string) {
+		this.globalFilterValue = value;
+	}
+
+	onAllSurveyLazyLoad(event: any) {
+		this.loadAllSurveysPaginated(event);
+	}
+
+	onRowSelect(survey: Survey) {
+		this.selectedSurvey = survey;
+	}
+
+	onActiveSurveyRowSelect(survey: Survey) {
+		this.onRowSelect(survey);
+	}
+
+	onAllSurveyRowSelect(survey: Survey) {
+		this.onRowSelect(survey);
 	}
 
 	// Utility methods from service

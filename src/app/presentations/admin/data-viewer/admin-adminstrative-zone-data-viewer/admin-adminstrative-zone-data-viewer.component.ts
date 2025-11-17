@@ -12,7 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { SubAdminZoneAnnualStatsDataService } from '../../../../core/dataservice/sub-admin-zone-annual-stats/sub-admin-zone-annual-stats.dataservice';
 import { BasemapService } from '../../../../core/utility/basemap.service';
-import { ColorScaleService } from '../../../../core/utility/color-scale.service';
+import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import * as L from 'leaflet';
 import { forkJoin } from 'rxjs';
@@ -178,7 +178,7 @@ export class AdminAdminstrativeZoneDataViewerComponent
 		private adminZoneService: AdministrativeZoneDataService,
 		private subAdminZoneAnnualStatsService: SubAdminZoneAnnualStatsDataService,
 		private basemapService: BasemapService,
-		private colorScaleService: ColorScaleService
+		private colorScaleService: MapFeatureColorService
 	) {
 		// Initialize basemap categories
 		this.basemapCategories = this.basemapService.getBasemapCategories();
@@ -1160,28 +1160,95 @@ export class AdminAdminstrativeZoneDataViewerComponent
 		return item?.id ?? item?.areaCode ?? index;
 	}
 
+	/**
+	 * @deprecated Use getLegendGradient() and getLegendBreaks() for continuous gradient legend
+	 */
 	getLegendItems(): { color: string; label: string; value: number }[] {
-		if (
-			!this.subAdminBoundaries?.features ||
-			this.subAdminBoundaries.features.length === 0
-		) {
+		const { min, max } = this.getLegendMinMax();
+		if (min === max || (min === 0 && max === 0)) {
 			return [];
 		}
+		return this.colorScaleService.getLegendItems(min, max, 5);
+	}
 
-		const values = this.subAdminBoundaries.features.map((f: any) => {
-			if (this.mapVisualizationMode === 'households') {
-				return f.properties.totalHouseholds || 0;
-			} else if (this.mapVisualizationMode === 'population') {
-				return f.properties.totalPopulation || 0;
-			} else {
-				return f.properties.eaCount || 0;
-			}
-		});
+	/**
+	 * Get CSS gradient string for continuous legend
+	 */
+	getLegendGradient(): string {
+		const { min, max } = this.getLegendMinMax();
+		if (min === max || (min === 0 && max === 0)) {
+			return '';
+		}
+		return this.colorScaleService.getLegendGradient(min, max, 'vertical');
+	}
 
-		const minValue = Math.min(...values);
-		const maxValue = Math.max(...values);
+	/**
+	 * Get legend break values with labels for continuous gradient
+	 */
+	getLegendBreaks(): { value: number; label: string; position: number }[] {
+		const { min, max } = this.getLegendMinMax();
+		if (min === max || (min === 0 && max === 0)) {
+			return [];
+		}
+		return this.colorScaleService.getLegendBreaks(min, max, 5);
+	}
 
-		return this.colorScaleService.getLegendItems(minValue, maxValue, 5);
+	/**
+	 * Get min and max values for current visualization mode and active layer
+	 */
+	getLegendMinMax(): { min: number; max: number } {
+		let geojsonData: any = null;
+
+		// Get the appropriate GeoJSON data based on active layer
+		switch (this.activeLayer) {
+			case 'admin':
+				geojsonData = this.subAdminBoundaries; // Admin zones use subAdmin boundaries
+				break;
+			case 'subAdmin':
+				geojsonData = this.subAdminBoundaries;
+				break;
+			case 'ea':
+				geojsonData = this.eaBoundaries;
+				break;
+		}
+
+		if (!geojsonData?.features || geojsonData.features.length === 0) {
+			return { min: 0, max: 0 };
+		}
+
+		const values = geojsonData.features
+			.map((f: any) => {
+				if (this.mapVisualizationMode === 'households') {
+					return f.properties.totalHouseholds || 0;
+				} else if (this.mapVisualizationMode === 'population') {
+					return f.properties.totalPopulation || 0;
+				} else {
+					return f.properties.eaCount || 0;
+				}
+			})
+			.filter((v: number) => v > 0); // Filter out zero values
+
+		if (values.length === 0) {
+			return { min: 0, max: 0 };
+		}
+
+		return {
+			min: Math.min(...values),
+			max: Math.max(...values),
+		};
+	}
+
+	/**
+	 * Get legend title based on visualization mode
+	 */
+	getLegendTitle(): string {
+		if (this.mapVisualizationMode === 'households') {
+			return 'Households';
+		} else if (this.mapVisualizationMode === 'population') {
+			return 'Population';
+		} else {
+			return 'Enumeration Areas';
+		}
 	}
 
 	getBaseMapButtonClass(mapType: BaseMapType): string {

@@ -56,3 +56,27 @@ export interface SurveyEnumerationAreaStatistics {
 	submissionRate: string;
 	validationRate: string;
 }
+
+/**
+ * Bulk Upload Error Interface
+ * Represents an error that occurred during bulk upload
+ */
+export interface BulkUploadError {
+	row: number;
+	codes: string;
+	error: string;
+}
+
+/**
+ * Bulk Upload Response Interface
+ * Response from bulk upload operation
+ */
+export interface BulkUploadResponse {
+	success: boolean;
+	totalRows: number;
+	successful: number;
+	failed: number;
+	errors: BulkUploadError[];
+	created: number;
+	skipped: number;
+}

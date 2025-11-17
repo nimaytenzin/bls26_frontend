@@ -151,6 +151,26 @@ export class AdministrativeZoneDataService {
 	}
 
 	/**
+	 * Upload GeoJSON for administrative zone
+	 */
+	uploadAdministrativeZoneGeojson(
+		id: number,
+		geojsonData: any
+	): Observable<ApiResponse<AdministrativeZone>> {
+		return this.http
+			.patch<ApiResponse<AdministrativeZone>>(
+				`${this.apiUrl}/geojson/${id}`,
+				geojsonData
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error uploading administrative zone geojson:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
 	 * Delete administrative zone
 	 */
 	deleteAdministrativeZone(id: number): Observable<ApiResponse<any>> {

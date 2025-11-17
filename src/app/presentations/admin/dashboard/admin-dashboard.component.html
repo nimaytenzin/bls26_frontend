@@ -957,32 +957,38 @@
 					<!-- Legend -->
 					<div class="pt-2 border-t border-slate-200">
 						<p class="text-sm font-semibold text-slate-700 mb-2">
-							{{
-								mapVisualizationMode === "households"
-									? "Households Legend"
-									: mapVisualizationMode === "population"
-									? "Population Legend"
-									: "Enumeration Areas Legend"
-							}}
+							{{ getLegendTitle() }}
 						</p>
-						<div class="space-y-1 text-xs">
-							<div
-								*ngFor="let item of getLegendItems()"
-								class="flex items-center gap-2"
-							>
-								<div
-									class="w-5 h-3 rounded border border-slate-300"
-									[style.background-color]="item.color"
-								></div>
-								<span class="text-slate-600">{{ item.label }}</span>
-							</div>
-							<div
-								*ngIf="getLegendItems().length === 0"
-								class="text-slate-500 italic"
-							>
-								No data available
+						<div
+							*ngIf="getLegendBreaks().length > 0; else noDataLegend"
+							class="relative"
+						>
+							<div class="flex items-start gap-3">
+								<!-- Gradient Bar -->
+								<div class="relative flex-shrink-0">
+									<div
+										class="w-6 h-32 rounded border border-slate-300 shadow-sm"
+										[style.background]="getLegendGradient()"
+									></div>
+								</div>
+								<!-- Labels Container -->
+								<div class="relative flex-1" style="height: 8rem">
+									<div
+										*ngFor="let break of getLegendBreaks()"
+										class="absolute text-xs font-medium text-slate-700 whitespace-nowrap"
+										[style.bottom]="break.position + '%'"
+										[style.transform]="'translateY(50%)'"
+									>
+										{{ break.label }}
+									</div>
+								</div>
 							</div>
 						</div>
+						<ng-template #noDataLegend>
+							<div class="text-slate-500 italic text-xs">
+								No data available
+							</div>
+						</ng-template>
 					</div>
 				</div>
 

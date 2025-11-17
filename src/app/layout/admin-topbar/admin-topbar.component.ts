@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { AdminLayoutService } from '../service/admin-layout.service';
 import { Router } from '@angular/router';
+import { Popover } from 'primeng/popover';
 
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { CommonModule } from '@angular/common';
@@ -9,7 +10,7 @@ import { DividerModule } from 'primeng/divider';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
-import { SidebarModule } from 'primeng/sidebar';
+import { PopoverModule } from 'primeng/popover';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
@@ -31,7 +32,7 @@ import { User } from '../../core/dataservice/auth/auth.interface';
 		PasswordModule,
 		ToastModule,
 		ConfirmPopupModule,
-		SidebarModule,
+		PopoverModule,
 		DialogModule,
 		FormsModule,
 		InputTextModule,
@@ -47,7 +48,7 @@ export class AdminTopbarComponent {
 
 	@ViewChild('topbarmenu') menu!: ElementRef;
 
-	profileSideBarVisible: boolean = false;
+	@ViewChild('profilePopover') profilePopover!: Popover;
 
 	isNotVerified: boolean = false;
 

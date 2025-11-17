@@ -11,6 +11,8 @@ import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/l
 import { EnumerationAreaDataService } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
+import { BasemapService } from '../../../../core/utility/basemap.service';
+import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';
 
 import {
 	SubAdministrativeZone,
@@ -29,6 +31,7 @@ import { AddEnumerationAreaComponent } from '../../master-data/admin-master-enum
 import { BulkUploadEaComponent } from '../../master-data/admin-master-enumeration-areas/bulk-upload-ea/bulk-upload-ea.component';
 import { EditEnumerationAreaComponent } from '../../master-data/admin-master-enumeration-areas/edit-enumeration-area/edit-enumeration-area.component';
 import { UploadGeojsonEaComponent } from '../../master-data/admin-master-enumeration-areas/upload-geojson-ea/upload-geojson-ea.component';
+import { GenerateFullEACode } from '../../../../core/utility/utility.service';
 
 /**
  * Sub Administrative Zone Data Viewer Component
@@ -85,14 +88,17 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 	private map: L.Map | null = null;
 	private subAdminZoneLayer: L.GeoJSON | null = null;
 	private enumerationAreasLayer: L.GeoJSON | null = null;
-	private satelliteLayer: L.TileLayer | null = null;
-	private openStreetMapLayer: L.TileLayer | null = null;
+	private currentBasemapLayer: L.TileLayer | null = null;
+
+	// Basemap
+	basemapCategories: Record<string, { label: string; basemaps: any[] }>;
+	selectedBasemapId: string = 'positron'; // Default basemap (Positron - No Labels)
 
 	// State
 	loading = true;
 	loadingEAs = false;
-	showSatelliteLayer = false;
 	globalFilterValue = '';
+	activeMainTab: 'details' | 'eas' | 'actions' = 'details';
 
 	// Dialog states for new components
 	addEADialogVisible = false;
@@ -102,11 +108,15 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 	selectedEAForEdit: EnumerationArea | null = null;
 	selectedEAForUpload: EnumerationArea | null = null;
 
-	// Tile layers
-	private readonly tileLayer =
-		'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-	private readonly satelliteTileLayer =
-		'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}';
+	// Filter/Navigation properties
+	dzongkhagOptions: any[] = [];
+	adminZoneOptions: any[] = [];
+	subAdminZoneOptions: any[] = [];
+	eaOptions: any[] = [];
+	selectedDzongkhag: number | null = null;
+	selectedAdminZone: number | null = null;
+	selectedSubAdminZone: number | null = null;
+	selectedEAFilter: number | null = null;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -115,10 +125,17 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 		private enumerationAreaService: EnumerationAreaDataService,
 		private administrativeZoneService: AdministrativeZoneDataService,
 		private dzongkhagService: DzongkhagDataService,
-		private messageService: MessageService
-	) {}
+		private messageService: MessageService,
+		private basemapService: BasemapService,
+		private mapFeatureColorService: MapFeatureColorService
+	) {
+		this.basemapCategories = this.basemapService.getBasemapCategories();
+	}
 
 	ngOnInit() {
+		// Load all dzongkhags for filter dropdown
+		this.loadDzongkhags();
+
 		this.route.params.subscribe((params) => {
 			this.subAdminZoneId = +params['id'];
 			if (this.subAdminZoneId) {
@@ -135,19 +152,20 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 		window.addEventListener('resize', this.onWindowResize.bind(this));
 	}
 
-	toggleSatelliteLayer() {
-		if (!this.map || !this.openStreetMapLayer || !this.satelliteLayer) {
-			return;
+	switchBasemap() {
+		if (!this.map) return;
+
+		// Remove current basemap layer
+		if (this.currentBasemapLayer) {
+			this.map.removeLayer(this.currentBasemapLayer);
 		}
 
-		if (this.showSatelliteLayer) {
-			// Switch to satellite layer
-			this.map.removeLayer(this.openStreetMapLayer);
-			this.map.addLayer(this.satelliteLayer);
-		} else {
-			// Switch to OpenStreetMap layer
-			this.map.removeLayer(this.satelliteLayer);
-			this.map.addLayer(this.openStreetMapLayer);
+		// Add new basemap layer
+		this.currentBasemapLayer = this.basemapService.createTileLayer(
+			this.selectedBasemapId
+		);
+		if (this.currentBasemapLayer) {
+			this.currentBasemapLayer.addTo(this.map);
 		}
 	}
 
@@ -245,23 +263,17 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 		this.map = L.map('subAdminZoneMap', {
 			center: [27.5142, 90.4336],
 			zoom: 10,
-			zoomControl: true,
+			zoomControl: false,
 			attributionControl: false,
 		});
 
-		// Initialize both tile layers
-		this.openStreetMapLayer = L.tileLayer(this.tileLayer, {
-			maxZoom: 19,
-			attribution: '© OpenStreetMap contributors',
-		});
-
-		this.satelliteLayer = L.tileLayer(this.satelliteTileLayer, {
-			maxZoom: 19,
-			attribution: '© Google',
-		});
-
-		// Add default layer (OpenStreetMap)
-		this.openStreetMapLayer.addTo(this.map);
+		// Initialize basemap layer
+		this.currentBasemapLayer = this.basemapService.createTileLayer(
+			this.selectedBasemapId
+		);
+		if (this.currentBasemapLayer && this.map) {
+			this.currentBasemapLayer.addTo(this.map);
+		}
 
 		// Load and render sub-administrative zone boundary
 		if (this.subAdministrativeZone?.geom) {
@@ -279,16 +291,51 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 			this.map.removeLayer(this.subAdminZoneLayer);
 		}
 
+		const subAdminColor =
+			this.mapFeatureColorService.getSingleFeatureColor('highlight');
+
 		this.subAdminZoneLayer = L.geoJSON(this.subAdministrativeZone.geom, {
 			style: {
-				color: '#dc2626',
+				color: subAdminColor,
 				weight: 4,
-				fillColor: 'transparent',
-				fillOpacity: 0,
+				fillColor: subAdminColor,
+				fillOpacity: 0.1,
 			},
 		});
 
 		this.subAdminZoneLayer.addTo(this.map);
+
+		// Add permanent label for Sub-Admin Zone
+		const bounds = this.subAdminZoneLayer.getBounds();
+		const center = bounds.getCenter();
+
+		const labelContent = `
+			<div style="
+				color: ${subAdminColor};
+				font-weight: 600;
+				font-size: 9px;
+				text-shadow: 
+					-1.5px -1.5px 0 #fff,
+					1.5px -1.5px 0 #fff,
+					-1.5px 1.5px 0 #fff,
+					1.5px 1.5px 0 #fff;
+				text-align: center;
+				white-space: nowrap;
+			">
+				${this.subAdministrativeZone.name}
+			</div>
+		`;
+
+		const label = L.tooltip({
+			permanent: true,
+			direction: 'center',
+			className: 'saz-label',
+			opacity: 1,
+		})
+			.setLatLng(center)
+			.setContent(labelContent);
+
+		this.subAdminZoneLayer.bindTooltip(label);
 
 		// Bind popup
 		this.subAdminZoneLayer.bindPopup(
@@ -324,10 +371,10 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 
 		this.enumerationAreasLayer = L.geoJSON(geoJson, {
 			style: (feature) => ({
-				fillColor: '#3b82f6',
-				fillOpacity: 0.3,
-				color: '#1d4ed8',
-				weight: 0.7,
+				fillColor: this.mapFeatureColorService.getSingleFeatureColor('primary'),
+				fillOpacity: 0,
+				color: this.mapFeatureColorService.getSingleFeatureColor('primary'),
+				weight: 1,
 				opacity: 1,
 			}),
 			onEachFeature: (feature, layer) => {
@@ -345,9 +392,7 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 						<div><span style="font-weight: 600; color: #6b7280;">Description:</span> <span style="color: #374151;">${
 							props.description || 'N/A'
 						}</span></div>
-						<div><span style="font-weight: 600; color: #6b7280;">Area:</span> <span style="color: #374151;">${
-							props.areaSqKm ? props.areaSqKm.toFixed(2) + ' km²' : 'N/A'
-						}</span></div>
+						
 					</div>
 					<button 
 						onclick="window.navigateToEADetails(${props.id})"
@@ -378,10 +423,45 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 
 				layer.bindPopup(popupContent);
 
-				layer.bindTooltip(props.name, {
-					permanent: false,
-					direction: 'top',
-				});
+				// Add permanent label with full EA code
+				const bounds = (layer as any).getBounds();
+				const center = bounds.getCenter();
+
+				// Find the matching EA to get full code
+				const matchingEA = this.enumerationAreas.find(
+					(ea) => ea.id === props.id
+				);
+				const fullEACode = matchingEA
+					? GenerateFullEACode(matchingEA)
+					: props.areaCode;
+
+				const labelContent = `
+					<div style="
+						color: black;
+						font-weight: 700;
+						font-size: 10px;
+						text-shadow: 
+							-2px -2px 0 #fff,
+							2px -2px 0 #fff,
+							-2px 2px 0 #fff,
+							2px 2px 0 #fff;
+						text-align: center;
+						white-space: nowrap;
+					">
+						${props.name} 
+					</div>
+				`;
+
+				const label = L.tooltip({
+					permanent: true,
+					direction: 'center',
+					className: 'ea-label',
+					opacity: 1,
+				})
+					.setLatLng(center)
+					.setContent(labelContent);
+
+				layer.bindTooltip(label);
 
 				layer.on('click', () => {
 					this.selectEnumerationAreaFromMap(props);
@@ -459,11 +539,8 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 			this.map.remove();
 			this.map = null;
 		}
-		if (this.openStreetMapLayer) {
-			this.openStreetMapLayer = null;
-		}
-		if (this.satelliteLayer) {
-			this.satelliteLayer = null;
+		if (this.currentBasemapLayer) {
+			this.currentBasemapLayer = null;
 		}
 	}
 
@@ -618,5 +695,206 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 		setTimeout(() => this.loadAndRenderEnumerationAreas(), 500);
 
 		this.closeUploadGeojsonDialog();
+	}
+
+	// Download Methods
+	downloadGeoJSON() {
+		if (!this.subAdministrativeZone) return;
+
+		this.enumerationAreaService
+			.getEnumerationAreaGeojsonBySubAdministrativeZone(this.subAdminZoneId)
+			.subscribe({
+				next: (geoJson) => {
+					const dataStr = JSON.stringify(geoJson, null, 2);
+					const dataBlob = new Blob([dataStr], { type: 'application/json' });
+					const url = window.URL.createObjectURL(dataBlob);
+					const link = document.createElement('a');
+					link.href = url;
+					link.download = `${
+						this.subAdministrativeZone!.name
+					}_enumeration_areas.geojson`;
+					link.click();
+					window.URL.revokeObjectURL(url);
+
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Download Complete',
+						detail: 'GeoJSON file downloaded successfully',
+						life: 3000,
+					});
+				},
+				error: (error) => {
+					console.error('Error downloading GeoJSON:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Download Failed',
+						detail: 'Failed to download GeoJSON file',
+						life: 3000,
+					});
+				},
+			});
+	}
+
+	downloadKML() {
+		this.messageService.add({
+			severity: 'info',
+			summary: 'Coming Soon',
+			detail: 'KML download functionality will be available soon',
+			life: 3000,
+		});
+	}
+
+	downloadCSV() {
+		if (!this.enumerationAreas || this.enumerationAreas.length === 0) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Data',
+				detail: 'No enumeration areas to export',
+				life: 3000,
+			});
+			return;
+		}
+
+		// Create CSV header
+		const headers = ['Name', 'Area Code', 'Description', 'Area (sq km)'];
+		const csvRows = [headers.join(',')];
+
+		// Add data rows
+		this.enumerationAreas.forEach((ea) => {
+			const row = [
+				`"${ea.name || ''}"`,
+				`"${ea.areaCode || ''}"`,
+				`"${ea.description || ''}"`,
+				ea.areaSqKm || '',
+			];
+			csvRows.push(row.join(','));
+		});
+
+		// Create and download file
+		const csvContent = csvRows.join('\n');
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+		const url = window.URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `${this.subAdministrativeZone!.name}_enumeration_areas.csv`;
+		link.click();
+		window.URL.revokeObjectURL(url);
+
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail: 'CSV file downloaded successfully',
+			life: 3000,
+		});
+	}
+
+	// Filter/Navigation methods
+	loadDzongkhags() {
+		this.dzongkhagService.findAllDzongkhags().subscribe({
+			next: (dzongkhags) => {
+				this.dzongkhagOptions = dzongkhags.map((d) => ({
+					label: d.name,
+					value: d.id,
+				}));
+			},
+			error: (error) => {
+				console.error('Error loading dzongkhags:', error);
+			},
+		});
+	}
+
+	onDzongkhagChange() {
+		// Reset dependent selections
+		this.selectedAdminZone = null;
+		this.selectedSubAdminZone = null;
+		this.selectedEAFilter = null;
+		this.adminZoneOptions = [];
+		this.subAdminZoneOptions = [];
+		this.eaOptions = [];
+
+		if (this.selectedDzongkhag) {
+			this.administrativeZoneService
+				.findAdministrativeZonesByDzongkhag(this.selectedDzongkhag)
+				.subscribe({
+					next: (zones: AdministrativeZone[]) => {
+						this.adminZoneOptions = zones.map((z: AdministrativeZone) => ({
+							label: z.name,
+							value: z.id,
+						}));
+					},
+					error: (error: any) => {
+						console.error('Error loading administrative zones:', error);
+					},
+				});
+		}
+	}
+
+	onAdminZoneChange() {
+		// Reset dependent selections
+		this.selectedSubAdminZone = null;
+		this.selectedEAFilter = null;
+		this.subAdminZoneOptions = [];
+		this.eaOptions = [];
+
+		if (this.selectedAdminZone) {
+			this.subAdministrativeZoneService
+				.findSubAdministrativeZonesByAdministrativeZone(this.selectedAdminZone)
+				.subscribe({
+					next: (subZones: SubAdministrativeZone[]) => {
+						this.subAdminZoneOptions = subZones.map(
+							(sz: SubAdministrativeZone) => ({
+								label: sz.name,
+								value: sz.id,
+							})
+						);
+					},
+					error: (error: any) => {
+						console.error('Error loading sub administrative zones:', error);
+					},
+				});
+		}
+	}
+
+	onSubAdminZoneChange() {
+		// Reset dependent selections
+		this.selectedEAFilter = null;
+		this.eaOptions = [];
+
+		if (this.selectedSubAdminZone) {
+			this.enumerationAreaService
+				.findEnumerationAreasBySubAdministrativeZone(this.selectedSubAdminZone)
+				.subscribe({
+					next: (eas: EnumerationArea[]) => {
+						this.eaOptions = eas.map((ea: EnumerationArea) => ({
+							label: `${ea.name} (${ea.areaCode})`,
+							value: ea.id,
+						}));
+					},
+					error: (error: any) => {
+						console.error('Error loading enumeration areas:', error);
+					},
+				});
+		}
+	}
+
+	submitNavigation() {
+		if (this.selectedEAFilter) {
+			this.router.navigate(['/admin/data-view/eazone', this.selectedEAFilter]);
+		} else if (this.selectedSubAdminZone) {
+			this.router.navigate([
+				'/admin/data-view/sub-admzone',
+				this.selectedSubAdminZone,
+			]);
+		} else if (this.selectedAdminZone) {
+			this.router.navigate([
+				'/admin/data-view/admzone',
+				this.selectedAdminZone,
+			]);
+		} else if (this.selectedDzongkhag) {
+			this.router.navigate([
+				'/admin/data-view/dzongkhag',
+				this.selectedDzongkhag,
+			]);
+		}
 	}
 }

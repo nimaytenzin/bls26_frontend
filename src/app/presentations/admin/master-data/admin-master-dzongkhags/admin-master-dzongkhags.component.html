@@ -1,555 +1,192 @@
 <!-- Toast Messages -->
 <p-toast></p-toast>
 
-<!-- Dzongkhag Management Dashboard -->
-<div class="p-6 bg-gray-50 min-h-screen">
+<!-- Dzongkhag Management -->
+<div class="h-[calc(100vh-5rem)] bg-white flex flex-col">
 	<!-- Header Section -->
-	<div class="mb-6">
+	<div class="p-6 border-b border-slate-200 flex-shrink-0">
 		<div class="flex justify-between items-center">
 			<div>
-				<h1 class="text-2xl font-bold text-gray-900">Dzongkhag Management</h1>
-				<p class="text-sm text-gray-600 mt-1">
+				<h1 class="text-3xl font-semibold text-slate-900">Dzongkhag Management</h1>
+				<p class="text-sm text-slate-600 mt-1">
 					Manage administrative divisions and geographic boundaries
 				</p>
 			</div>
 
-			<!-- Action Controls -->
-			<div class="flex items-center gap-4">
-				<!-- View Mode Toggle -->
-				<div
-					class="flex bg-white rounded-lg shadow-sm border border-gray-200 p-1"
-				>
-					<button
-						class="px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-2"
-						[class.bg-blue-500]="currentView === 'table'"
-						[class.text-white]="currentView === 'table'"
-						[class.shadow-sm]="currentView === 'table'"
-						[class.text-gray-700]="currentView !== 'table'"
-						[class.hover:bg-gray-50]="currentView !== 'table'"
-						(click)="switchView('table')"
-					>
-						<i class="pi pi-table text-sm"></i>
-						<span>Table View</span>
-					</button>
-					<button
-						class="px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-2"
-						[class.bg-blue-500]="currentView === 'split'"
-						[class.text-white]="currentView === 'split'"
-						[class.shadow-sm]="currentView === 'split'"
-						[class.text-gray-700]="currentView !== 'split'"
-						[class.hover:bg-gray-50]="currentView !== 'split'"
-						(click)="switchView('split')"
-					>
-						<i class="pi pi-clone text-sm"></i>
-						<span>Split View</span>
-					</button>
-				</div>
-
-				<!-- Action Buttons -->
-				<div class="flex items-center gap-2">
-					<button
-						pButton
-						type="button"
-						label="Add Dzongkhag"
-						icon="pi pi-plus"
-						class="p-button-primary"
-						(click)="openNew()"
-					></button>
-				</div>
-			</div>
-		</div>
-
-		<!-- Statistics Cards -->
-		<div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
-						>
-							<i class="pi pi-map text-blue-600"></i>
-						</div>
-					</div>
-					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Total Dzongkhags</p>
-						<p class="text-lg font-semibold text-gray-900">
-							{{ dzongkhags.length }}
-						</p>
-					</div>
-				</div>
-			</div>
-
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
-						>
-							<i class="pi pi-chart-bar text-green-600"></i>
-						</div>
-					</div>
-					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Total Area</p>
-						<p class="text-lg font-semibold text-gray-900">
-							{{ totalArea | number : "1.0-0" }} km²
-						</p>
-					</div>
-				</div>
-			</div>
-
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center"
-						>
-							<i class="pi pi-chart-pie text-yellow-600"></i>
-						</div>
-					</div>
-					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Average Area</p>
-						<p class="text-lg font-semibold text-gray-900">
-							{{ averageArea | number : "1.0-0" }} km²
-						</p>
-					</div>
-				</div>
-			</div>
+			<!-- Action Button -->
+			<button
+				type="button"
+				(click)="openNew()"
+				class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-semibold flex items-center gap-2"
+			>
+				<i class="pi pi-plus"></i>
+				Add Dzongkhag
+			</button>
 		</div>
 	</div>
 
-	<!-- Content Area -->
-	<div *ngIf="currentView === 'table'">
-		<!-- TabView for Table Only View -->
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
-			<p-tabView (onChange)="onTabChange($event)">
-				<!-- Table Tab -->
-				<p-tabPanel header="Data Management" leftIcon="pi pi-table">
-					<div class="p-4">
-						<div class="flex justify-between items-center mb-4">
-							<h2 class="text-lg font-semibold text-gray-900">
-								Dzongkhag List
-							</h2>
-							<div class="flex items-center gap-3">
-								<span class="p-input-icon-left">
-									<input
-										pInputText
-										type="text"
-										[(ngModel)]="globalFilterValue"
-										placeholder="Search dzongkhags..."
-										class="p-inputtext-sm"
-										(input)="onGlobalFilter($event)"
-									/>
-								</span>
-							</div>
-						</div>
-
-						<p-table
-							#dt
-							[value]="dzongkhags"
-							[rows]="10"
-							[paginator]="true"
-							responsiveLayout="scroll"
-							[loading]="loading"
-							selectionMode="single"
-							[(selection)]="selectedDzongkhag"
-							(onRowSelect)="onRowSelect($event)"
-							styleClass="p-datatable-sm"
-							[globalFilterFields]="['name', 'areaCode', 'areaSqKm']"
-							[filterDelay]="0"
-						>
-							<ng-template pTemplate="header">
-								<tr>
-									<th pSortableColumn="name">
-										Name <p-sortIcon field="name"></p-sortIcon>
-									</th>
-									<th pSortableColumn="areaCode">Dzongkhag Code</th>
-									<th pSortableColumn="areaSqKm">
-										Area (km²) <p-sortIcon field="areaSqKm"></p-sortIcon>
-									</th>
-									<th>Actions</th>
-								</tr>
-							</ng-template>
-
-							<ng-template pTemplate="body" let-dzongkhag>
-								<tr [class.bg-blue-50]="selectedDzongkhag?.id === dzongkhag.id">
-									<td>
-										<div class="font-medium text-gray-900">
-											{{ dzongkhag.name }}
-										</div>
-										<div class="text-sm text-gray-500">
-											ID: {{ dzongkhag.id }}
-										</div>
-									</td>
-									<td>
-										<span
-											class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-										>
-											{{ dzongkhag.areaCode }}
-										</span>
-									</td>
-									<td>
-										<span class="text-sm font-medium text-gray-900">
-											{{
-												getSafeAreaValue(dzongkhag.areaSqKm) | number : "1.2-2"
-											}}
-										</span>
-									</td>
-									<td>
-										<div class="flex items-center gap-2">
-											<button
-												pButton
-												type="button"
-												icon="pi pi-eye"
-												class="p-button-outlined p-button-sm p-button-primary"
-												(click)="viewDzongkhagData(dzongkhag)"
-												pTooltip="View Data"
-											></button>
-											<button
-												pButton
-												type="button"
-												icon="pi pi-pencil"
-												class="p-button-outlined p-button-sm p-button-info"
-												(click)="editDzongkhag(dzongkhag)"
-												pTooltip="Edit"
-											></button>
-											<button
-												pButton
-												type="button"
-												icon="pi pi-upload"
-												class="p-button-outlined p-button-sm p-button-success"
-												(click)="openUploadGeojson(dzongkhag)"
-												pTooltip="Upload GeoJSON"
-											></button>
-											<button
-												pButton
-												type="button"
-												icon="pi pi-trash"
-												class="p-button-outlined p-button-sm p-button-danger"
-												(click)="confirmDelete(dzongkhag)"
-												pTooltip="Delete"
-											></button>
-										</div>
-									</td>
-								</tr>
-							</ng-template>
-
-							<ng-template pTemplate="emptymessage">
-								<tr>
-									<td colspan="4" class="text-center py-8">
-										<div class="text-gray-500">
-											<i class="pi pi-info-circle text-2xl mb-2 block"></i>
-											No dzongkhags found
-										</div>
-									</td>
-								</tr>
-							</ng-template>
-						</p-table>
-					</div>
-				</p-tabPanel>
-
-				<!-- Map Tab -->
-				<p-tabPanel header="Geographic View" leftIcon="pi pi-map">
-					<!-- Map Tab Header -->
-					<div class="p-4 border-b border-gray-200 bg-gray-50">
-						<div class="flex justify-between items-center">
-							<div>
-								<h3 class="text-lg font-semibold text-gray-900">
-									Interactive Map
-								</h3>
-								<p class="text-sm text-gray-600 mt-1">
-									Click on dzongkhags to view details
-								</p>
-							</div>
-							<button
-								pButton
-								type="button"
-								label="Reload Map"
-								icon="pi pi-refresh"
-								class="p-button-outlined p-button-sm p-button-secondary"
-								(click)="reloadMap()"
-								pTooltip="Refresh map data"
-								tooltipPosition="bottom"
-							></button>
-						</div>
-					</div>
-
-					<div class="relative" style="height: 750px">
-						<div id="dzongkhag-map-tab" class="w-full h-full"></div>
-
-						<!-- Map Loading Overlay -->
-						<div
-							*ngIf="!dzongkhagGeoJSON"
-							class="absolute inset-0 bg-gray-50 flex items-center justify-center"
-						>
-							<div class="text-center">
-								<div
-									class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
-								></div>
-								<p class="text-sm text-gray-600">Loading map data...</p>
-							</div>
-						</div>
-					</div>
-				</p-tabPanel>
-
-				<!-- Meta data TAb -->
-				<p-tabPanel header="Dataset Metadata" leftIcon="pi pi-info-circle">
-					<div class="p-4">
-						<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-							<!-- Schema Information -->
-							<div class="bg-gray-50 rounded-lg p-4">
-								<h3
-									class="font-semibold text-gray-900 mb-3 flex items-center gap-2"
-								>
-									<i class="pi pi-code text-blue-600"></i>
-									Schema Definition
-								</h3>
-								<div class="space-y-2 text-sm">
-									<div
-										class="flex justify-between items-center p-2 bg-white rounded"
-									>
-										<span class="font-mono text-blue-600">id</span>
-										<span class="text-gray-600">number (primary key)</span>
-									</div>
-									<div
-										class="flex justify-between items-center p-2 bg-white rounded"
-									>
-										<span class="font-mono text-blue-600">name</span>
-										<span class="text-gray-600">string (required)</span>
-									</div>
-									<div
-										class="flex justify-between items-center p-2 bg-white rounded"
-									>
-										<span class="font-mono text-blue-600">areaCode</span>
-										<span class="text-gray-600">string (required)</span>
-									</div>
-									<div
-										class="flex justify-between items-center p-2 bg-white rounded"
-									>
-										<span class="font-mono text-blue-600">areaSqKm</span>
-										<span class="text-gray-600">number (required)</span>
-									</div>
-									<div
-										class="flex justify-between items-center p-2 bg-white rounded"
-									>
-										<span class="font-mono text-blue-600">geom</span>
-										<span class="text-gray-600">Geometry (required)</span>
-									</div>
-									<div
-										class="flex justify-between items-center p-2 bg-white rounded"
-									>
-										<span class="font-mono text-blue-600">createdAt</span>
-										<span class="text-gray-600">Date (auto-generated)</span>
-									</div>
-									<div
-										class="flex justify-between items-center p-2 bg-white rounded"
-									>
-										<span class="font-mono text-blue-600">updatedAt</span>
-										<span class="text-gray-600">Date (auto-updated)</span>
-									</div>
-								</div>
-							</div>
-
-							<!-- Spatial Information -->
-							<div class="bg-blue-50 rounded-lg p-4">
-								<h3
-									class="font-semibold text-gray-900 mb-3 flex items-center gap-2"
-								>
-									<i class="pi pi-globe text-blue-600"></i>
-									Spatial Reference System
-								</h3>
-								<div class="space-y-3 text-sm">
-									<div>
-										<div class="font-medium text-gray-700">
-											Coordinate System
-										</div>
-										<div class="font-mono bg-white px-2 py-1 rounded">
-											EPSG:4326
-										</div>
-									</div>
-									<div>
-										<div class="font-medium text-gray-700">Datum</div>
-										<div>World Geodetic System 1984 (WGS 84)</div>
-									</div>
-									<div>
-										<div class="font-medium text-gray-700">Units</div>
-										<div>Decimal Degrees</div>
-									</div>
-									<div>
-										<div class="font-medium text-gray-700">Geometry Type</div>
-										<div class="font-mono bg-white px-2 py-1 rounded">
-											MultiPolygon
-										</div>
-									</div>
-									<div>
-										<div class="font-medium text-gray-700">
-											Geographic Extent
-										</div>
-										<div>Kingdom of Bhutan</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</p-tabPanel>
-			</p-tabView>
-		</div>
-	</div>
-
-	<!-- Split View -->
-	<div *ngIf="currentView === 'split'" class="grid grid-cols-2 gap-6">
-		<!-- Table Section -->
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
-			<div class="p-4 border-b border-gray-200">
+	<!-- Content Area - Split View -->
+	<div class="flex-1 overflow-hidden flex gap-6 p-6">
+		<!-- Left: Table (50%) -->
+		<div class="w-1/2 flex flex-col bg-white rounded-lg border border-slate-200">
+			<!-- Table Header -->
+			<div class="p-4 border-b border-slate-200 flex-shrink-0">
 				<div class="flex justify-between items-center">
-					<h2 class="text-lg font-semibold text-gray-900">Dzongkhag List</h2>
+					<h2 class="text-lg font-semibold text-slate-900">
+						Dzongkhag List
+					</h2>
 					<div class="flex items-center gap-3">
 						<span class="p-input-icon-left">
+							<i class="pi pi-search"></i>
 							<input
 								pInputText
 								type="text"
 								[(ngModel)]="globalFilterValue"
 								placeholder="Search dzongkhags..."
 								class="p-inputtext-sm"
-								(input)="onGlobalFilterSplit($event)"
+								(input)="onGlobalFilter($event)"
 							/>
 						</span>
 					</div>
 				</div>
 			</div>
 
-			<p-table
-				#dtSplit
-				[value]="dzongkhags"
-				[rows]="10"
-				[paginator]="true"
-				responsiveLayout="scroll"
-				[loading]="loading"
-				selectionMode="single"
-				[(selection)]="selectedDzongkhag"
-				(onRowSelect)="onRowSelect($event)"
-				styleClass="p-datatable-sm"
-				[globalFilterFields]="['name', 'areaCode', 'areaSqKm']"
-				[filterDelay]="0"
-			>
-				<ng-template pTemplate="header">
-					<tr>
-						<th pSortableColumn="name">
-							Name <p-sortIcon field="name"></p-sortIcon>
-						</th>
-						<th pSortableColumn="areaCode">Code</th>
-						<th pSortableColumn="areaSqKm">
-							Area (km²) <p-sortIcon field="areaSqKm"></p-sortIcon>
-						</th>
-						<th>Actions</th>
-					</tr>
-				</ng-template>
+			<!-- Table Content -->
+			<div class="flex-1 overflow-auto p-4">
+				<p-table
+					#dt
+					[value]="dzongkhags"
+					[paginator]="false"
+					responsiveLayout="scroll"
+					[loading]="loading"
+					selectionMode="single"
+					[(selection)]="selectedDzongkhag"
+					(onRowSelect)="onRowSelect($event)"
+					styleClass="p-datatable-sm"
+					[globalFilterFields]="['id', 'name', 'areaCode']"
+					[filterDelay]="0"
+					[scrollable]="true"
+					scrollHeight="100%"
+				>
+					<ng-template pTemplate="header">
+						<tr>
+							<th pSortableColumn="id">
+								ID <p-sortIcon field="id"></p-sortIcon>
+							</th>
+							<th pSortableColumn="name">
+								Name <p-sortIcon field="name"></p-sortIcon>
+							</th>
+							<th pSortableColumn="areaCode">Code</th>
+							<th>Actions</th>
+						</tr>
+					</ng-template>
 
-				<ng-template pTemplate="body" let-dzongkhag>
-					<tr [class.bg-blue-50]="selectedDzongkhag?.id === dzongkhag.id">
-						<td>
-							<div class="font-medium text-gray-900 text-sm">
-								{{ dzongkhag.name }}
-							</div>
-							<div class="text-xs text-gray-500">ID: {{ dzongkhag.id }}</div>
-						</td>
-						<td>
-							<span
-								class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-							>
-								{{ dzongkhag.areaCode }}
-							</span>
-						</td>
-						<td>
-							<span class="text-sm font-medium text-gray-900">
-								{{ getSafeAreaValue(dzongkhag.areaSqKm) | number : "1.1-1" }}
-							</span>
-						</td>
-						<td>
-							<div class="flex items-center gap-1">
-								<button
-									pButton
-									type="button"
-									icon="pi pi-eye"
-									class="p-button-outlined p-button-sm p-button-primary"
-									(click)="viewDzongkhagData(dzongkhag)"
-									pTooltip="View Data"
-								></button>
-								<button
-									pButton
-									type="button"
-									icon="pi pi-pencil"
-									class="p-button-outlined p-button-sm p-button-info"
-									(click)="editDzongkhag(dzongkhag)"
-									pTooltip="Edit"
-								></button>
-								<button
-									pButton
-									type="button"
-									icon="pi pi-upload"
-									class="p-button-outlined p-button-sm p-button-success"
-									(click)="openUploadGeojson(dzongkhag)"
-									pTooltip="Upload GeoJSON"
-								></button>
-								<button
-									pButton
-									type="button"
-									icon="pi pi-trash"
-									class="p-button-outlined p-button-sm p-button-danger"
-									(click)="confirmDelete(dzongkhag)"
-									pTooltip="Delete"
-								></button>
-							</div>
-						</td>
-					</tr>
-				</ng-template>
+					<ng-template pTemplate="body" let-dzongkhag>
+						<tr [class.bg-primary-50]="selectedDzongkhag?.id === dzongkhag.id">
+							<td>
+								<span class="text-sm font-semibold text-slate-900">
+									{{ dzongkhag.id }}
+								</span>
+							</td>
+							<td>
+								<div class="font-semibold text-slate-900">
+									{{ dzongkhag.name }}
+								</div>
+							</td>
+							<td>
+								<span
+									class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700"
+								>
+									{{ dzongkhag.areaCode }}
+								</span>
+							</td>
+							<td>
+								<div class="flex items-center gap-2">
+									<button
+										type="button"
+										(click)="viewDzongkhagData(dzongkhag)"
+										class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 transition-colors"
+										pTooltip="View Data"
+									>
+										<i class="pi pi-eye text-sm"></i>
+									</button>
+									<button
+										type="button"
+										(click)="editDzongkhag(dzongkhag)"
+										class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 transition-colors"
+										pTooltip="Edit"
+									>
+										<i class="pi pi-pencil text-sm"></i>
+									</button>
+									<button
+										type="button"
+										(click)="openUploadGeojson(dzongkhag)"
+										class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 transition-colors"
+										pTooltip="Upload GeoJSON"
+									>
+										<i class="pi pi-upload text-sm"></i>
+									</button>
+									<button
+										type="button"
+										(click)="confirmDelete(dzongkhag)"
+										class="p-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
+										pTooltip="Delete"
+									>
+										<i class="pi pi-trash text-sm"></i>
+									</button>
+								</div>
+							</td>
+						</tr>
+					</ng-template>
 
-				<ng-template pTemplate="emptymessage">
-					<tr>
-						<td colspan="4" class="text-center py-6">
-							<div class="text-gray-500">
-								<i class="pi pi-info-circle text-xl mb-2 block"></i>
-								No dzongkhags found
-							</div>
-						</td>
-					</tr>
-				</ng-template>
-			</p-table>
+					<ng-template pTemplate="emptymessage">
+						<tr>
+							<td colspan="4" class="text-center py-8">
+								<div class="text-slate-500">
+									<i class="pi pi-inbox text-3xl mb-2 block"></i>
+									<p class="text-sm">No dzongkhags found</p>
+								</div>
+							</td>
+						</tr>
+					</ng-template>
+				</p-table>
+			</div>
 		</div>
 
-		<!-- Map Section -->
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
-			<div class="p-4 border-b border-gray-200">
+		<!-- Right: Map (50%) -->
+		<div class="w-1/2 flex flex-col bg-white rounded-lg border border-slate-200">
+			<!-- Map Header -->
+			<div class="p-4 border-b border-slate-200 flex-shrink-0">
 				<div class="flex justify-between items-center">
 					<div>
-						<h2 class="text-lg font-semibold text-gray-900">Geographic View</h2>
-						<div class="text-sm text-gray-600">Interactive Map</div>
+						<h2 class="text-lg font-semibold text-slate-900">Geographic View</h2>
+						<p class="text-xs text-slate-600 mt-1">Click on dzongkhags to view details</p>
 					</div>
 					<button
-						pButton
 						type="button"
-						label="Reload Map"
-						icon="pi pi-refresh"
-						class="p-button-outlined p-button-sm p-button-secondary"
 						(click)="reloadMap()"
-						pTooltip="Refresh map data"
-						tooltipPosition="bottom"
-					></button>
+						class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 transition-colors"
+						pTooltip="Reload Map"
+					>
+						<i class="pi pi-refresh text-sm"></i>
+					</button>
 				</div>
 			</div>
 
-			<div class="relative" style="height: 600px">
+			<!-- Map Container -->
+			<div class="flex-1 relative">
 				<div id="dzongkhag-map" class="w-full h-full rounded-b-lg"></div>
 
 				<!-- Map Loading Overlay -->
 				<div
 					*ngIf="!dzongkhagGeoJSON"
-					class="absolute inset-0 bg-gray-50 flex items-center justify-center rounded-b-lg"
+					class="absolute inset-0 bg-slate-50 flex items-center justify-center rounded-b-lg"
 				>
 					<div class="text-center">
 						<div
-							class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
+							class="animate-spin rounded-full w-8 h-8 border-b-2 border-primary-600 mx-auto mb-3"
 						></div>
-						<p class="text-sm text-gray-600">Loading map data...</p>
+						<p class="text-sm text-slate-600">Loading map data...</p>
 					</div>
 				</div>
 			</div>

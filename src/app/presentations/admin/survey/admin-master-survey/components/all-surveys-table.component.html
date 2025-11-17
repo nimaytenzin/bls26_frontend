@@ -1,0 +1,149 @@
+<div class="p-4">
+	<div class="flex justify-between items-center mb-4">
+		<h2 class="text-lg font-semibold text-gray-900">
+			All Surveys ({{ totalRecords }} total)
+		</h2>
+		<div class="flex items-center gap-3">
+			<span class="p-input-icon-left">
+				<input
+					pInputText
+					type="text"
+					[(ngModel)]="globalFilterValue"
+					placeholder="Search surveys..."
+					class="p-inputtext-sm"
+					(input)="onGlobalFilter($event)"
+				/>
+			</span>
+		</div>
+	</div>
+
+	<p-table
+		[value]="surveys"
+		[lazy]="true"
+		[paginator]="true"
+		[rows]="rowsPerPage"
+		[totalRecords]="totalRecords"
+		[loading]="loading"
+		(onLazyLoad)="onLazyLoad($event)"
+		responsiveLayout="scroll"
+		selectionMode="single"
+		[(selection)]="selectedSurvey"
+		(onRowSelect)="onRowSelect($event)"
+		styleClass="p-datatable-sm"
+		[globalFilterFields]="['name', 'description', 'status']"
+		[filterDelay]="0"
+	>
+		<ng-template pTemplate="header">
+			<tr>
+				<th pSortableColumn="name">
+					Name <p-sortIcon field="name"></p-sortIcon>
+				</th>
+				<th>Description</th>
+				<th pSortableColumn="year">
+					Year <p-sortIcon field="year"></p-sortIcon>
+				</th>
+				<th pSortableColumn="startDate">
+					Start Date <p-sortIcon field="startDate"></p-sortIcon>
+				</th>
+				<th pSortableColumn="endDate">
+					End Date <p-sortIcon field="endDate"></p-sortIcon>
+				</th>
+				<th pSortableColumn="status">
+					Status <p-sortIcon field="status"></p-sortIcon>
+				</th>
+				<th>Actions</th>
+			</tr>
+		</ng-template>
+
+		<ng-template pTemplate="body" let-survey>
+			<tr [class.bg-blue-50]="selectedSurvey?.id === survey.id">
+				<td>
+					<div class="font-medium text-gray-900">
+						{{ survey.name }}
+					</div>
+					<div class="text-xs text-gray-500">ID: {{ survey.id }}</div>
+				</td>
+				<td>
+					<div class="text-sm text-gray-700 max-w-xs truncate">
+						{{ survey.description }}
+					</div>
+				</td>
+				<td>
+					<span
+						class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
+					>
+						{{ survey.year }}
+					</span>
+				</td>
+				<td>
+					<span class="text-sm text-gray-900">
+						{{ formatDate(survey.startDate) }}
+					</span>
+				</td>
+				<td>
+					<div class="text-sm">
+						<span class="text-gray-900">
+							{{ formatDate(survey.endDate) }}
+						</span>
+						<span
+							*ngIf="isSurveyEndingSoon(survey)"
+							class="ml-1 text-xs text-orange-600"
+						>
+							<i class="pi pi-exclamation-triangle"></i> Ending soon
+						</span>
+					</div>
+				</td>
+				<td>
+					<span
+						[class]="
+							'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' +
+							getStatusBadgeClass(survey.status)
+						"
+					>
+						{{ survey.status }}
+					</span>
+				</td>
+				<td>
+					<div class="flex items-center gap-2">
+						<button
+							pButton
+							type="button"
+							icon="pi pi-eye"
+							class="p-button-outlined p-button-sm p-button-primary"
+							(click)="onView(survey)"
+							pTooltip="View Survey"
+						></button>
+						<button
+							pButton
+							type="button"
+							icon="pi pi-pencil"
+							class="p-button-outlined p-button-sm p-button-info"
+							(click)="onEdit(survey)"
+							pTooltip="Edit"
+						></button>
+						<button
+							pButton
+							type="button"
+							icon="pi pi-trash"
+							class="p-button-outlined p-button-sm p-button-danger"
+							(click)="onDelete(survey)"
+							pTooltip="Delete"
+						></button>
+					</div>
+				</td>
+			</tr>
+		</ng-template>
+
+		<ng-template pTemplate="emptymessage">
+			<tr>
+				<td colspan="7" class="text-center py-8">
+					<div class="text-gray-500">
+						<i class="pi pi-info-circle text-2xl mb-2 block"></i>
+						No surveys found
+					</div>
+				</td>
+			</tr>
+		</ng-template>
+	</p-table>
+</div>
+

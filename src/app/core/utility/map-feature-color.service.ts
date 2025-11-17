@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 
 /**
- * Service for generating color scales and mapping values to colors
+ * Service for managing map feature colors including single features,
+ * graduated (continuous) color scales, and categorized (discrete) values
  */
 @Injectable({
 	providedIn: 'root',
 })
-export class ColorScaleService {
+export class MapFeatureColorService {
 	/**
-	 * Blue gradient color scale from dark to light
+	 * Blue gradient color scale from dark to light (for graduated/choropleth maps)
 	 */
 	private readonly blueScale: string[] = [
 		'#015a8e',
@@ -31,6 +32,34 @@ export class ColorScaleService {
 		'#9dd6f7',
 		'#abdbf8',
 		'#b9e1f9',
+	];
+
+	/**
+	 * Standard single feature colors
+	 */
+	private readonly singleFeatureColors = {
+		primary: '#67A4CA',
+		secondary: '#CBE7F8',
+		highlight: '#015a8e',
+		selected: '#2a94ce',
+		default: '#3aace4',
+		red: '#E35263',
+	};
+
+	/**
+	 * Categorical color palette for distinct categories
+	 */
+	private readonly categoricalColors: string[] = [
+		'#67A4CA', // Primary blue
+		'#CBE7F8', // Light blue
+		'#015a8e', // Dark blue
+		'#45bbf3', // Medium blue
+		'#7fccf6', // Sky blue
+		'#1a7cb4', // Deep blue
+		'#9dd6f7', // Pale blue
+		'#258dc5', // Ocean blue
+		'#abdbf8', // Ice blue
+		'#309cd5', // Azure
 	];
 
 	/**
@@ -177,6 +206,88 @@ export class ColorScaleService {
 	}
 
 	/**
+	 * Get CSS linear gradient string for continuous color scale legend
+	 * @param min - Minimum value
+	 * @param max - Maximum value
+	 * @param direction - Gradient direction: 'vertical' (default) or 'horizontal'
+	 * @returns CSS linear-gradient string
+	 */
+	getLegendGradient(
+		min: number,
+		max: number,
+		direction: 'vertical' | 'horizontal' = 'vertical'
+	): string {
+		// Generate gradient stops using the full color scale
+		const stops: string[] = [];
+		const numStops = this.blueScale.length;
+
+		for (let i = 0; i < numStops; i++) {
+			const percentage = (i / (numStops - 1)) * 100;
+			stops.push(`${this.blueScale[i]} ${percentage}%`);
+		}
+
+		const gradientDirection =
+			direction === 'vertical' ? 'to bottom' : 'to right';
+		return `linear-gradient(${gradientDirection}, ${stops.join(', ')})`;
+	}
+
+	/**
+	 * Get legend break values using equal interval classification
+	 * Best for continuous gradient legends as it provides evenly spaced labels
+	 * @param min - Minimum value
+	 * @param max - Maximum value
+	 * @param numBreaks - Number of break points (default 5, including min and max)
+	 * @returns Array of break values with formatted labels
+	 */
+	getLegendBreaks(
+		min: number,
+		max: number,
+		numBreaks: number = 5
+	): { value: number; label: string; position: number }[] {
+		const breaks: { value: number; label: string; position: number }[] = [];
+		const range = max - min;
+		const stepSize = range / (numBreaks - 1);
+
+		for (let i = 0; i < numBreaks; i++) {
+			const value = min + stepSize * i;
+			const position = (i / (numBreaks - 1)) * 100; // Position percentage for gradient
+			const label = this.formatLegendLabel(value, min, max);
+			breaks.push({ value, label, position });
+		}
+
+		return breaks;
+	}
+
+	/**
+	 * Format label for legend based on value magnitude
+	 * @param value - Value to format
+	 * @param min - Minimum value (for context)
+	 * @param max - Maximum value (for context)
+	 * @returns Formatted label string
+	 */
+	private formatLegendLabel(value: number, min: number, max: number): string {
+		const range = max - min;
+		const magnitude = Math.max(Math.abs(min), Math.abs(max));
+
+		// Determine appropriate decimal places based on value magnitude
+		let maxFractionDigits = 0;
+		if (magnitude < 1) {
+			maxFractionDigits = 2;
+		} else if (magnitude < 10) {
+			maxFractionDigits = 1;
+		} else if (magnitude < 1000) {
+			maxFractionDigits = 0;
+		} else {
+			maxFractionDigits = 0;
+		}
+
+		return value.toLocaleString(undefined, {
+			maximumFractionDigits: maxFractionDigits,
+			minimumFractionDigits: maxFractionDigits,
+		});
+	}
+
+	/**
 	 * Get quantile breaks for a dataset
 	 * Useful for creating equal-count classifications
 	 * @param values - Array of values
@@ -250,5 +361,111 @@ export class ColorScaleService {
 			(classIndex / (breaks.length + 1)) * (this.blueScale.length - 1)
 		);
 		return this.blueScale[colorIndex];
+	}
+
+	// ==================== SINGLE FEATURE COLORS ====================
+
+	/**
+	 * Get standard color for a single feature
+	 * @param type - Type of feature color needed
+	 * @returns Hex color code
+	 */
+	getSingleFeatureColor(
+		type:
+			| 'primary'
+			| 'secondary'
+			| 'highlight'
+			| 'selected'
+			| 'red'
+			| 'default' = 'default'
+	): string {
+		return this.singleFeatureColors[type];
+	}
+
+	/**
+	 * Get all single feature color options
+	 */
+	getSingleFeatureColors(): Record<string, string> {
+		return { ...this.singleFeatureColors };
+	}
+
+	// ==================== CATEGORIZED COLORS ====================
+
+	/**
+	 * Get color for a categorical value by index
+	 * @param index - Category index
+	 * @returns Hex color code
+	 */
+	getCategoricalColor(index: number): string {
+		return this.categoricalColors[index % this.categoricalColors.length];
+	}
+
+	/**
+	 * Get color mapping for categorical values
+	 * @param categories - Array of category names/values
+	 * @returns Map of category to color
+	 */
+	getCategoricalColorMap(categories: string[]): Map<string, string> {
+		const colorMap = new Map<string, string>();
+		categories.forEach((category, index) => {
+			colorMap.set(category, this.getCategoricalColor(index));
+		});
+		return colorMap;
+	}
+
+	/**
+	 * Get color for a specific category from a predefined map
+	 * @param category - Category value
+	 * @param colorMap - Predefined color map
+	 * @param defaultColor - Fallback color if category not found
+	 * @returns Hex color code
+	 */
+	getColorForCategory(
+		category: string,
+		colorMap: Map<string, string>,
+		defaultColor: string = '#cccccc'
+	): string {
+		return colorMap.get(category) || defaultColor;
+	}
+
+	/**
+	 * Get all categorical colors
+	 */
+	getCategoricalColors(): string[] {
+		return [...this.categoricalColors];
+	}
+
+	// ==================== GRADUATED COLORS (EXISTING METHODS) ====================
+	// The existing getColorForValue, getInterpolatedColor, getLegendItems, etc.
+	// are already implemented above and handle graduated color scales
+
+	/**
+	 * Get color for graduated/choropleth visualization
+	 * Alias for getInterpolatedColor for clarity
+	 * @param value - The value to get color for
+	 * @param min - Minimum value in the dataset
+	 * @param max - Maximum value in the dataset
+	 * @returns Hex color code
+	 */
+	getGraduatedColor(value: number, min: number, max: number): string {
+		return this.getInterpolatedColor(value, min, max);
+	}
+
+	/**
+	 * Create a graduated color scheme with custom breaks
+	 * @param breaks - Array of break values
+	 * @returns Array of colors corresponding to each break range
+	 */
+	getGraduatedColorScheme(breaks: number[]): string[] {
+		const colors: string[] = [];
+		const min = breaks[0];
+		const max = breaks[breaks.length - 1];
+
+		for (let i = 0; i < breaks.length; i++) {
+			const value = breaks[i];
+			colors.push(this.getInterpolatedColor(value, min, max));
+		}
+
+		return colors;
 	}
 }

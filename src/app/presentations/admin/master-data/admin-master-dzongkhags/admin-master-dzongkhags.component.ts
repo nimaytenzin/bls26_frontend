@@ -24,6 +24,8 @@ import { PrimeNgModules } from '../../../../primeng.modules';
 import { Table } from 'primeng/table';
 import * as L from 'leaflet';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';
+import { BasemapService } from '../../../../core/utility/basemap.service';
 
 @Component({
 	selector: 'app-admin-master-dzongkhags',
@@ -39,7 +41,6 @@ export class AdminMasterDzongkhagsComponent
 {
 	// Table references
 	@ViewChild('dt') dt!: Table;
-	@ViewChild('dtSplit') dtSplit!: Table;
 
 	// Data properties
 	dzongkhags: Dzongkhag[] = [];
@@ -48,12 +49,9 @@ export class AdminMasterDzongkhagsComponent
 
 	// Map properties
 	private map?: L.Map;
-	dzongkhagGeoJSON: any; // Make public for template access
+	dzongkhagGeoJSON: any;
 	private allDzongkhagsLayer?: L.GeoJSON;
 	private baseLayer?: L.TileLayer;
-
-	// View control
-	currentView: 'table' | 'split' = 'table';
 
 	// Dialog states
 	dzongkhagDialog = false;
@@ -75,7 +73,9 @@ export class AdminMasterDzongkhagsComponent
 		private dzongkhagService: DzongkhagDataService,
 		private fb: FormBuilder,
 		private messageService: MessageService,
-		private router: Router
+		private router: Router,
+		private mapFeatureColorService: MapFeatureColorService,
+		private basemapService: BasemapService
 	) {
 		this.dzongkhagForm = this.fb.group({
 			name: ['', [Validators.required, Validators.minLength(2)]],
@@ -89,24 +89,8 @@ export class AdminMasterDzongkhagsComponent
 	}
 
 	ngAfterViewInit() {
-		// Map initialization will happen when views are switched or tabs are changed
-	}
-
-	// View Management
-	switchView(view: 'table' | 'split') {
-		this.currentView = view;
-		if (view === 'split') {
-			// Initialize map for split view after DOM is ready
-			setTimeout(() => this.initializeMap(), 100);
-		}
-	}
-
-	// Handle tab change for map initialization
-	onTabChange(event: any) {
-		// Initialize map when Geographic View tab is selected (index 1)
-		if (event.index === 1) {
-			setTimeout(() => this.initializeMap('dzongkhag-map-tab'), 100);
-		}
+		// Initialize map after view is ready
+		setTimeout(() => this.initializeMap(), 100);
 	}
 
 	ngOnDestroy() {
@@ -154,40 +138,9 @@ export class AdminMasterDzongkhagsComponent
 		});
 	}
 
-	reloadMap() {
-		this.dzongkhagGeoJSON = undefined;
-
-		if (this.map) {
-			this.map.remove();
-			this.map = undefined;
-		}
-
-		// Decide which container exists in DOM
-		let containerId = 'dzongkhag-map';
-		// Prefer tab container when table view is active and the tab exists
-		if (this.currentView === 'table') {
-			if (document.getElementById('dzongkhag-map-tab')) {
-				containerId = 'dzongkhag-map-tab';
-			} else if (document.getElementById('dzongkhag-map')) {
-				containerId = 'dzongkhag-map';
-			}
-		} else {
-			// split view
-			containerId = 'dzongkhag-map';
-		}
-
-		const el = document.getElementById(containerId);
-		// If the container exists, initialize the map immediately, otherwise just reload data
-		if (el) {
-			setTimeout(() => this.initializeMap(containerId), 100);
-		} else {
-			this.loadDzongkhagGeoJSON();
-		}
-	}
-
 	// Map Functions
-	private initializeMap(containerId: string = 'dzongkhag-map') {
-		// Check if container exists before initializing
+	private initializeMap() {
+		const containerId = 'dzongkhag-map';
 		const container = document.getElementById(containerId);
 		if (!container) {
 			console.warn(
@@ -203,26 +156,20 @@ export class AdminMasterDzongkhagsComponent
 		this.map = L.map(containerId, {
 			center: [27.5142, 90.4336], // Center of Bhutan
 			zoom: 7,
-			zoomControl: true,
+			zoomControl: false,
 			attributionControl: false,
 		});
 
-		// Add base layer
-		this.baseLayer = L.tileLayer(
-			'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-			{
-				maxZoom: 19,
-				attribution: '© OpenStreetMap contributors',
-			}
-		);
-		this.baseLayer.addTo(this.map);
-
-		// Load GeoJSON if not already loaded
-		if (!this.dzongkhagGeoJSON) {
-			this.loadDzongkhagGeoJSON();
-		} else {
-			this.renderAllDzongkhags();
+		// Add basemap using BasemapService (default: positron)
+		const defaultBasemap = this.basemapService.getDefaultBasemap();
+		const tileLayer = this.basemapService.createTileLayer(defaultBasemap.id);
+		if (tileLayer) {
+			this.baseLayer = tileLayer;
+			this.baseLayer.addTo(this.map);
 		}
+
+		// Load GeoJSON
+		this.loadDzongkhagGeoJSON();
 	}
 
 	private renderAllDzongkhags() {
@@ -233,25 +180,91 @@ export class AdminMasterDzongkhagsComponent
 			this.map.removeLayer(this.allDzongkhagsLayer);
 		}
 
+		// Get single feature color from service
+		const fillColor = this.mapFeatureColorService.getSingleFeatureColor('primary');
+		const borderColor = this.mapFeatureColorService.getSingleFeatureColor('highlight');
+
 		this.allDzongkhagsLayer = L.geoJSON(this.dzongkhagGeoJSON, {
 			style: (feature) => ({
-				fillColor: '#3B82F6',
+				fillColor: fillColor,
 				fillOpacity: 0.3,
-				color: '#1D4ED8',
+				color: borderColor,
 				weight: 2,
 				opacity: 1,
 			}),
 			onEachFeature: (feature, layer) => {
 				const props = feature.properties;
 
-				// Bind popup
-				layer.bindPopup(`
-          <div class="p-3">
-            <p class="font-bold text-lg p-0 m-0">${props.name}</p>
-            <p class="p-0 m-0"><strong>Dzongkhag Code:</strong> ${props.areaCode}</p>
-            <p><strong>Area:</strong> ${props.areaSqKm} km²</p>
-          </div>
-        `);
+				// Find dzongkhag in data to get full object
+				const dzongkhag = this.dzongkhags.find(
+					(d) => d.id === props.id || d.areaCode === props.areaCode
+				);
+
+				// Create popup content with icon buttons
+				const popupContent = `
+					<div class="p-1">
+						<div class="mb-2">
+							<p class="font-semibold text-sm m-0 p-0 text-slate-900" style="line-height: 1.2; margin-bottom: 0;">${props.name}</p>
+							<p class="text-xs m-0 p-0 text-slate-500" style="line-height: 1.2; margin-top: 0; margin-bottom: 0;">Code: ${props.areaCode}</p>
+						</div>
+						<div class="flex gap-1.5 justify-center">
+							<button 
+								id="view-dzongkhag-${props.id}" 
+								class="w-8 h-8 flex items-center justify-center bg-primary-600 hover:bg-primary-700 text-white rounded transition-all shadow-sm hover:shadow"
+								title="View Details"
+							>	
+								<i class="pi pi-eye text-xs"></i>
+							</button>
+							<button 
+								id="edit-dzongkhag-${props.id}" 
+								class="w-8 h-8 flex items-center justify-center border border-slate-300 hover:border-primary-300 hover:bg-primary-50 text-slate-700 hover:text-primary-700 rounded transition-all"
+								title="Edit"
+							>
+								<i class="pi pi-pencil text-xs"></i>
+							</button>
+							<button 
+								id="upload-geojson-${props.id}" 
+								class="w-8 h-8 flex items-center justify-center border border-slate-300 hover:border-primary-300 hover:bg-primary-50 text-slate-700 hover:text-primary-700 rounded transition-all"
+								title="Reupload GeoJSON"
+							>
+								<i class="pi pi-upload text-xs"></i>
+							</button>
+						</div>
+					</div>
+				`;
+
+				const popup = L.popup().setContent(popupContent);
+				layer.bindPopup(popup);
+
+				// Add click listeners for buttons after popup opens
+				layer.on('popupopen', () => {
+					// View Details button
+					const viewButton = document.getElementById(`view-dzongkhag-${props.id}`);
+					if (viewButton && dzongkhag) {
+						viewButton.addEventListener('click', () => {
+							this.viewDzongkhagData(dzongkhag);
+							this.map?.closePopup();
+						});
+					}
+
+					// Edit button
+					const editButton = document.getElementById(`edit-dzongkhag-${props.id}`);
+					if (editButton && dzongkhag) {
+						editButton.addEventListener('click', () => {
+							this.editDzongkhag(dzongkhag);
+							this.map?.closePopup();
+						});
+					}
+
+					// Reupload GeoJSON button
+					const uploadButton = document.getElementById(`upload-geojson-${props.id}`);
+					if (uploadButton && dzongkhag) {
+						uploadButton.addEventListener('click', () => {
+							this.openUploadGeojson(dzongkhag);
+							this.map?.closePopup();
+						});
+					}
+				});
 
 				// Bind tooltip
 				layer.bindTooltip(props.name, {
@@ -259,7 +272,7 @@ export class AdminMasterDzongkhagsComponent
 					direction: 'top',
 				});
 
-				// Click event
+				// Click event to select dzongkhag
 				layer.on('click', () => {
 					this.selectDzongkhagFromMap(props);
 				});
@@ -281,7 +294,11 @@ export class AdminMasterDzongkhagsComponent
 		});
 
 		this.allDzongkhagsLayer.addTo(this.map);
-		this.map.fitBounds(this.allDzongkhagsLayer.getBounds());
+		// Fit bounds without padding to avoid bounding box appearance
+		this.map.fitBounds(this.allDzongkhagsLayer.getBounds(), {
+			padding: [0, 0],
+			maxZoom: 10
+		});
 	}
 
 	selectDzongkhagFromMap(properties: any) {
@@ -291,8 +308,26 @@ export class AdminMasterDzongkhagsComponent
 		);
 		if (dzongkhag) {
 			this.selectedDzongkhag = dzongkhag;
+			// Scroll to selected row in table if needed
 		}
 	}
+
+	reloadMap() {
+		this.dzongkhagGeoJSON = undefined;
+
+		if (this.map) {
+			this.map.remove();
+			this.map = undefined;
+		}
+
+		const container = document.getElementById('dzongkhag-map');
+		if (container) {
+			setTimeout(() => this.initializeMap(), 100);
+		} else {
+			this.loadDzongkhagGeoJSON();
+		}
+	}
+
 
 	// Table Functions
 	selectDzongkhag(dzongkhag: Dzongkhag) {
@@ -494,19 +529,6 @@ export class AdminMasterDzongkhagsComponent
 		this.globalFilterValue = '';
 	}
 
-	// Calculate total area
-	get totalArea(): number {
-		return this.dzongkhags.reduce((sum, d) => {
-			const area =
-				typeof d.areaSqKm === 'string' ? parseFloat(d.areaSqKm) : d.areaSqKm;
-			return sum + (isNaN(area) ? 0 : area);
-		}, 0);
-	}
-
-	// Calculate average area
-	get averageArea(): number {
-		return this.dzongkhags.length ? this.totalArea / this.dzongkhags.length : 0;
-	}
 
 	// Handle row selection properly
 	onRowSelect(event: any) {
@@ -521,17 +543,6 @@ export class AdminMasterDzongkhagsComponent
 		this.globalFilterValue = target.value;
 		if (this.dt) {
 			this.dt.filterGlobal(target.value, 'contains');
-		}
-		if (this.dtSplit) {
-			this.dtSplit.filterGlobal(target.value, 'contains');
-		}
-	}
-
-	onGlobalFilterSplit(event: Event) {
-		const target = event.target as HTMLInputElement;
-		this.globalFilterValue = target.value;
-		if (this.dtSplit) {
-			this.dtSplit.filterGlobal(target.value, 'contains');
 		}
 	}
 

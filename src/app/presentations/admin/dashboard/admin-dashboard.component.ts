@@ -16,7 +16,7 @@ import {
 	DzongkhagStatsFeature,
 	NationalSummary,
 } from '../../../core/dataservice/dzongkhag-annual-stats/dzongkhag-annual-stats.dto';
-import { ColorScaleService } from '../../../core/utility/color-scale.service';
+import { MapFeatureColorService } from '../../../core/utility/map-feature-color.service';
 import { BasemapService } from '../../../core/utility/basemap.service';
 import { AdministrativeZoneDataService } from '../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { SubAdministrativeZoneDataService } from '../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
@@ -116,7 +116,7 @@ export class AdminDashboardComponent
 	constructor(
 		private dzongkhagStatsService: DzongkhagAnnualStatsDataService,
 		private router: Router,
-		private colorScaleService: ColorScaleService,
+		private colorScaleService: MapFeatureColorService,
 		private basemapService: BasemapService,
 		private administrativeZoneService: AdministrativeZoneDataService,
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
@@ -382,6 +382,7 @@ export class AdminDashboardComponent
 
 	/**
 	 * Get legend items for map based on visualization mode
+	 * @deprecated Use getLegendGradient() and getLegendBreaks() for continuous gradient legend
 	 */
 	getLegendItems(): { color: string; label: string; value: number }[] {
 		if (!this.dzongkhagFeatures || this.dzongkhagFeatures.length === 0) {
@@ -411,6 +412,69 @@ export class AdminDashboardComponent
 	 */
 	getPopulationLegend(): { color: string; label: string; value: number }[] {
 		return this.getLegendItems();
+	}
+
+	/**
+	 * Get CSS gradient string for continuous color scale legend
+	 */
+	getLegendGradient(): string {
+		if (!this.dzongkhagFeatures || this.dzongkhagFeatures.length === 0) {
+			return '';
+		}
+
+		const { min, max } = this.getLegendMinMax();
+		return this.colorScaleService.getLegendGradient(min, max, 'vertical');
+	}
+
+	/**
+	 * Get legend break values with labels for continuous gradient
+	 */
+	getLegendBreaks(): { value: number; label: string; position: number }[] {
+		if (!this.dzongkhagFeatures || this.dzongkhagFeatures.length === 0) {
+			return [];
+		}
+
+		const { min, max } = this.getLegendMinMax();
+		return this.colorScaleService.getLegendBreaks(min, max, 5);
+	}
+
+	/**
+	 * Get min and max values for current visualization mode
+	 */
+	getLegendMinMax(): { min: number; max: number } {
+		if (!this.dzongkhagFeatures || this.dzongkhagFeatures.length === 0) {
+			return { min: 0, max: 0 };
+		}
+
+		const values = this.dzongkhagFeatures
+			.filter((f) => f.properties.hasData)
+			.map((f) => {
+				if (this.mapVisualizationMode === 'households') {
+					return f.properties.totalHouseholds;
+				} else if (this.mapVisualizationMode === 'population') {
+					return f.properties.totalPopulation;
+				} else {
+					return f.properties.eaCount;
+				}
+			});
+
+		return {
+			min: Math.min(...values),
+			max: Math.max(...values),
+		};
+	}
+
+	/**
+	 * Get legend title based on visualization mode
+	 */
+	getLegendTitle(): string {
+		if (this.mapVisualizationMode === 'households') {
+			return 'Households';
+		} else if (this.mapVisualizationMode === 'population') {
+			return 'Population';
+		} else {
+			return 'Enumeration Areas';
+		}
 	}
 
 	/**

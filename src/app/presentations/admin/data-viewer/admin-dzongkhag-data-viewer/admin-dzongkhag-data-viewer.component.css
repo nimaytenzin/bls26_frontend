@@ -2,6 +2,15 @@
 	display: block;
 }
 
+.treemap-container {
+	position: relative;
+	min-height: 256px;
+}
+
+.treemap-container > div {
+	box-sizing: border-box;
+}
+
 /* Label styling for map tooltips */
 ::ng-deep .dzongkhag-label,
 ::ng-deep .admin-zone-label {

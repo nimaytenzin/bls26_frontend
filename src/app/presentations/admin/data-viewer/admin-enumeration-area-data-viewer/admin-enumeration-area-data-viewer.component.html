@@ -23,21 +23,10 @@
 		<!-- Split UI Layout -->
 		<section class="flex gap-4 h-[calc(100vh-5rem)] bg-white">
 			<!-- Left Pane: Data and Statistics -->
-			<div class="w-[25vw] flex flex-col gap-4 overflow-y-auto p-6">
+			<div class="w-[40vw] flex flex-col gap-4 overflow-y-auto p-6">
 				<!-- Header Section -->
 				<div class="space-y-4">
-					<!-- Back Button -->
-					<div>
-						<button
-							type="button"
-							(click)="goBack()"
-							class="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:border-slate-300"
-						>
-							<i class="pi pi-arrow-left text-xs"></i>
-							<span>Back to Enumeration Areas</span>
-						</button>
-					</div>
-
+					
 					<!-- Title -->
 					<div>
 						<h1 class="text-3xl font-semibold text-slate-900">
@@ -80,15 +69,15 @@
 							</button>
 							<button
 								type="button"
-								(click)="activeMainTab = 'downloads'"
+								(click)="activeMainTab = 'historical-trends'"
 								class="px-4 py-2 font-semibold transition border-b-2"
 								[ngClass]="
-									activeMainTab === 'downloads'
+									activeMainTab === 'historical-trends'
 										? 'border-primary-600 text-primary-600'
 										: 'border-transparent text-slate-600 hover:text-slate-900'
 								"
 							>
-								Downloads
+								Historical Trends
 							</button>
 						</div>
 
@@ -188,122 +177,21 @@
 
 						<!-- Households Tab Content -->
 						<div *ngIf="activeMainTab === 'households'" class="space-y-4">
-							<div class="space-y-3">
-								<!-- Nested Tabs for Current and Historical -->
-								<div class="flex gap-2 border-b border-slate-200">
-									<button
-										type="button"
-										(click)="activeHouseholdTab = 'current'"
-										class="px-3 py-2 font-semibold transition border-b-2"
-										[ngClass]="
-											activeHouseholdTab === 'current'
-												? 'border-primary-600 text-primary-600'
-												: 'border-transparent text-slate-600 hover:text-slate-900'
-										"
-									>
-										Current Listing
-									</button>
-									<button
-										type="button"
-										(click)="activeHouseholdTab = 'Trends'"
-										class="px-3 py-2 font-semibold transition border-b-2"
-										[ngClass]="
-											activeHouseholdTab === 'Trends'
-												? 'border-primary-600 text-primary-600'
-												: 'border-transparent text-slate-600 hover:text-slate-900'
-										"
-									>
-										Trends
-									</button>
-								</div>
-
-								<!-- Current Household Listing -->
-								<div *ngIf="activeHouseholdTab === 'current'" class="pt-2">
-									<app-current-household-listing
-										[enumerationAreaId]="enumerationArea.id!"
-									>
-									</app-current-household-listing>
-								</div>
-
-								<!-- Historical Data -->
-								<div *ngIf="activeHouseholdTab === 'Trends'" class="pt-2">
-									<app-admin-enumeration-area-trends
-										[enumerationAreaId]="enumerationArea.id!"
-									>
-									</app-admin-enumeration-area-trends>
-								</div>
-							</div>
+							<app-current-household-listing
+								[enumerationAreaId]="enumerationArea.id!"
+							>
+							</app-current-household-listing>
 						</div>
 
-						<!-- Downloads Tab Content -->
-						<div *ngIf="activeMainTab === 'downloads'" class="space-y-4">
-							<div>
-								<h3 class="text-lg font-semibold text-slate-800">
-									Data Downloads
-								</h3>
-								<div class="mt-3 space-y-2 text-base">
-									<div class="pt-2">
-										<p class="text-sm font-semibold text-slate-500 mb-3">
-											Spatial Data Downloads
-										</p>
-
-										<!-- Enumeration Area -->
-										<div
-											class="flex items-center justify-between py-2 border-b border-slate-100"
-										>
-											<span class="text-base font-medium text-slate-700"
-												>Enumeration Area</span
-											>
-											<div class="flex gap-2">
-												<button
-													type="button"
-													(click)="downloadKML()"
-													[disabled]="loading"
-													class="inline-flex items-center gap-1 rounded px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-60"
-													title="Download KML"
-												>
-													<svg
-														class="w-4 h-4"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-														/>
-													</svg>
-													KML
-												</button>
-												<button
-													type="button"
-													(click)="downloadGeoJSON()"
-													[disabled]="loading"
-													class="inline-flex items-center gap-1 rounded px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-60"
-													title="Download GeoJSON"
-												>
-													<svg
-														class="w-4 h-4"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-														/>
-													</svg>
-													JSON
-												</button>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
+						<!-- Historical Trends Tab Content -->
+						<div
+							*ngIf="activeMainTab === 'historical-trends'"
+							class="space-y-4"
+						>
+							<app-admin-enumeration-area-trends
+								[enumerationAreaId]="enumerationArea.id!"
+							>
+							</app-admin-enumeration-area-trends>
 						</div>
 					</div>
 				</div>
@@ -360,10 +248,10 @@
 					<!-- Filter/Navigation Popover -->
 					<p-button
 						(click)="filterPopover.toggle($event)"
-						icon="pi pi-map-marker"
+						icon="pi pi-filter"
 						severity="secondary"
 						size="small"
-						[label]="'Navigate'"
+						[label]="'Filter Location'"
 					/>
 					<p-popover #filterPopover>
 						<div class="flex flex-col gap-3 w-[20rem]">
@@ -505,6 +393,30 @@
 									</optgroup>
 								</ng-container>
 							</select>
+						</div>
+					</div>
+
+					<!-- Layer Management Panel -->
+					<div class="pt-3 border-t border-slate-200">
+						<p class="text-sm font-semibold text-slate-700 mb-2">Layers</p>
+						<div class="space-y-2">
+							<!-- Enumeration Area Layer -->
+							<div class="flex items-center justify-between gap-2">
+								<span class="text-xs text-slate-600">Enumeration Area</span>
+								<p-inputSwitch
+									[(ngModel)]="showEALayer"
+									(onChange)="toggleEALayer()"
+								/>
+							</div>
+
+							<!-- Sub-Admin Zone Layer -->
+							<div class="flex items-center justify-between gap-2">
+								<span class="text-xs text-slate-600">Sub-Admin Zone</span>
+								<p-inputSwitch
+									[(ngModel)]="showSubAdminLayer"
+									(onChange)="toggleSubAdminLayer()"
+								/>
+							</div>
 						</div>
 					</div>
 				</div>

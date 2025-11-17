@@ -24,6 +24,7 @@ import {
 import { Dzongkhag } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import { Table } from 'primeng/table';
+import { FileUpload } from 'primeng/fileupload';
 import * as L from 'leaflet';
 import { ConfirmationService } from 'primeng/api';
 
@@ -60,6 +61,9 @@ export class AdminMasterAdministrativeZonesComponent
 	// Dialog states
 	administrativeZoneDialog = false;
 	deleteDialog = false;
+	uploadGeojsonDialog = false;
+	selectedZoneForUpload: AdministrativeZone | null = null;
+	selectedFile: File | null = null;
 
 	// Form
 	administrativeZoneForm: FormGroup;
@@ -89,10 +93,16 @@ export class AdminMasterAdministrativeZonesComponent
 	ngOnInit() {
 		this.loadDzongkhags();
 		this.loadAdministrativeZones();
+		this.loadAdministrativeZoneGeoJSON();
 	}
 
 	ngAfterViewInit() {
-		// Map initialization will happen when views are switched or tabs are changed
+		// Initialize map after view is ready
+		setTimeout(() => {
+			if (this.currentView === 'split') {
+				this.initializeMap();
+			}
+		}, 200);
 	}
 
 	// View Management
@@ -100,6 +110,12 @@ export class AdminMasterAdministrativeZonesComponent
 		this.currentView = view;
 		if (view === 'split') {
 			setTimeout(() => this.initializeMap(), 100);
+		} else {
+			// Clean up map when switching away from split view
+			if (this.map) {
+				this.map.remove();
+				this.map = undefined;
+			}
 		}
 	}
 
@@ -458,5 +474,62 @@ export class AdminMasterAdministrativeZonesComponent
 			if (control.errors['min']) return `${field} must be positive`;
 		}
 		return '';
+	}
+
+	// Upload GeoJSON methods
+	openUploadGeojsonDialog(zone: AdministrativeZone) {
+		this.selectedZoneForUpload = zone;
+		this.selectedFile = null;
+		this.uploadGeojsonDialog = true;
+	}
+
+	onFileSelect(event: any) {
+		const file = event.files[0];
+		if (file) {
+			this.selectedFile = file;
+		}
+	}
+
+	uploadGeojson() {
+		if (!this.selectedFile || !this.selectedZoneForUpload) {
+			return;
+		}
+
+		const reader = new FileReader();
+		reader.onload = (e: any) => {
+			try {
+				const geojsonData = JSON.parse(e.target.result);
+
+				if (this.selectedZoneForUpload) {
+					this.administrativeZoneService
+						.uploadAdministrativeZoneGeojson(
+							this.selectedZoneForUpload.id,
+							geojsonData
+						)
+						.subscribe({
+							next: () => {
+								console.log('GeoJSON uploaded successfully');
+								this.uploadGeojsonDialog = false;
+								this.selectedFile = null;
+								this.selectedZoneForUpload = null;
+								this.loadAdministrativeZones();
+								this.loadAdministrativeZoneGeoJSON();
+							},
+							error: (error) => {
+								console.error('Error uploading GeoJSON:', error);
+							},
+						});
+				}
+			} catch (error) {
+				console.error('Error parsing GeoJSON file:', error);
+			}
+		};
+		reader.readAsText(this.selectedFile);
+	}
+
+	cancelUploadGeojson() {
+		this.uploadGeojsonDialog = false;
+		this.selectedFile = null;
+		this.selectedZoneForUpload = null;
 	}
 }

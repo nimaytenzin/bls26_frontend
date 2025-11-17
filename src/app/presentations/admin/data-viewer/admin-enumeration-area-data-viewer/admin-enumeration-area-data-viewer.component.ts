@@ -16,6 +16,7 @@ import { SubAdministrativeZone } from '../../../../core/dataservice/location/sub
 import { AdministrativeZone } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
 import { Dzongkhag } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
 import { BasemapService } from '../../../../core/utility/basemap.service';
+import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';
 // Import child components
 import { CurrentHouseholdListingComponent } from './current-household-listing/current-household-listing.component';
 import { AdminEnumerationAreaTrendsComponent } from './admin-enumeration-area-trends/admin-enumeration-area-trends.component';
@@ -53,15 +54,21 @@ export class AdminEnumerationAreaDataViewerComponent
 	enumerationAreaMap: L.Map | null = null;
 	satelliteLayer: L.TileLayer | null = null;
 	openStreetMapLayer: L.TileLayer | null = null;
+	eaLayer: L.GeoJSON | null = null;
+	subAdminLayer: L.GeoJSON | null = null;
 
 	// State
 	loading = true;
 	mapInitialized = false;
 	showSatelliteLayer = false;
 	eaId: number = 0;
-	activeMainTab: 'insights' | 'households' | 'downloads' = 'insights';
+	activeMainTab: 'insights' | 'households' | 'historical-trends' = 'insights';
 	activeHouseholdTab: 'current' | 'Trends' = 'current';
 	currentBaseMap: 'streets' | 'satellite' = 'streets';
+
+	// Layer visibility
+	showEALayer = true;
+	showSubAdminLayer = true;
 
 	// Filter/Navigation properties
 	dzongkhagOptions: any[] = [];
@@ -76,30 +83,6 @@ export class AdminEnumerationAreaDataViewerComponent
 	// Basemap properties
 	basemapCategories: any = {};
 	selectedBasemapId: string = 'positron';
-
-	// Color scale for visualizations
-	private readonly blueScale: string[] = [
-		'#015a8e',
-		'#066298',
-		'#0d6ba2',
-		'#1474ab',
-		'#1a7cb4',
-		'#1f84bd',
-		'#258dc5',
-		'#2a94ce',
-		'#309cd5',
-		'#35a4dd',
-		'#3aace4',
-		'#40b3eb',
-		'#45bbf3',
-		'#58c1f5',
-		'#6dc6f5',
-		'#7fccf6',
-		'#8fd1f6',
-		'#9dd6f7',
-		'#abdbf8',
-		'#b9e1f9',
-	];
 
 	getFullEACode = GenerateFullEACode;
 
@@ -117,7 +100,8 @@ export class AdminEnumerationAreaDataViewerComponent
 		private administrativeZoneService: AdministrativeZoneDataService,
 		private dzongkhagService: DzongkhagDataService,
 		private messageService: MessageService,
-		private basemapService: BasemapService
+		private basemapService: BasemapService,
+		private mapFeatureColorService: MapFeatureColorService
 	) {}
 
 	ngOnInit() {
@@ -242,99 +226,273 @@ export class AdminEnumerationAreaDataViewerComponent
 				scrollWheelZoom: true,
 			});
 
-			// Initialize both tile layers
-			this.openStreetMapLayer = L.tileLayer(this.tileLayer, {
-				maxZoom: 19,
-				attribution: '© OpenStreetMap contributors',
-			});
+			// Initialize tile layer using basemap service
+			const basemap = this.basemapService.getBasemap(this.selectedBasemapId);
+			if (basemap) {
+				const tileLayer = L.tileLayer(basemap.url, {
+					attribution: basemap.attribution,
+					...basemap.options,
+				});
+				tileLayer.addTo(this.enumerationAreaMap);
 
-			this.satelliteLayer = L.tileLayer(this.satelliteTileLayer, {
-				maxZoom: 19,
-				attribution: '© Google',
-			});
-
-			// Add default layer (OpenStreetMap)
-			this.openStreetMapLayer.addTo(this.enumerationAreaMap);
+				// Store reference based on basemap type
+				if (
+					basemap.id.includes('satellite') ||
+					basemap.id.includes('imagery')
+				) {
+					this.satelliteLayer = tileLayer;
+					this.currentBaseMap = 'satellite';
+				} else {
+					this.openStreetMapLayer = tileLayer;
+					this.currentBaseMap = 'streets';
+				}
+			}
 
 			let hasValidGeometry = false;
 
 			// Add sub-administrative zone boundary (if available)
 			if (this.subAdminGeoJsonData && this.subAdminGeoJsonData.geometry) {
-				const subAdminZoneLayer = L.geoJSON(this.subAdminGeoJsonData, {
+				this.subAdminLayer = L.geoJSON(this.subAdminGeoJsonData, {
 					style: {
-						color: '#1474ab',
+						color:
+							this.mapFeatureColorService.getSingleFeatureColor('secondary'),
 						weight: 2,
 						fillColor: 'transparent',
 						fillOpacity: 0,
 					},
 				});
-				subAdminZoneLayer.addTo(this.enumerationAreaMap);
+				this.subAdminLayer.addTo(this.enumerationAreaMap);
 
-				subAdminZoneLayer.bindPopup(
-					`<strong>Sub-Administrative Zone</strong><br/>${
-						this.subAdministrativeZone?.name || 'N/A'
-					}`
-				);
+				// Add label for Sub-Admin Zone
+				const bounds = this.subAdminLayer.getBounds();
+				const center = bounds.getCenter();
+
+				const labelContent = `
+					<div style="
+						color: #67A4CA;
+						font-weight: 600;
+						font-size: 9px;
+						text-shadow: 
+							-1.5px -1.5px 0 #fff,
+							1.5px -1.5px 0 #fff,
+							-1.5px 1.5px 0 #fff,
+							1.5px 1.5px 0 #fff,
+						text-align: center;
+						white-space: nowrap;
+					">
+						${this.subAdministrativeZone?.name || 'Sub-Admin Zone'}
+					</div>
+				`;
+
+				const label = L.tooltip({
+					permanent: true,
+					direction: 'center',
+					className: 'saz-label',
+					opacity: 1,
+				})
+					.setLatLng(center)
+					.setContent(labelContent);
+
+				this.subAdminLayer.bindTooltip(label);
+
+				// Add popup
+				const popupContent = `
+					<div class="p-2 min-w-[240px]">
+						<h3 class="font-bold text-base mb-2 text-slate-900">Sub-Administrative Zone</h3>
+						<div class="space-y-0 text-sm">
+							<div class="py-2 border-b border-slate-200">
+								<span class="font-semibold text-slate-700">Name: </span>
+								<span class="font-bold" style="color: #67A4CA">${
+									this.subAdministrativeZone?.name || 'N/A'
+								}</span>
+							</div>
+							<div class="py-2 border-b border-slate-200">
+								<span class="font-semibold text-slate-700">Admin Zone: </span>
+								<span class="text-slate-600">${this.administrativeZone?.name || 'N/A'}</span>
+							</div>
+							<div class="py-2">
+								<span class="font-semibold text-slate-700">Dzongkhag: </span>
+								<span class="text-slate-600">${this.dzongkhag?.name || 'N/A'}</span>
+							</div>
+						</div>
+					</div>
+				`;
+
+				this.subAdminLayer.bindPopup(popupContent);
 				hasValidGeometry = true;
 			} else if (this.subAdministrativeZone?.geom) {
 				// Fallback to embedded geometry
-				const subAdminZoneLayer = L.geoJSON(this.subAdministrativeZone.geom, {
+				this.subAdminLayer = L.geoJSON(this.subAdministrativeZone.geom, {
 					style: {
-						color: '#1474ab',
+						color:
+							this.mapFeatureColorService.getSingleFeatureColor('secondary'),
 						weight: 2,
 						fillColor: 'transparent',
 						fillOpacity: 0,
 					},
 				});
-				subAdminZoneLayer.addTo(this.enumerationAreaMap);
+				this.subAdminLayer.addTo(this.enumerationAreaMap);
 
-				subAdminZoneLayer.bindPopup(
-					`<strong>Sub-Administrative Zone</strong><br/>${this.subAdministrativeZone.name}`
-				);
+				// Add label for Sub-Admin Zone (fallback)
+				const bounds = this.subAdminLayer.getBounds();
+				const center = bounds.getCenter();
+
+				const labelContent = `
+					<div style="
+						color: #67A4CA;
+						font-weight: 600;
+						font-size: 9px;
+						text-shadow: 
+							-1.5px -1.5px 0 #fff,
+							1.5px -1.5px 0 #fff,
+							-1.5px 1.5px 0 #fff,
+							1.5px 1.5px 0 #fff,
+						text-align: center;
+						white-space: nowrap;
+					">
+						${this.subAdministrativeZone.name}
+					</div>
+				`;
+
+				const label = L.tooltip({
+					permanent: true,
+					direction: 'center',
+					className: 'saz-label',
+					opacity: 1,
+				})
+					.setLatLng(center)
+					.setContent(labelContent);
+
+				this.subAdminLayer.bindTooltip(label);
+
+				// Add popup (fallback)
+				const popupContent = `
+					<div class="p-2 min-w-[240px]">
+						<h3 class="font-bold text-base mb-2 text-slate-900">Sub-Administrative Zone</h3>
+						<div class="space-y-0 text-sm">
+							<div class="py-2 border-b border-slate-200">
+								<span class="font-semibold text-slate-700">Name: </span>
+								<span class="font-bold" style="color: #67A4CA">${
+									this.subAdministrativeZone.name
+								}</span>
+							</div>
+							<div class="py-2 border-b border-slate-200">
+								<span class="font-semibold text-slate-700">Admin Zone: </span>
+								<span class="text-slate-600">${this.administrativeZone?.name || 'N/A'}</span>
+							</div>
+							<div class="py-2">
+								<span class="font-semibold text-slate-700">Dzongkhag: </span>
+								<span class="text-slate-600">${this.dzongkhag?.name || 'N/A'}</span>
+							</div>
+						</div>
+					</div>
+				`;
+
+				this.subAdminLayer.bindPopup(popupContent);
 				hasValidGeometry = true;
 			}
 
 			// Add enumeration area boundary (primary layer)
-			let eaLayer: L.GeoJSON | null = null;
 			if (this.eaGeoJsonData && this.eaGeoJsonData.geometry) {
-				eaLayer = L.geoJSON(this.eaGeoJsonData, {
+				this.eaLayer = L.geoJSON(this.eaGeoJsonData, {
 					style: {
-						color: '#1474ab',
+						color: this.mapFeatureColorService.getSingleFeatureColor('primary'),
 						weight: 3,
-						fillColor: '#6dc6f5',
-						fillOpacity: 0.3,
+						fillColor:
+							this.mapFeatureColorService.getSingleFeatureColor('primary'),
+						fillOpacity: 0.2,
 					},
 				});
 				hasValidGeometry = true;
 			} else if (this.enumerationArea.geom) {
 				// Fallback to embedded geometry
-				eaLayer = L.geoJSON(this.enumerationArea.geom, {
+				this.eaLayer = L.geoJSON(this.enumerationArea.geom, {
 					style: {
-						color: '#1474ab',
+						color: this.mapFeatureColorService.getSingleFeatureColor('primary'),
 						weight: 3,
-						fillColor: '#6dc6f5',
-						fillOpacity: 0.3,
+						fillColor:
+							this.mapFeatureColorService.getSingleFeatureColor('primary'),
+						fillOpacity: 0.2,
 					},
 				});
 				hasValidGeometry = true;
 			}
 
-			if (eaLayer) {
-				eaLayer.addTo(this.enumerationAreaMap);
-				this.enumerationAreaMap.fitBounds(eaLayer.getBounds(), {
+			if (this.eaLayer) {
+				this.eaLayer.addTo(this.enumerationAreaMap);
+				this.enumerationAreaMap.fitBounds(this.eaLayer.getBounds(), {
 					padding: [20, 20],
 				});
 
-				// Add popup for enumeration area
-				eaLayer.bindPopup(
-					`<strong>${this.enumerationArea.name}</strong><br/>
-					Code: ${this.enumerationArea.areaCode || 'N/A'}<br/>
-					Area: ${
-						this.enumerationArea.areaSqKm
-							? Number(this.enumerationArea.areaSqKm).toFixed(2)
-							: 'N/A'
-					} km²`
-				);
+				// Add permanent label for EA
+				const bounds = this.eaLayer.getBounds();
+				const center = bounds.getCenter();
+
+				const fullEACode = this.getFullEACode(this.enumerationArea);
+
+				const labelContent = `
+					<div style="
+						color: black;
+						font-weight: 700;
+						font-size: 10px;
+						text-shadow: 
+							-2px -2px 0 #fff,
+							2px -2px 0 #fff,
+							-2px 2px 0 #fff,
+							2px 2px 0 #fff,
+						text-align: center;
+						white-space: nowrap;
+					">
+						${this.enumerationArea.name} }
+					</div>
+				`;
+
+				const label = L.tooltip({
+					permanent: true,
+					direction: 'center',
+					className: 'ea-label',
+					opacity: 1,
+				})
+					.setLatLng(center)
+					.setContent(labelContent);
+
+				this.eaLayer.bindTooltip(label);
+
+				// Add improved popup
+				const popupContent = `
+					<div class="p-2 min-w-[280px]">
+						<h3 class="font-bold text-lg mb-3 text-slate-900">${
+							this.enumerationArea.name
+						}</h3>
+						<div class="space-y-0 text-sm mb-3">
+							<!-- Area Code -->
+							<div class="py-2 border-b border-slate-200">
+								<span class="font-semibold text-slate-700">Area Code: </span>
+								<span class="font-bold" style="color: #67A4CA">${
+									this.enumerationArea.areaCode || 'N/A'
+								}</span>
+							</div>
+
+							<!-- Location Hierarchy -->
+							<div class="py-2 border-b border-slate-200">
+								<span class="font-semibold text-slate-700">Sub-Admin Zone: </span>
+								<span class="text-slate-600">${this.subAdministrativeZone?.name || 'N/A'}</span>
+							</div>
+
+							<div class="py-2 border-b border-slate-200">
+								<span class="font-semibold text-slate-700">Admin Zone: </span>
+								<span class="text-slate-600">${this.administrativeZone?.name || 'N/A'}</span>
+							</div>
+
+							<div class="py-2">
+								<span class="font-semibold text-slate-700">Dzongkhag: </span>
+								<span class="text-slate-600">${this.dzongkhag?.name || 'N/A'}</span>
+							</div>
+						</div>
+					</div>
+				`;
+
+				this.eaLayer.bindPopup(popupContent);
 			}
 
 			// If no valid geometry found, show default view
@@ -563,6 +721,26 @@ export class AdminEnumerationAreaDataViewerComponent
 		} else {
 			this.openStreetMapLayer = newLayer;
 			this.currentBaseMap = 'streets';
+		}
+	}
+
+	toggleEALayer() {
+		if (!this.enumerationAreaMap || !this.eaLayer) return;
+
+		if (this.showEALayer) {
+			this.eaLayer.addTo(this.enumerationAreaMap);
+		} else {
+			this.enumerationAreaMap.removeLayer(this.eaLayer);
+		}
+	}
+
+	toggleSubAdminLayer() {
+		if (!this.enumerationAreaMap || !this.subAdminLayer) return;
+
+		if (this.showSubAdminLayer) {
+			this.subAdminLayer.addTo(this.enumerationAreaMap);
+		} else {
+			this.enumerationAreaMap.removeLayer(this.subAdminLayer);
 		}
 	}
 

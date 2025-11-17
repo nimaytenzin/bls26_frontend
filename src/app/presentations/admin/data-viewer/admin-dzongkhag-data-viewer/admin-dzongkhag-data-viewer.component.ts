@@ -15,7 +15,7 @@ import {
 	BasemapService,
 	BasemapConfig,
 } from '../../../../core/utility/basemap.service';
-import { ColorScaleService } from '../../../../core/utility/color-scale.service';
+import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';
 import { DownloadService } from '../../../../core/utility/download.service';
 import { DzongkhagAnnualStatsDataService } from '../../../../core/dataservice/dzongkhag-annual-stats/dzongkhag-annual-stats.dataservice';
 import { AdminZoneAnnualStatsDataService } from '../../../../core/dataservice/admin-zone-annual-stats/admin-zone-annual-stats.dataservice';
@@ -101,7 +101,7 @@ export class AdminDzongkhagDataViewerComponent
 		private route: ActivatedRoute,
 		private router: Router,
 		private basemapService: BasemapService,
-		private colorScaleService: ColorScaleService,
+		private colorScaleService: MapFeatureColorService,
 		private downloadService: DownloadService,
 		private adminZoneAnnualStatsDataService: AdminZoneAnnualStatsDataService,
 		private administrativeZoneService: AdministrativeZoneDataService,
@@ -143,7 +143,7 @@ export class AdminDzongkhagDataViewerComponent
 		this.adminZoneAnnualStatsDataService
 			.getAllCurrentAdminZoneStatsGeojsonByDzongkhag(this.dzongkhagId)
 			.subscribe({
-				next: (data) => {
+			next: (data) => {
 					console.log('Loaded admin zone stats GeoJSON:', data);
 
 					// Extract admin zones and boundaries from combined GeoJSON stats
@@ -172,7 +172,7 @@ export class AdminDzongkhagDataViewerComponent
 						}));
 
 						// Calculate statistics from the loaded data
-						this.calculateStatistics();
+				this.calculateStatistics();
 
 						// Populate admin zone filter options
 						this.populateAdminZoneOptions();
@@ -185,13 +185,13 @@ export class AdminDzongkhagDataViewerComponent
 					setTimeout(() => {
 						this.attemptInitializeMap();
 					}, 0);
-				},
-				error: (error) => {
-					console.error('Error loading dzongkhag data:', error);
-					this.error = 'Failed to load dzongkhag data. Please try again.';
-					this.loading = false;
-				},
-			});
+			},
+			error: (error) => {
+				console.error('Error loading dzongkhag data:', error);
+				this.error = 'Failed to load dzongkhag data. Please try again.';
+				this.loading = false;
+			},
+		});
 	}
 
 	/**
@@ -265,9 +265,9 @@ export class AdminDzongkhagDataViewerComponent
 	downloadHouseholdData() {
 		// Create array of household data from admin zones
 		const householdData = this.adminZones.map((zone) => ({
-			name: zone.name,
+				name: zone.name,
 			nameDzo: zone.nameDzo,
-			type: zone.type,
+				type: zone.type,
 			areaCode: zone.areaCode,
 			totalHouseholds: zone.totalHouseholds,
 			totalPopulation: zone.totalPopulation,
@@ -592,7 +592,7 @@ export class AdminDzongkhagDataViewerComponent
 					white-space: nowrap;
 				">
 					${displayName}
-				</div>
+  </div>
 			`;
 
 			// Get center of the polygon for label placement
@@ -626,7 +626,7 @@ export class AdminDzongkhagDataViewerComponent
 							<span class="font-bold" style="color: #67A4CA">${
 								props.totalPopulation?.toLocaleString() || '0'
 							}</span>
-						</div>
+      </div>
 
 						<!-- Households -->
 						<div class="py-2 border-b border-slate-200">
@@ -634,21 +634,21 @@ export class AdminDzongkhagDataViewerComponent
 							<span class="font-bold" style="color: #67A4CA">${
 								props.totalHouseholds?.toLocaleString() || '0'
 							}</span>
-						</div>
+      </div>
 
 						<!-- Enumeration Areas -->
 						<div class="py-2 border-b border-slate-200">
 							<span class="font-semibold text-slate-700">Enumeration Areas: </span>
 							<span class="font-bold" style="color: #67A4CA">${props.eaCount || 'N/A'}</span>
-						</div>
-					</div>
+      </div>
+      </div>
 					<button 
 						id="view-admin-zone-${props.id}" 
 						class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded transition shadow-sm"
 					>
 						View Details
 					</button>
-				</div>
+      </div>
 			`;
 
 			const popup = L.popup().setContent(popupContent);
@@ -700,16 +700,52 @@ export class AdminDzongkhagDataViewerComponent
 
 	/**
 	 * Get legend items for map based on visualization mode
+	 * @deprecated Use getLegendGradient() and getLegendBreaks() for continuous gradient legend
 	 */
 	getLegendItems(): { color: string; label: string; value: number }[] {
 		if (!this.adminZones || this.adminZones.length === 0) {
 			return [];
 		}
 
-		// Debug: Log legend calculation
-		console.log('getLegendItems called for mode:', this.mapVisualizationMode);
+		const { min, max } = this.getLegendMinMax();
+		if (min === max || min === 0 && max === 0) {
+			return [];
+		}
 
-		// Get values based on visualization mode - include ALL values including zeros
+		return this.colorScaleService.getLegendItems(min, max, 5);
+	}
+
+	/**
+	 * Get CSS gradient string for continuous color scale legend
+	 */
+	getLegendGradient(): string {
+		const { min, max } = this.getLegendMinMax();
+		if (min === max || min === 0 && max === 0) {
+			return '';
+		}
+		return this.colorScaleService.getLegendGradient(min, max, 'vertical');
+	}
+
+	/**
+	 * Get legend break values with labels for continuous gradient
+	 */
+	getLegendBreaks(): { value: number; label: string; position: number }[] {
+		const { min, max } = this.getLegendMinMax();
+		if (min === max || min === 0 && max === 0) {
+			return [];
+		}
+		return this.colorScaleService.getLegendBreaks(min, max, 5);
+	}
+
+	/**
+	 * Get min and max values for current visualization mode
+	 */
+	getLegendMinMax(): { min: number; max: number } {
+		if (!this.adminZones || this.adminZones.length === 0) {
+			return { min: 0, max: 0 };
+		}
+
+		// Get values based on visualization mode
 		const values = this.adminZones.map((zone) => {
 			if (this.mapVisualizationMode === 'households') {
 				return zone.totalHouseholds || 0;
@@ -720,10 +756,8 @@ export class AdminDzongkhagDataViewerComponent
 			}
 		});
 
-		console.log('Legend values:', values);
-
 		if (values.length === 0) {
-			return [];
+			return { min: 0, max: 0 };
 		}
 
 		let minValue = Math.min(...values);
@@ -736,9 +770,20 @@ export class AdminDzongkhagDataViewerComponent
 			maxValue = maxValue + 1;
 		}
 
-		console.log('Legend min/max:', minValue, maxValue);
+		return { min: minValue, max: maxValue };
+	}
 
-		return this.colorScaleService.getLegendItems(minValue, maxValue, 5);
+	/**
+	 * Get legend title based on visualization mode
+	 */
+	getLegendTitle(): string {
+		if (this.mapVisualizationMode === 'households') {
+			return 'Households';
+		} else if (this.mapVisualizationMode === 'population') {
+			return 'Population';
+		} else {
+			return 'Enumeration Areas';
+		}
 	}
 
 	/**
@@ -794,6 +839,189 @@ export class AdminDzongkhagDataViewerComponent
 
 	trackByZoneId(index: number, item: { id?: number; areaCode?: string }) {
 		return item?.id ?? item?.areaCode ?? index;
+	}
+
+	/**
+	 * Get percentage of zone value relative to maximum in the dataset
+	 */
+	getZonePercentage(value: number, field: 'population' | 'households' | 'ea'): number {
+		if (!this.adminZones || this.adminZones.length === 0 || !value) {
+			return 0;
+		}
+
+		const maxValue = Math.max(
+			...this.adminZones.map((zone) => {
+				if (field === 'population') {
+					return zone.totalPopulation || 0;
+				} else if (field === 'households') {
+					return zone.totalHouseholds || 0;
+				} else {
+					return zone.eaCount || 0;
+				}
+			})
+		);
+
+		if (maxValue === 0) return 0;
+		return (value / maxValue) * 100;
+	}
+
+	/**
+	 * Get treemap data for visualization
+	 */
+	getTreemapData(): Array<{ zone: any; size: number; percentage: number }> {
+		if (!this.adminZones || this.adminZones.length === 0) {
+			return [];
+		}
+
+		// Use population as the size metric for treemap
+		const total = this.adminZones.reduce(
+			(sum, zone) => sum + (zone.totalPopulation || 0),
+			0
+		);
+
+		return this.adminZones
+			.map((zone) => ({
+				zone,
+				size: zone.totalPopulation || 0,
+				percentage: total > 0 ? ((zone.totalPopulation || 0) / total) * 100 : 0,
+			}))
+			.filter((item) => item.size > 0)
+			.sort((a, b) => b.size - a.size);
+	}
+
+	/**
+	 * Get treemap cell style
+	 */
+	getTreemapCellStyle(item: { zone: any; size: number; percentage: number }): any {
+		const treemapData = this.getTreemapData();
+		if (treemapData.length === 0) {
+			return {};
+		}
+
+		const maxSize = Math.max(...treemapData.map((d) => d.size));
+		const minSize = Math.min(...treemapData.map((d) => d.size));
+
+		// Use color scale service for consistent coloring
+		const color = this.colorScaleService.getInterpolatedColor(
+			item.size,
+			minSize,
+			maxSize
+		);
+
+		return {
+			'background-color': color,
+			opacity: 0.85,
+		};
+	}
+
+	/**
+	 * Calculate treemap position using simple row-based layout
+	 */
+	getTreemapPosition(item: { zone: any; size: number; percentage: number }): {
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+	} {
+		const data = this.getTreemapData();
+		if (data.length === 0) {
+			return { x: 0, y: 0, width: 0, height: 0 };
+		}
+
+		const total = data.reduce((sum, d) => sum + d.size, 0);
+		const itemIndex = data.findIndex((d) => d.zone.id === item.zone.id);
+
+		if (itemIndex === -1) {
+			return { x: 0, y: 0, width: 0, height: 0 };
+		}
+
+		// Simple row-based layout: calculate which row and position
+		const rows = this.calculateTreemapRows(data);
+		let currentY = 0;
+
+		for (const row of rows) {
+			const rowHeight = (row.totalSize / total) * 100;
+			const rowIndex = row.items.findIndex((d) => d.zone.id === item.zone.id);
+
+			if (rowIndex !== -1) {
+				let currentX = 0;
+				for (let i = 0; i < rowIndex; i++) {
+					currentX += (row.items[i].size / row.totalSize) * 100;
+				}
+				const cellWidth = (item.size / row.totalSize) * 100;
+
+				return {
+					x: currentX,
+					y: currentY,
+					width: cellWidth,
+					height: rowHeight,
+				};
+			}
+
+			currentY += rowHeight;
+		}
+
+		return { x: 0, y: 0, width: 0, height: 0 };
+	}
+
+	/**
+	 * Calculate treemap rows using simplified squarified algorithm
+	 */
+	private calculateTreemapRows(
+		data: Array<{ zone: any; size: number; percentage: number }>
+	): Array<{ items: typeof data; totalSize: number }> {
+		if (data.length === 0) {
+			return [];
+		}
+
+		const rows: Array<{ items: typeof data; totalSize: number }> = [];
+		const total = data.reduce((sum, d) => sum + d.size, 0);
+		let currentRow: typeof data = [];
+		let currentRowSize = 0;
+
+		// Simple squarified algorithm: try to make cells as square as possible
+		for (const item of data) {
+			const testRow = [...currentRow, item];
+			const testRowSize = currentRowSize + item.size;
+			const rowHeight = (testRowSize / total) * 100;
+
+			// Calculate worst aspect ratio for this row
+			let worstAspect = 0;
+			for (const rowItem of testRow) {
+				const cellWidth = (rowItem.size / testRowSize) * 100;
+				const aspect = Math.max(cellWidth / rowHeight, rowHeight / cellWidth);
+				worstAspect = Math.max(worstAspect, aspect);
+			}
+
+			// Calculate worst aspect ratio for current row
+			let currentWorstAspect = Infinity;
+			if (currentRow.length > 0) {
+				const currentRowHeight = (currentRowSize / total) * 100;
+				for (const rowItem of currentRow) {
+					const cellWidth = (rowItem.size / currentRowSize) * 100;
+					const aspect = Math.max(cellWidth / currentRowHeight, currentRowHeight / cellWidth);
+					currentWorstAspect = Math.max(currentWorstAspect, aspect);
+				}
+			}
+
+			// If adding this item improves or maintains aspect ratio, add it to current row
+			if (currentRow.length === 0 || worstAspect <= currentWorstAspect) {
+				currentRow = testRow;
+				currentRowSize = testRowSize;
+			} else {
+				// Start a new row
+				rows.push({ items: currentRow, totalSize: currentRowSize });
+				currentRow = [item];
+				currentRowSize = item.size;
+			}
+		}
+
+		// Add the last row
+		if (currentRow.length > 0) {
+			rows.push({ items: currentRow, totalSize: currentRowSize });
+		}
+
+		return rows;
 	}
 
 	private attemptInitializeMap() {
