@@ -10,9 +10,6 @@ server {
     listen 443 ssl http2;
     server_name nsfd.ddnsfree.com www.nsfd.ddnsfree.com;
 
-    # SSL (add your certificate paths later)
-    # ssl_certificate /etc/letsencrypt/live/nsfd.ddnsfree.com/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/nsfd.ddnsfree.com/privkey.pem;
 
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -59,7 +56,7 @@ server {
 
     # Angular Frontend
     location / {
-        root /home/dhs/nima/nsfd_dev/nsfd_backend/nsfd_frontend/dist/frontend;
+        root /home/kwangyel/nima/nsfd/nsfd_frontend/dist/frontend;
         index index.html;
         try_files $uri $uri/ /index.html;
 
