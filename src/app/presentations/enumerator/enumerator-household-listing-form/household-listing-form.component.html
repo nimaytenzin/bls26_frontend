@@ -7,10 +7,12 @@
 		<div class="text-center">
 			<div class="relative w-20 h-20 mx-auto mb-6">
 				<div
-					class="absolute inset-0 border-4 border-blue-100 rounded-full"
+					class="absolute inset-0 border-4 rounded-full"
+					style="border-color: #E8F0FF;"
 				></div>
 				<div
-					class="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"
+					class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+					style="border-color: #1A58AF;"
 				></div>
 			</div>
 			<p class="text-gray-600 font-medium">Loading form...</p>
@@ -50,7 +52,7 @@
 				<div
 					class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
 				>
-					<div class="bg-[#1395D3] px-5 py-3">
+					<div class="px-5 py-3" style="background-color: #1A58AF;">
 						<div class="flex items-center">
 							<div
 								class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center mr-3"
@@ -75,7 +77,8 @@
 								name="structureNumber"
 								[disabled]="submitting"
 								placeholder="e.g., STR-001"
-								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1395D3] focus:border-transparent transition-all"
+								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
 								required
 							/>
 						</div>
@@ -92,7 +95,8 @@
 								name="householdIdentification"
 								[disabled]="submitting"
 								placeholder="e.g., HH-2024-001"
-								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1395D3] focus:border-transparent transition-all"
+								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
 								required
 							/>
 						</div>
@@ -110,7 +114,8 @@
 								[disabled]="submitting"
 								[min]="1"
 								placeholder="1"
-								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1395D3] focus:border-transparent transition-all"
+								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
 								required
 							/>
 							<p class="mt-1 text-xs text-gray-500">
@@ -131,7 +136,8 @@
 								name="nameOfHOH"
 								[disabled]="submitting"
 								placeholder="Full name"
-								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1395D3] focus:border-transparent transition-all"
+								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
 								required
 							/>
 						</div>
@@ -144,7 +150,7 @@
 							<!-- Male Count -->
 							<div class="form-field">
 								<label class="block text-sm font-semibold text-gray-900 mb-2">
-									<i class="pi pi-user text-[#1395D3] mr-1"></i>
+									<i class="pi pi-user mr-1" style="color: #1A58AF;"></i>
 									Total Male
 								</label>
 								<input
@@ -155,7 +161,8 @@
 									[disabled]="submitting"
 									[min]="0"
 									placeholder="0"
-									class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1395D3] focus:border-transparent transition-all text-center text-lg font-semibold"
+									class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all text-center text-lg font-semibold"
+									style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
 								/>
 							</div>
 
@@ -173,17 +180,19 @@
 									[disabled]="submitting"
 									[min]="0"
 									placeholder="0"
-									class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1395D3] focus:border-transparent transition-all text-center text-lg font-semibold"
+									class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all text-center text-lg font-semibold"
+									style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
 								/>
 							</div>
 						</div>
 
 						<!-- Total Population Display -->
 						<div
-							class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 text-center"
+							class="border-2 rounded-2xl p-6 text-center"
+							style="background-color: #E8F0FF; border-color: #4C81E3;"
 						>
 							<div class="flex items-center justify-center gap-2 mb-2">
-								<i class="pi pi-chart-bar text-[#1395D3]"></i>
+								<i class="pi pi-chart-bar" style="color: #1A58AF;"></i>
 								<div
 									class="text-sm font-semibold text-gray-700 uppercase tracking-wide"
 								>
@@ -191,7 +200,8 @@
 								</div>
 							</div>
 							<div
-								class="text-5xl font-bold text-transparent bg-clip-text bg-[#1395D3]"
+								class="text-5xl font-bold"
+								style="color: #1A58AF;"
 							>
 								{{ getTotalPopulation() }}
 							</div>
@@ -231,7 +241,8 @@
 								name="phoneNumber"
 								[disabled]="submitting"
 								placeholder="+975 1234 5678"
-								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1395D3] focus:border-transparent transition-all"
+								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
 							/>
 						</div>
 
@@ -251,7 +262,8 @@
 								[disabled]="submitting"
 								placeholder="Any additional notes or observations..."
 								rows="4"
-								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1395D3] focus:border-transparent transition-all resize-none"
+								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all resize-none"
+								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
 							></textarea>
 							<p class="mt-1 text-xs text-gray-500">
 								<i class="pi pi-info-circle mr-1"></i>
@@ -279,7 +291,10 @@
 							<button
 								type="submit"
 								[disabled]="!isFormValid() || submitting"
-								class="flex-[2] bg-[#1395D3] text-white py-4 px-6 rounded-xl font-bold hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center"
+								class="flex-[2] text-white py-4 px-6 rounded-xl font-bold hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center"
+								style="background-color: #1A58AF;"
+								onmouseover="this.style.backgroundColor='#103975'"
+								onmouseout="this.style.backgroundColor='#1A58AF'"
 							>
 								<i *ngIf="submitting" class="pi pi-spin pi-spinner mr-2"></i>
 								<i

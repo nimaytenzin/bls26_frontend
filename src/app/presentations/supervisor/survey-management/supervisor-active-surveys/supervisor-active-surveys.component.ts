@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -36,7 +36,7 @@ interface SupervisorSurvey {
 	],
 	providers: [MessageService],
 	templateUrl: './supervisor-active-surveys.component.html',
-	styleUrls: ['./supervisor-active-surveys.component.css'],
+	styleUrls: ['./supervisor-active-surveys.component.scss'],
 })
 export class SupervisorActiveSurveysComponent implements OnInit {
 	surveys: SupervisorSurvey[] = [];
@@ -46,6 +46,7 @@ export class SupervisorActiveSurveysComponent implements OnInit {
 	constructor(
 		private surveyService: SurveyDataService,
 		private router: Router,
+		private route: ActivatedRoute,
 		private messageService: MessageService,
 		private authService: AuthService
 	) {}
@@ -98,18 +99,40 @@ export class SupervisorActiveSurveysComponent implements OnInit {
 	 * Navigate to survey detail view
 	 */
 	viewSurveyDetails(surveyId: number) {
-		this.router.navigate(['/supervisor/survey/detailed', surveyId]);
-	}
-
-	/**
-	 * Format date for display
-	 */
-	formatDate(date: string | Date): string {
-		return new Date(date).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		});
+		if (!surveyId) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Error',
+				detail: 'Invalid survey ID',
+			});
+			return;
+		}
+		console.log('Navigating to survey details, surveyId:', surveyId, 'Type:', typeof surveyId);
+		// Use absolute path to ensure correct navigation
+		const navigationPath = ['/supervisor/survey/detailed', surveyId.toString()];
+		console.log('Navigation path:', navigationPath);
+		this.router.navigate(navigationPath).then(
+			(success) => {
+				if (!success) {
+					console.error('Navigation returned false - route may not exist');
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Navigation Error',
+						detail: 'Failed to navigate to survey details. Route may not be configured correctly.',
+					});
+				} else {
+					console.log('Navigation successful');
+				}
+			},
+			(error) => {
+				console.error('Navigation error:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Navigation Error',
+					detail: `Failed to navigate to survey details: ${error?.message || 'Unknown error'}`,
+				});
+			}
+		);
 	}
 
 	/**

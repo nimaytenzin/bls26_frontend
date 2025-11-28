@@ -9,9 +9,9 @@ import {
 import { PrimeNgModules } from '../../../../../primeng.modules';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import {
-	SurveyStatus,
 	Survey,
 } from '../../../../../core/dataservice/survey/survey.dto';
+import { SurveyStatus } from '../../../../../core/constants/enums';
 
 @Component({
 	selector: 'app-admin-master-survey-edit',

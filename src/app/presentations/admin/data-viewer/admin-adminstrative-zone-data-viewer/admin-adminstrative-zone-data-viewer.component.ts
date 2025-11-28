@@ -11,9 +11,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { SubAdminZoneAnnualStatsDataService } from '../../../../core/dataservice/sub-admin-zone-annual-stats/sub-admin-zone-annual-stats.dataservice';
+import { LocationDownloadService } from '../../../../core/dataservice/downloads/location.download.service';
 import { BasemapService } from '../../../../core/utility/basemap.service';
 import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';
 import { PrimeNgModules } from '../../../../primeng.modules';
+import { MessageService } from 'primeng/api';
 import * as L from 'leaflet';
 import { forkJoin } from 'rxjs';
 
@@ -26,6 +28,7 @@ type BaseMapType = 'streets' | 'satellite';
 	imports: [CommonModule, PrimeNgModules, FormsModule],
 	templateUrl: './admin-adminstrative-zone-data-viewer.component.html',
 	styleUrls: ['./admin-adminstrative-zone-data-viewer.component.css'],
+	providers: [MessageService],
 })
 export class AdminAdminstrativeZoneDataViewerComponent
 	implements OnInit, OnDestroy, AfterViewInit
@@ -178,7 +181,9 @@ export class AdminAdminstrativeZoneDataViewerComponent
 		private adminZoneService: AdministrativeZoneDataService,
 		private subAdminZoneAnnualStatsService: SubAdminZoneAnnualStatsDataService,
 		private basemapService: BasemapService,
-		private colorScaleService: MapFeatureColorService
+		private colorScaleService: MapFeatureColorService,
+		private locationDownloadService: LocationDownloadService,
+		private messageService: MessageService
 	) {
 		// Initialize basemap categories
 		this.basemapCategories = this.basemapService.getBasemapCategories();
@@ -1255,5 +1260,188 @@ export class AdminAdminstrativeZoneDataViewerComponent
 		return this.activeBaseMap === mapType
 			? 'bg-primary-600 text-white border border-primary-600 shadow-sm'
 			: 'bg-white text-slate-600 border border-slate-200 hover:border-primary-500 hover:text-primary-600';
+	}
+
+	/**
+	 * Download household data as CSV
+	 */
+	downloadHouseholdData(): void {
+		// Create array of household data from sub-admin zones
+		const householdData = this.subAdminZones.map((zone) => ({
+			name: zone.name,
+			areaCode: zone.areaCode,
+			type: zone.type,
+			eaCount: zone.eaCount,
+			totalHouseholds: zone.totalHouseholds,
+			totalPopulation: zone.totalPopulation,
+			totalMale: zone.totalMale,
+			totalFemale: zone.totalFemale,
+			areaSqKm: zone.areaSqKm,
+		}));
+
+		const csvContent = [
+			['Name', 'Area Code', 'Type', 'EA Count', 'Total Households', 'Total Population', 'Total Male', 'Total Female', 'Area (sq km)'],
+			...householdData.map((zone) => [
+				zone.name,
+				zone.areaCode,
+				zone.type,
+				zone.eaCount,
+				zone.totalHouseholds,
+				zone.totalPopulation,
+				zone.totalMale,
+				zone.totalFemale,
+				zone.areaSqKm,
+			]),
+		]
+			.map((row) => row.join(','))
+			.join('\n');
+
+		const blob = new Blob([csvContent], { type: 'text/csv' });
+		const url = window.URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `${this.adminZone?.name || 'admin_zone'}_household_data_${new Date().toISOString().split('T')[0]}.csv`;
+		link.click();
+		window.URL.revokeObjectURL(url);
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail: 'Household data CSV downloaded successfully',
+			life: 3000,
+		});
+	}
+
+	/**
+	 * Download Sub-Administrative Zones (Chiwog/Lap) as GeoJSON
+	 */
+	downloadSubAdminZonesGeojson(): void {
+		if (!this.adminZoneId) return;
+		this.locationDownloadService.downloadSAZsByAdministrativeZoneAsGeoJson(this.adminZoneId).subscribe({
+			next: (geoJson) => {
+				const dataStr = JSON.stringify(geoJson, null, 2);
+				const blob = new Blob([dataStr], { type: 'application/json' });
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `${this.adminZone?.name || 'admin_zone'}_sub_admin_zones_${new Date().toISOString().split('T')[0]}.geojson`;
+				link.click();
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'Sub-Administrative Zones GeoJSON downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Sub-Administrative Zones GeoJSON:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Sub-Administrative Zones GeoJSON file',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Download Sub-Administrative Zones (Chiwog/Lap) as KML
+	 */
+	downloadSubAdminZonesKml(): void {
+		if (!this.adminZoneId) return;
+		this.locationDownloadService.downloadSAZsByAdministrativeZoneAsKml(this.adminZoneId).subscribe({
+			next: (kml) => {
+				const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `${this.adminZone?.name || 'admin_zone'}_sub_admin_zones_${new Date().toISOString().split('T')[0]}.kml`;
+				link.click();
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'Sub-Administrative Zones KML downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Sub-Administrative Zones KML:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Sub-Administrative Zones KML file',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Download Enumeration Areas as GeoJSON
+	 */
+	downloadEAZonesGeojson(): void {
+		if (!this.adminZoneId) return;
+		this.locationDownloadService.downloadEAsByAdministrativeZoneAsGeoJson(this.adminZoneId).subscribe({
+			next: (geoJson) => {
+				const dataStr = JSON.stringify(geoJson, null, 2);
+				const blob = new Blob([dataStr], { type: 'application/json' });
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `${this.adminZone?.name || 'admin_zone'}_enumeration_areas_${new Date().toISOString().split('T')[0]}.geojson`;
+				link.click();
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'Enumeration Areas GeoJSON downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Enumeration Areas GeoJSON:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Enumeration Areas GeoJSON file',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Download Enumeration Areas as KML
+	 */
+	downloadEAZonesKml(): void {
+		if (!this.adminZoneId) return;
+		this.locationDownloadService.downloadEAsByAdministrativeZoneAsKml(this.adminZoneId).subscribe({
+			next: (kml) => {
+				const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `${this.adminZone?.name || 'admin_zone'}_enumeration_areas_${new Date().toISOString().split('T')[0]}.kml`;
+				link.click();
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'Enumeration Areas KML downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Enumeration Areas KML:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Enumeration Areas KML file',
+					life: 3000,
+				});
+			},
+		});
 	}
 }

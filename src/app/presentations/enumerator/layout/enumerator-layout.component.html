@@ -21,7 +21,8 @@
 					<p class="text-xs text-primary-100">{{ currentUser?.phoneNumber }}</p>
 				</div>
 				<div
-					class="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center font-bold text-sm"
+					class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white"
+					style="background-color: #1A58AF;"
 				>
 					{{ getUserInitials() }}
 				</div>
@@ -43,9 +44,9 @@
 			<!-- Active Surveys Tab -->
 			<button
 				(click)="navigateToTab('active-surveys')"
-				[class.text-primary-600]="activeTab === 'active-surveys'"
 				[class.text-gray-500]="activeTab !== 'active-surveys'"
-				class="flex flex-col items-center justify-center gap-1 hover:bg-gray-50 transition-colors active:bg-gray-100"
+				class="flex flex-col items-center justify-center gap-1 hover:bg-gray-50 transition-colors active:bg-gray-100 relative"
+				[style.color]="activeTab === 'active-surveys' ? '#1A58AF' : ''"
 			>
 				<i class="pi pi-briefcase text-xl"></i>
 				<span
@@ -56,16 +57,17 @@
 				</span>
 				<div
 					*ngIf="activeTab === 'active-surveys'"
-					class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600"
+					class="absolute bottom-0 left-0 right-0 h-0.5"
+					style="background-color: #1A58AF;"
 				></div>
 			</button>
 
 			<!-- Past Surveys Tab -->
 			<button
 				(click)="navigateToTab('past-surveys')"
-				[class.text-primary-600]="activeTab === 'past-surveys'"
 				[class.text-gray-500]="activeTab !== 'past-surveys'"
 				class="flex flex-col items-center justify-center gap-1 hover:bg-gray-50 transition-colors active:bg-gray-100 relative"
+				[style.color]="activeTab === 'past-surveys' ? '#1A58AF' : ''"
 			>
 				<i class="pi pi-history text-xl"></i>
 				<span
@@ -76,16 +78,17 @@
 				</span>
 				<div
 					*ngIf="activeTab === 'past-surveys'"
-					class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600"
+					class="absolute bottom-0 left-0 right-0 h-0.5"
+					style="background-color: #1A58AF;"
 				></div>
 			</button>
 
 			<!-- Profile Tab -->
 			<button
 				(click)="navigateToTab('profile')"
-				[class.text-primary-600]="activeTab === 'profile'"
 				[class.text-gray-500]="activeTab !== 'profile'"
 				class="flex flex-col items-center justify-center gap-1 hover:bg-gray-50 transition-colors active:bg-gray-100 relative"
+				[style.color]="activeTab === 'profile' ? '#1A58AF' : ''"
 			>
 				<i class="pi pi-user text-xl"></i>
 				<span
@@ -96,7 +99,8 @@
 				</span>
 				<div
 					*ngIf="activeTab === 'profile'"
-					class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600"
+					class="absolute bottom-0 left-0 right-0 h-0.5"
+					style="background-color: #1A58AF;"
 				></div>
 			</button>
 		</div>

@@ -86,84 +86,30 @@
 
 			<!-- Right Pane: Tabs Content -->
 			<div class="flex-1 relative bg-white">
-				<div class="h-full flex flex-col">
-					<!-- Custom Tab Headers -->
-					<div class="border-b border-slate-200 bg-white px-6">
-						<div class="flex gap-2">
-							<button
-								type="button"
-								(click)="activeTabIndex = 0"
-								class="px-4 py-3 font-semibold transition border-b-2"
-								[ngClass]="
-									activeTabIndex === 0
-										? 'border-primary-600 text-primary-600'
-										: 'border-transparent text-slate-600 hover:text-slate-900'
-								"
-							>
-								Supervisors & Enumerators
-							</button>
-							<button
-								type="button"
-								(click)="activeTabIndex = 1"
-								class="px-4 py-3 font-semibold transition border-b-2"
-								[ngClass]="
-									activeTabIndex === 1
-										? 'border-primary-600 text-primary-600'
-										: 'border-transparent text-slate-600 hover:text-slate-900'
-								"
-							>
-								Enumeration Areas
-							</button>
-							<button
-								type="button"
-								(click)="activeTabIndex = 2"
-								class="px-4 py-3 font-semibold transition border-b-2"
-								[ngClass]="
-									activeTabIndex === 2
-										? 'border-primary-600 text-primary-600'
-										: 'border-transparent text-slate-600 hover:text-slate-900'
-								"
-							>
-								Household Listings
-							</button>
-							<button
-								type="button"
-								(click)="activeTabIndex = 3"
-								class="px-4 py-3 font-semibold transition border-b-2"
-								[ngClass]="
-									activeTabIndex === 3
-										? 'border-primary-600 text-primary-600'
-										: 'border-transparent text-slate-600 hover:text-slate-900'
-								"
-							>
-								Sampling
-							</button>
-						</div>
-					</div>
-
-					<!-- Tab Content -->
-					<div class="flex-1 overflow-auto">
-						<div *ngIf="activeTabIndex === 0" class="h-full p-6">
-							<app-admin-survey-supervisors-enumerators
-								[surveyId]="survey.id"
-							></app-admin-survey-supervisors-enumerators>
-						</div>
-						<div *ngIf="activeTabIndex === 1" class="h-full p-6">
-							<app-admin-survey-ea-management
+				<p-tabView class="h-full">
+					<p-tabPanel header="Household Listings">
+						<app-admin-survey-enumeration-area-household-listings
+						[surveyId]="survey.id"
+						[surveyName]="survey.name"
+					></app-admin-survey-enumeration-area-household-listings>
+					</p-tabPanel>
+					<p-tabPanel header="Supervisors & Enumerators">
+						<app-admin-survey-supervisors-enumerators
+						[surveyId]="survey.id"
+					></app-admin-survey-supervisors-enumerators>
+					</p-tabPanel>
+					<p-tabPanel header="Enumeration Areas">
+						<app-admin-survey-ea-management
 								[surveyId]="survey.id"
 							></app-admin-survey-ea-management>
-						</div>
-						<div *ngIf="activeTabIndex === 2" class="h-full p-6">
-							<app-admin-survey-enumeration-area-household-listings
-								[surveyId]="survey.id"
-								[surveyName]="survey.name"
-							></app-admin-survey-enumeration-area-household-listings>
-						</div>
-						<div *ngIf="activeTabIndex === 3" class="h-full p-6">
-							<app-admin-survey-sampling></app-admin-survey-sampling>
-						</div>
-					</div>
-				</div>
+					</p-tabPanel>
+					<p-tabPanel header="Sampling">
+						<app-admin-survey-sampling
+						[surveyId]="survey.id"
+						[surveyName]="survey.name"
+					></app-admin-survey-sampling>
+					</p-tabPanel>
+				</p-tabView>
 			</div>
 		</section>
 	</ng-container>

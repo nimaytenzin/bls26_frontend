@@ -1,0 +1,193 @@
+<div class="space-y-6 p-6">
+	<!-- Supervisors Section -->
+	<div class="space-y-4">
+		<div class="flex items-center justify-between">
+			<h2 class="text-xl font-semibold text-gray-800">
+				Supervisors
+				<span class="text-sm font-normal text-gray-500 ml-2"
+					>({{ supervisors.length }})</span
+				>
+			</h2>
+		</div>
+
+		<!-- Loading State -->
+		<div
+			*ngIf="loadingSupervisors"
+			class="flex justify-center items-center py-12"
+		>
+			<div class="relative w-16 h-16">
+				<div
+					class="absolute inset-0 border-4 rounded-full"
+					style="border-color: #E8F0FF;"
+				></div>
+				<div
+					class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+					style="border-color: #1A58AF;"
+				></div>
+			</div>
+		</div>
+
+		<!-- Supervisors Cards -->
+		<div
+			*ngIf="!loadingSupervisors && supervisors.length > 0"
+			class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+		>
+			<div
+				*ngFor="let supervisor of supervisors"
+				class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow"
+			>
+				<div class="flex items-start gap-4">
+					<div class="flex-shrink-0">
+						<div
+							class="w-12 h-12 rounded-full flex items-center justify-center"
+							style="background-color: #E8F0FF;"
+						>
+							<i class="pi pi-user text-xl" style="color: #1A58AF;"></i>
+						</div>
+					</div>
+					<div class="flex-1 min-w-0">
+						<h3 class="font-semibold text-gray-800 truncate">
+							{{ supervisor.user?.name || supervisor.name }}
+						</h3>
+						<div class="mt-2 space-y-2">
+							<div class="flex items-center gap-2 text-sm text-gray-600">
+								<i class="pi pi-envelope text-gray-400"></i>
+								<span class="truncate">{{
+									supervisor.user?.emailAddress || supervisor.emailAddress
+								}}</span>
+							</div>
+							<div class="flex items-start gap-2 text-sm text-gray-600">
+								<i class="pi pi-map-marker text-gray-400 mt-0.5"></i>
+								<div class="flex-1">
+									<span class="font-medium text-gray-700">Dzongkhags:</span>
+									<p class="mt-1">{{ getDzongkhagNames(supervisor) }}</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Empty State -->
+		<div
+			*ngIf="!loadingSupervisors && supervisors.length === 0"
+			class="text-center py-12 bg-gray-50 rounded-xl border border-gray-200"
+		>
+			<i class="pi pi-users text-4xl text-gray-300 mb-3"></i>
+			<p class="text-gray-500">No supervisors assigned to this survey</p>
+		</div>
+	</div>
+
+	<!-- Enumerators Section -->
+	<div class="space-y-4">
+		<div class="flex items-center justify-between">
+			<h2 class="text-xl font-semibold text-gray-800">
+				Enumerators
+				<span class="text-sm font-normal text-gray-500 ml-2"
+					>({{ enumerators.length }})</span
+				>
+			</h2>
+		</div>
+
+		<!-- Loading State -->
+		<div
+			*ngIf="loadingEnumerators"
+			class="flex justify-center items-center py-12"
+		>
+			<div class="relative w-16 h-16">
+				<div
+					class="absolute inset-0 border-4 rounded-full"
+					style="border-color: #E8F0FF;"
+				></div>
+				<div
+					class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+					style="border-color: #1A58AF;"
+				></div>
+			</div>
+		</div>
+
+		<!-- Enumerators Table -->
+		<div *ngIf="!loadingEnumerators" class="rounded-xl border border-gray-200">
+			<p-table
+				[value]="enumerators"
+				[paginator]="true"
+				[rows]="10"
+				[rowsPerPageOptions]="[10, 25, 50]"
+				styleClass="p-datatable-sm"
+				[globalFilterFields]="['user.name', 'user.cid', 'user.emailAddress']"
+			>
+				<ng-template pTemplate="caption">
+					<div class="flex justify-between items-center">
+						<span class="p-input-icon-left w-full max-w-md">
+							<i class="pi pi-search"></i>
+							<input
+								pInputText
+								type="text"
+								placeholder="Search enumerators..."
+								class="w-full"
+								(input)="
+									$any($event.target)?.value &&
+										$any($any($event.target).closest('p-table'))?.filterGlobal(
+											$any($event.target).value,
+											'contains'
+										)
+								"
+							/>
+						</span>
+					</div>
+				</ng-template>
+
+				<ng-template pTemplate="header">
+					<tr>
+						<th pSortableColumn="user.name">
+							Name <p-sortIcon field="user.name"></p-sortIcon>
+						</th>
+						<th pSortableColumn="user.cid">
+							CID <p-sortIcon field="user.cid"></p-sortIcon>
+						</th>
+						<th pSortableColumn="user.emailAddress">
+							Email <p-sortIcon field="user.emailAddress"></p-sortIcon>
+						</th>
+						<th pSortableColumn="user.phoneNumber">
+							Phone <p-sortIcon field="user.phoneNumber"></p-sortIcon>
+						</th>
+						<th pSortableColumn="assignedAt">
+							Assigned Date
+							<p-sortIcon field="assignedAt"></p-sortIcon>
+						</th>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="body" let-enumerator>
+					<tr>
+						<td class="font-medium text-gray-800">
+							{{ enumerator.user?.name || 'N/A' }}
+						</td>
+						<td class="text-gray-600">
+							{{ enumerator.user?.cid || 'N/A' }}
+						</td>
+						<td class="text-gray-600">
+							{{ enumerator.user?.emailAddress || 'N/A' }}
+						</td>
+						<td class="text-gray-600">
+							{{ enumerator.user?.phoneNumber || 'N/A' }}
+						</td>
+						<td class="text-gray-600">
+							{{ formatDate(enumerator.assignedAt) }}
+						</td>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="5" class="text-center py-8 text-gray-500">
+							No enumerators found
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</div>
+	</div>
+</div>
+

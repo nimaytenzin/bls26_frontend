@@ -20,6 +20,6 @@ export class SupervisorDashboardComponent implements OnInit {
 	 * Navigate to active surveys
 	 */
 	goToSurveys() {
-		this.router.navigate(['/supervisor/surveys']);
+		this.router.navigate(['/supervisor/survey/active']);
 	}
 }

@@ -8,11 +8,12 @@ import {
 	CreateSurveyDto,
 	UpdateSurveyDto,
 	ManageEnumerationAreasDto,
-	SurveyStatus,
 	SurveyStatisticsResponseDto,
 	PaginationQueryDto,
 	PaginatedResponse,
 } from './survey.dto';
+import { SurveyStatus } from '../../constants/enums';
+import { SurveyEnumerationHierarchyDto } from './survey-enumeration-hierarchy.dto';
 
 /**
  * Survey Data Service
@@ -288,9 +289,9 @@ export class SurveyDataService {
 	 * @returns Observable of hierarchy response
 	 * @public No authentication required
 	 */
-	getSurveyEnumerationHierarchy(surveyId: number): Observable<any> {
+	getSurveyEnumerationHierarchy(surveyId: number): Observable<SurveyEnumerationHierarchyDto> {
 		return this.http
-			.get<any>(`${this.apiUrl}/${surveyId}/enumeration-hierarchy`)
+			.get<SurveyEnumerationHierarchyDto>(`${this.apiUrl}/${surveyId}/enumeration-hierarchy`)
 			.pipe(
 				catchError((error) => {
 					console.error(

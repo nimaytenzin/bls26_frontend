@@ -1,0 +1,55 @@
+@import '../_enumerator-design-tokens';
+
+/* Survey Detail Styles - Mobile First */
+
+/* Card hover effects */
+.bg-white.rounded-xl {
+	transition: all $enumerator-transition-base;
+	
+	&:active {
+		transform: scale(0.98);
+	}
+}
+
+/* Search input focus */
+input[type="text"] {
+	transition: all $enumerator-transition-base;
+	
+	&:focus {
+		box-shadow: 0 0 0 3px rgba(26, 88, 175, 0.1);
+	}
+}
+
+/* Status badge animations */
+span.inline-flex {
+	transition: all $enumerator-transition-fast;
+}
+
+/* Dropdown styling */
+::ng-deep {
+	.p-dropdown {
+		font-size: 0.875rem;
+		
+		.p-dropdown-label {
+			padding: 0.5rem 0.75rem;
+			font-size: 0.875rem;
+		}
+		
+		.p-dropdown-trigger {
+			width: 2rem;
+		}
+	}
+}
+
+/* Responsive adjustments for tablets */
+@media (min-width: 640px) {
+	.grid.grid-cols-2 {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (min-width: 768px) {
+	.grid.grid-cols-2 {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}

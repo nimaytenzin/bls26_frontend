@@ -226,20 +226,41 @@
 								<div class="flex flex-col gap-2">
 									<button
 										type="button"
-										(click)="downloadGeoJSON(); downloadPopover.hide()"
+										(click)="downloadHouseholdData(); downloadPopover.hide()"
 										class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition flex items-center justify-center gap-2"
 									>
 										<i class="pi pi-download text-xs"></i>
-										Download GeoJSON
+										Export Household CSV
 									</button>
-									<button
-										type="button"
-										(click)="downloadKML(); downloadPopover.hide()"
-										class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition flex items-center justify-center gap-2"
-									>
-										<i class="pi pi-download text-xs"></i>
-										Download KML
-									</button>
+								</div>
+							</div>
+							<div class="border-t border-slate-200 pt-3">
+								<span class="font-semibold text-slate-900 block mb-2 text-sm">
+									Spatial Data
+								</span>
+								<div class="space-y-2">
+									<!-- EA Zones -->
+									<div class="flex items-center justify-between text-sm">
+										<span class="text-slate-700">Enumeration Area</span>
+										<div class="flex gap-1">
+											<button
+												type="button"
+												(click)="downloadKML(); downloadPopover.hide()"
+												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
+												title="Download KML"
+											>
+												KML
+											</button>
+											<button
+												type="button"
+												(click)="downloadGeoJSON(); downloadPopover.hide()"
+												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
+												title="Download GeoJSON"
+											>
+												GEOJSON
+											</button>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>

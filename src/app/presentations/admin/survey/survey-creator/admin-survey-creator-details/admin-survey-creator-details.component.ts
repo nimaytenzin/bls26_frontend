@@ -9,7 +9,7 @@ import {
 	Validators,
 } from '@angular/forms';
 import { PrimeNgModules } from '../../../../../primeng.modules';
-import { SurveyStatus } from '../../../../../core/dataservice/survey/survey.dto';
+import { SurveyStatus } from '../../../../../core/constants/enums';
 
 interface SurveyFormData {
 	name: string;

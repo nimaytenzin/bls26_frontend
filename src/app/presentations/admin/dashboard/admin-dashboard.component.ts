@@ -21,6 +21,8 @@ import { BasemapService } from '../../../core/utility/basemap.service';
 import { AdministrativeZoneDataService } from '../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { SubAdministrativeZoneDataService } from '../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
 import { EnumerationAreaDataService } from '../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
+import { LocationDownloadService } from '../../../core/dataservice/downloads/location.download.service';
+import { MessageService } from 'primeng/api';
 import * as L from 'leaflet';
 import { BasemapConfig } from '../../../core/utility/basemap.service';
 
@@ -51,6 +53,7 @@ interface DzongkhagStats {
 	imports: [CommonModule, FormsModule, PrimeNgModules],
 	templateUrl: './admin-dashboard.component.html',
 	styleUrl: './admin-dashboard.component.scss',
+	providers: [MessageService],
 })
 export class AdminDashboardComponent
 	implements OnInit, OnDestroy, AfterViewInit
@@ -120,7 +123,9 @@ export class AdminDashboardComponent
 		private basemapService: BasemapService,
 		private administrativeZoneService: AdministrativeZoneDataService,
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
-		private enumerationAreaService: EnumerationAreaDataService
+		private enumerationAreaService: EnumerationAreaDataService,
+		private locationDownloadService: LocationDownloadService,
+		private messageService: MessageService
 	) {}
 
 	ngOnInit() {
@@ -684,62 +689,348 @@ export class AdminDashboardComponent
 	}
 
 	/**
-	 * Download GeoJSON data
+	 * Download all Enumeration Areas as GeoJSON (National)
 	 */
-	downloadGeoJSON(): void {
-		if (!this.geoJsonData) return;
-
-		const dataStr = JSON.stringify(this.geoJsonData, null, 2);
+	downloadEAsGeoJSON(): void {
+		this.locationDownloadService.downloadAllEAsAsGeoJson().subscribe({
+			next: (geoJson) => {
+				const dataStr = JSON.stringify(geoJson, null, 2);
 		const blob = new Blob([dataStr], { type: 'application/json' });
 		const url = window.URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.href = url;
-		link.download = `dzongkhag-statistics-${
+				link.download = `all_enumeration_areas_${
 			new Date().toISOString().split('T')[0]
 		}.geojson`;
 		link.click();
 		window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'All Enumeration Areas GeoJSON downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Enumeration Areas GeoJSON:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Enumeration Areas GeoJSON file',
+					life: 3000,
+				});
+			},
+		});
 	}
 
 	/**
-	 * Download KML data
+	 * Download all Enumeration Areas as KML (National)
 	 */
-	downloadKML(): void {
-		if (!this.geoJsonData) return;
-
-		// Convert GeoJSON to KML (basic conversion)
-		let kml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-		kml += '<kml xmlns="http://www.opengis.net/kml/2.2">\n';
-		kml += '<Document>\n';
-		kml += '<name>Dzongkhag Statistics</name>\n';
-
-		this.geoJsonData.features.forEach((feature) => {
-			const props = feature.properties;
-			kml += '<Placemark>\n';
-			kml += `  <name>${props.name}</name>\n`;
-			kml += '  <description><![CDATA[\n';
-			kml += `    Population: ${props.totalPopulation}<br/>\n`;
-			kml += `    Households: ${props.totalHouseholds}<br/>\n`;
-			kml += `    EAs: ${props.eaCount}\n`;
-			kml += '  ]]></description>\n';
-			// Note: Full geometry conversion would require coordinate transformation
-			kml += '</Placemark>\n';
+	downloadEAsKML(): void {
+		this.locationDownloadService.downloadAllEAsAsKml().subscribe({
+			next: (kml) => {
+				const blob = new Blob([kml], {
+					type: 'application/vnd.google-earth.kml+xml',
+				});
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `all_enumeration_areas_${
+					new Date().toISOString().split('T')[0]
+				}.kml`;
+				link.click();
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'All Enumeration Areas KML downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Enumeration Areas KML:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Enumeration Areas KML file',
+					life: 3000,
+				});
+			},
 		});
+	}
 
-		kml += '</Document>\n';
-		kml += '</kml>';
+	/**
+	 * Download all Administrative Zones as GeoJSON (National)
+	 */
+	downloadAZsGeoJSON(): void {
+		this.locationDownloadService.downloadAllAZsAsGeoJson().subscribe({
+			next: (geoJson) => {
+				const dataStr = JSON.stringify(geoJson, null, 2);
+				const blob = new Blob([dataStr], { type: 'application/json' });
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `all_administrative_zones_${
+					new Date().toISOString().split('T')[0]
+				}.geojson`;
+				link.click();
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'All Administrative Zones GeoJSON downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Administrative Zones GeoJSON:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Administrative Zones GeoJSON file',
+					life: 3000,
+				});
+			},
+		});
+	}
 
+	/**
+	 * Download all Administrative Zones as KML (National)
+	 */
+	downloadAZsKML(): void {
+		this.locationDownloadService.downloadAllAZsAsKml().subscribe({
+			next: (kml) => {
+				const blob = new Blob([kml], {
+					type: 'application/vnd.google-earth.kml+xml',
+				});
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `all_administrative_zones_${
+					new Date().toISOString().split('T')[0]
+				}.kml`;
+				link.click();
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'All Administrative Zones KML downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Administrative Zones KML:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Administrative Zones KML file',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Download all Sub-Administrative Zones as GeoJSON (National)
+	 */
+	downloadSAZsGeoJSON(): void {
+		this.locationDownloadService.downloadAllSAZsAsGeoJson().subscribe({
+			next: (geoJson) => {
+				const dataStr = JSON.stringify(geoJson, null, 2);
+				const blob = new Blob([dataStr], { type: 'application/json' });
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `all_sub_administrative_zones_${
+					new Date().toISOString().split('T')[0]
+				}.geojson`;
+				link.click();
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'All Sub-Administrative Zones GeoJSON downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Sub-Administrative Zones GeoJSON:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Sub-Administrative Zones GeoJSON file',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Download all Sub-Administrative Zones as KML (National)
+	 */
+	downloadSAZsKML(): void {
+		this.locationDownloadService.downloadAllSAZsAsKml().subscribe({
+			next: (kml) => {
 		const blob = new Blob([kml], {
 			type: 'application/vnd.google-earth.kml+xml',
 		});
 		const url = window.URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.href = url;
-		link.download = `dzongkhag-statistics-${
+				link.download = `all_sub_administrative_zones_${
 			new Date().toISOString().split('T')[0]
 		}.kml`;
 		link.click();
 		window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'All Sub-Administrative Zones KML downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Sub-Administrative Zones KML:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Sub-Administrative Zones KML file',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Download Sampling Frame Report as PDF (Placeholder - Not implemented)
+	 */
+	downloadSamplingFrameReport(): void {
+		this.messageService.add({
+			severity: 'info',
+			summary: 'Not Available',
+			detail: 'Sampling Frame Report (PDF) download is not yet implemented',
+			life: 3000,
+		});
+	}
+
+	/**
+	 * Download Household Data as CSV
+	 */
+	downloadHouseholdData(): void {
+		this.downloadCSV();
+	}
+
+	/**
+	 * Download all Dzongkhags as KML (National)
+	 */
+	downloadDzongkhagKml(): void {
+		this.locationDownloadService.downloadAllDzongkhagsAsKml().subscribe({
+			next: (kml) => {
+				const blob = new Blob([kml], {
+					type: 'application/vnd.google-earth.kml+xml',
+				});
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `all_dzongkhags_${
+					new Date().toISOString().split('T')[0]
+				}.kml`;
+				link.click();
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'All Dzongkhags KML downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Dzongkhags KML:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Dzongkhags KML file',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Download all Dzongkhags as GeoJSON (National)
+	 */
+	downloadDzongkhagGeojson(): void {
+		this.locationDownloadService.downloadAllDzongkhagsAsGeoJson().subscribe({
+			next: (geoJson) => {
+				const dataStr = JSON.stringify(geoJson, null, 2);
+				const blob = new Blob([dataStr], { type: 'application/json' });
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `all_dzongkhags_${
+					new Date().toISOString().split('T')[0]
+				}.geojson`;
+				link.click();
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'All Dzongkhags GeoJSON downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Dzongkhags GeoJSON:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Dzongkhags GeoJSON file',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Download Administrative Zones (Gewog/Thromde) as KML
+	 */
+	downloadAdminZonesKml(): void {
+		this.downloadAZsKML();
+	}
+
+	/**
+	 * Download Administrative Zones (Gewog/Thromde) as GeoJSON
+	 */
+	downloadAdminZonesGeojson(): void {
+		this.downloadAZsGeoJSON();
+	}
+
+	/**
+	 * Download Sub-Administrative Zones (Chiwog/Lap) as KML
+	 */
+	downloadSubAdminZonesKml(): void {
+		this.downloadSAZsKML();
+	}
+
+	/**
+	 * Download Sub-Administrative Zones (Chiwog/Lap) as GeoJSON
+	 */
+	downloadSubAdminZonesGeojson(): void {
+		this.downloadSAZsGeoJSON();
+	}
+
+	/**
+	 * Download Enumeration Areas as KML
+	 */
+	downloadEAZonesKml(): void {
+		this.downloadEAsKML();
+	}
+
+	/**
+	 * Download Enumeration Areas as GeoJSON
+	 */
+	downloadEAZonesGeojson(): void {
+		this.downloadEAsGeoJSON();
 	}
 
 	/**

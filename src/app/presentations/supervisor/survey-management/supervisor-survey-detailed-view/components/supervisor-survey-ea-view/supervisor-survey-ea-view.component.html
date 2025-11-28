@@ -1,0 +1,555 @@
+<div class="p-4 space-y-4">
+	<!-- Header -->
+	<div class="flex justify-between items-center">
+		<div>
+			<h3 class="text-xl font-semibold text-gray-800">
+				Enumeration Areas
+			</h3>
+			<p class="text-sm text-gray-500 mt-1">
+				View and submit enumeration areas assigned to this survey
+			</p>
+		</div>
+	</div>
+
+	<!-- Statistics Cards -->
+	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+		<div class="bg-white border border-gray-200 rounded-xl p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm text-gray-500">Total EAs</p>
+					<p class="text-2xl font-bold" style="color: #1A58AF;">
+						{{ getTotalEACount() }}
+					</p>
+				</div>
+				<i class="pi pi-map text-3xl" style="color: #4C81E3;"></i>
+			</div>
+		</div>
+
+		<div class="bg-white border border-gray-200 rounded-xl p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm text-gray-500">Validated</p>
+					<p class="text-2xl font-bold" style="color: #10B981;">
+						{{ getValidatedEACount() }}
+					</p>
+				</div>
+				<i class="pi pi-check-circle text-3xl" style="color: #10B981;"></i>
+			</div>
+		</div>
+
+		<div class="bg-white border border-gray-200 rounded-xl p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm text-gray-500">Submitted</p>
+					<p class="text-2xl font-bold" style="color: #F59E0B;">
+						{{ getSubmittedEACount() }}
+					</p>
+				</div>
+				<i class="pi pi-send text-3xl" style="color: #F59E0B;"></i>
+			</div>
+		</div>
+
+		<div class="bg-white border border-gray-200 rounded-xl p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm text-gray-500">Pending</p>
+					<p class="text-2xl font-bold text-gray-600">
+						{{ getTotalEACount() - getSubmittedEACount() }}
+					</p>
+				</div>
+				<i class="pi pi-clock text-3xl text-gray-400"></i>
+			</div>
+		</div>
+	</div>
+
+	<!-- EA Table -->
+	<div class="bg-white border border-gray-200 rounded-xl">
+		<div class="p-4 border-b border-gray-200">
+			<h4 class="font-semibold text-gray-800">Assigned Enumeration Areas</h4>
+		</div>
+		<div class="p-4">
+			<!-- Loading State -->
+			<div
+				*ngIf="loadingSurveyEAs"
+				class="flex items-center justify-center py-8"
+			>
+				<div class="relative w-16 h-16">
+					<div
+						class="absolute inset-0 border-4 rounded-full"
+						style="border-color: #E8F0FF;"
+					></div>
+					<div
+						class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+						style="border-color: #1A58AF;"
+					></div>
+				</div>
+			</div>
+
+			<!-- Table -->
+			<div *ngIf="!loadingSurveyEAs && surveyEAs.length > 0">
+				<p-table
+					#dt
+					[value]="surveyEAs"
+					[paginator]="true"
+					[rows]="10"
+					[rowsPerPageOptions]="[10, 25, 50, 100]"
+					[globalFilterFields]="[
+						'enumerationArea.name',
+						'enumerationArea.areaCode',
+						'enumerationArea.subAdministrativeZone.name',
+						'enumerationArea.subAdministrativeZone.administrativeZone.name',
+						'enumerationArea.subAdministrativeZone.administrativeZone.dzongkhag.name'
+					]"
+					styleClass="p-datatable-sm"
+				>
+					<ng-template pTemplate="caption">
+						<div class="flex justify-between items-center">
+							<span class="p-input-icon-left w-full max-w-md">
+								<i class="pi pi-search"></i>
+								<input
+									pInputText
+									type="text"
+									placeholder="Search by name, code, location..."
+									class="w-full"
+									(input)="onTableSearch($event)"
+								/>
+							</span>
+						</div>
+					</ng-template>
+
+					<ng-template pTemplate="header">
+						<tr>
+							<th
+								pSortableColumn="enumerationArea.subAdministrativeZone.administrativeZone.dzongkhag.name"
+							>
+								Dzongkhag
+								<p-sortIcon
+									field="enumerationArea.subAdministrativeZone.administrativeZone.dzongkhag.name"
+								></p-sortIcon>
+							</th>
+							<th
+								pSortableColumn="enumerationArea.subAdministrativeZone.administrativeZone.name"
+							>
+							Gewog/Thromde	
+								<p-sortIcon
+									field="enumerationArea.subAdministrativeZone.administrativeZone.name"
+								></p-sortIcon>
+							</th>
+							<th pSortableColumn="enumerationArea.subAdministrativeZone.name">
+								Chiwog/Lap	
+								<p-sortIcon
+									field="enumerationArea.subAdministrativeZone.name"
+								></p-sortIcon>
+							</th>
+							<th pSortableColumn="enumerationArea.name">
+								EA  <p-sortIcon field="enumerationArea.name"></p-sortIcon>
+							</th>
+							<th pSortableColumn="enumerationArea.name">
+								Households   
+							</th>
+							
+							<th pSortableColumn="isValidated">
+								Status <p-sortIcon field="isValidated"></p-sortIcon>
+							</th>
+							<th>Submission Date</th>
+							<th style="width: 120px">Actions</th>
+						</tr>
+					</ng-template>
+
+					<ng-template pTemplate="body" let-ea>
+						<tr>
+							<td>
+								<span class="text-sm">{{
+									ea.enumerationArea?.subAdministrativeZone?.administrativeZone
+										?.dzongkhag?.name
+								}}</span>
+							</td>
+							<td>
+								<span class="text-sm">{{
+									ea.enumerationArea?.subAdministrativeZone?.administrativeZone
+										?.name
+								}}</span>
+							</td>
+							<td>
+								<span class="text-sm">{{
+									ea.enumerationArea?.subAdministrativeZone?.name
+								}}</span>
+							</td>
+							<td>
+								 
+ 									<p class="font-medium">{{
+										ea.enumerationArea?.name
+									}} |  <span class=" text-gray-600">{{
+									ea.enumerationArea?.areaCode
+								}}</span></p>
+								 
+							</td>
+							<td>
+								<p>
+									{{ getHouseholdCount(ea) | number }}
+								</p>
+							</td>
+							<td>
+								<p-tag
+									*ngIf="ea.isValidated"
+									value="Validated"
+									severity="success"
+									styleClass="text-xs"
+								></p-tag>
+								<p-tag
+									*ngIf="!ea.isValidated && ea.isSubmitted"
+									value="Submitted"
+									severity="warning"
+									styleClass="text-xs"
+								></p-tag>
+								<p-tag
+									*ngIf="!ea.isValidated && !ea.isSubmitted"
+									value="Pending"
+									severity="secondary"
+									styleClass="text-xs"
+								></p-tag>
+							</td>
+							<td>
+								<span class="text-sm text-gray-600">
+									{{ ea.submissionDate ? (ea.submissionDate | date: 'MMM d, y') : '-' }}
+								</span>
+							</td>
+							<td>
+								<button
+									*ngIf="canSubmit(ea)"
+									pButton
+									label="Submit"
+									icon="pi pi-send"
+									size="small"
+									styleClass="p-button-primary p-button-sm"
+									(click)="openSubmitDialog(ea)"
+								></button>
+								<span
+									*ngIf="!canSubmit(ea)"
+									class="text-xs text-gray-500"
+								>
+									{{ ea.isValidated ? 'Validated' : ea.isSubmitted ? 'Submitted' : 'N/A' }}
+								</span>
+							</td>
+						</tr>
+					</ng-template>
+
+					<ng-template pTemplate="emptymessage">
+						<tr>
+							<td colspan="8" class="text-center text-gray-500 py-8">
+								No enumeration areas found
+							</td>
+						</tr>
+					</ng-template>
+				</p-table>
+			</div>
+
+			<!-- Empty State -->
+			<div
+				*ngIf="!loadingSurveyEAs && surveyEAs.length === 0"
+				class="text-center py-12"
+			>
+				<i class="pi pi-map text-4xl text-gray-300 mb-3"></i>
+				<p class="text-gray-500">No enumeration areas assigned to this survey</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Submit Dialog -->
+<p-dialog
+	[(visible)]="showSubmitDialog"
+	[modal]="true"
+	[closable]="true"
+	[style]="{ width: '90vw', maxWidth: '1200px' }"
+	header="Submit Enumeration Area for Validation"
+>
+	<div class="space-y-4">
+		<!-- EA Info -->
+		<div
+			*ngIf="currentEAForSubmission"
+			class="bg-gray-50 rounded-lg p-4 border border-gray-200"
+		>
+			<div class="flex items-start gap-3">
+				<div
+					class="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+					style="background-color: #E8F0FF;"
+				>
+					<i class="pi pi-map-marker text-xl" style="color: #1A58AF;"></i>
+				</div>
+				<div class="flex-1">
+					<h4 class="font-semibold text-gray-900 mb-1">
+						{{ currentEAForSubmission.enumerationArea?.name || 'N/A' }}
+					</h4>
+					<p class="text-sm text-gray-600">
+						Code: {{ currentEAForSubmission.enumerationArea?.areaCode || 'N/A' }}
+					</p>
+					<p class="text-xs text-gray-500 mt-1">
+						{{
+							currentEAForSubmission && currentEAForSubmission.enumerationArea
+								? getLocationHierarchy(currentEAForSubmission.enumerationArea)
+								: 'N/A'
+						}}
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Statistics -->
+		<div
+			*ngIf="householdListingsStatistics"
+			class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 rounded-lg p-4 border border-gray-200"
+		>
+			<div class="text-center">
+				<div class="flex items-center justify-center gap-2 mb-1">
+					<i class="pi pi-home text-lg" style="color: #1A58AF;"></i>
+					<h3 class="text-xl font-bold text-gray-900">
+						{{ householdListingsStatistics.totalHouseholds | number }}
+					</h3>
+				</div>
+				<p class="text-xs text-gray-600">Total Households</p>
+			</div>
+			<div class="text-center">
+				<div class="flex items-center justify-center gap-2 mb-1">
+					<i class="pi pi-users text-lg" style="color: #10B981;"></i>
+					<h3 class="text-xl font-bold text-gray-900">
+						{{ householdListingsStatistics.totalPopulation | number }}
+					</h3>
+				</div>
+				<p class="text-xs text-gray-600">Total Population</p>
+			</div>
+			<div class="text-center">
+				<div class="flex items-center justify-center gap-2 mb-1">
+					<i class="pi pi-user text-lg" style="color: #1A58AF;"></i>
+					<h3 class="text-xl font-bold text-gray-900">
+						{{ householdListingsStatistics.totalMale | number }} / {{ householdListingsStatistics.totalFemale | number }}
+					</h3>
+				</div>
+				<p class="text-xs text-gray-600">Male / Female</p>
+			</div>
+			<div class="text-center">
+				<div class="flex items-center justify-center gap-2 mb-1">
+					<i class="pi pi-check-circle text-lg" style="color: #10B981;"></i>
+					<h3 class="text-xl font-bold text-gray-900">
+						{{ householdListingsStatistics.householdsWithPhone | number }}
+					</h3>
+				</div>
+				<p class="text-xs text-gray-600">With Phone</p>
+			</div>
+		</div>
+
+		<!-- Household Listings Table -->
+		<div class="bg-white border border-gray-200 rounded-lg">
+			<div class="p-4 border-b border-gray-200 flex items-center justify-between">
+				<h4 class="font-semibold text-gray-800">Household Listings</h4>
+				<button
+					pButton
+					label="Generate Blank Entries"
+					icon="pi pi-plus-circle"
+					size="small"
+					class="p-button-outlined p-button-sm"
+					(click)="openGenerateBlankDialog()"
+					[disabled]="loadingHouseholdListings"
+					style="border-color: #1A58AF; color: #1A58AF;"
+				></button>
+			</div>
+			<div class="p-4">
+				<!-- Loading State -->
+				<div
+					*ngIf="loadingHouseholdListings"
+					class="flex items-center justify-center py-8"
+				>
+					<div class="relative w-16 h-16">
+						<div
+							class="absolute inset-0 border-4 rounded-full"
+							style="border-color: #E8F0FF;"
+						></div>
+						<div
+							class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+							style="border-color: #1A58AF;"
+						></div>
+					</div>
+				</div>
+
+				<!-- Table -->
+				<div *ngIf="!loadingHouseholdListings && householdListings.length > 0">
+					<p-table
+						[value]="householdListings"
+						[paginator]="true"
+						[rows]="10"
+						[rowsPerPageOptions]="[10, 25, 50]"
+						styleClass="p-datatable-sm"
+						[scrollable]="true"
+						scrollHeight="400px"
+					>
+						<ng-template pTemplate="header">
+							<tr>
+								<th>Structure #</th>
+								<th>HH Serial #</th>
+								<th>Household ID</th>
+								<th>Head of Household</th>
+								<th>Phone</th>
+								<th>Male</th>
+								<th>Female</th>
+								<th>Total</th>
+							</tr>
+						</ng-template>
+						<ng-template pTemplate="body" let-listing>
+							<tr>
+								<td>{{ listing.structureNumber }}</td>
+								<td>{{ listing.householdSerialNumber }}</td>
+								<td>{{ listing.householdIdentification }}</td>
+								<td>{{ listing.nameOfHOH }}</td>
+								<td>{{ listing.phoneNumber || '-' }}</td>
+								<td class="text-center">{{ listing.totalMale || 0 }}</td>
+								<td class="text-center">{{ listing.totalFemale || 0 }}</td>
+								<td class="text-center font-semibold" style="color: #1A58AF;">
+									{{ (listing.totalMale || 0) + (listing.totalFemale || 0) }}
+								</td>
+							</tr>
+						</ng-template>
+						<ng-template pTemplate="emptymessage">
+							<tr>
+								<td colspan="8" class="text-center py-8 text-gray-500">
+									No household listings found
+								</td>
+							</tr>
+						</ng-template>
+					</p-table>
+				</div>
+
+				<!-- Empty State -->
+				<div
+					*ngIf="!loadingHouseholdListings && householdListings.length === 0"
+					class="text-center py-12"
+				>
+					<i class="pi pi-inbox text-4xl text-gray-300 mb-3"></i>
+					<p class="text-gray-500">No household listings found for this enumeration area</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Comments -->
+		<div class="flex flex-col gap-2">
+			<label class="text-sm font-medium text-gray-700">
+				Comments (Optional)
+			</label>
+			<textarea
+				[(ngModel)]="submissionComments"
+				rows="3"
+				pInputTextarea
+				placeholder="Add any comments about this submission..."
+				class="w-full"
+			></textarea>
+			<p class="text-xs text-gray-500">
+				Optional: Add notes or comments about this submission
+			</p>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				label="Cancel"
+				class="p-button-text"
+				(click)="closeSubmitDialog()"
+				[disabled]="submitting"
+			></button>
+			<button
+				pButton
+				label="Submit for Validation"
+				icon="pi pi-send"
+				(click)="submitEnumerationArea()"
+				[disabled]="submitting || loadingHouseholdListings"
+				style="background-color: #1A58AF; border-color: #1A58AF;"
+			></button>
+		</div>
+	</ng-template>
+</p-dialog>
+
+<!-- Generate Blank Entries Dialog -->
+<p-dialog
+	[(visible)]="showGenerateBlankDialog"
+	[modal]="true"
+	[closable]="true"
+	[style]="{ width: '500px' }"
+	header="Generate Blank Household Entries"
+>
+	<div class="space-y-4">
+		<!-- Info -->
+		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+			<div class="flex items-start gap-2">
+				<i class="pi pi-info-circle text-blue-600 mt-0.5"></i>
+				<div class="text-sm text-blue-800">
+					<p class="font-semibold mb-1">Generate blank household entries</p>
+					<p class="text-xs">
+						This will create blank household listing entries with placeholder values.
+						Entries will have sequential serial numbers starting from the next available number.
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Count Input -->
+		<div class="flex flex-col gap-2">
+			<label class="text-sm font-medium text-gray-700">
+				Number of Entries <span class="text-red-500">*</span>
+			</label>
+			<p-inputNumber
+				[(ngModel)]="blankCount"
+				[min]="1"
+				[max]="10000"
+				[showButtons]="true"
+				[style]="{ width: '100%' }"
+				placeholder="Enter count (1-10000)"
+			></p-inputNumber>
+			<p class="text-xs text-gray-500">
+				Enter the number of blank entries to create (1-10000)
+			</p>
+		</div>
+
+		<!-- Remarks Input -->
+		<div class="flex flex-col gap-2">
+			<label class="text-sm font-medium text-gray-700">
+				Remarks (Optional)
+			</label>
+			<textarea
+				[(ngModel)]="blankRemarks"
+				rows="3"
+				pInputTextarea
+				placeholder="No data available - Historical survey entry"
+				class="w-full"
+			></textarea>
+			<p class="text-xs text-gray-500">
+				Optional: Add remarks for the blank entries
+			</p>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				label="Cancel"
+				class="p-button-text"
+				(click)="closeGenerateBlankDialog()"
+				[disabled]="generatingBlank"
+			></button>
+			<button
+				pButton
+				label="Generate"
+				icon="pi pi-plus-circle"
+				(click)="generateBlankHouseholdListings()"
+				[disabled]="generatingBlank || blankCount < 1 || blankCount > 10000"
+				style="background-color: #1A58AF; border-color: #1A58AF;"
+			></button>
+		</div>
+	</ng-template>
+</p-dialog>
+
+<!-- Toast Messages -->
+<p-toast position="top-right"></p-toast>
+
+<!-- Confirmation Dialog -->
+<p-confirmDialog></p-confirmDialog>

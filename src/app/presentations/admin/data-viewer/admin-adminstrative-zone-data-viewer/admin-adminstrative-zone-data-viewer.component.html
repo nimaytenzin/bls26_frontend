@@ -560,6 +560,94 @@
 				<!-- Map Container -->
 				<div #mapContainer class="w-full h-full bg-slate-100"></div>
 
+				<!-- Popovers for Data Download (Top Left) -->
+				<div class="absolute top-4 left-4 flex gap-2 z-[1001]">
+					<!-- Download Popover -->
+					<p-button
+						(click)="downloadPopover.toggle($event)"
+						icon="pi pi-save"
+						severity="secondary"
+						[label]="'Download'"
+						size="small"
+					/>
+					<p-popover #downloadPopover>
+						<div class="flex flex-col gap-3 w-[18rem]">
+							<div>
+								<span class="font-semibold text-slate-900 block mb-3 text-sm">
+									Download Data
+								</span>
+								<div class="flex flex-col gap-2">
+									<button
+										type="button"
+										(click)="downloadHouseholdData(); downloadPopover.hide()"
+										class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition flex items-center justify-center gap-2"
+									>
+										<i class="pi pi-download text-xs"></i>
+										Export Household CSV
+									</button>
+								</div>
+							</div>
+							<div class="border-t border-slate-200 pt-3">
+								<span class="font-semibold text-slate-900 block mb-2 text-sm">
+									Spatial Data
+								</span>
+								<div class="space-y-2">
+									<!-- Sub Admin Zones -->
+									<div class="flex items-center justify-between text-sm">
+										<span class="text-slate-700">Chiwog/Lap</span>
+										<div class="flex gap-1">
+											<button
+												type="button"
+												(click)="
+													downloadSubAdminZonesKml(); downloadPopover.hide()
+												"
+												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
+												title="Download KML"
+											>
+												KML
+											</button>
+											<button
+												type="button"
+												(click)="
+													downloadSubAdminZonesGeojson(); downloadPopover.hide()
+												"
+												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
+												title="Download GeoJSON"
+											>
+												GEOJSON
+											</button>
+										</div>
+									</div>
+									<!-- EA Zones -->
+									<div class="flex items-center justify-between text-sm">
+										<span class="text-slate-700">Enumeration Areas</span>
+										<div class="flex gap-1">
+											<button
+												type="button"
+												(click)="downloadEAZonesKml(); downloadPopover.hide()"
+												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
+												title="Download KML"
+											>
+												KML
+											</button>
+											<button
+												type="button"
+												(click)="
+													downloadEAZonesGeojson(); downloadPopover.hide()
+												"
+												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
+												title="Download GeoJSON"
+											>
+												GEOJSON
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</p-popover>
+				</div>
+
 				<!-- Map Controls Overlay -->
 				<div
 					class="absolute top-4 right-4 bg-white rounded-lg border border-slate-200 shadow-lg p-3 space-y-3 z-[1000]"

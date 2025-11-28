@@ -1,0 +1,73 @@
+@import '../_enumerator-design-tokens';
+
+/* Past surveys component styles - Mobile First */
+
+.past-surveys-container {
+	max-width: 100%;
+	margin: 0 auto;
+	padding: $enumerator-spacing-md;
+}
+
+/* Card styling */
+.past-survey-card {
+	@include enumerator-card;
+	margin-bottom: $enumerator-spacing-md;
+	transition: all $enumerator-transition-base;
+	
+	&:hover {
+		box-shadow: $enumerator-shadow-lg;
+		transform: translateY(-2px);
+	}
+}
+
+/* Empty state styling */
+.empty-state {
+	text-align: center;
+	padding: $enumerator-spacing-xl;
+	
+	.empty-icon {
+		width: 5rem;
+		height: 5rem;
+		background: $enumerator-bg-info;
+		border-radius: $enumerator-radius-full;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0 auto $enumerator-spacing-lg;
+		
+		i {
+			font-size: 2.5rem;
+			color: $enumerator-primary;
+		}
+	}
+}
+
+/* Info badge */
+.info-badge {
+	display: inline-flex;
+	align-items: center;
+	background: $enumerator-bg-info;
+	color: $enumerator-primary;
+	padding: $enumerator-spacing-sm $enumerator-spacing-md;
+	border-radius: $enumerator-radius-lg;
+	font-size: $enumerator-text-sm;
+	font-weight: $enumerator-font-medium;
+	
+	i {
+		margin-right: $enumerator-spacing-xs;
+	}
+}
+
+/* Responsive adjustments */
+@media (min-width: 640px) {
+	.past-surveys-container {
+		max-width: 640px;
+		padding: $enumerator-spacing-lg;
+	}
+}
+
+@media (min-width: 768px) {
+	.past-surveys-container {
+		max-width: 768px;
+	}
+}

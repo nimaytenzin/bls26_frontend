@@ -21,6 +21,7 @@ import { MapFeatureColorService } from '../../../../core/utility/map-feature-col
 import { CurrentHouseholdListingComponent } from './current-household-listing/current-household-listing.component';
 import { AdminEnumerationAreaTrendsComponent } from './admin-enumeration-area-trends/admin-enumeration-area-trends.component';
 import { GenerateFullEACode } from '../../../../core/utility/utility.service';
+import { LocationDownloadService } from '../../../../core/dataservice/downloads/location.download.service';
 
 @Component({
 	selector: 'app-admin-enumeration-area-data-viewer',
@@ -101,7 +102,8 @@ export class AdminEnumerationAreaDataViewerComponent
 		private dzongkhagService: DzongkhagDataService,
 		private messageService: MessageService,
 		private basemapService: BasemapService,
-		private mapFeatureColorService: MapFeatureColorService
+		private mapFeatureColorService: MapFeatureColorService,
+		private locationDownloadService: LocationDownloadService
 	) {}
 
 	ngOnInit() {
@@ -935,5 +937,19 @@ export class AdminEnumerationAreaDataViewerComponent
 			.replace(/>/g, '&gt;')
 			.replace(/"/g, '&quot;')
 			.replace(/'/g, '&apos;');
+	}
+
+	/**
+	 * Download household data as CSV
+	 */
+	downloadHouseholdData(): void {
+		// For enumeration area viewer, we might not have household data directly
+		// This is a placeholder - implement based on available data
+		this.messageService.add({
+			severity: 'info',
+			summary: 'Not Available',
+			detail: 'Household CSV export is available in the Households tab',
+			life: 3000,
+		});
 	}
 }

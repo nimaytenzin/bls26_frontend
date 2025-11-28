@@ -1,30 +1,37 @@
-<div class="container mx-auto px-4 py-6">
+<div class="min-h-screen bg-gray-50 p-4 md:p-6">
 	<p-toast></p-toast>
 
 	<!-- Header -->
 	<div class="mb-6">
 		<h1 class="text-3xl font-bold text-gray-800 mb-2">Active Surveys</h1>
 		<p class="text-gray-600">
-			Manage and view all active surveys assigned to you
+			View all active surveys assigned to you
 		</p>
 	</div>
 
 	<!-- Loading State -->
 	<div
 		*ngIf="loading"
-		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
 	>
-		<p-skeleton height="250px" *ngFor="let i of [1, 2, 3]"></p-skeleton>
+		<div
+			*ngFor="let i of [1, 2, 3]"
+			class="bg-white rounded-xl border border-gray-200 p-6 animate-pulse"
+		>
+			<div class="h-6 bg-gray-200 rounded mb-4"></div>
+			<div class="h-4 bg-gray-200 rounded mb-2"></div>
+			<div class="h-4 bg-gray-200 rounded w-3/4"></div>
+		</div>
 	</div>
 
 	<!-- Empty State -->
 	<div
 		*ngIf="!loading && surveys.length === 0"
-		class="flex flex-col items-center justify-center py-12"
+		class="flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-gray-200"
 	>
-		<i class="pi pi-inbox text-6xl text-gray-400 mb-4"></i>
+		<i class="pi pi-inbox text-6xl mb-4" style="color: #6B7280;"></i>
 		<h3 class="text-xl font-semibold text-gray-700 mb-2">No Active Surveys</h3>
-		<p class="text-gray-500">
+		<p class="text-gray-500 text-center max-w-md">
 			There are currently no active surveys assigned to you.
 		</p>
 	</div>
@@ -34,26 +41,36 @@
 		*ngIf="!loading && surveys.length > 0"
 		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
 	>
-		<p-card
+		<div
 			*ngFor="let survey of surveys"
-			class="shadow-lg hover:shadow-xl transition-shadow rounded-lg overflow-hidden"
+			class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
 		>
-			<ng-template pTemplate="header">
-				<div class="p-4 border-b">
-					<div class="flex justify-between items-start mb-2">
-						<h2 class="text-xl font-bold text-gray-800 line-clamp-2">
-							{{ survey.name }}
-						</h2>
-						<p-tag
-							[value]="survey.status"
-							[severity]="getStatusSeverity(survey.status)"
-						></p-tag>
-					</div>
-					<p class="text-sm text-gray-600">{{ survey.year }}</p>
+			<!-- Card Header -->
+			<div
+				class="p-5 border-b border-gray-200"
+				style="background-color: #E8F0FF;"
+			>
+				<div class="flex justify-between items-start mb-2">
+					<h2 class="text-xl font-bold text-gray-800 line-clamp-2 flex-1 mr-2">
+						{{ survey.name }}
+					</h2>
+					<p-tag
+						[value]="survey.status"
+						[severity]="getStatusSeverity(survey.status)"
+					></p-tag>
 				</div>
-			</ng-template>
+				<div class="flex items-center gap-2 mt-2">
+					<span
+						class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+						style="background-color: #1A58AF; color: white;"
+					>
+						Year {{ survey.year }}
+					</span>
+				</div>
+			</div>
 
-			<div class="space-y-3">
+			<!-- Card Body -->
+			<div class="p-5 space-y-3">
 				<!-- Description -->
 				<div>
 					<p class="text-gray-700 text-sm line-clamp-3">
@@ -63,42 +80,43 @@
 
 				<!-- Survey Dates -->
 				<div class="flex items-center text-sm text-gray-600">
-					<i class="pi pi-calendar mr-2 text-blue-500"></i>
+					<i class="pi pi-calendar mr-2" style="color: #1A58AF;"></i>
 					<span>
-						{{ formatDate(survey.startDate) }} -
-						{{ formatDate(survey.endDate) }}
+						{{ survey.startDate | date: 'MMM d, y' }} -
+						{{ survey.endDate | date: 'MMM d, y' }}
 					</span>
 				</div>
 
 				<!-- Duration -->
 				<div class="flex items-center text-sm text-gray-600">
-					<i class="pi pi-clock mr-2 text-green-500"></i>
+					<i class="pi pi-clock mr-2" style="color: #10B981;"></i>
 					<span>{{ getSurveyDuration(survey) }} days</span>
 				</div>
 
 				<!-- Dzongkhags -->
 				<div class="flex items-start text-sm text-gray-600">
-					<i class="pi pi-map-marker mr-2 text-red-500 mt-1"></i>
+					<i class="pi pi-map-marker mr-2 mt-1" style="color: #F59E0B;"></i>
 					<span class="line-clamp-2">{{ getDzongkhagNames(survey) }}</span>
 				</div>
 
 				<!-- Enumeration Areas -->
 				<div class="flex items-center text-sm text-gray-600">
-					<i class="pi pi-th-large mr-2 text-purple-500"></i>
+					<i class="pi pi-th-large mr-2" style="color: #1A58AF;"></i>
 					<span>{{ survey.totalEnumerationAreas }} Enumeration Areas</span>
 				</div>
 			</div>
 
-			<ng-template pTemplate="footer">
-				<div class="flex justify-end">
-					<p-button
-						label="View Details"
-						icon="pi pi-arrow-right"
-						(onClick)="viewSurveyDetails(survey.id)"
-						[outlined]="true"
-					></p-button>
-				</div>
-			</ng-template>
-		</p-card>
+			<!-- Card Footer -->
+			<div class="p-5 border-t border-gray-200 bg-gray-50">
+				<button
+					pButton
+					label="View Details"
+					icon="pi pi-arrow-right"
+					(click)="viewSurveyDetails(survey.id)"
+					class="w-full"
+					style="background-color: #1A58AF; border-color: #1A58AF;"
+				></button>
+			</div>
+		</div>
 	</div>
 </div>

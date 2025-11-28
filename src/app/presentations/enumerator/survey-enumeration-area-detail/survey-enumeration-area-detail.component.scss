@@ -1,3 +1,5 @@
+@import '../_enumerator-design-tokens';
+
 // Mobile-first Survey Detail Screen Styles - Premium Design
 
 .mobile-survey-container {
@@ -7,16 +9,14 @@
     // Optimize touch interactions
     input,
     button {
-        -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
+        @include enumerator-touch-feedback;
     }
 
     // FAB with premium animations
     button[aria-label="Add new household"] {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow:
-            0 20px 25px -5px rgba(59, 130, 246, 0.3),
-            0 10px 10px -5px rgba(59, 130, 246, 0.2);
+        transition: all $enumerator-transition-slow;
+        box-shadow: $enumerator-shadow-xl;
+        background: $enumerator-primary !important;
 
         &:active {
             transform: scale(0.95);
@@ -24,9 +24,8 @@
 
         &:hover {
             transform: scale(1.05);
-            box-shadow:
-                0 25px 50px -12px rgba(59, 130, 246, 0.4),
-                0 12px 20px -8px rgba(59, 130, 246, 0.3);
+            background: $enumerator-primary-dark !important;
+            box-shadow: $enumerator-shadow-xl;
         }
     }
 
@@ -47,10 +46,10 @@
 
     // Search input focus effect
     input[type="text"] {
-        transition: all 0.2s ease-in-out;
+        transition: all $enumerator-transition-base;
 
         &:focus {
-            box-shadow: 0 0 0 3px rgba(19, 149, 211, 0.1);
+            box-shadow: 0 0 0 3px rgba(26, 88, 175, 0.1);
         }
     }
 }
@@ -110,11 +109,11 @@
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(19, 149, 211, 0.3);
+    background: rgba(26, 88, 175, 0.3);
     border-radius: 3px;
 
     &:hover {
-        background: rgba(19, 149, 211, 0.5);
+        background: rgba(26, 88, 175, 0.5);
     }
 } // Dialog customization for mobile
 ::ng-deep {
@@ -123,7 +122,7 @@
         overflow: hidden;
 
         .p-dialog-header {
-            background: #1395d3;
+            background: $enumerator-primary;
             color: white;
             padding: 1.25rem;
             border-bottom: none;

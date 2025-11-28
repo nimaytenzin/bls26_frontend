@@ -16,7 +16,7 @@ export const supervisorRoutes: Routes = [
 		children: [
 			{
 				path: '',
-				component: SupervisorDashboardComponent,
+				component: SupervisorActiveSurveysComponent,
 			},
 			{
 				path: 'survey',
@@ -25,6 +25,11 @@ export const supervisorRoutes: Routes = [
 					{
 						path: 'detailed/:surveyId',
 						component: SupervisorSurveyDetailedViewComponent,
+					},
+					{
+						path: '',
+						redirectTo: 'active',
+						pathMatch: 'full',
 					},
 				],
 			},

@@ -53,6 +53,7 @@ export interface BulkUploadResponse {
 
 /**
  * Household Statistics Interface
+ * @deprecated Use HouseholdListingStatisticsResponseDto instead
  */
 export interface HouseholdStatistics {
 	totalHouseholds: number;
@@ -61,6 +62,47 @@ export interface HouseholdStatistics {
 	totalPopulation: number;
 	householdsWithPhone: number;
 	averageHouseholdSize: string;
+}
+
+/**
+ * Response DTO for household listing statistics
+ * Used for both enumeration area-level and survey-level statistics
+ */
+export interface HouseholdListingStatisticsResponseDto {
+	/**
+	 * Total number of households
+	 */
+	totalHouseholds: number;
+
+	/**
+	 * Total male population
+	 */
+	totalMale: number;
+
+	/**
+	 * Total female population
+	 */
+	totalFemale: number;
+
+	/**
+	 * Total population (male + female)
+	 */
+	totalPopulation: number;
+
+	/**
+	 * Number of households with phone numbers
+	 */
+	householdsWithPhone: number;
+
+	/**
+	 * Average household size (as string with 2 decimal places)
+	 */
+	averageHouseholdSize: string;
+
+	/**
+	 * Total number of enumeration areas (only present for survey-level statistics)
+	 */
+	totalEnumerationAreas?: number;
 }
 
 /**
@@ -139,4 +181,30 @@ export interface CurrentHouseholdListingResponseDto {
 	message: string;
 	data?: CurrentHouseholdListingDataDto;
 	metadata?: CurrentHouseholdListingMetadataDto;
+}
+
+/**
+ * Create Blank Household Listings Request DTO
+ * Used to create multiple blank household listing entries
+ */
+export interface CreateBlankHouseholdListingsDto {
+	/**
+	 * Number of blank entries to create (1-10000)
+	 */
+	count: number;
+	/**
+	 * Optional remarks for the blank entries
+	 * Defaults to "No data available - Historical survey entry" if not provided
+	 */
+	remarks?: string;
+}
+
+/**
+ * Create Blank Household Listings Response DTO
+ */
+export interface CreateBlankHouseholdListingsResponseDto {
+	success: boolean;
+	message: string;
+	created: number;
+	listings: SurveyEnumerationAreaHouseholdListing[];
 }

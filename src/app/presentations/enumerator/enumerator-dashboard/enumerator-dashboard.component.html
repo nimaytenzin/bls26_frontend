@@ -1,8 +1,23 @@
 <div class="enumerator-dashboard p-4 pb-6">
 	<!-- Header Section -->
 	<div class="mb-4">
-		<h2 class="text-xl font-bold text-gray-800 mb-1">Active Surveys</h2>
-		<p class="text-sm text-gray-600">Tap on a survey to start enumeration</p>
+		<div class="flex items-center justify-between mb-2">
+			<div class="flex-1">
+				<h2 class="text-xl font-bold text-gray-800 mb-1">Active Surveys</h2>
+				<p class="text-sm text-gray-600">Tap on a survey to start enumeration</p>
+			</div>
+			<button
+				*ngIf="!loading && surveys.length > 0"
+				pButton
+				type="button"
+				icon="pi pi-refresh"
+				class="p-button-rounded p-button-primary shadow-md"
+				(click)="refresh()"
+				style="background-color: #1A58AF; border-color: #1A58AF;"
+				pTooltip="Refresh surveys"
+				tooltipPosition="bottom"
+			></button>
+		</div>
 	</div>
 
 	<!-- Loading State -->
@@ -70,7 +85,7 @@
 					<p-tag
 						[value]="survey.status"
 						[severity]="getStatusSeverity(survey.status)"
-						styleClass="text-xs"
+						styleClass="text-xs font-semibold"
 					></p-tag>
 				</div>
 
@@ -114,29 +129,31 @@
 				<!-- Days Remaining Alert -->
 				<div
 					*ngIf="getDaysRemaining(survey.endDate) > 0"
-					class="rounded-lg p-3 mb-3"
+					class="rounded-xl p-3 mb-3"
 					[ngClass]="{
 						'bg-amber-50 border border-amber-200': isEndingSoon(survey.endDate),
-						'bg-blue-50 border border-blue-200': !isEndingSoon(survey.endDate)
+						'border border-[#E8F0FF]': !isEndingSoon(survey.endDate)
 					}"
+					[style.background-color]="!isEndingSoon(survey.endDate) ? '#E8F0FF' : ''"
 				>
-					<div class="flex items-center gap-2">
-						<i
-							class="pi"
-							[ngClass]="{
-								'pi-exclamation-triangle text-amber-600': isEndingSoon(
-									survey.endDate
-								),
-								'pi-clock text-blue-600': !isEndingSoon(survey.endDate)
-							}"
-						></i>
+						<div class="flex items-center gap-2">
+							<i
+								class="pi"
+								[ngClass]="{
+									'pi-exclamation-triangle text-amber-600': isEndingSoon(
+										survey.endDate
+									),
+									'pi-clock': !isEndingSoon(survey.endDate)
+								}"
+								[style.color]="!isEndingSoon(survey.endDate) ? '#1A58AF' : ''"
+							></i>
 						<div class="flex-1">
 							<p
 								class="text-sm font-semibold"
 								[ngClass]="{
-									'text-amber-800': isEndingSoon(survey.endDate),
-									'text-blue-800': !isEndingSoon(survey.endDate)
+									'text-amber-800': isEndingSoon(survey.endDate)
 								}"
+								[style.color]="!isEndingSoon(survey.endDate) ? '#103975' : ''"
 							>
 								<span *ngIf="isEndingSoon(survey.endDate)">Ending Soon!</span>
 								<span *ngIf="!isEndingSoon(survey.endDate)"
@@ -191,16 +208,4 @@
 			</div>
 		</div>
 	</div>
-
-	<!-- Refresh Button (FAB style) -->
-	<button
-		*ngIf="!loading && surveys.length > 0"
-		pButton
-		type="button"
-		icon="pi pi-refresh"
-		class="p-button-rounded p-button-outlined fixed top-24 bg-red-500 right-6 shadow-lg"
-		(click)="refresh()"
-		pTooltip="Refresh surveys"
-		tooltipPosition="left"
-	></button>
 </div>

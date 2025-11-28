@@ -8,7 +8,6 @@ import { AdminSurveyCreatorEnumerationAreasComponent } from './admin-survey-crea
 import { AdminSurveyCreatorEnumeratorsComponent } from './admin-survey-creator-enumerators/admin-survey-creator-enumerators.component';
 import {
 	CreateSurveyDto,
-	SurveyStatus,
 } from '../../../../core/dataservice/survey/survey.dto';
 import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
 import { SurveyEnumeratorDataService } from '../../../../core/dataservice/survey-enumerator/survey-enumerator.dataservice';
@@ -16,6 +15,7 @@ import {
 	EnumeratorCSVData,
 	BulkAssignCSVDto,
 } from '../../../../core/dataservice/survey-enumerator/survey-enumerator.dto';
+import { SurveyStatus } from '../../../../core/constants/enums';
 
 interface SurveyFormData {
 	name: string;

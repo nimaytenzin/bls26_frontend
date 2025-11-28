@@ -1,3 +1,805 @@
-<p>
-  admin-survey-sampling works!
-</p>
+<div class="flex flex-col gap-6">
+	<!-- Survey Defaults Display - Show if config exists -->
+	<section *ngIf="config && !configLoading" class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+		<div class="flex items-center justify-between mb-4">
+			<div class="flex flex-col gap-1">
+				<p class="text-sm uppercase tracking-wide text-slate-500">Survey Defaults</p>
+				<h2 class="text-lg font-semibold text-slate-900">Current Configuration</h2>
+			</div>
+			<button
+				pButton
+				type="button"
+				icon="pi pi-cog"
+				label="Edit"
+				class="p-button-outlined p-button-sm"
+				(click)="openConfigDialog()"
+			></button>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+			<div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+				<p class="text-xs text-slate-500 mb-1">Default Method</p>
+				<p class="text-sm font-semibold text-slate-900">
+					{{ config.defaultMethod === 'CSS' ? 'Circular Systematic Sampling (CSS)' : 'Simple Random Sampling (SRS)' }}
+				</p>
+			</div>
+
+			<div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+				<p class="text-xs text-slate-500 mb-1">Default Sample Size</p>
+				<p class="text-sm font-semibold text-slate-900">{{ config.defaultSampleSize || '—' }}</p>
+			</div>
+
+			<div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+				<p class="text-xs text-slate-500 mb-1">Urban (Thromde)</p>
+				<p class="text-sm font-semibold text-slate-900">{{ config.urbanSampleSize || '—' }}</p>
+			</div>
+
+			<div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+				<p class="text-xs text-slate-500 mb-1">Rural (Gewog/others)</p>
+				<p class="text-sm font-semibold text-slate-900">{{ config.ruralSampleSize || '—' }}</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- Filters and EA Table Section -->
+	<section class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+		<div class="flex items-center justify-between mb-4">
+			<div class="flex flex-col gap-1">
+				<p class="text-sm uppercase tracking-wide text-slate-500">Filters & actions</p>
+				<h2 class="text-lg font-semibold text-slate-900">Enumeration areas</h2>
+			</div>
+			<button
+				*ngIf="!config || configLoading"
+				pButton
+				type="button"
+				icon="pi pi-cog"
+				label="Configure Defaults"
+				class="p-button-outlined"
+				(click)="openConfigDialog()"
+			></button>
+		</div>
+
+		<form class="grid grid-cols-1 md:grid-cols-3 gap-4" [formGroup]="filterForm">
+			<div class="flex flex-col gap-1.5">
+				<label class="text-sm font-medium text-slate-600">Status</label>
+				<p-dropdown
+					formControlName="status"
+					[options]="[
+						{ label: 'All statuses', value: 'all' },
+						{ label: 'Not run', value: 'not_run' },
+						{ label: 'Pending', value: 'pending' },
+						{ label: 'Completed', value: 'completed' },
+					]"
+				></p-dropdown>
+			</div>
+
+			<div class="flex flex-col gap-1.5">
+				<label class="text-sm font-medium text-slate-600">Dzongkhag</label>
+				<p-dropdown
+					formControlName="dzongkhagId"
+					[options]="hierarchy"
+					optionLabel="name"
+					optionValue="id"
+					[showClear]="true"
+				></p-dropdown>
+			</div>
+
+			<div class="flex flex-col gap-1.5">
+				<label class="text-sm font-medium text-slate-600">Admin zone</label>
+				<p-dropdown
+					formControlName="administrativeZoneId"
+					[options]="administrativeZoneOptions"
+					optionLabel="name"
+					optionValue="id"
+					[showClear]="true"
+				></p-dropdown>
+			</div>
+		</form>
+	</section>
+
+	<section class="bg-white border border-slate-200 rounded-2xl shadow-sm p-0 overflow-hidden">
+		<div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+			<div class="flex flex-col gap-1">
+				<p class="text-sm uppercase tracking-wide text-slate-500">Enumeration areas</p>
+				<h2 class="text-xl font-semibold text-slate-900">Enumeration areas</h2>
+			</div>
+				
+			<div class="flex items-center gap-4">
+				<div class="text-right">
+					<p class="text-sm text-slate-500">Total Enumeration Areas</p>
+					<p class="text-xl font-semibold text-slate-900">{{ eaTotalRecords }}</p>
+				</div>
+				
+				<div class="flex items-center gap-2">
+					<button
+						pButton
+						type="button"
+						label="Export pending"
+						icon="pi pi-download"
+						class="p-button-outlined p-button-secondary p-button-sm"
+						(click)="exportEnumerationAreas('pending')"
+					></button>
+					<button
+						pButton
+						type="button"
+						label="Export sampled"
+						icon="pi pi-download"
+						class="p-button-outlined p-button-secondary p-button-sm"
+						(click)="exportEnumerationAreas('sampled')"
+					></button>
+					<button
+						pButton
+						type="button"
+						label="Run bulk sampling"
+						icon="pi pi-play"
+						class="p-button-primary p-button-sm"
+						[disabled]="selectedEAIds.size === 0 || bulkSubmitting"
+						(click)="openBulkDialog()"
+					></button>
+					<button
+						type="button"
+						class="text-xs text-slate-500 hover:text-primary-600"
+						(click)="clearSelection()"
+						[disabled]="selectedEAIds.size === 0"
+					>
+						Clear
+					</button>
+					<span class="text-xs text-slate-500" *ngIf="selectedEAIds.size">
+						{{ selectedEAIds.size }} selected
+					</span>
+				</div>
+			</div>
+		</div>
+
+		<p-table
+			[value]="eaRows"
+			[loading]="eaLoading"
+			[lazy]="true"
+			(onLazyLoad)="onLazyLoad($event)"
+			[paginator]="true"
+			[rows]="eaPageSize"
+			[totalRecords]="eaTotalRecords"
+			[rowsPerPageOptions]="[10, 15, 25, 50]"
+			styleClass="sampling-table"
+		>
+			<ng-template pTemplate="header">
+				<tr>
+					<th class="w-10">Select</th>
+					<th>Dzongkhag</th>
+					<th>Admin Zone</th>
+					<th>Sub-Admin Zone</th>
+					<th>Enumeration Area</th>
+					<th class="w-32">Households</th>
+					<th class="w-40">Status</th>
+					<th class="w-40">Submission/Validation</th>
+					<th class="w-32">Method</th>
+					<th class="w-48">Last run</th>
+					<th class="w-40 text-right">Actions</th>
+				</tr>
+			</ng-template>
+
+			<ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
+				<tr>
+					<td>
+						<p-checkbox
+							[binary]="true"
+							[ngModel]="isEASelected(row)"
+							(onChange)="toggleEASelection(row, $event.checked)"
+						></p-checkbox>
+					</td>
+					<!-- Dzongkhag with rowspan grouping -->
+					<td
+						*ngIf="isFirstInDzongkhagGroup(rowIndex, row)"
+						[attr.rowspan]="getDzongkhagRowspan(row)"
+						class="bg-slate-50 border-r-2 border-slate-200 align-top"
+					>
+						<div class="p-2">
+							<p class="text-sm font-semibold text-slate-900">{{ row.dzongkhagName || '—' }}</p>
+						</div>
+					</td>
+					<!-- Admin Zone with rowspan grouping -->
+					<td
+						*ngIf="isFirstInAdminZoneGroup(rowIndex, row)"
+						[attr.rowspan]="getAdminZoneRowspan(row)"
+						class="bg-blue-50 border-r-2 border-blue-200 align-top"
+					>
+						<div class="p-2 flex items-center gap-2">
+							<p-checkbox
+								[binary]="true"
+								[ngModel]="isAdminZoneSelected(row.administrativeZoneId)"
+								(onChange)="toggleAdminZoneSelection(row.administrativeZoneId, $event.checked)"
+							></p-checkbox>
+							<div class="flex-1">
+								<p class="text-sm font-semibold text-slate-900">{{ row.administrativeZoneName || '—' }}</p>
+								<p class="text-xs text-slate-500" *ngIf="row.administrativeZoneType">
+									{{ row.administrativeZoneType }}
+								</p>
+							</div>
+						</div>
+					</td>
+					<!-- Sub-Admin Zone with rowspan grouping -->
+					<td
+						*ngIf="isFirstInSubAdminZoneGroup(rowIndex, row)"
+						[attr.rowspan]="getSubAdminZoneRowspan(row)"
+						class="bg-green-50 border-r-2 border-green-200 align-top"
+					>
+						<div class="p-2 flex items-center gap-2">
+							<p-checkbox
+								[binary]="true"
+								[ngModel]="isSubAdminZoneSelected(row.subAdministrativeZoneId)"
+								(onChange)="toggleSubAdminZoneSelection(row.subAdministrativeZoneId, $event.checked)"
+							></p-checkbox>
+							<div class="flex-1">
+								<p class="text-sm font-semibold text-slate-900">{{ row.subAdministrativeZoneName || '—' }}</p>
+							</div>
+						</div>
+					</td>
+					<!-- Enumeration Area -->
+					<td>
+						<div class="flex flex-col">
+							<p class="font-semibold text-slate-900">
+								{{ row.enumerationAreaName }}
+							</p>
+							<p class="text-xs text-slate-500">
+								{{ row.enumerationAreaCode || '—' }}
+							</p>
+						</div>
+					</td>
+					<td>
+						<div class="text-sm font-semibold text-slate-900">
+							<span class="text-xs text-slate-500 font-normal">Households: </span>
+							{{ row.householdCount | number }}
+						</div>
+						<p class="text-xs text-slate-500" *ngIf="row.populationCount">
+							<span class="font-medium">Population: </span>
+							{{ row.populationCount | number }}
+						</p>
+					</td>
+					<td>
+						<div class="flex items-center gap-2">
+							<p-progressSpinner
+								*ngIf="isEAProcessing(row)"
+								styleClass="w-4 h-4"
+								strokeWidth="4"
+							></p-progressSpinner>
+							<p-tag
+								[severity]="getStatusSeverity(getEAStatus(row))"
+								[value]="getEAStatus(row) | titlecase"
+							></p-tag>
+						</div>
+						<p class="text-xs text-red-500 mt-1" *ngIf="row.errorMessage || getEAErrorMessage(row)">
+							{{ getEAErrorMessage(row) || row.errorMessage }}
+						</p>
+						<p class="text-xs text-green-600 mt-1" *ngIf="isEACompleted(row) && !row.errorMessage">
+							✓ Completed in this batch
+						</p>
+					</td>
+					<td>
+						<p-tag
+							[severity]="getUnifiedStatusSeverity(getUnifiedStatus(row))"
+							[value]="getUnifiedStatusLabel(getUnifiedStatus(row))"
+						></p-tag>
+						<p class="text-xs text-slate-500 mt-1" *ngIf="row.submissionDate">
+							Submitted: {{ row.submissionDate | date: 'short' }}
+						</p>
+						<p class="text-xs text-slate-500 mt-1" *ngIf="row.validationDate">
+							Validated: {{ row.validationDate | date: 'short' }}
+						</p>
+					</td>
+					<td>
+						<div class="text-sm text-slate-600">
+							<span class="text-xs text-slate-500 font-normal">Method: </span>
+							{{ row.method || '—' }}
+						</div>
+						<p class="text-xs text-slate-500" *ngIf="row.sampleSize">
+							<span class="font-medium">Sample Size: </span>
+							{{ row.sampleSize }}
+						</p>
+					</td>
+					<td>
+						<p class="text-sm text-slate-600">
+							{{ row.lastRunAt ? (row.lastRunAt | date: 'medium') : 'Not run' }}
+						</p>
+						<p class="text-xs text-slate-500" *ngIf="row.lastRunBy">
+							By {{ row.lastRunBy }}
+						</p>
+					</td>
+					<td>
+						<div class="flex justify-end gap-2">
+							<button
+								pButton
+								type="button"
+								icon="pi pi-refresh"
+								class="p-button-text"
+								title="Run sampling"
+								(click)="openRunSamplingDialog(row)"
+							></button>
+							<button
+								pButton
+								type="button"
+								icon="pi pi-eye"
+								class="p-button-text"
+								[disabled]="row.status === 'not_run' || isEAProcessing(row)"
+								title="View sampling results"
+								(click)="openResultDialog(row)"
+							></button>
+						</div>
+					</td>
+				</tr>
+			</ng-template>
+
+			<ng-template pTemplate="emptymessage">
+				<tr>
+					<td colspan="11" class="text-center py-6 text-slate-500">
+						No enumeration areas found for the selected criteria.
+					</td>
+				</tr>
+			</ng-template>
+		</p-table>
+	</section>
+
+	<!-- Bulk Sampling Dialog -->
+	<p-dialog
+		[(visible)]="bulkDialogVisible"
+		[modal]="true"
+		[closable]="true"
+		header="Bulk sampling"
+		[style]="{ width: '480px' }"
+	>
+		<p class="text-sm text-slate-500 mb-4">
+			Running sampling for {{ selectedEAIds.size }} enumeration area(s)
+		</p>
+		<form [formGroup]="bulkForm" class="space-y-3">
+			<div class="flex flex-col gap-1.5">
+				<label class="text-sm font-medium text-slate-700">Sampling Method</label>
+				<p-dropdown
+					formControlName="method"
+					[options]="[
+						{ label: 'Circular Systematic Sampling (CSS)', value: 'CSS' },
+						{ label: 'Simple Random Sampling (SRS)', value: 'SRS' },
+					]"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+			<div class="flex flex-col gap-1.5">
+				<label class="text-sm font-medium text-slate-700">Sample Size</label>
+				<p-inputNumber
+					formControlName="sampleSize"
+					[min]="1"
+					placeholder="Sample size"
+					class="w-full"
+				></p-inputNumber>
+			</div>
+			<div class="flex flex-col gap-1.5">
+				<label class="text-sm font-medium text-slate-700">Random Start (CSS only)</label>
+				<p-inputNumber
+					formControlName="randomStart"
+					[min]="1"
+					placeholder="Leave empty for auto-generated"
+					class="w-full"
+					[disabled]="bulkForm.get('method')?.value !== 'CSS'"
+				></p-inputNumber>
+			</div>
+			<div class="flex items-center gap-2">
+				<p-inputSwitch formControlName="overwriteExisting"></p-inputSwitch>
+				<span class="text-sm text-slate-600">Overwrite existing samples</span>
+			</div>
+		</form>
+
+		<ng-template pTemplate="footer">
+			<div class="flex justify-end gap-2">
+				<button
+					pButton
+					type="button"
+					label="Cancel"
+					class="p-button-text"
+					(click)="bulkDialogVisible = false"
+					[disabled]="bulkSubmitting"
+				></button>
+				<button
+					pButton
+					type="button"
+					label="Run Bulk Sampling"
+					class="p-button-primary"
+					[disabled]="bulkForm.invalid || bulkSubmitting"
+					(click)="runBulkSampling()"
+				>
+					<p-progressSpinner *ngIf="bulkSubmitting" styleClass="w-4 h-4 mr-2" strokeWidth="4"></p-progressSpinner>
+					Run
+				</button>
+			</div>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Run Sampling Dialog -->
+	<p-dialog
+		[(visible)]="runDialogVisible"
+		[modal]="true"
+		[closable]="true"
+		[style]="{ width: '500px' }"
+		header="Run sampling"
+	>
+		<div *ngIf="selectedEA" class="space-y-4">
+			<div class="rounded-xl border border-slate-200 p-4 bg-slate-50">
+				<p class="text-sm font-semibold text-slate-900">{{ selectedEA.enumerationAreaName }}</p>
+				<p class="text-xs text-slate-500">
+					{{ selectedEA.enumerationAreaCode || '—' }} · {{ selectedEA.dzongkhagName }} ·
+					{{ selectedEA.administrativeZoneName }}
+				</p>
+					<p class="text-xs text-slate-500 mt-2">
+						Households: {{ selectedEA.householdCount | number }} · Last sampled:
+						{{ selectedEA.lastRunAt ? (selectedEA.lastRunAt | date: 'medium') : 'Never' }}
+					</p>
+			</div>
+
+			<form [formGroup]="runForm" class="space-y-4">
+				<div class="flex flex-col gap-1.5">
+					<label class="text-sm font-medium text-slate-700">Sampling Method</label>
+					<p-dropdown
+						formControlName="method"
+						[options]="[
+							{ label: 'Circular Systematic Sampling (CSS)', value: 'CSS' },
+							{ label: 'Simple Random Sampling (SRS)', value: 'SRS' },
+						]"
+						styleClass="w-full"
+					></p-dropdown>
+				</div>
+				<div class="flex flex-col gap-1.5">
+					<label class="text-sm font-medium text-slate-700">Sample Size <span class="text-red-500">*</span></label>
+					<p-inputNumber
+						formControlName="sampleSize"
+						[min]="1"
+						placeholder="Enter number of households to sample"
+						class="w-full"
+					></p-inputNumber>
+					<p class="text-xs text-slate-500">Number of households to select from this enumeration area</p>
+				</div>
+				<div class="flex flex-col gap-1.5">
+					<label class="text-sm font-medium text-slate-700">Random Start (Optional - CSS only)</label>
+					<p-inputNumber
+						formControlName="randomStart"
+						[min]="1"
+						placeholder="Enter random start position (1 to population size)"
+						class="w-full"
+					></p-inputNumber>
+					<p class="text-xs text-slate-500">Starting position for CSS method. Leave empty for random selection.</p>
+				</div>
+				<div class="flex items-center gap-2 pt-2">
+					<p-inputSwitch formControlName="overwriteExisting"></p-inputSwitch>
+					<div class="flex flex-col">
+						<label class="text-sm font-medium text-slate-700">Overwrite Existing Sampling</label>
+						<p class="text-xs text-slate-500">If enabled, will delete existing sampling and create new one</p>
+					</div>
+				</div>
+			</form>
+		</div>
+
+		<ng-template pTemplate="footer">
+			<div class="flex justify-end gap-2">
+				<button
+					pButton
+					type="button"
+					label="Cancel"
+					class="p-button-text"
+					(click)="runDialogVisible = false"
+				></button>
+				<button
+					pButton
+					type="button"
+					label="Run"
+					class="p-button-primary"
+					[disabled]="runForm.invalid || runningSampling"
+					(click)="runSampling()"
+				></button>
+			</div>
+		</ng-template>
+	</p-dialog>
+
+	<!-- View Results Dialog -->
+	<p-dialog
+		[(visible)]="resultDialogVisible"
+		[modal]="true"
+		[closable]="true"
+		[style]="{ width: '90vw', maxWidth: '1200px' }"
+		header="Sampling Results"
+	>
+		<div *ngIf="selectedEA" class="space-y-4">
+			<!-- Enumeration Area Info -->
+			<div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+				<p class="text-sm font-semibold text-slate-900 mb-1">
+					{{ currentResult?.enumerationArea?.name || selectedEA.enumerationAreaName }}
+				</p>
+				<p class="text-xs text-slate-500">
+					{{ currentResult?.enumerationArea?.areaCode || selectedEA.enumerationAreaCode || '—' }}
+					<ng-container *ngIf="currentResult?.enumerationArea?.subAdminZone && currentResult?.enumerationArea?.adminZone">
+						· {{ currentResult?.enumerationArea?.subAdminZone?.name }}
+						· {{ currentResult?.enumerationArea?.adminZone?.name }}
+					</ng-container>
+					<span *ngIf="!currentResult?.enumerationArea">
+						· {{ selectedEA.dzongkhagName }} · {{ selectedEA.administrativeZoneName }}
+					</span>
+				</p>
+			</div>
+
+			<!-- Loading State -->
+			<div *ngIf="resultLoading || loadingAllHouseholds" class="flex items-center gap-2 text-sm text-slate-500 py-8">
+				<p-progressSpinner styleClass="w-5 h-5" strokeWidth="4"></p-progressSpinner>
+				<span>Loading data…</span>
+			</div>
+
+			<!-- Results Content -->
+			<div *ngIf="!resultLoading && !loadingAllHouseholds" class="space-y-4">
+				<!-- Sampling Metadata -->
+				<div *ngIf="currentResult" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+					<h4 class="text-sm font-semibold text-slate-900 mb-3">Sampling Details</h4>
+					<div class="grid grid-cols-2 gap-3 text-sm text-slate-700">
+						<div>
+							<span class="text-slate-500">Method:</span>
+							<span class="font-semibold ml-2">{{ currentResult.sampling.method }}</span>
+						</div>
+						<div>
+							<span class="text-slate-500">Sample Size:</span>
+							<span class="font-semibold ml-2">{{ currentResult.sampling.sampleSize }}</span>
+						</div>
+						<div>
+							<span class="text-slate-500">Population Size:</span>
+							<span class="font-semibold ml-2">{{ currentResult.sampling.populationSize }}</span>
+						</div>
+						<div *ngIf="currentResult.sampling.isFullSelection">
+							<span class="text-slate-500">Full Selection:</span>
+							<span class="font-semibold ml-2 text-green-600">Yes</span>
+						</div>
+						<div *ngIf="currentResult?.sampling?.samplingInterval !== null && currentResult?.sampling?.samplingInterval !== undefined">
+							<span class="text-slate-500">Sampling Interval:</span>
+							<span class="font-semibold ml-2">{{ currentResult.sampling.samplingInterval }}</span>
+						</div>
+						<div *ngIf="currentResult?.sampling?.randomStart !== null && currentResult?.sampling?.randomStart !== undefined">
+							<span class="text-slate-500">Random Start:</span>
+							<span class="font-semibold ml-2">{{ currentResult.sampling.randomStart }}</span>
+						</div>
+						<div *ngIf="currentResult.sampling.wrapAroundCount !== undefined">
+							<span class="text-slate-500">Wrap Around Count:</span>
+							<span class="font-semibold ml-2">{{ currentResult.sampling.wrapAroundCount }}</span>
+						</div>
+						<div>
+							<span class="text-slate-500">Executed At:</span>
+							<span class="font-semibold ml-2">{{ currentResult.sampling.executedAt | date: 'short' }}</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Tabs for Household List and Sampled List -->
+				<p-tabView>
+					<p-tabPanel header="All Households" [leftIcon]="'pi pi-list'">
+						<div class="mt-4">
+							<h4 class="text-sm font-semibold text-slate-900 mb-2">
+								All Households ({{ allHouseholdListings.length }})
+							</h4>
+							<p-table
+								[value]="allHouseholdListings"
+								[scrollable]="true"
+								scrollHeight="400px"
+								styleClass="text-sm p-datatable-sm"
+							>
+								<ng-template pTemplate="header">
+									<tr>
+										<th>Serial #</th>
+										<th>Structure #</th>
+										<th>Household ID</th>
+										<th>Head of Household</th>
+										<th class="text-center">Total Population<br/><span class="text-xs font-normal text-slate-500">(Male / Female)</span></th>
+										<th>Phone Number</th>
+										<th style="width: 100px">Status</th>
+									</tr>
+								</ng-template>
+								<ng-template pTemplate="body" let-listing>
+									<tr [ngClass]="{ 'selected-household': isHouseholdSelected(listing.id) }">
+										<td>{{ listing.householdSerialNumber }}</td>
+										<td>{{ listing.structureNumber }}</td>
+										<td>
+											<div class="flex items-center gap-2">
+												{{ listing.householdIdentification }}
+												<p-tag
+													*ngIf="isHouseholdSelected(listing.id)"
+													value="Selected"
+													severity="info"
+													styleClass="text-xs"
+												></p-tag>
+											</div>
+										</td>
+										<td class="font-medium">{{ listing.nameOfHOH }}</td>
+										<td class="text-center">
+											<div class="flex flex-col items-center">
+												<span class="font-semibold">{{ (listing.totalMale || 0) + (listing.totalFemale || 0) }}</span>
+												<span class="text-xs text-slate-500">
+													({{ listing.totalMale || 0 }}M / {{ listing.totalFemale || 0 }}F)
+												</span>
+											</div>
+										</td>
+										<td>{{ listing.phoneNumber || '—' }}</td>
+										<td>
+											<p-tag
+												*ngIf="isHouseholdSelected(listing.id)"
+												value="Sampled"
+												severity="success"
+												styleClass="text-xs"
+											></p-tag>
+											<span *ngIf="!isHouseholdSelected(listing.id)" class="text-xs text-slate-400">—</span>
+										</td>
+									</tr>
+								</ng-template>
+								<ng-template pTemplate="emptymessage">
+									<tr>
+										<td colspan="7" class="text-center py-8 text-slate-500">
+											No household listings found.
+										</td>
+									</tr>
+								</ng-template>
+							</p-table>
+						</div>
+					</p-tabPanel>
+
+					<p-tabPanel header="Sampled Households" [leftIcon]="'pi pi-check-circle'" [disabled]="!currentResult || selectedHouseholds.length === 0">
+						<div class="mt-4">
+							<h4 class="text-sm font-semibold text-slate-900 mb-2">
+								Selected Households ({{ selectedHouseholds.length }})
+							</h4>
+							<p-table
+								[value]="selectedHouseholds"
+								[scrollable]="true"
+								scrollHeight="400px"
+								styleClass="text-sm p-datatable-sm"
+							>
+								<ng-template pTemplate="header">
+									<tr>
+										<th style="width: 60px">Selection Order</th>
+										<th>Structure Number</th>
+										<th>Household ID</th>
+										<th>Head of Household</th>
+										<th class="text-center">Total Population<br/><span class="text-xs font-normal text-slate-500">(Male / Female)</span></th>
+										<th>Phone Number</th>
+										<th style="width: 100px">Is Replacement</th>
+									</tr>
+								</ng-template>
+								<ng-template pTemplate="body" let-item>
+									<tr>
+										<td class="font-mono text-xs">{{ item.selectionOrder }}</td>
+										<td>{{ item.household.structureNumber }}</td>
+										<td>{{ item.household.householdIdentification }}</td>
+										<td class="font-medium">{{ item.household.nameOfHOH }}</td>
+										<td class="text-center">
+											<div class="flex flex-col items-center">
+												<span class="font-semibold">{{ item.household.totalPopulation }}</span>
+												<span class="text-xs text-slate-500">
+													({{ item.household.totalMale }}M / {{ item.household.totalFemale }}F)
+												</span>
+											</div>
+										</td>
+										<td>{{ item.household.phoneNumber || '—' }}</td>
+										<td>
+											<p-tag
+												[value]="item.isReplacement ? 'Yes' : 'No'"
+												[severity]="item.isReplacement ? 'warning' : 'success'"
+												styleClass="text-xs"
+											></p-tag>
+										</td>
+									</tr>
+								</ng-template>
+								<ng-template pTemplate="emptymessage">
+									<tr>
+										<td colspan="7" class="text-center py-8 text-slate-500">
+											No sampled households found.
+										</td>
+									</tr>
+								</ng-template>
+							</p-table>
+						</div>
+					</p-tabPanel>
+				</p-tabView>
+			</div>
+		</div>
+
+		<ng-template pTemplate="footer">
+			<div class="flex justify-between w-full">
+				<button
+					pButton
+					type="button"
+					label="Download CSV"
+					class="p-button-outlined"
+					[disabled]="!currentResult"
+					(click)="downloadSamplingResult()"
+				></button>
+				<button pButton type="button" label="Close" class="p-button-text" (click)="resultDialogVisible = false"></button>
+			</div>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Config Dialog -->
+	<p-dialog
+		[(visible)]="configDialogVisible"
+		header="Configure Survey Defaults"
+		[modal]="true"
+		[style]="{ width: '600px' }"
+		[closable]="true"
+	>
+		<div class="flex flex-col gap-4">
+			<p class="text-sm text-slate-600">
+				Configure default methodology and sample sizes that will auto-fill EA level dialogs.
+			</p>
+
+			<form class="grid grid-cols-1 md:grid-cols-2 gap-4" [formGroup]="configForm">
+				<div class="flex flex-col gap-2">
+					<label class="text-sm font-medium text-slate-600">Default method</label>
+					<p-dropdown
+						formControlName="defaultMethod"
+						[options]="[
+							{ label: 'Circular Systematic Sampling (CSS)', value: 'CSS' },
+							{ label: 'Simple Random Sampling (SRS)', value: 'SRS' },
+						]"
+						[showClear]="false"
+						styleClass="w-full"
+					></p-dropdown>
+				</div>
+
+				<div class="flex flex-col gap-2">
+					<label class="text-sm font-medium text-slate-600">Default sample size</label>
+					<p-inputNumber
+						formControlName="defaultSampleSize"
+						[min]="1"
+						mode="decimal"
+						inputId="defaultSampleSize"
+						class="w-full"
+					></p-inputNumber>
+				</div>
+
+				<div class="flex flex-col gap-2">
+					<label class="text-sm font-medium text-slate-600">Urban (Thromde)</label>
+					<p-inputNumber
+						formControlName="urbanSampleSize"
+						[min]="1"
+						mode="decimal"
+						inputId="urbanSampleSize"
+						class="w-full"
+					></p-inputNumber>
+				</div>
+
+				<div class="flex flex-col gap-2">
+					<label class="text-sm font-medium text-slate-600">Rural (Gewog/others)</label>
+					<p-inputNumber
+						formControlName="ruralSampleSize"
+						[min]="1"
+						mode="decimal"
+						inputId="ruralSampleSize"
+						class="w-full"
+					></p-inputNumber>
+				</div>
+			</form>
+		</div>
+
+		<ng-template pTemplate="footer">
+			<div class="flex justify-end gap-2">
+				<button
+					pButton
+					type="button"
+					label="Cancel"
+					class="p-button-text"
+					(click)="configDialogVisible = false"
+				></button>
+				<button
+					pButton
+					type="button"
+					label="Save"
+					class="p-button-primary"
+					[disabled]="configSaving"
+					(click)="saveSurveyConfig()"
+				>
+					<p-progressSpinner *ngIf="configSaving" styleClass="w-4 h-4 mr-2" strokeWidth="4"></p-progressSpinner>
+					
+				</button>
+			</div>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Confirmation Dialog -->
+	<p-confirmDialog></p-confirmDialog>
+</div>

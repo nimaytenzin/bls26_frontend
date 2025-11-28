@@ -9,7 +9,7 @@ import { filter } from 'rxjs/operators';
 @Component({
 	selector: 'app-enumerator-layout',
 	templateUrl: './enumerator-layout.component.html',
-	styleUrls: ['./enumerator-layout.component.css'],
+	styleUrls: ['./enumerator-layout.component.scss'],
 	standalone: true,
 	imports: [CommonModule, RouterModule, PrimeNgModules],
 })

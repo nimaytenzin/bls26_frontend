@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
 	Survey,
-	SurveyStatus,
 	PaginationQueryDto,
 	PaginatedResponse,
 } from '../../../../core/dataservice/survey/survey.dto';
@@ -14,6 +13,7 @@ import { MessageService } from 'primeng/api';
 import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
 import { ActiveSurveysTableComponent } from './components/active-surveys-table.component';
 import { AllSurveysTableComponent } from './components/all-surveys-table.component';
+import { SurveyStatus } from '../../../../core/constants/enums';
 
 @Component({
 	selector: 'app-admin-master-survey',

@@ -5,7 +5,7 @@ import { PrimeNgModules } from '../../../primeng.modules';
 @Component({
 	selector: 'app-past-surveys',
 	templateUrl: './past-surveys.component.html',
-	styleUrls: ['./past-surveys.component.css'],
+	styleUrls: ['./past-surveys.component.scss'],
 	standalone: true,
 	imports: [CommonModule, PrimeNgModules],
 })

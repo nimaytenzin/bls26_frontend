@@ -31,6 +31,7 @@ export interface SurveyEnumerationArea {
  */
 export interface SubmitSurveyEnumerationAreaDto {
 	submittedBy: number;
+	comments?: string;
 }
 
 /**

@@ -5,6 +5,7 @@ import { PrimeNgModules } from '../../../../../primeng.modules';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { SurveyDataService } from '../../../../../core/dataservice/survey/survey.dataservice';
 import { SurveyEnumerationAreaDataService } from '../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dataservice';
+import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dataservice';
 import { EnumerationAreaDataService } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
 import { DzongkhagDataService } from '../../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
 import { AdministrativeZoneDataService } from '../../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
@@ -12,11 +13,13 @@ import { SubAdministrativeZoneDataService } from '../../../../../core/dataservic
 import {
 	SurveyEnumerationArea,
 	BulkUploadResponse,
+	ValidateSurveyEnumerationAreaDto,
 } from '../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
 import { EnumerationArea } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 import { Dzongkhag } from '../../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
 import { AdministrativeZone } from '../../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
 import { SubAdministrativeZone } from '../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
+import { AuthService } from '../../../../../core/dataservice/auth/auth.service';
 import { forkJoin } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
@@ -80,15 +83,35 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 	uploading = false;
 	uploadResult: BulkUploadResponse | null = null;
 
+	// Validation Dialog
+	showValidationDialog = false;
+	validating = false;
+	validationComments = '';
+	isApproving = true;
+	currentEAForValidation: SurveyEnumerationArea | null = null;
+
+	// Household listings for validation dialog
+	householdListings: any[] = [];
+	loadingHouseholdListings = false;
+	householdListingsStatistics: any = null;
+
+	// Generate Blank Entries Dialog
+	showGenerateBlankDialog = false;
+	generatingBlank = false;
+	blankCount = 20;
+	blankRemarks = 'No data available - Historical survey entry';
+
 	constructor(
 		private surveyService: SurveyDataService,
 		private surveyEAService: SurveyEnumerationAreaDataService,
+		private householdService: SurveyEnumerationAreaHouseholdListingDataService,
 		private eaService: EnumerationAreaDataService,
 		private dzongkhagService: DzongkhagDataService,
 		private adminZoneService: AdministrativeZoneDataService,
 		private subAdminZoneService: SubAdministrativeZoneDataService,
 		private messageService: MessageService,
-		private confirmationService: ConfirmationService
+		private confirmationService: ConfirmationService,
+		private authService: AuthService
 	) {}
 
 	ngOnInit() {
@@ -622,5 +645,219 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 				(pTable as any).dt.filterGlobal(input.value, 'contains');
 			}
 		}
+	}
+
+	/**
+	 * Check if EA can be validated
+	 */
+	canValidate(ea: SurveyEnumerationArea): boolean {
+		return ea.isSubmitted && !ea.isValidated;
+	}
+
+	/**
+	 * Open validation dialog and load household listings
+	 */
+	openValidationDialog(ea: SurveyEnumerationArea) {
+		if (!this.canValidate(ea)) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Warning',
+				detail: 'This enumeration area cannot be validated',
+				life: 3000,
+			});
+			return;
+		}
+		this.currentEAForValidation = ea;
+		this.validationComments = '';
+		this.isApproving = true;
+		this.householdListings = [];
+		this.householdListingsStatistics = null;
+		this.showValidationDialog = true;
+		this.loadHouseholdListingsForDialog(ea.id);
+	}
+
+	/**
+	 * Load household listings for the validation dialog
+	 */
+	loadHouseholdListingsForDialog(surveyEAId: number) {
+		this.loadingHouseholdListings = true;
+		
+		// Load household listings
+		this.householdService.getBySurveyEA(surveyEAId).subscribe({
+			next: (listings: any[]) => {
+				this.householdListings = listings;
+				this.loadingHouseholdListings = false;
+			},
+			error: (error) => {
+				console.error('Error loading household listings:', error);
+				this.loadingHouseholdListings = false;
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: 'Failed to load household listings',
+					life: 3000,
+				});
+			},
+		});
+
+		// Load statistics
+		this.householdService.getStatisticsByEnumerationArea(surveyEAId).subscribe({
+			next: (stats) => {
+				this.householdListingsStatistics = stats;
+			},
+			error: (error) => {
+				console.error('Error loading statistics:', error);
+			},
+		});
+	}
+
+	/**
+	 * Validate enumeration area (approve)
+	 */
+	validateEnumerationArea() {
+		if (!this.currentEAForValidation) return;
+
+		const currentUser = this.authService.getCurrentUser();
+		if (!currentUser || !currentUser.id) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Error',
+				detail: 'Unable to get authenticated user information',
+			});
+			return;
+		}
+
+		this.validating = true;
+
+		const validateDto: ValidateSurveyEnumerationAreaDto = {
+			validatedBy: currentUser.id,
+			isApproved: this.isApproving,
+			comments: this.validationComments?.trim() || undefined,
+		};
+
+		this.surveyEAService.validate(this.currentEAForValidation.id, validateDto).subscribe({
+			next: (updatedEA) => {
+				this.validating = false;
+				this.showValidationDialog = false;
+				this.validationComments = '';
+				this.currentEAForValidation = null;
+				this.householdListings = [];
+				this.householdListingsStatistics = null;
+
+				// Update the EA in the list
+				const index = this.surveyEAs.findIndex(
+					(item) => item.id === updatedEA.id
+				);
+				if (index !== -1) {
+					this.surveyEAs[index] = updatedEA;
+					// Rebuild grouped data
+					this.buildGroupedData();
+				}
+
+				this.messageService.add({
+					severity: 'success',
+					summary: this.isApproving ? 'Approved' : 'Rejected',
+					detail: `Enumeration area has been ${this.isApproving ? 'approved and validated' : 'rejected'}`,
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				this.validating = false;
+				console.error('Error validating enumeration area:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail:
+						error?.error?.message ||
+						'Failed to validate enumeration area',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Close validation dialog
+	 */
+	closeValidationDialog() {
+		this.showValidationDialog = false;
+		this.validationComments = '';
+		this.currentEAForValidation = null;
+		this.householdListings = [];
+		this.householdListingsStatistics = null;
+	}
+
+	/**
+	 * Open generate blank entries dialog
+	 */
+	openGenerateBlankDialog() {
+		if (!this.currentEAForValidation) return;
+		this.blankCount = 20;
+		this.blankRemarks = 'No data available - Historical survey entry';
+		this.showGenerateBlankDialog = true;
+	}
+
+	/**
+	 * Close generate blank entries dialog
+	 */
+	closeGenerateBlankDialog() {
+		this.showGenerateBlankDialog = false;
+		this.blankCount = 20;
+		this.blankRemarks = 'No data available - Historical survey entry';
+	}
+
+	/**
+	 * Generate blank household listings
+	 */
+	generateBlankHouseholdListings() {
+		if (!this.currentEAForValidation) return;
+
+		if (this.blankCount < 1 || this.blankCount > 10000) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Invalid Count',
+				detail: 'Count must be between 1 and 10000',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.generatingBlank = true;
+
+		const dto = {
+			count: this.blankCount,
+			remarks: this.blankRemarks?.trim() || undefined,
+		};
+
+		this.householdService
+			.createBlankHouseholdListings(this.currentEAForValidation.id, dto)
+			.subscribe({
+				next: (response) => {
+					this.generatingBlank = false;
+					this.showGenerateBlankDialog = false;
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: `Successfully created ${response.created} blank household listing entries`,
+						life: 3000,
+					});
+					// Reload household listings and statistics
+					if (this.currentEAForValidation) {
+						this.loadHouseholdListingsForDialog(this.currentEAForValidation.id);
+					}
+				},
+				error: (error) => {
+					this.generatingBlank = false;
+					console.error('Error generating blank household listings:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail:
+							error?.error?.message ||
+							'Failed to generate blank household listings',
+						life: 3000,
+					});
+				},
+			});
 	}
 }

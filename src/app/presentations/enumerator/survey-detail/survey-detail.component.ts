@@ -7,21 +7,13 @@ import { Survey } from '../../../core/dataservice/survey/survey.dto';
 import { EnumerationArea } from '../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 import { PrimeNgModules } from '../../../primeng.modules';
 
-interface LocationHierarchy {
-	dzongkhagId: number;
-	dzongkhagName: string;
-	adminZoneId?: number;
-	adminZoneName?: string;
-	subAdminZoneId?: number;
-	subAdminZoneName?: string;
-}
 
 @Component({
 	selector: 'app-survey-detail',
 	standalone: true,
 	imports: [CommonModule, FormsModule, PrimeNgModules],
 	templateUrl: './survey-detail.component.html',
-	styleUrls: ['./survey-detail.component.css'],
+	styleUrls: ['./survey-detail.component.scss'],
 })
 export class SurveyDetailComponent implements OnInit {
 	survey: Survey | null = null;
@@ -29,37 +21,22 @@ export class SurveyDetailComponent implements OnInit {
 	loading = true;
 	error: string | null = null;
 
-	// Tab control
-	activeTab: 'location' | 'status' = 'location';
-
-	// Survey status data
-	surveyStatus: any = null;
-	loadingStatus = false;
-
 	// Location selection
-	selectedDzongkhag: LocationHierarchy | null = null;
+	selectedDzongkhag: { id: number; name: string } | null = null;
 	selectedAdminZone: { id: number; name: string } | null = null;
 	selectedSubAdminZone: { id: number; name: string } | null = null;
-	selectedEnumerationArea: {
-		id: number;
-		name: string;
-		areaCode: string;
-		surveyEnumerationAreaId?: number;
-	} | null = null;
 
 	// Available options
-	dzongkhags: LocationHierarchy[] = [];
+	dzongkhags: { id: number; name: string }[] = [];
 	adminZones: { id: number; name: string }[] = [];
 	subAdminZones: { id: number; name: string }[] = [];
-	enumerationAreas: {
-		id: number;
-		name: string;
-		areaCode: string;
-		surveyEnumerationAreaId: number;
-	}[] = [];
 
-	// Grouped enumeration areas
-	groupedEnumerationAreas: Map<string, EnumerationArea[]> = new Map();
+	// Filtered enumeration areas for selected SAZ
+	filteredEnumerationAreas: any[] = [];
+	searchQuery: string = '';
+
+	// Flag to prevent saving during restore
+	private isRestoring: boolean = false;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -73,51 +50,101 @@ export class SurveyDetailComponent implements OnInit {
 	}
 
 	/**
-	 * Switch between tabs
+	 * Get storage key for this survey's selections
 	 */
-	switchTab(tab: 'location' | 'status') {
-		this.activeTab = tab;
-		if (tab === 'status' && !this.surveyStatus) {
-			this.loadSurveyStatus();
+	private getStorageKey(): string {
+		return `survey_${this.surveyId}_location_selection`;
+	}
+
+	/**
+	 * Save current selection to localStorage
+	 */
+	private saveSelection() {
+		// Don't save during restore process
+		if (this.isRestoring) return;
+
+		const selection = {
+			dzongkhagId: this.selectedDzongkhag?.id,
+			adminZoneId: this.selectedAdminZone?.id,
+			subAdminZoneId: this.selectedSubAdminZone?.id,
+		};
+		localStorage.setItem(this.getStorageKey(), JSON.stringify(selection));
+	}
+
+	/**
+	 * Load saved selection from localStorage
+	 */
+	private loadSelection(): {
+		dzongkhagId?: number;
+		adminZoneId?: number;
+		subAdminZoneId?: number;
+	} | null {
+		try {
+			const saved = localStorage.getItem(this.getStorageKey());
+			if (saved) {
+				return JSON.parse(saved);
+			}
+		} catch (error) {
+			console.error('Error loading saved selection:', error);
 		}
+		return null;
 	}
 
 	/**
-	 * Load survey submission status
+	 * Restore saved selection after survey data is loaded
 	 */
-	loadSurveyStatus() {
-		this.loadingStatus = true;
-		this.enumeratorService.getSurveySubmissionStatus(this.surveyId).subscribe({
-			next: (status) => {
-				this.surveyStatus = status;
-				this.loadingStatus = false;
-			},
-			error: (error) => {
-				console.error('Error loading survey status:', error);
-				this.loadingStatus = false;
-			},
-		});
-	}
+	private restoreSelection() {
+		const saved = this.loadSelection();
+		if (!saved || !this.survey?.surveyEnumerationAreas || this.dzongkhags.length === 0) return;
 
-	/**
-	 * Load survey details with enumeration areas
-	 */
-	loadSurveyDetails() {
-		this.loading = true;
-		this.error = null;
+		this.isRestoring = true;
 
-		this.enumeratorService.getSurveyDetails(this.surveyId).subscribe({
-			next: (survey) => {
-				this.survey = survey;
-				this.processEnumerationAreas();
-				this.loading = false;
-			},
-			error: (error) => {
-				console.error('Error loading survey details:', error);
-				this.error = 'Failed to load survey details. Please try again.';
-				this.loading = false;
-			},
-		});
+		// Restore Dzongkhag
+		if (saved.dzongkhagId) {
+			const dzongkhag = this.dzongkhags.find((d) => d.id === saved.dzongkhagId);
+			if (dzongkhag) {
+				this.selectedDzongkhag = dzongkhag;
+				// Manually trigger the change to populate admin zones
+				this.onDzongkhagChange();
+
+				// Use setTimeout to ensure adminZones are populated before restoring
+				setTimeout(() => {
+					// Restore Admin Zone
+					if (saved.adminZoneId && this.adminZones.length > 0) {
+						const adminZone = this.adminZones.find(
+							(a) => a.id === saved.adminZoneId
+						);
+						if (adminZone) {
+							this.selectedAdminZone = adminZone;
+							this.onAdminZoneChange();
+
+							// Use setTimeout to ensure subAdminZones are populated before restoring
+							setTimeout(() => {
+								// Restore Sub Admin Zone
+								if (saved.subAdminZoneId && this.subAdminZones.length > 0) {
+									const subAdminZone = this.subAdminZones.find(
+										(s) => s.id === saved.subAdminZoneId
+									);
+									if (subAdminZone) {
+										this.selectedSubAdminZone = subAdminZone;
+										this.onSubAdminZoneChange();
+									}
+								}
+								this.isRestoring = false;
+							}, 0);
+						} else {
+							this.isRestoring = false;
+						}
+					} else {
+						this.isRestoring = false;
+					}
+				}, 0);
+			} else {
+				this.isRestoring = false;
+			}
+		} else {
+			this.isRestoring = false;
+		}
 	}
 
 	/**
@@ -126,7 +153,7 @@ export class SurveyDetailComponent implements OnInit {
 	processEnumerationAreas() {
 		if (!this.survey?.surveyEnumerationAreas) return;
 
-		const dzongkhagMap = new Map<number, LocationHierarchy>();
+		const dzongkhagMap = new Map<number, { id: number; name: string }>();
 
 		this.survey.surveyEnumerationAreas.forEach((surveyEa) => {
 			const ea = surveyEa.enumerationArea;
@@ -135,15 +162,15 @@ export class SurveyDetailComponent implements OnInit {
 			if (dzongkhag) {
 				if (!dzongkhagMap.has(dzongkhag.id)) {
 					dzongkhagMap.set(dzongkhag.id, {
-						dzongkhagId: dzongkhag.id,
-						dzongkhagName: dzongkhag.name,
+						id: dzongkhag.id,
+						name: dzongkhag.name,
 					});
 				}
 			}
 		});
 
 		this.dzongkhags = Array.from(dzongkhagMap.values()).sort((a, b) =>
-			a.dzongkhagName.localeCompare(b.dzongkhagName)
+			a.name.localeCompare(b.name)
 		);
 	}
 
@@ -153,12 +180,15 @@ export class SurveyDetailComponent implements OnInit {
 	onDzongkhagChange() {
 		this.selectedAdminZone = null;
 		this.selectedSubAdminZone = null;
-		this.selectedEnumerationArea = null;
 		this.adminZones = [];
 		this.subAdminZones = [];
-		this.enumerationAreas = [];
+		this.filteredEnumerationAreas = [];
+		this.searchQuery = '';
 
-		if (!this.selectedDzongkhag || !this.survey?.surveyEnumerationAreas) return;
+		if (!this.selectedDzongkhag || !this.survey?.surveyEnumerationAreas) {
+			this.saveSelection();
+			return;
+		}
 
 		const adminZoneMap = new Map<number, { id: number; name: string }>();
 
@@ -168,7 +198,7 @@ export class SurveyDetailComponent implements OnInit {
 				ea?.subAdministrativeZone?.administrativeZone?.dzongkhag;
 			const adminZone = ea?.subAdministrativeZone?.administrativeZone;
 
-			if (dzongkhag?.id === this.selectedDzongkhag?.dzongkhagId && adminZone) {
+			if (dzongkhag?.id === this.selectedDzongkhag?.id && adminZone) {
 				if (!adminZoneMap.has(adminZone.id)) {
 					adminZoneMap.set(adminZone.id, {
 						id: adminZone.id,
@@ -181,6 +211,7 @@ export class SurveyDetailComponent implements OnInit {
 		this.adminZones = Array.from(adminZoneMap.values()).sort((a, b) =>
 			a.name.localeCompare(b.name)
 		);
+		this.saveSelection();
 	}
 
 	/**
@@ -188,16 +219,18 @@ export class SurveyDetailComponent implements OnInit {
 	 */
 	onAdminZoneChange() {
 		this.selectedSubAdminZone = null;
-		this.selectedEnumerationArea = null;
 		this.subAdminZones = [];
-		this.enumerationAreas = [];
+		this.filteredEnumerationAreas = [];
+		this.searchQuery = '';
 
 		if (
 			!this.selectedDzongkhag ||
 			!this.selectedAdminZone ||
 			!this.survey?.surveyEnumerationAreas
-		)
+		) {
+			this.saveSelection();
 			return;
+		}
 
 		const subAdminZoneMap = new Map<number, { id: number; name: string }>();
 
@@ -219,92 +252,125 @@ export class SurveyDetailComponent implements OnInit {
 		this.subAdminZones = Array.from(subAdminZoneMap.values()).sort((a, b) =>
 			a.name.localeCompare(b.name)
 		);
+		this.saveSelection();
 	}
 
 	/**
 	 * Handle Sub Administrative Zone selection
 	 */
 	onSubAdminZoneChange() {
-		this.selectedEnumerationArea = null;
-		this.enumerationAreas = [];
+		this.filteredEnumerationAreas = [];
+		this.searchQuery = '';
 
 		if (
 			!this.selectedDzongkhag ||
 			!this.selectedAdminZone ||
 			!this.selectedSubAdminZone ||
 			!this.survey?.surveyEnumerationAreas
-		)
+		) {
+			this.saveSelection();
 			return;
+		}
 
-		const eaMap = new Map<
-			number,
-			{
-				id: number;
-				name: string;
-				areaCode: string;
-				surveyEnumerationAreaId: number;
+		// Filter enumeration areas for selected SAZ
+		this.filteredEnumerationAreas = this.survey.surveyEnumerationAreas.filter(
+			(surveyEa) => {
+				const ea = surveyEa.enumerationArea;
+				const subAdminZone = ea?.subAdministrativeZone;
+				return subAdminZone?.id === this.selectedSubAdminZone?.id;
 			}
-		>();
+		);
+		this.saveSelection();
+	}
 
-		this.survey.surveyEnumerationAreas.forEach((surveyEa) => {
+	/**
+	 * Filter enumeration areas based on search query (within selected SAZ)
+	 */
+	filterEnumerationAreas() {
+		if (!this.selectedSubAdminZone || !this.survey?.surveyEnumerationAreas) {
+			this.filteredEnumerationAreas = [];
+			return;
+		}
+
+		// Get all EAs for selected SAZ
+		let filtered = this.survey.surveyEnumerationAreas.filter((surveyEa) => {
 			const ea = surveyEa.enumerationArea;
 			const subAdminZone = ea?.subAdministrativeZone;
-
-			if (
-				subAdminZone?.id === this.selectedSubAdminZone?.id &&
-				ea &&
-				surveyEa.id
-			) {
-				if (!eaMap.has(ea.id)) {
-					eaMap.set(ea.id, {
-						id: ea.id,
-						name: ea.name,
-						areaCode: ea.areaCode || '',
-						surveyEnumerationAreaId: surveyEa.id,
-					});
-				}
-			}
+			return subAdminZone?.id === this.selectedSubAdminZone?.id;
 		});
 
-		const eaArray: Array<{
-			id: number;
-			name: string;
-			areaCode: string;
-			surveyEnumerationAreaId: number;
-		}> = Array.from(eaMap.values());
+		// Apply search filter if query exists
+		if (this.searchQuery.trim()) {
+			const query = this.searchQuery.toLowerCase().trim();
+			filtered = filtered.filter((surveyEa) => {
+				const ea = surveyEa.enumerationArea;
+				if (!ea) return false;
 
-		this.enumerationAreas = eaArray.sort((a, b) =>
-			a.name.localeCompare(b.name)
-		);
+				// Search in EA name
+				if (ea.name?.toLowerCase().includes(query)) return true;
+
+				// Search in area code
+				if (ea.areaCode?.toLowerCase().includes(query)) return true;
+
+				return false;
+			});
+		}
+
+		this.filteredEnumerationAreas = filtered;
 	}
 
 	/**
-	 * Check if Continue button should be enabled
+	 * Get location hierarchy string for display
 	 */
-	canContinue(): boolean {
-		return !!(
-			this.selectedDzongkhag &&
-			this.selectedAdminZone &&
-			this.selectedSubAdminZone &&
-			this.selectedEnumerationArea
-		);
+	getLocationHierarchy(ea: EnumerationArea | undefined): string {
+		if (!ea) return '';
+		const parts: string[] = [];
+		if (ea.subAdministrativeZone?.administrativeZone?.dzongkhag?.name) {
+			parts.push(
+				ea.subAdministrativeZone.administrativeZone.dzongkhag.name
+			);
+		}
+		if (ea.subAdministrativeZone?.administrativeZone?.name) {
+			parts.push(ea.subAdministrativeZone.administrativeZone.name);
+		}
+		if (ea.subAdministrativeZone?.name) {
+			parts.push(ea.subAdministrativeZone.name);
+		}
+		return parts.join(' → ');
 	}
 
 	/**
-	 * Navigate to survey enumeration area detail
+	 * Track by function for ngFor
 	 */
-	continue() {
-		if (
-			!this.canContinue() ||
-			!this.selectedEnumerationArea?.surveyEnumerationAreaId
-		)
-			return;
-
-		this.router.navigate([
-			'/enumerator/survey-enumeration-area',
-			this.selectedEnumerationArea.surveyEnumerationAreaId,
-		]);
+	trackBySurveyEaId(index: number, surveyEa: any): number {
+		return surveyEa.id || index;
 	}
+
+	/**
+	 * Load survey details with enumeration areas
+	 */
+	loadSurveyDetails() {
+		this.loading = true;
+		this.error = null;
+
+		this.enumeratorService.getSurveyDetails(this.surveyId).subscribe({
+			next: (survey) => {
+				this.survey = survey;
+				this.processEnumerationAreas();
+				// Restore saved selection after processing
+				setTimeout(() => {
+					this.restoreSelection();
+				}, 0);
+				this.loading = false;
+			},
+			error: (error) => {
+				console.error('Error loading survey details:', error);
+				this.error = 'Failed to load survey details. Please try again.';
+				this.loading = false;
+			},
+		});
+	}
+
 
 	/**
 	 * Go back to dashboard
@@ -324,13 +390,6 @@ export class SurveyDetailComponent implements OnInit {
 		]);
 	}
 
-	/**
-	 * Navigate to dzongkhag data viewer
-	 */
-	navigateToDzongkhag(dzongkhagId: number) {
-		if (!dzongkhagId) return;
-		this.router.navigate(['/admin/data-view/dzongkhag', dzongkhagId]);
-	}
 
 	/**
 	 * Format date for display

@@ -9,10 +9,10 @@
 				<div
 					class="absolute inset-0 border-4 border-blue-100 rounded-full"
 				></div>
-				<div
-					class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
-					style="border-color: #1395d3"
-				></div>
+					<div
+						class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+						style="border-color: #1A58AF"
+					></div>
 			</div>
 			<p class="text-gray-600 font-medium">Loading households...</p>
 		</div>
@@ -36,7 +36,9 @@
 			<button
 				(click)="goBack()"
 				class="w-full text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
-				style="background-color: #1395d3"
+				style="background-color: #1A58AF;"
+				onmouseover="this.style.backgroundColor='#103975'"
+				onmouseout="this.style.backgroundColor='#1A58AF'"
 			>
 				<i class="pi pi-arrow-left mr-2"></i>
 				Go Back
@@ -49,7 +51,7 @@
 		<!-- Hero Header Section: Fixed at top -->
 		<div
 			class="fixed top-0 left-0 right-0 z-40 shadow-xl"
-			style="background-color: #1395d3"
+			style="background-color: #1A58AF"
 		>
 			<div class="px-4 pt-4 pb-3">
 				<!-- Back Button -->
@@ -116,7 +118,7 @@
 						(ngModelChange)="filterHouseholds()"
 						placeholder="Search households..."
 						class="w-full pl-11 pr-4 py-3 bg-white/95 backdrop-blur-sm border-0 rounded-xl shadow-lg focus:outline-none focus:ring-2 text-gray-900 placeholder-gray-400 font-medium"
-						style="--tw-ring-color: rgba(19, 149, 211, 0.5)"
+						style="--tw-ring-color: rgba(26, 88, 175, 0.5)"
 					/>
 					<div
 						*ngIf="searchQuery"
@@ -162,9 +164,10 @@
 					class="flex flex-col items-center justify-center py-20 px-4"
 				>
 					<div
-						class="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center mb-6 shadow-inner"
+						class="w-32 h-32 rounded-full flex items-center justify-center mb-6 shadow-inner"
+						style="background-color: #E8F0FF;"
 					>
-						<i class="pi pi-home text-5xl text-[#1395D3]"></i>
+						<i class="pi pi-home text-5xl" style="color: #1A58AF;"></i>
 					</div>
 					<h3 class="text-xl font-bold text-gray-900 mb-2">
 						{{ searchQuery ? "No Results Found" : "No Households Yet" }}
@@ -179,7 +182,10 @@
 					<button
 						*ngIf="!searchQuery && canModifyHouseholds()"
 						(click)="navigateToAddHousehold()"
-						class="bg-[#1395D3] text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+						class="text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+						style="background-color: #1A58AF;"
+						onmouseover="this.style.backgroundColor='#103975'"
+						onmouseout="this.style.backgroundColor='#1A58AF'"
 					>
 						<i class="pi pi-plus mr-2"></i>
 						Add First Household
@@ -202,11 +208,12 @@
 						<div class="flex justify-between items-start mb-3">
 							<div class="flex-1">
 								<div class="flex justify-between gap-2 mb-1">
-									<div
-										class="bg-[#1395D3] text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm"
-									>
-										Structure #{{ household.structureNumber }}
-									</div>
+								<div
+									class="text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm"
+									style="background-color: #1A58AF;"
+								>
+									Structure #{{ household.structureNumber }}
+								</div>
 									<div
 										class="bg-gray-100 text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-lg"
 									>
@@ -282,12 +289,12 @@
 						</div>
 
 						<!-- Population Info -->
-						<div class="bg-blue-50 rounded-xl p-2">
+						<div class="rounded-xl p-2" style="background-color: #E8F0FF;">
 							<div class="flex items-center justify-between">
 								<div class="flex items-center gap-4">
 									<div class="text-center">
 										<div class="text-xs text-gray-600 mb-0.5">Male</div>
-										<div class="text-lg font-bold" style="color: #1395d3">
+										<div class="text-lg font-bold" style="color: #1A58AF">
 											{{ household.totalMale }}
 										</div>
 									</div>
@@ -316,8 +323,11 @@
 			<button
 				*ngIf="canModifyHouseholds()"
 				(click)="navigateToAddHousehold()"
-				class="fixed bottom-24 right-4 w-16 h-16 bg-[#1395D3] text-white rounded-2xl shadow-2xl hover:shadow-3xl hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center z-50 group"
+				class="fixed bottom-24 right-4 w-16 h-16 text-white rounded-2xl shadow-2xl hover:shadow-3xl hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center z-50 group"
+				style="background-color: #1A58AF;"
 				aria-label="Add new household"
+				onmouseover="this.style.backgroundColor='#103975'"
+				onmouseout="this.style.backgroundColor='#1A58AF'"
 			>
 				<i
 					class="pi pi-plus text-2xl group-hover:rotate-90 transition-transform duration-200"
@@ -366,7 +376,8 @@
 						[id]="'status-' + status"
 						[checked]="statusFilter.includes(status)"
 						(change)="toggleStatusFilter(status)"
-						class="w-4 h-4 text-[#1395D3] border-gray-300 rounded focus:ring-blue-500"
+						class="w-4 h-4 border-gray-300 rounded focus:ring-2"
+						style="accent-color: #1A58AF; --tw-ring-color: rgba(26, 88, 175, 0.5);"
 					/>
 					<label
 						[for]="'status-' + status"
@@ -387,7 +398,10 @@
 					</button>
 					<button
 						(click)="filterDialogVisible = false"
-						class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+						class="flex-1 px-4 py-2 text-white rounded-lg transition-colors"
+						style="background-color: #1A58AF;"
+						onmouseover="this.style.backgroundColor='#103975'"
+						onmouseout="this.style.backgroundColor='#1A58AF'"
 					>
 						Apply
 					</button>

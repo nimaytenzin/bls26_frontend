@@ -49,7 +49,8 @@
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
-	width: 20px;
+	align-items: center;
+	width: 22px;
 	height: 16px;
 	position: relative;
 }
@@ -57,31 +58,30 @@
 .hamburger-line {
 	display: block;
 	height: 2px;
-	width: 100%;
+	width: 22px;
 	background-color: #475569;
 	border-radius: 2px;
 	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	transform-origin: center;
+	align-self: center;
+}
+
+.hamburger-line:nth-child(2) {
+	width: 16px;
+}
+
+.hamburger-line:nth-child(3) {
+	width: 12px;
 }
 
 .layout-menu-button:hover .hamburger-line {
 	background-color: #1e293b;
 }
 
-/* Hamburger Animation - Active State (Arrow Right) */
-.layout-menu-button.active .hamburger-line:nth-child(1) {
-	transform: translateY(7px) rotate(-40deg) scaleX(0.5);
-	transform-origin: left center;
-}
-
-.layout-menu-button.active .hamburger-line:nth-child(2) {
-	opacity: 0;
-	transform: scaleX(0);
-}
-
-.layout-menu-button.active .hamburger-line:nth-child(3) {
-	transform: translateY(-7px) rotate(40deg) scaleX(0.5);
-	transform-origin: left center;
+/* Hamburger Animation - Active State (Equal width when collapsed) */
+.layout-menu-button.active .hamburger-line {
+	width: 22px;
+	align-self: stretch;
 }
 
 /* Profile Popover Styles */

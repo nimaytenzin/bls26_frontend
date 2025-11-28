@@ -2,8 +2,9 @@ import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PrimeNgModules } from '../../../../../primeng.modules';
-import { Survey, SurveyStatus } from '../../../../../core/dataservice/survey/survey.dto';
+import { Survey,  } from '../../../../../core/dataservice/survey/survey.dto';
 import { SurveyDataService } from '../../../../../core/dataservice/survey/survey.dataservice';
+import { SurveyStatus } from '../../../../../core/constants/enums';
 
 @Component({
 	selector: 'app-all-surveys-table',

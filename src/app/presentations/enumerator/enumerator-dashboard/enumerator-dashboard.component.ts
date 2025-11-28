@@ -4,16 +4,16 @@ import { Router } from '@angular/router';
 import { EnumeratorDataService } from '../../../core/dataservice/enumerator-service/enumerator.dataservice';
 import {
 	Survey,
-	SurveyStatus,
 } from '../../../core/dataservice/survey/survey.dto';
 import { PrimeNgModules } from '../../../primeng.modules';
+import { SurveyStatus } from '../../../core/constants/enums';
 
 @Component({
 	selector: 'app-enumerator-dashboard',
 	standalone: true,
 	imports: [CommonModule, PrimeNgModules],
 	templateUrl: './enumerator-dashboard.component.html',
-	styleUrls: ['./enumerator-dashboard.component.css'],
+	styleUrls: ['./enumerator-dashboard.component.scss'],
 })
 export class EnumeratorDashboardComponent implements OnInit {
 	surveys: Survey[] = [];

@@ -1,64 +1,162 @@
-<div class="container mx-auto px-4 py-6">
-	<!-- Header -->
-	<div class="mb-6">
-		<p-button
-			icon="pi pi-arrow-left"
-			label="Back to Surveys"
-			[text]="true"
-			(onClick)="goBack()"
-			class="mb-2"
-		></p-button>
-		<h1 class="text-3xl font-bold text-gray-800" *ngIf="survey">
-			{{ survey.name }}
-		</h1>
-		<p-skeleton width="300px" height="2rem" *ngIf="!survey"></p-skeleton>
-	</div>
-
+<div class="min-h-screen bg-gray-50">
 	<!-- Loading State -->
-	<div *ngIf="loading" class="space-y-4">
-		<p-skeleton height="200px"></p-skeleton>
-		<p-skeleton height="400px"></p-skeleton>
-	</div>
+	<section
+		*ngIf="loading"
+		class="h-screen flex items-center justify-center bg-white"
+	>
+		<div class="flex flex-col items-center gap-4 text-gray-600">
+			<div class="relative w-20 h-20">
+				<div
+					class="absolute inset-0 border-4 rounded-full border-[#E8F0FF]"
+				></div>
+				<div
+					class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin border-[#1A58AF]"
+				></div>
+			</div>
+			<div class="text-center">
+				<p class="text-lg font-semibold text-gray-900">Loading survey details</p>
+				<p class="text-sm text-gray-500">Please wait...</p>
+			</div>
+		</div>
+	</section>
 
-	<!-- Content -->
-	<div *ngIf="!loading && survey">
-		<!-- Survey Information Card -->
-		<p-card header="Survey Information" styleClass="mb-6">
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-				<div>
-					<label class="block text-sm font-semibold text-gray-700 mb-1"
-						>Description</label
+	<!-- Not Found State -->
+	<section
+		*ngIf="notFound && !loading"
+		class="h-screen flex items-center justify-center"
+	>
+		<div
+			class="rounded-2xl border border-red-200 bg-red-50 p-8 text-center text-red-700 shadow-sm max-w-md"
+		>
+			<i class="pi pi-exclamation-triangle text-4xl mb-3 block"></i>
+			<h2 class="text-lg font-semibold mb-2">Survey Not Found</h2>
+			<p class="text-sm mb-6">
+				The survey you're looking for doesn't exist or has been removed.
+			</p>
+			<div class="flex flex-wrap justify-center gap-3">
+				<button
+					type="button"
+					(click)="navigateToSurveys()"
+					class="inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 transition hover:border-red-300"
+				>
+					<i class="pi pi-arrow-left mr-2"></i>
+					Back to Survey List
+				</button>
+			</div>
+		</div>
+	</section>
+
+	<!-- Main Content: Split Layout -->
+	<ng-container *ngIf="survey && !loading && !notFound">
+		<!-- Header Section - Positioned to respect sidebar -->
+		<div
+			class="fixed top-0 left-0 right-0 lg:left-[300px] z-30 shadow-xl bg-[#1A58AF] transition-all duration-200"
+		>
+			<div class="px-4 pt-4 pb-3">
+				<!-- Back Button & Title -->
+				<div class="flex items-center justify-between mb-3">
+					<button
+						(click)="navigateToSurveys()"
+						class="flex items-center text-white/90 hover:text-white font-medium transition-colors"
 					>
-					<p class="text-gray-600">
-						{{ survey.description || "No description" }}
+						<i class="pi pi-arrow-left mr-2"></i>
+						<span>Back</span>
+					</button>
+					<div
+						class="inline-flex items-center bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5"
+					>
+						<i
+							[class]="
+								survey.status === 'ACTIVE'
+									? 'pi pi-check-circle text-green-300'
+									: 'pi pi-times-circle text-red-300'
+							"
+							class="text-xs mr-1.5"
+						></i>
+						<span class="text-white/90 text-xs font-medium">{{
+							survey.status
+						}}</span>
+					</div>
+				</div>
+
+				<!-- Survey Info -->
+				<div class="mb-3">
+					<div
+						class="inline-flex items-center bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 mb-2"
+					>
+						<i class="pi pi-calendar text-white/90 text-xs mr-1.5"></i>
+						<span class="text-white/90 text-xs font-medium"
+							>Year {{ survey.year }}</span
+						>
+					</div>
+					<h1 class="text-white font-bold text-xl leading-tight mb-2">
+						{{ survey.name }}
+					</h1>
+					<p class="text-white/80 text-sm mb-2" *ngIf="survey.description">
+						{{ survey.description }}
 					</p>
-				</div>
-				<div>
-					<label class="block text-sm font-semibold text-gray-700 mb-1"
-						>Year</label
-					>
-					<p class="text-gray-600">{{ survey.year }}</p>
-				</div>
-				<div>
-					<label class="block text-sm font-semibold text-gray-700 mb-1"
-						>Start Date</label
-					>
-					<p class="text-gray-600">{{ formatDate(survey.startDate) }}</p>
-				</div>
-				<div>
-					<label class="block text-sm font-semibold text-gray-700 mb-1"
-						>End Date</label
-					>
-					<p class="text-gray-600">{{ formatDate(survey.endDate) }}</p>
+					<div class="flex items-center gap-4 text-white/80 text-sm">
+						<div class="flex items-center">
+							<i class="pi pi-calendar-plus text-xs mr-1.5"></i>
+							<span>{{ formatDate(survey.startDate) }}</span>
+						</div>
+						<div class="flex items-center">
+							<i class="pi pi-calendar-minus text-xs mr-1.5"></i>
+							<span>{{ formatDate(survey.endDate) }}</span>
+						</div>
+					</div>
 				</div>
 			</div>
-		</p-card>
+		</div>
 
-		<!-- Household Listings Component -->
-		<app-supervisor-survey-household-listings [surveyId]="surveyId">
-		</app-supervisor-survey-household-listings>
-	</div>
+		<!-- Spacing for fixed header -->
+		<div class="h-44"></div>
+
+		<section class="flex flex-col lg:flex-row gap-4 px-4 pb-6">
+			<!-- Left Pane: Survey Details & Metadata -->
+			<div
+				class="w-full lg:w-[25vw] flex flex-col overflow-y-auto p-6 bg-white rounded-2xl shadow-sm border border-gray-200"
+			>
+				<!-- Survey Metadata Card -->
+				<div class="space-y-4">
+					<!-- Overview -->
+					<app-supervisor-survey-overview
+						[surveyId]="surveyId"
+						[survey]="survey"
+					></app-supervisor-survey-overview>
+				</div>
+			</div>
+
+			<!-- Right Pane: Tabs Content -->
+			<div class="flex-1 relative bg-white rounded-2xl shadow-sm border border-gray-200">
+				<p-tabView class="h-full" styleClass="supervisor-tabview">
+					<p-tabPanel header="Household Listings">
+						<app-supervisor-survey-household-listings
+							[surveyId]="survey.id"
+							[surveyName]="survey.name"
+						></app-supervisor-survey-household-listings>
+					</p-tabPanel>
+					<p-tabPanel header="Enumerators">
+						<app-supervisor-survey-enumerators-view
+							[surveyId]="survey.id"
+						></app-supervisor-survey-enumerators-view>
+					</p-tabPanel>
+					<p-tabPanel header="Enumeration Areas">
+						<app-supervisor-survey-ea-view
+							[surveyId]="survey.id"
+						></app-supervisor-survey-ea-view>
+					</p-tabPanel>
+					<p-tabPanel header="Sampling Results">
+						<app-supervisor-survey-sampling-view
+							[surveyId]="survey.id"
+							[surveyName]="survey.name"
+						></app-supervisor-survey-sampling-view>
+					</p-tabPanel>
+				</p-tabView>
+			</div>
+		</section>
+	</ng-container>
+
+	<!-- Toast Messages -->
+	<p-toast position="top-right"></p-toast>
 </div>
-
-<!-- Toast for notifications -->
-<p-toast></p-toast>

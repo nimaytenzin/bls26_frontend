@@ -11,6 +11,7 @@ import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/l
 import { EnumerationAreaDataService } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
+import { LocationDownloadService } from '../../../../core/dataservice/downloads/location.download.service';
 import { BasemapService } from '../../../../core/utility/basemap.service';
 import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';
 
@@ -127,7 +128,8 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 		private dzongkhagService: DzongkhagDataService,
 		private messageService: MessageService,
 		private basemapService: BasemapService,
-		private mapFeatureColorService: MapFeatureColorService
+		private mapFeatureColorService: MapFeatureColorService,
+		private locationDownloadService: LocationDownloadService
 	) {
 		this.basemapCategories = this.basemapService.getBasemapCategories();
 	}
@@ -896,5 +898,79 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 				this.selectedDzongkhag,
 			]);
 		}
+	}
+
+	/**
+	 * Download household data as CSV
+	 */
+	downloadHouseholdData(): void {
+		
+	}
+
+	/**
+	 * Download Enumeration Areas as GeoJSON
+	 */
+	downloadEAZonesGeojson(): void {
+		if (!this.subAdminZoneId) return;
+		this.locationDownloadService.downloadEAsBySubAdministrativeZoneAsGeoJson(this.subAdminZoneId).subscribe({
+			next: (geoJson) => {
+				const dataStr = JSON.stringify(geoJson, null, 2);
+				const blob = new Blob([dataStr], { type: 'application/json' });
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `${this.subAdministrativeZone?.name || 'sub_admin_zone'}_enumeration_areas_${new Date().toISOString().split('T')[0]}.geojson`;
+				link.click();
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'Enumeration Areas GeoJSON downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Enumeration Areas GeoJSON:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Enumeration Areas GeoJSON file',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Download Enumeration Areas as KML
+	 */
+	downloadEAZonesKml(): void {
+		if (!this.subAdminZoneId) return;
+		this.locationDownloadService.downloadEAsBySubAdministrativeZoneAsKml(this.subAdminZoneId).subscribe({
+			next: (kml) => {
+				const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `${this.subAdministrativeZone?.name || 'sub_admin_zone'}_enumeration_areas_${new Date().toISOString().split('T')[0]}.kml`;
+				link.click();
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Complete',
+					detail: 'Enumeration Areas KML downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading Enumeration Areas KML:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download Enumeration Areas KML file',
+					life: 3000,
+				});
+			},
+		});
 	}
 }

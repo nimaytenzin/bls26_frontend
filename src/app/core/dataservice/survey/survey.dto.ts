@@ -1,3 +1,4 @@
+import { SurveyStatus } from '../../constants/enums';
 import { User } from '../auth/auth.interface';
 import { EnumerationArea } from '../location/enumeration-area/enumeration-area.dto';
 
@@ -7,15 +8,6 @@ export type {
 	PaginationMeta,
 	PaginatedResponse,
 } from '../../utility/pagination.utility.service';
-
-/**
- * Survey Status Enum
- * Represents the current status of a survey
- */
-export enum SurveyStatus {
-	ACTIVE = 'ACTIVE',
-	ENDED = 'ENDED',
-}
 
 /**
  * Survey Entity Interface

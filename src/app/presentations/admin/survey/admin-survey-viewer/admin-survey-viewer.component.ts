@@ -6,7 +6,6 @@ import { PrimeNgModules } from '../../../../primeng.modules';
 import { EnumerationAreaDataService } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
 import {
 	Survey,
-	SurveyStatus,
 	UpdateSurveyDto,
 } from '../../../../core/dataservice/survey/survey.dto';
 import { EnumerationArea } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
@@ -19,6 +18,7 @@ import { AdminSurveyEnumerationAreaHouseholdListingsComponent } from './admin-su
 import { AdminSurveyOverviewComponent } from './admin-survey-overview/admin-survey-overview.component';
 import { AdminSurveyEaManagementComponent } from './admin-survey-ea-management/admin-survey-ea-management.component';
 import { AdminSurveySamplingComponent } from './admin-survey-sampling/admin-survey-sampling.component';
+import { SurveyStatus } from '../../../../core/constants/enums';
 
 @Component({
 	selector: 'app-admin-survey-viewer',
@@ -51,9 +51,6 @@ export class AdminSurveyViewerComponent implements OnInit, OnDestroy {
 	// Enumeration Areas
 	enumerationAreas: EnumerationArea[] = [];
 	loadingEAs = false;
-
-	// Tab view
-	activeTabIndex = 0;
 
 	// Survey Status Enum for template
 	SurveyStatus = SurveyStatus;

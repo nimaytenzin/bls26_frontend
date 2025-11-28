@@ -1,0 +1,30 @@
+/* Supervisor Survey Detailed View - Using Tailwind CSS */
+
+/* Ensure header doesn't interfere with sidebar (sidebar z-index: 999, header z-index: 30) */
+/* Header positioning is handled via Tailwind classes in template */
+
+/* PrimeNG TabView styling with Tailwind utilities */
+::ng-deep {
+	.p-tabview.supervisor-tabview {
+		.p-tabview-nav {
+			@apply bg-white border-b-2 border-gray-200 px-4;
+		}
+
+		.p-tabview-nav-link {
+			@apply px-6 py-4 font-semibold text-gray-600 border-b-[3px] border-transparent transition-all duration-200;
+
+			&:hover {
+				@apply text-[#1A58AF] bg-[#E8F0FF];
+			}
+
+			&.p-highlight {
+				@apply text-[#1A58AF];
+				border-bottom-color: #1A58AF;
+			}
+		}
+
+		.p-tabview-panels {
+			@apply p-6;
+		}
+	}
+}

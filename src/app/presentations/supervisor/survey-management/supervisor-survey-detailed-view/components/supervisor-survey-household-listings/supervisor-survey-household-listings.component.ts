@@ -1,10 +1,31 @@
-import { Component, Input, OnInit } from '@angular/core';
+import {
+	Component,
+	Input,
+	OnInit,
+	OnChanges,
+	SimpleChanges,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SurveyDataService } from '../../../../../../core/dataservice/survey/survey.dataservice';
-import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dataservice';
-import { MessageService } from 'primeng/api';
 import { PrimeNgModules } from '../../../../../../primeng.modules';
+import { MessageService } from 'primeng/api';
+import { TableLazyLoadEvent } from 'primeng/table';
+import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dataservice';
+import { SurveyDataService } from '../../../../../../core/dataservice/survey/survey.dataservice';
+import {
+	SurveyEnumerationAreaHouseholdListing,
+	HouseholdListingStatisticsResponseDto,
+} from '../../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
+import {
+	DzongkhagHierarchyDto,
+	AdministrativeZoneHierarchyDto,
+	SubAdministrativeZoneHierarchyDto,
+	EnumerationAreaHierarchyDto,
+} from '../../../../../../core/dataservice/survey/survey-enumeration-hierarchy.dto';
+import {
+	PaginationQueryDto,
+	PaginatedResponse,
+} from '../../../../../../core/utility/pagination.utility.service';
 
 @Component({
 	selector: 'app-supervisor-survey-household-listings',
@@ -12,217 +33,325 @@ import { PrimeNgModules } from '../../../../../../primeng.modules';
 	imports: [CommonModule, FormsModule, PrimeNgModules],
 	templateUrl: './supervisor-survey-household-listings.component.html',
 	styleUrls: ['./supervisor-survey-household-listings.component.css'],
+	providers: [MessageService],
 })
-export class SupervisorSurveyHouseholdListingsComponent implements OnInit {
+export class SupervisorSurveyHouseholdListingsComponent
+	implements OnInit, OnChanges
+{
 	@Input() surveyId!: number;
+	@Input() surveyName?: string;
 
-	// Hierarchy data
-	hierarchyData: any = null;
+	// Data
+	householdListings: SurveyEnumerationAreaHouseholdListing[] = [];
+	statistics: HouseholdListingStatisticsResponseDto | null = null;
 
-	// Dropdown options
-	dzongkhags: any[] = [];
-	administrativeZones: any[] = [];
-	subAdministrativeZones: any[] = [];
-	enumerationAreaOptions: any[] = [];
+	// Pagination
+	householdListingsTotalRecords = 0;
+	householdListingsPageSize = 10;
+	householdListingsPageIndex = 0;
+	householdListingsLoading = false;
 
-	// Selected values
-	selectedDzongkhag: any = null;
-	selectedAdminZone: any = null;
-	selectedSubAdminZone: any = null;
-	selectedEA: any = null;
+	// Filters (using hierarchy DTOs)
+	dzongkhagFilters: DzongkhagHierarchyDto[] = [];
+	adminZoneFilters: AdministrativeZoneHierarchyDto[] = [];
+	subAdminZoneFilters: SubAdministrativeZoneHierarchyDto[] = [];
+	enumerationAreaOptions: EnumerationAreaHierarchyDto[] = [];
 
-	// Household listings
-	householdListings: any[] = [];
-	loadingHouseholds = false;
+	selectedDzongkhagFilter: DzongkhagHierarchyDto | null = null;
+	selectedAdminZoneFilter: AdministrativeZoneHierarchyDto | null = null;
+	selectedSubAdminZoneFilter: SubAdministrativeZoneHierarchyDto | null = null;
+	selectedEnumerationArea: EnumerationAreaHierarchyDto | null = null;
 
-	// Household statistics
-	totalHouseholds = 0;
-	totalPopulation = 0;
-	dataCompletenessPercentage = 0;
+	// UI State
+	loading = false;
+	loadingStatistics = false;
 
 	constructor(
-		private surveyService: SurveyDataService,
 		private householdService: SurveyEnumerationAreaHouseholdListingDataService,
+		private surveyDataService: SurveyDataService,
 		private messageService: MessageService
 	) {}
 
 	ngOnInit() {
 		if (this.surveyId) {
 			this.loadHierarchy();
+			this.loadAllHouseholdListings();
+			this.loadSurveyStatistics();
 		}
 	}
 
+	ngOnChanges(changes: SimpleChanges) {
+		if (changes['surveyId'] && !changes['surveyId'].firstChange) {
+			this.resetState();
+			this.loadHierarchy();
+			this.loadAllHouseholdListings();
+			this.loadSurveyStatistics();
+		}
+	}
+
+	private resetState(): void {
+		this.selectedEnumerationArea = null;
+		this.householdListings = [];
+		this.householdListingsTotalRecords = 0;
+		this.householdListingsPageIndex = 0;
+		this.statistics = null;
+		this.selectedDzongkhagFilter = null;
+		this.selectedAdminZoneFilter = null;
+		this.selectedSubAdminZoneFilter = null;
+		this.adminZoneFilters = [];
+		this.subAdminZoneFilters = [];
+		this.enumerationAreaOptions = [];
+	}
+
 	/**
-	 * Load survey enumeration hierarchy
+	 * Load hierarchy from survey data service
 	 */
 	loadHierarchy() {
-		this.surveyService.getSurveyEnumerationHierarchy(this.surveyId).subscribe({
-			next: (data: any) => {
-				this.hierarchyData = data;
-				console.log('Hierarchy Data:', data);
-				this.dzongkhags = data.hierarchy || [];
+		if (!this.surveyId) return;
+		this.loading = true;
+		this.surveyDataService.getSurveyEnumerationHierarchy(this.surveyId).subscribe({
+			next: (response) => {
+				this.dzongkhagFilters = response?.hierarchy ?? [];
+				this.loading = false;
 			},
-			error: (error: any) => {
+			error: (error) => {
 				console.error('Error loading hierarchy:', error);
 				this.messageService.add({
 					severity: 'error',
 					summary: 'Error',
-					detail: 'Failed to load location hierarchy',
+					detail: 'Failed to load enumeration hierarchy',
 				});
+				this.loading = false;
 			},
 		});
 	}
 
 	/**
-	 * Handle Dzongkhag selection change
+	 * Handle dzongkhag filter change
 	 */
-	onDzongkhagChange() {
-		this.selectedAdminZone = null;
-		this.selectedSubAdminZone = null;
-		this.selectedEA = null;
-		this.administrativeZones = [];
-		this.subAdministrativeZones = [];
+	onDzongkhagFilterChange() {
+		this.selectedAdminZoneFilter = null;
+		this.selectedSubAdminZoneFilter = null;
+		this.selectedEnumerationArea = null;
+		this.adminZoneFilters = [];
+		this.subAdminZoneFilters = [];
 		this.enumerationAreaOptions = [];
-		this.householdListings = [];
 
-		if (this.selectedDzongkhag) {
-			this.administrativeZones =
-				this.selectedDzongkhag.administrativeZones || [];
+		if (this.selectedDzongkhagFilter) {
+			this.adminZoneFilters = this.selectedDzongkhagFilter.administrativeZones ?? [];
 		}
+
+		// Reload all household listings when filter changes
+		this.householdListingsPageIndex = 0;
+		this.loadAllHouseholdListings();
 	}
 
 	/**
-	 * Handle Administrative Zone selection change
+	 * Handle admin zone filter change
 	 */
-	onAdminZoneChange() {
-		this.selectedSubAdminZone = null;
-		this.selectedEA = null;
-		this.subAdministrativeZones = [];
+	onAdminZoneFilterChange() {
+		this.selectedSubAdminZoneFilter = null;
+		this.selectedEnumerationArea = null;
+		this.subAdminZoneFilters = [];
 		this.enumerationAreaOptions = [];
-		this.householdListings = [];
 
-		if (this.selectedAdminZone) {
-			this.subAdministrativeZones =
-				this.selectedAdminZone.subAdministrativeZones || [];
+		if (this.selectedAdminZoneFilter) {
+			this.subAdminZoneFilters = this.selectedAdminZoneFilter.subAdministrativeZones ?? [];
 		}
+
+		// Reload all household listings when filter changes
+		this.householdListingsPageIndex = 0;
+		this.loadAllHouseholdListings();
 	}
 
 	/**
-	 * Handle Sub Administrative Zone selection change
+	 * Handle sub-admin zone filter change
 	 */
-	onSubAdminZoneChange() {
-		this.selectedEA = null;
+	onSubAdminZoneFilterChange() {
+		this.selectedEnumerationArea = null;
 		this.enumerationAreaOptions = [];
-		this.householdListings = [];
 
-		if (this.selectedSubAdminZone) {
-			this.enumerationAreaOptions =
-				this.selectedSubAdminZone.enumerationAreas || [];
+		if (this.selectedSubAdminZoneFilter) {
+			this.enumerationAreaOptions = this.selectedSubAdminZoneFilter.enumerationAreas ?? [];
 		}
+
+		// Reload all household listings when filter changes
+		this.householdListingsPageIndex = 0;
+		this.loadAllHouseholdListings();
 	}
 
 	/**
-	 * Handle EA selection change
+	 * Handle enumeration area selection
 	 */
-	onEAChange() {
-		this.householdListings = [];
-		if (this.selectedEA) {
-			this.loadHouseholdListings();
-		}
-	}
-
-	/**
-	 * Load household listings for selected EA
-	 */
-	loadHouseholdListings() {
-		if (!this.selectedEA?.surveyEnumerationAreaId) return;
-
-		this.loadingHouseholds = true;
-		this.householdService
-			.getBySurveyEA(this.selectedEA.surveyEnumerationAreaId)
-			.subscribe({
-				next: (data: any[]) => {
-					this.calculateStatistics();
-					this.loadingHouseholds = false;
-				},
-				error: (error: any) => {
-					console.error('Error loading household listings:', error);
-					this.loadingHouseholds = false;
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Error',
-						detail: 'Failed to load household listings',
-					});
-				},
-			});
-	}
-
-	/**
-	 * Calculate household statistics
-	 */
-	calculateStatistics() {
-		this.totalHouseholds = this.householdListings.length;
-		this.totalPopulation = this.householdListings.reduce(
-			(sum, h) => sum + (h.totalMale || 0) + (h.totalFemale || 0),
-			0
-		);
-
-		// Calculate data completeness
-		if (this.totalHouseholds > 0) {
-			const completeHouseholds = this.householdListings.filter(
-				(h) =>
-					h.householdIdentification &&
-					h.structureNumber &&
-					h.nameOfHOH &&
-					(h.totalMale !== null || h.totalFemale !== null)
-			).length;
-
-			this.dataCompletenessPercentage = Math.round(
-				(completeHouseholds / this.totalHouseholds) * 100
-			);
+	onEnumerationAreaSelect() {
+		if (this.selectedEnumerationArea) {
+			this.householdListingsPageIndex = 0;
+			this.loadHouseholdListingsByEA(this.selectedEnumerationArea.surveyEnumerationAreaId);
+			this.loadStatistics(this.selectedEnumerationArea.surveyEnumerationAreaId);
 		} else {
-			this.dataCompletenessPercentage = 0;
+			// If EA is cleared, reload survey-level statistics
+			this.loadSurveyStatistics();
+			this.loadAllHouseholdListings();
 		}
 	}
 
 	/**
-	 * Format date for display
+	 * Clear selection
 	 */
-	formatDate(date: string | Date | undefined): string {
-		if (!date) return '-';
-		const d = new Date(date);
-		return d.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
+	clearSelection() {
+		this.selectedEnumerationArea = null;
+		this.selectedDzongkhagFilter = null;
+		this.selectedAdminZoneFilter = null;
+		this.selectedSubAdminZoneFilter = null;
+		this.adminZoneFilters = [];
+		this.subAdminZoneFilters = [];
+		this.enumerationAreaOptions = [];
+		this.householdListingsPageIndex = 0;
+		this.loadAllHouseholdListings();
+		this.loadSurveyStatistics();
+	}
+
+	/**
+	 * Load all household listings by survey (paginated)
+	 */
+	loadAllHouseholdListings(event?: TableLazyLoadEvent) {
+		if (!this.surveyId) return;
+
+		if (event) {
+			this.householdListingsPageSize = event.rows ?? this.householdListingsPageSize;
+			const first = event.first ?? 0;
+			this.householdListingsPageIndex = Math.floor(first / this.householdListingsPageSize);
+		}
+
+		const page = this.householdListingsPageIndex + 1;
+		const query: PaginationQueryDto = {
+			page,
+			limit: this.householdListingsPageSize,
+			sortBy: 'createdAt',
+			sortOrder: 'DESC',
+		};
+
+		// Only show loading overlay if there's no existing data (prevents blinking)
+		const hasExistingData = this.householdListings.length > 0;
+		if (!hasExistingData) {
+			this.householdListingsLoading = true;
+		}
+
+		this.householdService.getBySurveyPaginated(this.surveyId, query).subscribe({
+			next: (response: PaginatedResponse<SurveyEnumerationAreaHouseholdListing>) => {
+				this.householdListings = response.data;
+				this.householdListingsTotalRecords = response.meta.totalItems;
+				this.householdListingsPageIndex = response.meta.currentPage - 1;
+				this.householdListingsPageSize = response.meta.itemsPerPage;
+				this.householdListingsLoading = false;
+			},
+			error: (error) => {
+				console.error('Error loading household listings:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: 'Failed to load household listings',
+				});
+				this.householdListingsLoading = false;
+			},
 		});
 	}
 
 	/**
-	 * Format time for display
+	 * Load household listings for selected enumeration area (paginated)
 	 */
-	formatTime(date: string | Date | undefined): string {
-		if (!date) return '';
-		const d = new Date(date);
-		return d.toLocaleTimeString('en-US', {
-			hour: '2-digit',
-			minute: '2-digit',
+	loadHouseholdListingsByEA(surveyEnumerationAreaId: number, event?: TableLazyLoadEvent) {
+		if (event) {
+			this.householdListingsPageSize = event.rows ?? this.householdListingsPageSize;
+			const first = event.first ?? 0;
+			this.householdListingsPageIndex = Math.floor(first / this.householdListingsPageSize);
+		}
+
+		const page = this.householdListingsPageIndex + 1;
+		const query: PaginationQueryDto = {
+			page,
+			limit: this.householdListingsPageSize,
+			sortBy: 'createdAt',
+			sortOrder: 'DESC',
+		};
+
+		// Only show loading overlay if there's no existing data (prevents blinking)
+		const hasExistingData = this.householdListings.length > 0;
+		if (!hasExistingData) {
+			this.householdListingsLoading = true;
+		}
+
+		this.householdService.getBySurveyEnumerationAreaPaginated(surveyEnumerationAreaId, query).subscribe({
+			next: (response: PaginatedResponse<SurveyEnumerationAreaHouseholdListing>) => {
+				this.householdListings = response.data;
+				this.householdListingsTotalRecords = response.meta.totalItems;
+				this.householdListingsPageIndex = response.meta.currentPage - 1;
+				this.householdListingsPageSize = response.meta.itemsPerPage;
+				this.householdListingsLoading = false;
+			},
+			error: (error) => {
+				console.error('Error loading household listings:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: 'Failed to load household listings',
+				});
+				this.householdListingsLoading = false;
+			},
 		});
 	}
 
 	/**
-	 * Get the latest update date from household listings
+	 * Handle table lazy load event
 	 */
-	getLatestUpdate(): Date | undefined {
-		if (this.householdListings.length === 0) return undefined;
+	onLazyLoad(event: TableLazyLoadEvent) {
+		if (this.selectedEnumerationArea) {
+			this.loadHouseholdListingsByEA(this.selectedEnumerationArea.surveyEnumerationAreaId, event);
+		} else {
+			this.loadAllHouseholdListings(event);
+		}
+	}
 
-		const dates = this.householdListings
-			.map((h) => h.updatedAt || h.createdAt)
-			.filter((d) => d)
-			.map((d) => new Date(d));
+	/**
+	 * Load statistics for selected enumeration area
+	 */
+	loadStatistics(surveyEnumerationAreaId: number) {
+		if (!surveyEnumerationAreaId) return;
+		this.loadingStatistics = true;
+		this.householdService.getStatisticsByEnumerationArea(surveyEnumerationAreaId).subscribe({
+			next: (stats) => {
+				this.statistics = stats;
+				this.loadingStatistics = false;
+			},
+			error: (error) => {
+				console.error('Error loading enumeration area statistics:', error);
+				this.loadingStatistics = false;
+			},
+		});
+	}
 
-		return dates.length > 0
-			? new Date(Math.max(...dates.map((d) => d.getTime())))
-			: undefined;
+	/**
+	 * Load statistics for entire survey (across all enumeration areas)
+	 */
+	loadSurveyStatistics() {
+		if (!this.surveyId) return;
+		this.loadingStatistics = true;
+		this.householdService.getStatisticsBySurvey(this.surveyId).subscribe({
+			next: (stats) => {
+				this.statistics = stats;
+				this.loadingStatistics = false;
+			},
+			error: (error) => {
+				console.error('Error loading survey statistics:', error);
+				this.loadingStatistics = false;
+			},
+		});
+	}
+
+	/**
+	 * Get total population for a household
+	 */
+	getTotalPopulation(listing: SurveyEnumerationAreaHouseholdListing): number {
+		return listing.totalMale + listing.totalFemale;
 	}
 }
