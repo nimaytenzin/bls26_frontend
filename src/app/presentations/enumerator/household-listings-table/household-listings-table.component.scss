@@ -1,0 +1,14 @@
+.household-listings-table {
+	// Component styles
+
+	// Compact card styling for mobile
+	::ng-deep {
+		// Ensure cards are compact and touch-friendly
+		.p-button-sm {
+			width: 2rem;
+			height: 2rem;
+			padding: 0;
+		}
+	}
+}
+

@@ -10,12 +10,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PrimeNgModules } from '../../../primeng.modules';
-import { DzongkhagAnnualStatsDataService } from '../../../core/dataservice/dzongkhag-annual-stats/dzongkhag-annual-stats.dataservice';
+import { DzongkhagAnnualStatsDataService } from '../../../core/dataservice/annual-statistics/dzongkhag-annual-stats/dzongkhag-annual-stats.dataservice';
 import {
 	DzongkhagStatsGeoJson,
 	DzongkhagStatsFeature,
 	NationalSummary,
-} from '../../../core/dataservice/dzongkhag-annual-stats/dzongkhag-annual-stats.dto';
+} from '../../../core/dataservice/annual-statistics/dzongkhag-annual-stats/dzongkhag-annual-stats.dto';
 import { MapFeatureColorService } from '../../../core/utility/map-feature-color.service';
 import { BasemapService } from '../../../core/utility/basemap.service';
 import { AdministrativeZoneDataService } from '../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';

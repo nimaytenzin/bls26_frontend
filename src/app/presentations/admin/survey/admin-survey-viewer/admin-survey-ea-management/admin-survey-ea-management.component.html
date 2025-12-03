@@ -48,7 +48,6 @@
 				<div>
 					<p class="text-sm text-slate-500">Validated</p>
 					<p class="text-2xl font-bold text-green-600">
-						{{ getValidatedEACount() }}
 					</p>
 				</div>
 				<i class="pi pi-check-circle text-3xl text-green-300"></i>
@@ -60,7 +59,6 @@
 				<div>
 					<p class="text-sm text-slate-500">Submitted</p>
 					<p class="text-2xl font-bold text-yellow-600">
-						{{ getSubmittedEACount() }}
 					</p>
 				</div>
 				<i class="pi pi-send text-3xl text-yellow-300"></i>
@@ -72,7 +70,6 @@
 				<div>
 					<p class="text-sm text-slate-500">Pending</p>
 					<p class="text-2xl font-bold text-slate-600">
-						{{ getTotalEACount() - getSubmittedEACount() }}
 					</p>
 				</div>
 				<i class="pi pi-clock text-3xl text-slate-300"></i>
@@ -236,21 +233,13 @@
 							</td>
 							<td>
 								<button
-									*ngIf="canValidate(ea)"
 									pButton
 									label="Validate"
 									icon="pi pi-check"
 									size="small"
 									class="p-button-success p-button-sm"
-									(click)="openValidationDialog(ea)"
 								></button>
-								<span
-									*ngIf="!canValidate(ea)"
-									class="text-xs text-slate-500"
-								>
-									{{ ea.isValidated ? 'Validated' : ea.isSubmitted ? 'Submitted' : 'Pending' }}
-								</span>
-							</td>
+								
 						</tr>
 					</ng-template>
 
@@ -801,7 +790,6 @@
 				label="Approve & Validate"
 				icon="pi pi-check"
 				class="p-button-success"
-				(click)="validateEnumerationArea()"
 				[disabled]="validating || loadingHouseholdListings"
 			></button>
 		</div>

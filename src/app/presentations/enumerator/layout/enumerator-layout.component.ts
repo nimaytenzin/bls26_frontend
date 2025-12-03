@@ -46,6 +46,7 @@ export class EnumeratorLayoutComponent implements OnInit {
 			'/enumerator/survey/',
 			'/enumerator/survey-enumeration-area-detail/',
 			'/enumerator/household-listing-form/',
+			'/enumerator/survey-enumeration-area/',
 		];
 
 		this.showHeader = !hideHeaderRoutes.some((route) => url.includes(route));
@@ -60,6 +61,7 @@ export class EnumeratorLayoutComponent implements OnInit {
 			'/enumerator/survey/',
 			'/enumerator/survey-enumeration-area-detail/',
 			'/enumerator/household-listing-form/',
+			'/enumerator/survey-enumeration-area/',
 		];
 
 		this.showBottomNav = !hideBottomNavRoutes.some((route) =>

@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
-import { SubAdminZoneAnnualStatsDataService } from '../../../../core/dataservice/sub-admin-zone-annual-stats/sub-admin-zone-annual-stats.dataservice';
+import { SubAdminZoneAnnualStatsDataService } from '../../../../core/dataservice/annual-statistics/sub-admin-zone-annual-stats/sub-admin-zone-annual-stats.dataservice';
 import { LocationDownloadService } from '../../../../core/dataservice/downloads/location.download.service';
 import { BasemapService } from '../../../../core/utility/basemap.service';
 import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';

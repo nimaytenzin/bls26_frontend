@@ -13,6 +13,7 @@ import { SupervisorSurveyEnumeratorsViewComponent } from './components/superviso
 import { SupervisorSurveyEaViewComponent } from './components/supervisor-survey-ea-view/supervisor-survey-ea-view.component';
 import { SupervisorSurveySamplingViewComponent } from './components/supervisor-survey-sampling-view/supervisor-survey-sampling-view.component';
 import { SupervisorSurveyHouseholdListingsComponent } from './components/supervisor-survey-household-listings/supervisor-survey-household-listings.component';
+import { SupervisorSurveySamplingConfigComponent } from './components/supervisor-survey-sampling-config/supervisor-survey-sampling-config.component';
 import { SurveyStatus } from '../../../../core/constants/enums';
 
 @Component({
@@ -29,6 +30,7 @@ import { SurveyStatus } from '../../../../core/constants/enums';
 		SupervisorSurveyEaViewComponent,
 		SupervisorSurveySamplingViewComponent,
 		SupervisorSurveyHouseholdListingsComponent,
+		SupervisorSurveySamplingConfigComponent,
 	],
 	providers: [MessageService],
 })
@@ -38,6 +40,9 @@ export class SupervisorSurveyDetailedViewComponent implements OnInit, OnDestroy 
 	surveyId: number | null = null;
 	loading = false;
 	notFound = false;
+
+	// Tab state - Default to Enumeration Areas (index 0)
+	activeTabIndex = 0;
 
 	// Survey Status Enum for template
 	SurveyStatus = SurveyStatus;

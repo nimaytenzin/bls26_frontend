@@ -1,14 +1,14 @@
 <!-- Toast Messages -->
 <p-toast></p-toast>
 
-<!-- Sub-Administrative Zone Management Dashboard -->
+<!-- Chiwogs/LAPs Management Dashboard -->
 <div class="p-6 bg-gray-50 min-h-screen">
 	<!-- Header Section -->
 	<div class="mb-6">
 		<div class="flex justify-between items-center">
 			<div>
 				<h1 class="text-2xl font-bold text-gray-900">
-					Sub-Administrative Zone Management
+					Chiwogs/LAPs Management
 				</h1>
 				<p class="text-sm text-gray-600 mt-1">
 					Manage chiwogs and laps within administrative zones
@@ -52,7 +52,7 @@
 					<button
 						pButton
 						type="button"
-						label="Add Sub-Zone"
+						label="Add Chiwog/LAP"
 						icon="pi pi-plus"
 						class="p-button-primary"
 						(click)="openNew()"
@@ -73,7 +73,7 @@
 						</div>
 					</div>
 					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Total Sub-Zones</p>
+						<p class="text-sm font-medium text-gray-500">Total Chiwogs/LAPs</p>
 						<p class="text-lg font-semibold text-gray-900">
 							{{ subAdministrativeZones.length }}
 						</p>
@@ -147,7 +147,7 @@
 					<div class="p-4">
 						<div class="flex justify-between items-center mb-4">
 							<h2 class="text-lg font-semibold text-gray-900">
-								Sub-Administrative Zones List
+								Chiwogs/LAPs List
 							</h2>
 							<div class="flex items-center gap-3">
 								<span class="p-input-icon-left">
@@ -155,7 +155,7 @@
 										pInputText
 										type="text"
 										[(ngModel)]="globalFilterValue"
-										placeholder="Search sub-zones..."
+										placeholder="Search chiwogs/LAPs..."
 										class="p-inputtext-sm"
 										(input)="onGlobalFilter($event)"
 									/>
@@ -282,7 +282,7 @@
 									<td colspan="6" class="text-center py-8">
 										<div class="text-gray-500">
 											<i class="pi pi-info-circle text-2xl mb-2 block"></i>
-											No sub-administrative zones found
+											No chiwogs/LAPs found
 										</div>
 									</td>
 								</tr>
@@ -301,7 +301,7 @@
 									Interactive Map
 								</h3>
 								<p class="text-sm text-gray-600 mt-1">
-									Click on sub-zones to view details
+									Click on chiwogs/LAPs to view details
 								</p>
 							</div>
 							<button
@@ -348,7 +348,7 @@
 			<div class="p-4 border-b border-gray-200">
 				<div class="flex justify-between items-center">
 					<h2 class="text-lg font-semibold text-gray-900">
-						Sub-Administrative Zones List
+						Chiwogs/LAPs List
 					</h2>
 					<div class="flex items-center gap-3">
 						<span class="p-input-icon-left">
@@ -356,7 +356,7 @@
 								pInputText
 								type="text"
 								[(ngModel)]="globalFilterValue"
-								placeholder="Search sub-zones..."
+								placeholder="Search chiwogs/LAPs..."
 								class="p-inputtext-sm"
 								(input)="onGlobalFilterSplit($event)"
 							/>
@@ -456,7 +456,7 @@
 						<td colspan="3" class="text-center py-6">
 							<div class="text-gray-500">
 								<i class="pi pi-info-circle text-xl mb-2 block"></i>
-								No sub-zones found
+								No chiwogs/LAPs found
 							</div>
 						</td>
 					</tr>
@@ -514,8 +514,8 @@
 	[style]="{ width: '500px' }"
 	[header]="
 		isEditMode
-			? 'Edit Sub-Administrative Zone'
-			: 'Add New Sub-Administrative Zone'
+			? 'Edit Chiwog/LAP'
+			: 'Add New Chiwog/LAP'
 	"
 	[modal]="true"
 	styleClass="p-fluid"
@@ -525,14 +525,14 @@
 			<!-- Name Field -->
 			<div>
 				<label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-					Sub-Zone Name *
+					Chiwog/LAP Name *
 				</label>
 				<input
 					id="name"
 					type="text"
 					pInputText
 					formControlName="name"
-					placeholder="Enter sub-zone name"
+					placeholder="Enter chiwog/LAP name"
 					[class.ng-invalid]="hasFormError('name')"
 					class="w-full"
 				/>
@@ -723,7 +723,7 @@
 				</div>
 			</div>
 
-			<!-- Selected Sub-Administrative Zone -->
+			<!-- Selected Chiwog/LAP -->
 			<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
 				<div class="flex items-center justify-between">
 					<div>

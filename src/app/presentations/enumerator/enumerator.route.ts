@@ -6,8 +6,9 @@ import { EnumeratorLayoutComponent } from './layout/enumerator-layout.component'
 import { PastSurveysComponent } from './past-surveys/past-surveys.component';
 import { EnumeratorProfileComponent } from './profile/profile.component';
 import { SurveyDetailComponent } from './survey-detail/survey-detail.component';
-import { SurveyEnumerationAreaDetailComponent } from './survey-enumeration-area-detail/survey-enumeration-area-detail.component';
 import { HouseholdListingFormComponent } from './enumerator-household-listing-form/household-listing-form.component';
+import { EnumerationAreaMapViewComponent } from './enumeration-area-map-view/enumeration-area-map-view.component';
+import { HouseholdListingsTableComponent } from './household-listings-table/household-listings-table.component';
 
 export const enumeratorRoutes: Routes = [
 	{
@@ -25,9 +26,14 @@ export const enumeratorRoutes: Routes = [
 				path: 'survey/:surveyId',
 				component: SurveyDetailComponent,
 			},
+			
 			{
-				path: 'survey-enumeration-area/:surveyEnumerationAreaId',
-				component: SurveyEnumerationAreaDetailComponent,
+				path: 'survey-enumeration-area/:surveyEnumerationAreaId/map',
+				component: EnumerationAreaMapViewComponent,
+			},
+			{
+				path: 'survey-enumeration-area/:surveyEnumerationAreaId/household-listings',
+				component: HouseholdListingsTableComponent,
 			},
 			{
 				path: 'household-listing-form/:surveyEnumerationAreaId',

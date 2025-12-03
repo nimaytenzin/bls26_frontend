@@ -4,10 +4,11 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { BASEAPI_URL } from '../../constants/constants';
 import {
-	SubmitSurveyEnumerationAreaDto,
+	CompleteEnumerationDto,
 	SurveyEnumerationArea,
 	SurveyEnumerationAreaStatistics,
-	ValidateSurveyEnumerationAreaDto,
+	PublishSurveyEnumerationAreaDto,
+	BulkPublishDto,
 	BulkUploadResponse,
 } from './survey-enumeration-area.dto';
 import { DzongkhagHierarchicalResponse } from '../location/dzongkhag/dzongkhag.interface';
@@ -38,7 +39,6 @@ export class SurveyEnumerationAreaDataService {
 	 * Get all enumeration areas for a specific survey
 	 * Returns hierarchical data: Dzongkhag -> AdminZone -> SubAdminZone -> EA -> SurveyEA
 	 * @param surveyId Survey ID
-	 * @param filters Optional filters (isSubmitted, isValidated)
 	 * @returns Observable of Dzongkhag array with nested data
 	 * @requires Authentication (ADMIN or SUPERVISOR role)
 	 */
@@ -87,46 +87,142 @@ export class SurveyEnumerationAreaDataService {
 	}
 
 	/**
-	 * Submit an enumeration area for validation
-	 * @param id Survey enumeration area ID
-	 * @param dto Submission data (submittedBy, comments)
-	 * @returns Observable of updated SurveyEnumerationArea
+	 * Get enumeration areas that are enumerated and ready for sampling
+	 * @param surveyId Survey ID
+	 * @returns Observable of SurveyEnumerationArea array
 	 * @requires Authentication (SUPERVISOR role)
 	 */
-	submit(
-		id: number,
-		dto: SubmitSurveyEnumerationAreaDto
-	): Observable<SurveyEnumerationArea> {
+	getEnumeratedForSampling(surveyId: number): Observable<SurveyEnumerationArea[]> {
 		return this.http
-			.post<SurveyEnumerationArea>(`${this.apiUrl}/${id}/submit`, dto, {
-				headers: this.getAuthHeaders(),
-			})
+			.get<SurveyEnumerationArea[]>(
+				`${this.apiUrl}/by-survey/${surveyId}/enumerated-for-sampling`,
+				{
+					headers: this.getAuthHeaders(),
+				}
+			)
 			.pipe(
 				catchError((error) => {
-					console.error(`Error submitting enumeration area ${id}:`, error);
+					console.error(
+						`Error fetching enumerated areas for sampling for survey ${surveyId}:`,
+						error
+					);
 					return throwError(() => error);
 				})
 			);
 	}
 
 	/**
-	 * Validate a submitted enumeration area
-	 * @param id Survey enumeration area ID
-	 * @param dto Validation data (validatedBy, isApproved, comments)
-	 * @returns Observable of updated SurveyEnumerationArea
+	 * Get enumeration areas that are sampled and ready for publishing
+	 * @param surveyId Survey ID
+	 * @returns Observable of SurveyEnumerationArea array
 	 * @requires Authentication (ADMIN role)
 	 */
-	validate(
+	getReadyForPublishing(surveyId: number): Observable<SurveyEnumerationArea[]> {
+		return this.http
+			.get<SurveyEnumerationArea[]>(
+				`${this.apiUrl}/by-survey/${surveyId}/ready-for-publishing`,
+				{
+					headers: this.getAuthHeaders(),
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error fetching areas ready for publishing for survey ${surveyId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get sampling status and progress for a survey
+	 * @param surveyId Survey ID
+	 * @returns Observable of sampling status object
+	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 */
+	getSamplingStatus(surveyId: number): Observable<any> {
+		return this.http
+			.get<any>(
+				`${this.apiUrl}/by-survey/${surveyId}/sampling-status`,
+				{
+					headers: this.getAuthHeaders(),
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error fetching sampling status for survey ${surveyId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Complete enumeration for a survey enumeration area (Enumerator only)
+	 * @param id Survey enumeration area ID
+	 * @param dto Enumeration data (enumeratedBy, comments)
+	 * @returns Observable of updated SurveyEnumerationArea
+	 * @requires Authentication (ENUMERATOR role)
+	 */
+	completeEnumeration(
 		id: number,
-		dto: ValidateSurveyEnumerationAreaDto
+		dto: CompleteEnumerationDto
 	): Observable<SurveyEnumerationArea> {
 		return this.http
-			.post<SurveyEnumerationArea>(`${this.apiUrl}/${id}/validate`, dto, {
+			.post<SurveyEnumerationArea>(`${this.apiUrl}/${id}/complete-enumeration`, dto, {
 				headers: this.getAuthHeaders(),
 			})
 			.pipe(
 				catchError((error) => {
-					console.error(`Error validating enumeration area ${id}:`, error);
+					console.error(`Error completing enumeration for EA ${id}:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Publish sampled data for a survey enumeration area (Admin only)
+	 * @param id Survey enumeration area ID
+	 * @param dto Publishing data (publishedBy, comments)
+	 * @returns Observable of updated SurveyEnumerationArea
+	 * @requires Authentication (ADMIN role)
+	 */
+	publishData(
+		id: number,
+		dto: PublishSurveyEnumerationAreaDto
+	): Observable<SurveyEnumerationArea> {
+		return this.http
+			.post<SurveyEnumerationArea>(`${this.apiUrl}/${id}/publish`, dto, {
+				headers: this.getAuthHeaders(),
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error publishing data for EA ${id}:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Bulk publish sampled data for multiple enumeration areas (Admin only)
+	 * @param dto Bulk publish data (surveyId, enumerationAreaIds, publishedBy)
+	 * @returns Observable of updated SurveyEnumerationArea array
+	 * @requires Authentication (ADMIN role)
+	 */
+	bulkPublish(
+		dto: BulkPublishDto
+	): Observable<SurveyEnumerationArea[]> {
+		return this.http
+			.post<SurveyEnumerationArea[]>(`${this.apiUrl}/bulk-publish`, dto, {
+				headers: this.getAuthHeaders(),
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error bulk publishing enumeration areas:`, error);
 					return throwError(() => error);
 				})
 			);

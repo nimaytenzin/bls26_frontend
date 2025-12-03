@@ -1,14 +1,14 @@
  
 server {
     listen 80;
-    server_name nsfd.ddnsfree.com www.nsfd.ddnsfree.com;
+    server_name nsfd-bsds.nsb.gov.bt;
     return 301 https://$host$request_uri;
 }
 
 # Main HTTPS Server
 server {
     listen 443 ssl http2;
-    server_name nsfd.ddnsfree.com www.nsfd.ddnsfree.com;
+    server_name nsfd-bsds.nsb.gov.bt;
 
 
     # Security headers
@@ -56,7 +56,7 @@ server {
 
     # Angular Frontend
     location / {
-        root /home/kwangyel/nima/nsfd/nsfd_frontend/dist/frontend;
+        root /home/sysadmin/national-sampling-frame-dashboard/nsfd_frontend/dist/frontend;
         index index.html;
         try_files $uri $uri/ /index.html;
 

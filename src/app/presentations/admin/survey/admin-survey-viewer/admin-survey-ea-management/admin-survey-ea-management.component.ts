@@ -13,7 +13,6 @@ import { SubAdministrativeZoneDataService } from '../../../../../core/dataservic
 import {
 	SurveyEnumerationArea,
 	BulkUploadResponse,
-	ValidateSurveyEnumerationAreaDto,
 } from '../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
 import { EnumerationArea } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 import { Dzongkhag } from '../../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
@@ -617,20 +616,6 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 	}
 
 	/**
-	 * Get submitted EA count
-	 */
-	getSubmittedEACount(): number {
-		return this.surveyEAs.filter((ea) => ea.isSubmitted).length;
-	}
-
-	/**
-	 * Get validated EA count
-	 */
-	getValidatedEACount(): number {
-		return this.surveyEAs.filter((ea) => ea.isValidated).length;
-	}
-
-	/**
 	 * Handle table search
 	 */
 	onTableSearch(event: Event) {
@@ -647,34 +632,8 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 		}
 	}
 
-	/**
-	 * Check if EA can be validated
-	 */
-	canValidate(ea: SurveyEnumerationArea): boolean {
-		return ea.isSubmitted && !ea.isValidated;
-	}
-
-	/**
-	 * Open validation dialog and load household listings
-	 */
-	openValidationDialog(ea: SurveyEnumerationArea) {
-		if (!this.canValidate(ea)) {
-			this.messageService.add({
-				severity: 'warn',
-				summary: 'Warning',
-				detail: 'This enumeration area cannot be validated',
-				life: 3000,
-			});
-			return;
-		}
-		this.currentEAForValidation = ea;
-		this.validationComments = '';
-		this.isApproving = true;
-		this.householdListings = [];
-		this.householdListingsStatistics = null;
-		this.showValidationDialog = true;
-		this.loadHouseholdListingsForDialog(ea.id);
-	}
+	
+	
 
 	/**
 	 * Load household listings for the validation dialog
@@ -707,71 +666,6 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 			},
 			error: (error) => {
 				console.error('Error loading statistics:', error);
-			},
-		});
-	}
-
-	/**
-	 * Validate enumeration area (approve)
-	 */
-	validateEnumerationArea() {
-		if (!this.currentEAForValidation) return;
-
-		const currentUser = this.authService.getCurrentUser();
-		if (!currentUser || !currentUser.id) {
-			this.messageService.add({
-				severity: 'error',
-				summary: 'Error',
-				detail: 'Unable to get authenticated user information',
-			});
-			return;
-		}
-
-		this.validating = true;
-
-		const validateDto: ValidateSurveyEnumerationAreaDto = {
-			validatedBy: currentUser.id,
-			isApproved: this.isApproving,
-			comments: this.validationComments?.trim() || undefined,
-		};
-
-		this.surveyEAService.validate(this.currentEAForValidation.id, validateDto).subscribe({
-			next: (updatedEA) => {
-				this.validating = false;
-				this.showValidationDialog = false;
-				this.validationComments = '';
-				this.currentEAForValidation = null;
-				this.householdListings = [];
-				this.householdListingsStatistics = null;
-
-				// Update the EA in the list
-				const index = this.surveyEAs.findIndex(
-					(item) => item.id === updatedEA.id
-				);
-				if (index !== -1) {
-					this.surveyEAs[index] = updatedEA;
-					// Rebuild grouped data
-					this.buildGroupedData();
-				}
-
-				this.messageService.add({
-					severity: 'success',
-					summary: this.isApproving ? 'Approved' : 'Rejected',
-					detail: `Enumeration area has been ${this.isApproving ? 'approved and validated' : 'rejected'}`,
-					life: 3000,
-				});
-			},
-			error: (error) => {
-				this.validating = false;
-				console.error('Error validating enumeration area:', error);
-				this.messageService.add({
-					severity: 'error',
-					summary: 'Error',
-					detail:
-						error?.error?.message ||
-						'Failed to validate enumeration area',
-					life: 3000,
-				});
 			},
 		});
 	}

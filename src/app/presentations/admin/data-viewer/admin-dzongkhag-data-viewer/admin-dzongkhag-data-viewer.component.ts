@@ -17,8 +17,8 @@ import {
 } from '../../../../core/utility/basemap.service';
 import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';
 import { DownloadService } from '../../../../core/utility/download.service';
-import { DzongkhagAnnualStatsDataService } from '../../../../core/dataservice/dzongkhag-annual-stats/dzongkhag-annual-stats.dataservice';
-import { AdminZoneAnnualStatsDataService } from '../../../../core/dataservice/admin-zone-annual-stats/admin-zone-annual-stats.dataservice';
+import { DzongkhagAnnualStatsDataService } from '../../../../core/dataservice/annual-statistics/dzongkhag-annual-stats/dzongkhag-annual-stats.dataservice';
+import { AdminZoneAnnualStatsDataService } from '../../../../core/dataservice/annual-statistics/admin-zone-annual-stats/admin-zone-annual-stats.dataservice';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
 import { EnumerationAreaDataService } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';

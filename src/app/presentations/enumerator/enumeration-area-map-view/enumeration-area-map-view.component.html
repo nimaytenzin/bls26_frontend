@@ -1,0 +1,502 @@
+<div
+	class="enumeration-area-map-view bg-gray-50"
+	style="height: 100vh; overflow: hidden"
+>
+	<!-- Loading State -->
+	<div
+		*ngIf="loading"
+		class="flex items-center justify-center h-screen bg-white"
+	>
+		<div class="text-center">
+			<div class="relative w-20 h-20 mx-auto mb-6">
+				<div
+					class="absolute inset-0 border-4 border-blue-100 rounded-full"
+				></div>
+				<div
+					class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+					style="border-color: #1a58af"
+				></div>
+			</div>
+			<p class="text-gray-600 font-medium">Loading map...</p>
+		</div>
+	</div>
+
+	<!-- Error State -->
+	<div
+		*ngIf="error && !loading"
+		class="p-6 h-screen flex items-center justify-center"
+	>
+		<div
+			class="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full border border-red-100"
+		>
+			<div
+				class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"
+			>
+				<i class="pi pi-exclamation-triangle text-3xl text-red-600"></i>
+			</div>
+			<h3 class="text-xl font-bold text-gray-900 text-center mb-2">Oops!</h3>
+			<p class="text-gray-600 text-center mb-6">{{ error }}</p>
+			<button
+				pButton
+				type="button"
+				label="Go Back"
+				icon="pi pi-arrow-left"
+				(click)="goBack()"
+				class="w-full"
+				styleClass="p-button-primary"
+				[style]="{ 'background-color': '#1A58AF', 'border-color': '#1A58AF' }"
+			></button>
+		</div>
+	</div>
+
+	<!-- Main View -->
+	<div class="z-50 shadow-lg bg-primary-600" *ngIf="!loading && !error">
+		<div class="flex flex-col pt-6 pb-4 px-4 h-[10vh]">
+			<div class="flex items-center justify-between">
+				<button
+					pButton
+					type="button"
+					icon="pi pi-arrow-left"
+					(click)="goBack()"
+					class="p-button-text p-button-plain !text-white"
+				></button>
+
+				<!-- Bottom Row: Hierarchy Info -->
+				<div class="flex-1 flex flex-col justify-center overflow-hidden">
+					<div class="flex items-center gap-2">
+						<h1 class="text-white font-bold leading-tight">
+							{{ getEnumerationAreaName() }}
+						</h1>
+					</div>
+					<p
+						class="text-white/80 text-xs text-wrap mt-0.5"
+						*ngIf="getLocationHierarchy()"
+					>
+						{{ getLocationHierarchy() }}
+					</p>
+				</div>
+				<div class="flex items-center gap-2">
+					<p-tag
+						*ngIf="isEnumerated"
+						value="Completed"
+						severity="success"
+					></p-tag>
+					<button
+						*ngIf="!isEnumerated"
+						pButton
+						type="button"
+						label="Mark Complete"
+						size="small"
+						icon="pi pi-check-circle"
+						(click)="openCompleteEnumerationDialog()"
+						styleClass="p-button-sm"
+					></button>
+					<button
+						pButton
+						type="button"
+						icon="pi pi-list"
+						(click)="viewHouseholdListings()"
+						styleClass="p-button-secondary p-button-sm"
+					></button>
+				</div>
+			</div>
+			<p
+				*ngIf="locationError"
+				class="text-white text-xs flex items-center justify-center mt-2"
+			>
+				<i class="pi pi-exclamation-triangle mr-1 text-xs"></i>
+				<span class="truncate">{{ locationError }}</span>
+			</p>
+		</div>
+
+		<!-- Map Container -->
+		<div class="relative">
+			<div #mapContainer class="w-full h-[90vh]" style="z-index: 1"></div>
+
+
+			<!-- Map Controls Overlay - Compact Mobile Design -->
+			<div class="absolute top-2 right-2 z-50 flex flex-col gap-1.5">
+				<!-- Edit Mode Toggle Button -->
+				<button
+					*ngIf="!isEnumerated"
+					pButton
+					type="button"
+					icon="pi pi-plus"
+					(click)="toggleEditMode()"
+					[class]="editMode ? 'p-button-success' : 'p-button-secondary'"
+					styleClass="p-button-rounded p-button-text add-structure-btn"
+					[style]="{
+						width: '40px',
+						height: '40px',
+						'background-color': editMode ? '#10b981' : 'white',
+						border: 'none',
+						'box-shadow': '0 2px 6px rgba(0, 0, 0, 0.2)',
+						color: editMode ? 'white' : '#6b7280'
+					}"
+					[title]="editMode ? 'Edit Mode ON - Click on map to add structure' : 'Enable Edit Mode - Add Structure'"
+				></button>
+
+				<!-- Base Map Toggle Button -->
+				<button
+					pButton
+					type="button"
+					[icon]="isSatelliteView ? 'pi pi-map' : 'pi pi-globe'"
+					(click)="toggleMapLayer()"
+					styleClass="p-button-rounded p-button-text"
+					[style]="{
+						width: '40px',
+						height: '40px',
+						'background-color': 'white',
+						border: 'none',
+						'box-shadow': '0 2px 6px rgba(0, 0, 0, 0.2)',
+						color: '#6b7280'
+					}"
+					[title]="
+						isSatelliteView ? 'Switch to Map View' : 'Switch to Satellite View'
+					"
+				></button>
+
+				<!-- Zoom to Enumeration Area Button -->
+				<button
+					pButton
+					type="button"
+					icon="pi pi-search-plus"
+					(click)="zoomToEnumerationArea()"
+					styleClass="p-button-rounded p-button-text"
+					[style]="{
+						width: '40px',
+						height: '40px',
+						'background-color': 'white',
+						border: 'none',
+						'box-shadow': '0 2px 6px rgba(0, 0, 0, 0.2)',
+						color: '#6b7280'
+					}"
+					title="Zoom to Enumeration Area"
+				></button>
+
+				<!-- Location Tracking & Zoom Button (Combined) -->
+				<button
+					pButton
+					type="button"
+					icon="pi pi-map-marker"
+					(click)="toggleLocationTracking()"
+					styleClass="p-button-rounded p-button-text"
+					[style]="{
+						width: '40px',
+						height: '40px',
+						'background-color': isTrackingLocation ? '#22c55e' : 'white',
+						border: 'none',
+						'box-shadow': '0 2px 6px rgba(0, 0, 0, 0.2)',
+						color: isTrackingLocation ? 'white' : '#6b7280'
+					}"
+					[title]="
+						isTrackingLocation
+							? 'Stop Tracking'
+							: userLocation
+							? 'Track & Zoom to Location'
+							: 'Start Tracking'
+					"
+				></button>
+			</div>
+
+			<!-- Edit Mode Instruction Overlay - Compact -->
+			<div
+				*ngIf="editMode && !isEnumerated"
+				class="absolute top-2 left-2 z-50 bg-blue-500 text-white rounded-lg shadow-lg px-3 py-2 max-w-[calc(100%-120px)]"
+			>
+				<div class="flex items-center gap-2">
+					<i class="pi pi-info-circle text-sm"></i>
+					<p class="text-xs font-medium">Click on map to add structure</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Custom Toast Notification -->
+	<div
+		*ngIf="toastMessage"
+		class="toast-notification"
+		[class.show]="toastMessage"
+	>
+		<div class="toast-content">
+			<i
+				[class]="
+					'pi ' +
+					(toastSeverity === 'error'
+						? 'pi-exclamation-triangle'
+						: 'pi-info-circle')
+				"
+			></i>
+			<span>{{ toastMessage }}</span>
+		</div>
+	</div>
+
+	<!-- Add Structure Dialog -->
+	<p-dialog
+		[(visible)]="showAddStructureDialog"
+		[modal]="true"
+		header="Add Structure"
+		[closable]="!isAddingStructure"
+		[draggable]="false"
+		[resizable]="false"
+		(onHide)="closeAddStructureDialog()"
+	>
+		<ng-template pTemplate="content">
+			<div class="space-y-4">
+				<!-- Info Message -->
+				<div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+					<div class="flex items-start gap-2">
+						<i class="pi pi-info-circle text-blue-600 mt-0.5"></i>
+						<div class="text-sm text-blue-800">
+							<p class="font-medium mb-1">Location Captured</p>
+							<p *ngIf="clickedLatLng" class="text-xs">
+								Lat: {{ clickedLatLng.lat | number : "1.6-6" }}, Lng:
+								{{ clickedLatLng.lng | number : "1.6-6" }}
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<!-- Structure Number Input -->
+				<div>
+					<label
+						for="structureNumber"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						Structure Number <span class="text-red-500">*</span>
+					</label>
+					<input
+						id="structureNumber"
+						type="text"
+						pInputText
+						[(ngModel)]="newStructureNumber"
+						placeholder="e.g., STR-001"
+						class="w-full"
+						[disabled]="isAddingStructure"
+						(keyup.enter)="createStructure()"
+					/>
+				</div>
+			</div>
+		</ng-template>
+
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				icon="pi pi-times"
+				class="p-button-text"
+				(click)="closeAddStructureDialog()"
+				[disabled]="isAddingStructure"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Add Structure"
+				icon="pi pi-check"
+				(click)="createStructure()"
+				[disabled]="!newStructureNumber.trim() || isAddingStructure"
+				[loading]="isAddingStructure"
+			></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Edit Structure Dialog -->
+	<p-dialog
+		[(visible)]="showEditStructureDialog"
+		[modal]="true"
+		header="Edit Structure"
+		[closable]="!isEditingStructure"
+		[draggable]="false"
+		[resizable]="false"
+		(onHide)="closeEditStructureDialog()"
+	>
+		<ng-template pTemplate="content">
+			<div class="space-y-4">
+				<!-- Structure Number Input -->
+				<div>
+					<label
+						for="editStructureNumber"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						Structure Number <span class="text-red-500">*</span>
+					</label>
+					<input
+						id="editStructureNumber"
+						type="text"
+						pInputText
+						[(ngModel)]="editStructureNumber"
+						placeholder="e.g., STR-001"
+						class="w-full"
+						[disabled]="isEditingStructure"
+						(keyup.enter)="updateStructure()"
+					/>
+				</div>
+			</div>
+		</ng-template>
+
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				icon="pi pi-times"
+				class="p-button-text"
+				(click)="closeEditStructureDialog()"
+				[disabled]="isEditingStructure"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Update"
+				icon="pi pi-check"
+				(click)="updateStructure()"
+				[disabled]="
+					!editStructureNumber ||
+					!editStructureNumber.trim() ||
+					isEditingStructure
+				"
+				[loading]="isEditingStructure"
+			></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Structure Actions Dialog -->
+	<p-dialog
+		[(visible)]="showStructureActionsDialog"
+		[modal]="true"
+		[header]="'Structure: ' + (selectedStructure?.structureNumber || '')"
+		[closable]="true"
+		[draggable]="false"
+		[resizable]="false"
+		(onHide)="closeStructureActionsDialog()"
+	>
+		<ng-template pTemplate="content">
+			<div class="space-y-3" *ngIf="selectedStructure">
+				<!-- Structure Info -->
+				<div class="bg-gray-50 rounded-lg p-3">
+					<div class="text-sm space-y-1">
+						<div class="flex justify-between">
+							<span class="text-gray-600">Structure Number:</span>
+							<span class="font-medium">{{
+								selectedStructure.structureNumber
+							}}</span>
+						</div>
+						<p
+							class="flex justify-between"
+							*ngIf="selectedStructure.latitude && selectedStructure.longitude"
+						>
+							Location: {{ selectedStructure.latitude | number : "1.4-4" }},
+							{{ selectedStructure.longitude | number : "1.4-4" }}
+						</p>
+					</div>
+				</div>
+
+				<div>
+					<button
+						pButton
+						type="button"
+						label="Household"
+						icon="pi pi-plus"
+						class="w-full"
+						(click)="addHousehold()"
+					></button>
+				</div>
+				<!-- Action Buttons -->
+				<div class="flex justify-end gap-2">
+					<button
+						pButton
+						type="button"
+						icon="pi pi-pencil"
+						class="w-full"
+						styleClass="p-button-secondary"
+						(click)="openEditStructureDialog()"
+					></button>
+
+					<button
+						pButton
+						type="button"
+						icon="pi pi-trash"
+						class="w-full"
+						styleClass="p-button-danger"
+						(click)="deleteStructure()"
+						[loading]="isDeletingStructure"
+					></button>
+				</div>
+			</div>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Complete Enumeration Dialog -->
+	<p-dialog
+		[(visible)]="showCompleteEnumerationDialog"
+		[modal]="true"
+		header="Complete Enumeration"
+		[closable]="!isCompletingEnumeration"
+		[draggable]="false"
+		[resizable]="false"
+		(onHide)="closeCompleteEnumerationDialog()"
+	>
+		<ng-template pTemplate="content">
+			<div class="space-y-4">
+				<!-- Info Message -->
+				<div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+					<div class="flex items-start gap-2">
+						<i class="pi pi-info-circle text-blue-600 mt-0.5"></i>
+						<div class="text-sm text-blue-800">
+							<p class="font-medium mb-1">Complete Enumeration</p>
+							<p class="text-xs">
+								Once marked as complete, you will no longer be able to add or
+								edit structures for this enumeration area.
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<!-- Comments Field -->
+				<div>
+					<label
+						for="enumerationComments"
+						class="block text-sm font-medium text-gray-700 mb-2"
+					>
+						Comments (Optional)
+					</label>
+					<textarea
+						id="enumerationComments"
+						pInputTextarea
+						[(ngModel)]="enumerationComments"
+						placeholder="Add any comments or notes about the enumeration..."
+						rows="4"
+						class="w-full"
+						[disabled]="isCompletingEnumeration"
+					></textarea>
+				</div>
+			</div>
+		</ng-template>
+
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				icon="pi pi-times"
+				class="p-button-text"
+				(click)="closeCompleteEnumerationDialog()"
+				[disabled]="isCompletingEnumeration"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Complete Enumeration"
+				icon="pi pi-check"
+				(click)="completeEnumeration()"
+				[loading]="isCompletingEnumeration"
+				styleClass="p-button-success"
+				[style]="{ 'background-color': '#10b981', 'border-color': '#10b981' }"
+			></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Confirmation Dialog -->
+	<p-confirmDialog></p-confirmDialog>
+</div>

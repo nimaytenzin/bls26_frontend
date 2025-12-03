@@ -106,13 +106,20 @@ export interface SurveyStatisticsResponseDto {
 	surveyYear: number;
 
 	isFullyValidated: boolean;
+	isFullyPublished?: boolean;
 	totalDzongkhags: number;
 	totalEnumerationAreas: number;
 	submittedEnumerationAreas: number;
 	validatedEnumerationAreas: number;
+	enumeratedEnumerationAreas?: number;
+	sampledEnumerationAreas?: number;
+	publishedEnumerationAreas?: number;
 	pendingEnumerationAreas: number;
 	submissionPercentage: string;
 	validationPercentage: string;
+	enumerationPercentage?: string;
+	samplingPercentage?: string;
+	publishingPercentage?: string;
 	totalEnumerators: number;
 	totalHouseholds: number;
 

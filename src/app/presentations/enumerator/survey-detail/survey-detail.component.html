@@ -289,62 +289,47 @@
 							<!-- Status Badge -->
 							<div class="flex-shrink-0">
 								<span
-									*ngIf="surveyEa.isValidated"
-									class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700"
-								>
- 									Validated
-								</span>
-								<span
-									*ngIf="surveyEa.isSubmitted && !surveyEa.isValidated"
 									class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-									style="background-color: #E8F0FF; color: #1A58AF;"
+									[style.background-color]="getEnumerationAreaStatus(surveyEa).bgColor"
+									[style.color]="getEnumerationAreaStatus(surveyEa).color"
 								>
- 									Submitted
+									{{ getEnumerationAreaStatus(surveyEa).label }}
 								</span>
-								<span
-									*ngIf="!surveyEa.isSubmitted && !surveyEa.isValidated"
-									class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600"
-								>
- 									Pending
-								</span>
-						</div>
+							</div>
 					</div>
 				</div>
 
 					<!-- Card Body -->
 					<div class="px-3 pb-3">
-						<!-- Submission Info (if submitted) -->
+						<!-- Enumeration Date (if enumerated) -->
 						<div
-							*ngIf="surveyEa.isSubmitted && !surveyEa.isValidated"
+							*ngIf="surveyEa.isEnumerated && surveyEa.enumerationDate"
 							class="flex items-center gap-1.5 text-xs text-gray-500 mb-2"
 						>
 							<i class="pi pi-calendar text-xs"></i>
-							<span class="truncate"
-								>{{
-									surveyEa.submissionDate
-										? formatDate(surveyEa.submissionDate)
-										: "N/A"
-								}}</span
-							>
+							<span class="truncate">Enumerated: {{ formatDate(surveyEa.enumerationDate) }}</span>
 						</div>
 
-						<!-- Validation Info (if validated) -->
+						<!-- Sampling Date (if sampled) -->
 						<div
-							*ngIf="surveyEa.isValidated"
+							*ngIf="surveyEa.isSampled && surveyEa.sampledDate"
+							class="flex items-center gap-1.5 text-xs text-gray-500 mb-2"
+						>
+							<i class="pi pi-calendar text-xs"></i>
+							<span class="truncate">Sampled: {{ formatDate(surveyEa.sampledDate) }}</span>
+						</div>
+
+						<!-- Published Date (if published) -->
+						<div
+							*ngIf="surveyEa.isPublished && surveyEa.publishedDate"
 							class="flex items-center gap-1.5 text-xs text-green-600 mb-2"
 						>
 							<i class="pi pi-check-circle text-xs"></i>
-							<span class="truncate"
-								>{{
-									surveyEa.validationDate
-										? formatDate(surveyEa.validationDate)
-										: "N/A"
-								}}</span
-							>
-											</div>
+							<span class="truncate">Published: {{ formatDate(surveyEa.publishedDate) }}</span>
+						</div>
 
 						<!-- Action Button -->
-													<button
+						<button
 							class="w-full text-white py-2 px-3 rounded-lg font-semibold text-xs transition-all duration-200 flex items-center justify-center gap-1.5"
 							style="background-color: #1A58AF;"
 							onmouseover="this.style.backgroundColor='#103975'"
@@ -352,14 +337,16 @@
 							(click)="navigateToEnumerationArea(surveyEa.id); $event.stopPropagation()"
 						>
 							<span>{{
-								surveyEa.isValidated
+								surveyEa.isPublished
 									? "View"
-									: surveyEa.isSubmitted
+									: surveyEa.isSampled
+									? "View"
+									: surveyEa.isEnumerated
 									? "View"
 									: "Start"
 							}}</span>
-														<i class="pi pi-arrow-right text-xs"></i>
-													</button>
+							<i class="pi pi-arrow-right text-xs"></i>
+						</button>
 												</div>
 											</div>
 										</div>

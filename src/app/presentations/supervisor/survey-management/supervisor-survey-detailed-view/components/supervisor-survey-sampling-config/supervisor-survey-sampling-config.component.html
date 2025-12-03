@@ -1,0 +1,154 @@
+<!-- Global Sampling Configuration -->
+<div class="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
+	<div class="flex items-center justify-between mb-2">
+		<h3 class="text-base font-semibold text-gray-800">Sampling Global Parameters</h3>
+		<button
+			pButton
+			type="button"
+			icon="pi pi-cog"
+			class="p-button-text p-button-sm"
+			pTooltip="Configure Sampling Defaults"
+			tooltipPosition="left"
+			(click)="openConfigDialog()"
+		></button>
+	</div>
+
+	<!-- Loading State -->
+	<div *ngIf="configLoading" class="flex items-center justify-center py-4">
+		<div class="relative w-8 h-8">
+			<div
+				class="absolute inset-0 border-4 rounded-full"
+				style="border-color: #E8F0FF;"
+			></div>
+			<div
+				class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+				style="border-color: #1A58AF;"
+			></div>
+		</div>
+	</div>
+
+	<!-- Config Display -->
+	<div *ngIf="!configLoading && samplingConfig" class="space-y-2 text-sm">
+		<div class="flex items-center justify-between">
+			<span class="text-gray-600">Method:</span>
+			<span class="font-semibold text-gray-900">
+				{{ samplingConfig.defaultMethod === 'CSS' ? 'CSS' : 'SRS' }}
+			</span>
+		</div>
+		<div class="flex items-center justify-between">
+			<span class="text-gray-600">Default Size:</span>
+			<span class="font-semibold text-gray-900">{{ samplingConfig.defaultSampleSize || '—' }}</span>
+		</div>
+		<div class="flex items-center justify-between">
+			<span class="text-gray-600">Urban (Thromde):</span>
+			<span class="font-semibold text-gray-900">{{ samplingConfig.urbanSampleSize || '—' }}</span>
+		</div>
+		<div class="flex items-center justify-between">
+			<span class="text-gray-600">Rural (Gewog):</span>
+			<span class="font-semibold text-gray-900">{{ samplingConfig.ruralSampleSize || '—' }}</span>
+		</div>
+	</div>
+
+	<!-- No Config State -->
+	<div *ngIf="!configLoading && !samplingConfig" class="text-center py-4">
+		<p class="text-sm text-gray-500 mb-2">No defaults configured</p>
+		<button
+			pButton
+			type="button"
+			label="Configure"
+			icon="pi pi-cog"
+			class="p-button-outlined p-button-sm"
+			(click)="openConfigDialog()"
+		></button>
+	</div>
+</div>
+
+<!-- Config Dialog -->
+<p-dialog
+	[(visible)]="configDialogVisible"
+	header="Configure  Global Sampling Parameters"
+
+	[modal]="true"
+	[style]="{ width: '600px' }"
+	[closable]="true"
+>
+	<div class="flex flex-col gap-4">
+		<p class="text-sm text-gray-600">
+			Configure default methodology and sample sizes that will auto-fill EA level dialogs.
+		</p>
+
+		<form class="grid grid-cols-1 md:grid-cols-2 gap-4" [formGroup]="configForm">
+			<div class="flex flex-col gap-2">
+				<label class="text-sm font-medium text-gray-600">Default method</label>
+				<p-dropdown
+					formControlName="defaultMethod"
+					[options]="[
+						{ label: 'Circular Systematic Sampling (CSS)', value: 'CSS' },
+						{ label: 'Simple Random Sampling (SRS)', value: 'SRS' },
+					]"
+					[showClear]="false"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+
+			<div class="flex flex-col gap-2">
+				<label class="text-sm font-medium text-gray-600">Default sample size</label>
+				<p-inputNumber
+					formControlName="defaultSampleSize"
+					[min]="1"
+					mode="decimal"
+					inputId="defaultSampleSize"
+					class="w-full"
+				></p-inputNumber>
+			</div>
+
+			<div class="flex flex-col gap-2">
+				<label class="text-sm font-medium text-gray-600">Urban (Thromde)</label>
+				<p-inputNumber
+					formControlName="urbanSampleSize"
+					[min]="1"
+					mode="decimal"
+					inputId="urbanSampleSize"
+					class="w-full"
+				></p-inputNumber>
+			</div>
+
+			<div class="flex flex-col gap-2">
+				<label class="text-sm font-medium text-gray-600">Rural (Gewog/others)</label>
+				<p-inputNumber
+					formControlName="ruralSampleSize"
+					[min]="1"
+					mode="decimal"
+					inputId="ruralSampleSize"
+					class="w-full"
+				></p-inputNumber>
+			</div>
+		</form>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				class="p-button-text"
+				(click)="configDialogVisible = false"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Save"
+				class="p-button-primary"
+				[disabled]="configSaving"
+				(click)="saveSurveyConfig()"
+			>
+				<p-progressSpinner *ngIf="configSaving" styleClass="w-4 h-4 mr-2" strokeWidth="4"></p-progressSpinner>
+			</button>
+		</div>
+	</ng-template>
+</p-dialog>
+
+<!-- Toast Messages -->
+<p-toast position="top-right"></p-toast>
+

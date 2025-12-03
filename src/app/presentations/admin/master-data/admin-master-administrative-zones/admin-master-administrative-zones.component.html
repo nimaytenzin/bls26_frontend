@@ -1,11 +1,11 @@
-<!-- Administrative Zone Management Dashboard -->
+<!-- Gewogs/Thromdes Management Dashboard -->
 <div class="p-6 bg-gray-50 min-h-screen">
 	<!-- Header Section -->
 	<div class="mb-6">
 		<div class="flex justify-between items-center">
 			<div>
 				<h1 class="text-2xl font-bold text-gray-900">
-					Administrative Zone Management
+					Gewogs/Thromdes Management
 				</h1>
 				<p class="text-sm text-gray-600 mt-1">
 					Manage gewogs and thromdes across dzongkhags
@@ -49,7 +49,7 @@
 					<button
 						pButton
 						type="button"
-						label="Add Zone"
+						label="Add Gewog/Thromde"
 						icon="pi pi-plus"
 						class="p-button-primary"
 						(click)="openNew()"
@@ -70,7 +70,7 @@
 						</div>
 					</div>
 					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Total Zones</p>
+						<p class="text-sm font-medium text-gray-500">Total Gewogs/Thromdes</p>
 						<p class="text-lg font-semibold text-gray-900">
 							{{ administrativeZones.length }}
 						</p>
@@ -144,7 +144,7 @@
 					<div class="p-4">
 						<div class="flex justify-between items-center mb-4">
 							<h2 class="text-lg font-semibold text-gray-900">
-								Administrative Zones List
+								Gewogs/Thromdes List
 							</h2>
 							<div class="flex items-center gap-3">
 								<span class="p-input-icon-left">
@@ -152,7 +152,7 @@
 										pInputText
 										type="text"
 										[(ngModel)]="globalFilterValue"
-										placeholder="Search zones..."
+										placeholder="Search gewogs/thromdes..."
 										class="p-inputtext-sm"
 										(input)="onGlobalFilter($event)"
 									/>
@@ -269,7 +269,7 @@
 									<td colspan="6" class="text-center py-8">
 										<div class="text-gray-500">
 											<i class="pi pi-info-circle text-2xl mb-2 block"></i>
-											No administrative zones found
+											No gewogs/thromdes found
 										</div>
 									</td>
 								</tr>
@@ -288,7 +288,7 @@
 									Interactive Map
 								</h3>
 								<p class="text-sm text-gray-600 mt-1">
-									Click on zones to view details
+									Click on gewogs/thromdes to view details
 								</p>
 							</div>
 							<button
@@ -332,7 +332,7 @@
 			<div class="p-4 border-b border-gray-200">
 				<div class="flex justify-between items-center">
 					<h2 class="text-lg font-semibold text-gray-900">
-						Administrative Zones List
+						Gewogs/Thromdes List
 					</h2>
 					<div class="flex items-center gap-3">
 						<span class="p-input-icon-left">
@@ -340,7 +340,7 @@
 								pInputText
 								type="text"
 								[(ngModel)]="globalFilterValue"
-								placeholder="Search zones..."
+								placeholder="Search gewogs/thromdes..."
 								class="p-inputtext-sm"
 								(input)="onGlobalFilterSplit($event)"
 							/>
@@ -430,7 +430,7 @@
 						<td colspan="3" class="text-center py-6">
 							<div class="text-gray-500">
 								<i class="pi pi-info-circle text-xl mb-2 block"></i>
-								No zones found
+								No gewogs/thromdes found
 							</div>
 						</td>
 					</tr>
@@ -487,7 +487,7 @@
 	[(visible)]="administrativeZoneDialog"
 	[style]="{ width: '500px' }"
 	[header]="
-		isEditMode ? 'Edit Administrative Zone' : 'Add New Administrative Zone'
+		isEditMode ? 'Edit Gewog/Thromde' : 'Add New Gewog/Thromde'
 	"
 	[modal]="true"
 	styleClass="p-fluid"
@@ -497,14 +497,14 @@
 			<!-- Name Field -->
 			<div>
 				<label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-					Zone Name *
+					Gewog/Thromde Name *
 				</label>
 				<input
 					id="name"
 					type="text"
 					pInputText
 					formControlName="name"
-					placeholder="Enter zone name"
+					placeholder="Enter gewog/thromde name"
 					[class.ng-invalid]="hasFormError('name')"
 					class="w-full"
 				/>

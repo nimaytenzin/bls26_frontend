@@ -52,6 +52,7 @@ import { Accordion, AccordionTab } from 'primeng/accordion';
 import { Popover } from 'primeng/popover';
 import { TreeModule } from 'primeng/tree';
 import { RadioButtonModule } from 'primeng/radiobutton';
+import { SidebarModule } from 'primeng/sidebar';
 
 const PRIME_NG_MODULES = [
 	CardModule,
@@ -109,6 +110,7 @@ const PRIME_NG_MODULES = [
 	DividerModule,
 	TreeModule,
 	RadioButtonModule,
+	SidebarModule,
 ];
 
 @NgModule({

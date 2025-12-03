@@ -234,8 +234,7 @@
 							This household listing was collected from the
 							<strong
 								class="cursor-pointer hover:underline text-blue-600"
-								(click)="navigateToSurvey()"
-								>{{ response?.data?.survey?.name }}</strong
+ 								>{{ response?.data?.survey?.name }}</strong
 							>
 							survey conducted in
 							<strong>{{ response?.data?.survey?.year }}</strong
@@ -244,24 +243,7 @@
 
 						<!-- Submission and Validation Info -->
 						<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-							<div *ngIf="isSubmitted()" class="text-blue-800">
-								<p class="font-medium text-sm text-blue-700">Submitted by:</p>
-								<p class="text-sm">
-									{{ getSubmitterName() }} • {{ getSubmitterPhone() }}
-								</p>
-								<p class="text-xs text-blue-600 mt-1">
-									{{ getSubmissionDate() | date : "MMM dd, yyyy 'at' h:mm a" }}
-								</p>
-							</div>
-							<div *ngIf="isValidated()" class="text-blue-800">
-								<p class="font-medium text-sm text-blue-700">Validated by:</p>
-								<p class="text-sm">
-									{{ getValidatorName() }} • {{ getValidatorPhone() }}
-								</p>
-								<p class="text-xs text-blue-600 mt-1">
-									{{ getValidationDate() | date : "MMM dd, yyyy 'at' h:mm a" }}
-								</p>
-							</div>
+							show published date and publisher,a 
 						</div>
 					</div>
 				</div>

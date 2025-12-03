@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { BASEAPI_URL } from '../../constants/constants';
+import { BASEAPI_URL } from '../../../constants/constants';
 import {
 	SAZByAdministrativeZoneGeoJsonResponse,
 	SAZByDzongkhagGeoJsonResponse,

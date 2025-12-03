@@ -1,13 +1,18 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EnumeratorDataService } from '../../../core/dataservice/enumerator-service/enumerator.dataservice';
+import { SurveyEnumerationAreaStructureDataService } from '../../../core/dataservice/survey-enumeration-area-structure/survey-enumeration-area-structure.dataservice';
+import { EnumeratorMapStateService } from '../../../core/utility/enumerator-map-state.service';
 import {
 	HouseholdListing,
 	CreateHouseholdListingDto,
 	UpdateHouseholdListingDto,
 } from '../../../core/dataservice/household-listing/household-listing.interface';
+import {
+	CreateSurveyEnumerationAreaHouseholdListingDto,
+} from '../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -34,6 +39,7 @@ import { ButtonModule } from 'primeng/button';
 export class HouseholdListingFormComponent implements OnInit {
 	surveyEnumerationAreaId!: number;
 	householdId?: number;
+	structureId?: number;
 	isEditMode = false;
 	loading = false;
 	submitting = false;
@@ -49,15 +55,22 @@ export class HouseholdListingFormComponent implements OnInit {
 		phoneNumber: '',
 		remarks: '',
 	};
+	
+	// Store structureNumber separately for display (read-only)
+	structureNumberDisplay: string = '';
 
 	constructor(
 		private route: ActivatedRoute,
 		private router: Router,
+		private location: Location,
 		private enumeratorService: EnumeratorDataService,
-		private messageService: MessageService
+		private structureService: SurveyEnumerationAreaStructureDataService,
+		private messageService: MessageService,
+		private mapStateService: EnumeratorMapStateService
 	) {}
 
 	ngOnInit(): void {
+		// Subscribe to route params
 		this.route.params.subscribe((params) => {
 			this.surveyEnumerationAreaId = +params['surveyEnumerationAreaId'];
 			this.householdId = params['householdId']
@@ -73,6 +86,13 @@ export class HouseholdListingFormComponent implements OnInit {
 				this.loadNextSerialNumber();
 			}
 		});
+
+		// Load structureId from service if available
+		const savedStructureId = this.mapStateService.getSelectedStructure(this.surveyEnumerationAreaId);
+		if (savedStructureId) {
+			this.structureId = savedStructureId;
+			this.loadStructureDetails();
+		}
 	}
 
 	/**
@@ -87,13 +107,20 @@ export class HouseholdListingFormComponent implements OnInit {
 		this.enumeratorService
 			.getHouseholdListings(this.surveyEnumerationAreaId)
 			.subscribe({
-				next: (households: HouseholdListing[]) => {
+				next: (households: any[]) => {
 					const household = households.find((h) => h.id === this.householdId);
 
 					if (household) {
+						// Store structureId if available (for updates) - check multiple possible locations
+						if (household.structureId) {
+							this.structureId = household.structureId;
+						} else if (household.structure?.id) {
+							this.structureId = household.structure.id;
+						}
+						
 						this.householdForm = {
 							surveyEnumerationAreaId: household.surveyEnumerationAreaId,
-							structureNumber: household.structureNumber,
+							structureNumber: household.structureNumber || household.structure?.structureNumber || '',
 							householdIdentification: household.householdIdentification,
 							householdSerialNumber: household.householdSerialNumber,
 							nameOfHOH: household.nameOfHOH,
@@ -102,6 +129,9 @@ export class HouseholdListingFormComponent implements OnInit {
 							phoneNumber: household.phoneNumber || '',
 							remarks: household.remarks || '',
 						};
+						
+						// Set structureNumber display
+						this.structureNumberDisplay = this.householdForm.structureNumber;
 					} else {
 						this.messageService.add({
 							severity: 'error',
@@ -175,21 +205,27 @@ export class HouseholdListingFormComponent implements OnInit {
 		this.submitting = true;
 
 		if (this.isEditMode && this.householdId) {
-			// Update existing household
-			const updateDto: UpdateHouseholdListingDto = {
-				structureNumber: this.householdForm.structureNumber,
-				householdIdentification: this.householdForm.householdIdentification,
-				householdSerialNumber: this.householdForm.householdSerialNumber,
-				nameOfHOH: this.householdForm.nameOfHOH,
-				totalMale: this.householdForm.totalMale,
-				totalFemale: this.householdForm.totalFemale,
-				phoneNumber: this.householdForm.phoneNumber,
-				remarks: this.householdForm.remarks,
-			};
+			// Update existing household - ensure structureId is preserved
+			this.resolveStructureId().then((resolvedStructureId) => {
+				const updateDto: any = {
+					structureNumber: this.householdForm.structureNumber,
+					householdIdentification: this.householdForm.householdIdentification,
+					householdSerialNumber: this.householdForm.householdSerialNumber,
+					nameOfHOH: this.householdForm.nameOfHOH,
+					totalMale: this.householdForm.totalMale,
+					totalFemale: this.householdForm.totalFemale,
+					phoneNumber: this.householdForm.phoneNumber,
+					remarks: this.householdForm.remarks,
+				};
+				
+				// Include structureId if available (to prevent it from becoming null)
+				if (resolvedStructureId) {
+					updateDto.structureId = resolvedStructureId;
+				}
 
-			this.enumeratorService
-				.updateHouseholdListing(this.householdId, updateDto)
-				.subscribe({
+				this.enumeratorService
+					.updateHouseholdListing(this.householdId!, updateDto)
+					.subscribe({
 					next: () => {
 						this.messageService.add({
 							severity: 'success',
@@ -208,32 +244,96 @@ export class HouseholdListingFormComponent implements OnInit {
 						});
 						this.submitting = false;
 					},
-				});
+					});
+			});
 		} else {
-			// Create new household
-			this.enumeratorService
-				.createHouseholdListing(this.householdForm)
-				.subscribe({
-					next: () => {
-						this.messageService.add({
-							severity: 'success',
-							summary: 'Success',
-							detail: 'Household created successfully',
-						});
-						setTimeout(() => this.goBack(), 1000);
+			// Create new household - need to include structureId
+			// Try to get structureId if not already set
+			this.resolveStructureId().then((resolvedStructureId) => {
+				if (!resolvedStructureId) {
+					this.messageService.add({
+						severity: 'warn',
+						summary: 'Validation Error',
+						detail: 'Structure ID is required. Please select a structure from the map or ensure structure number is valid.',
+					});
+					this.submitting = false;
+					return;
+				}
+
+				// Build DTO with structureId
+				const createDto: CreateSurveyEnumerationAreaHouseholdListingDto = {
+					surveyEnumerationAreaId: this.householdForm.surveyEnumerationAreaId,
+					structureId: resolvedStructureId,
+					householdIdentification: this.householdForm.householdIdentification,
+					householdSerialNumber: this.householdForm.householdSerialNumber,
+					nameOfHOH: this.householdForm.nameOfHOH,
+					totalMale: this.householdForm.totalMale || 0,
+					totalFemale: this.householdForm.totalFemale || 0,
+					phoneNumber: this.householdForm.phoneNumber || undefined,
+					remarks: this.householdForm.remarks || undefined,
+				};
+
+				this.enumeratorService
+					.createHouseholdListing(createDto)
+					.subscribe({
+						next: () => {
+							this.messageService.add({
+								severity: 'success',
+								summary: 'Success',
+								detail: 'Household created successfully',
+							});
+							setTimeout(() => this.goBack(), 1000);
+						},
+						error: (error: any) => {
+							console.error('Error creating household:', error);
+							this.messageService.add({
+								severity: 'error',
+								summary: 'Error',
+								detail:
+									error.error?.message || 'Failed to create household listing',
+							});
+							this.submitting = false;
+						},
+					});
+			});
+		}
+	}
+
+	/**
+	 * Resolve structure ID from available sources
+	 * Returns structureId if already set, or tries to find it from structureNumber
+	 */
+	private resolveStructureId(): Promise<number | null> {
+		// If structureId is already available, return it
+		if (this.structureId) {
+			return Promise.resolve(this.structureId);
+		}
+
+		// If structureNumber is provided, try to find structure by number
+		if (this.householdForm.structureNumber) {
+			return new Promise((resolve) => {
+				// Load all structures for this survey enumeration area
+				this.structureService.getBySurveyEA(this.surveyEnumerationAreaId).subscribe({
+					next: (structures) => {
+						const structure = structures.find(
+							(s) => s.structureNumber === this.householdForm.structureNumber
+						);
+						if (structure) {
+							this.structureId = structure.id;
+							resolve(structure.id);
+						} else {
+							resolve(null);
+						}
 					},
-					error: (error: any) => {
-						console.error('Error creating household:', error);
-						this.messageService.add({
-							severity: 'error',
-							summary: 'Error',
-							detail:
-								error.error?.message || 'Failed to create household listing',
-						});
-						this.submitting = false;
+					error: () => {
+						resolve(null);
 					},
 				});
+			});
 		}
+
+		// No structureId and no structureNumber
+		return Promise.resolve(null);
 	}
 
 	/**
@@ -258,12 +358,32 @@ export class HouseholdListingFormComponent implements OnInit {
 	}
 
 	/**
-	 * Navigate back
+	 * Load structure details to get structure number
+	 */
+	loadStructureDetails(): void {
+		if (!this.structureId) return;
+
+		this.structureService.findOne(this.structureId).subscribe({
+			next: (structure) => {
+				this.householdForm.structureNumber = structure.structureNumber;
+				this.structureNumberDisplay = structure.structureNumber;
+			},
+			error: (error) => {
+				console.error('Error loading structure:', error);
+				this.messageService.add({
+					severity: 'warn',
+					summary: 'Warning',
+					detail: 'Could not load structure details. Please enter structure number manually.',
+				});
+			},
+		});
+	}
+
+	/**
+	 * Navigate back to previous page
 	 */
 	goBack(): void {
-		this.router.navigate([
-			'/enumerator/survey-enumeration-area',
-			this.surveyEnumerationAreaId,
-		]);
+		// Use browser back - map state is already persisted in service
+		this.location.back();
 	}
 }

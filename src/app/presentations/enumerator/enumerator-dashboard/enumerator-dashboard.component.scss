@@ -1,19 +1,22 @@
-@import '../_enumerator-design-tokens';
-
 /* Enumerator Dashboard Styles - Mobile First */
 
 .enumerator-dashboard {
 	max-width: 100%;
 	margin: 0 auto;
-	padding: $enumerator-spacing-md;
-	padding-bottom: $enumerator-spacing-xl;
+	padding: 1rem;
+	padding-bottom: 2rem;
 }
 
 /* Survey Card Interactions */
 .enumerator-dashboard > div > div {
 	cursor: pointer;
-	@include enumerator-touch-feedback;
-	transition: all $enumerator-transition-base;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+	transition: all 200ms ease-in-out;
+}
+
+.enumerator-dashboard > div > div:active {
+	transform: scale(0.98);
 }
 
 /* Line clamp utility for description */
@@ -28,79 +31,47 @@
 /* Smooth transitions */
 .enumerator-dashboard button,
 .enumerator-dashboard > div > div {
-	transition: all $enumerator-transition-base;
-}
-
-/* Touch feedback */
-.enumerator-dashboard > div > div:active {
-	transform: scale(0.98);
+	transition: all 200ms ease-in-out;
 }
 
 /* Floating Action Button positioning */
 button.p-button-rounded {
-	z-index: $enumerator-z-fixed;
-	background: $enumerator-primary !important;
-	border-color: $enumerator-primary !important;
-	
-	&:hover {
-		background: $enumerator-primary-dark !important;
-		border-color: $enumerator-primary-dark !important;
-	}
+	z-index: 300;
+	background: #1A58AF !important;
+	border-color: #1A58AF !important;
+}
+
+button.p-button-rounded:hover {
+	background: #103975 !important;
+	border-color: #103975 !important;
 }
 
 /* Primary button styling override */
 ::ng-deep .p-button-primary {
-	background: $enumerator-primary !important;
-	border-color: $enumerator-primary !important;
-	
-	&:hover:not(:disabled) {
-		background: $enumerator-primary-dark !important;
-		border-color: $enumerator-primary-dark !important;
-	}
+	background: #1A58AF !important;
+	border-color: #1A58AF !important;
+}
+
+::ng-deep .p-button-primary:hover:not(:disabled) {
+	background: #103975 !important;
+	border-color: #103975 !important;
 }
 
 /* Status badge colors */
-::ng-deep .p-tag {
-	&.p-tag-success {
-		background: $enumerator-success !important;
-	}
-	
-	&.p-tag-danger {
-		background: $enumerator-error !important;
-	}
-	
-	&.p-tag-warning {
-		background: $enumerator-warning !important;
-	}
-	
-	&.p-tag-info {
-		background: $enumerator-info !important;
-	}
+::ng-deep .p-tag.p-tag-success {
+	background: #10B981 !important;
 }
 
-/* Responsive adjustments for tablets */
-@media (min-width: 640px) {
-	.enumerator-dashboard {
-		max-width: 640px;
-		padding: $enumerator-spacing-lg;
-	}
+::ng-deep .p-tag.p-tag-danger {
+	background: #EF4444 !important;
 }
 
-@media (min-width: 768px) {
-	.enumerator-dashboard {
-		max-width: 768px;
-	}
+::ng-deep .p-tag.p-tag-warning {
+	background: #F59E0B !important;
+}
 
-	/* Grid layout for larger screens */
-	.enumerator-dashboard .space-y-4 {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: $enumerator-spacing-md;
-	}
-
-	.enumerator-dashboard .space-y-4 > * {
-		margin-top: 0 !important;
-	}
+::ng-deep .p-tag.p-tag-info {
+	background: #1A58AF !important;
 }
 
 /* Loading spinner centering */
@@ -114,14 +85,14 @@ p-progressSpinner {
 }
 
 .enumerator-dashboard::-webkit-scrollbar-track {
-	background: $enumerator-gray-100;
+	background: #F3F4F6;
 }
 
 .enumerator-dashboard::-webkit-scrollbar-thumb {
-	background: $enumerator-gray-500;
+	background: #6B7280;
 	border-radius: 4px;
 }
 
 .enumerator-dashboard::-webkit-scrollbar-thumb:hover {
-	background: $enumerator-gray-700;
+	background: #374151;
 }

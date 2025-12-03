@@ -359,7 +359,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 						this.messageService.add({
 							severity: 'success',
 							summary: 'Success',
-							detail: 'Sub-administrative zone updated successfully',
+							detail: 'Chiwog/LAP updated successfully',
 							life: 3000,
 						});
 					},
@@ -368,7 +368,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 						this.messageService.add({
 							severity: 'error',
 							summary: 'Error',
-							detail: 'Failed to update sub-administrative zone',
+							detail: 'Failed to update chiwog/LAP',
 							life: 3000,
 						});
 					},
@@ -384,7 +384,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 						this.messageService.add({
 							severity: 'success',
 							summary: 'Success',
-							detail: 'Sub-administrative zone created successfully',
+							detail: 'Chiwog/LAP created successfully',
 							life: 3000,
 						});
 					},
@@ -393,7 +393,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 						this.messageService.add({
 							severity: 'error',
 							summary: 'Error',
-							detail: 'Failed to create sub-administrative zone',
+							detail: 'Failed to create chiwog/LAP',
 							life: 3000,
 						});
 					},
@@ -418,7 +418,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 						this.messageService.add({
 							severity: 'success',
 							summary: 'Success',
-							detail: 'Sub-administrative zone deleted successfully',
+							detail: 'Chiwog/LAP deleted successfully',
 							life: 3000,
 						});
 					},
@@ -427,7 +427,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 						this.messageService.add({
 							severity: 'error',
 							summary: 'Error',
-							detail: 'Failed to delete sub-administrative zone',
+							detail: 'Failed to delete chiwog/LAP',
 							life: 3000,
 						});
 					},

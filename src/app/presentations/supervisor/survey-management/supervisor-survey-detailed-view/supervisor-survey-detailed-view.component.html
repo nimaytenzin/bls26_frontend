@@ -48,109 +48,116 @@
 
 	<!-- Main Content: Split Layout -->
 	<ng-container *ngIf="survey && !loading && !notFound">
-		<!-- Header Section - Positioned to respect sidebar -->
-		<div
-			class="fixed top-0 left-0 right-0 lg:left-[300px] z-30 shadow-xl bg-[#1A58AF] transition-all duration-200"
-		>
-			<div class="px-4 pt-4 pb-3">
-				<!-- Back Button & Title -->
-				<div class="flex items-center justify-between mb-3">
-					<button
-						(click)="navigateToSurveys()"
-						class="flex items-center text-white/90 hover:text-white font-medium transition-colors"
-					>
-						<i class="pi pi-arrow-left mr-2"></i>
-						<span>Back</span>
-					</button>
-					<div
-						class="inline-flex items-center bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5"
-					>
-						<i
-							[class]="
-								survey.status === 'ACTIVE'
-									? 'pi pi-check-circle text-green-300'
-									: 'pi pi-times-circle text-red-300'
-							"
-							class="text-xs mr-1.5"
-						></i>
-						<span class="text-white/90 text-xs font-medium">{{
-							survey.status
-						}}</span>
-					</div>
-				</div>
-
-				<!-- Survey Info -->
-				<div class="mb-3">
-					<div
-						class="inline-flex items-center bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 mb-2"
-					>
-						<i class="pi pi-calendar text-white/90 text-xs mr-1.5"></i>
-						<span class="text-white/90 text-xs font-medium"
-							>Year {{ survey.year }}</span
-						>
-					</div>
-					<h1 class="text-white font-bold text-xl leading-tight mb-2">
-						{{ survey.name }}
-					</h1>
-					<p class="text-white/80 text-sm mb-2" *ngIf="survey.description">
-						{{ survey.description }}
-					</p>
-					<div class="flex items-center gap-4 text-white/80 text-sm">
-						<div class="flex items-center">
-							<i class="pi pi-calendar-plus text-xs mr-1.5"></i>
-							<span>{{ formatDate(survey.startDate) }}</span>
-						</div>
-						<div class="flex items-center">
-							<i class="pi pi-calendar-minus text-xs mr-1.5"></i>
-							<span>{{ formatDate(survey.endDate) }}</span>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- Spacing for fixed header -->
-		<div class="h-44"></div>
-
-		<section class="flex flex-col lg:flex-row gap-4 px-4 pb-6">
+		<section class="flex flex-col lg:flex-row gap-4 px-4 py-6">
 			<!-- Left Pane: Survey Details & Metadata -->
 			<div
-				class="w-full lg:w-[25vw] flex flex-col overflow-y-auto p-6 bg-white rounded-2xl shadow-sm border border-gray-200"
+				class="w-full lg:w-[25vw] lg:flex-shrink-0 flex flex-col overflow-y-auto bg-white rounded-2xl shadow-sm border border-gray-200"
 			>
+				<!-- Header Section - Moved to left pane -->
+				<div class="px-6 pt-6 pb-4 bg-[#1A58AF] rounded-t-2xl">
+					<!-- Back Button & Title -->
+					<div class="flex items-center justify-between mb-4">
+						<button
+							(click)="navigateToSurveys()"
+							class="flex items-center text-white/90 hover:text-white font-medium transition-colors"
+						>
+							<i class="pi pi-arrow-left mr-2"></i>
+							<span>Back</span>
+						</button>
+						<div
+							class="inline-flex items-center bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5"
+						>
+							<i
+								[class]="
+									survey.status === 'ACTIVE'
+										? 'pi pi-check-circle text-green-300'
+										: 'pi pi-times-circle text-red-300'
+								"
+								class="text-xs mr-1.5"
+							></i>
+							<span class="text-white/90 text-xs font-medium">{{
+								survey.status
+							}}</span>
+						</div>
+					</div>
+
+					<!-- Survey Info -->
+					<div class="mb-3">
+						<div
+							class="inline-flex items-center bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 mb-2"
+						>
+							<i class="pi pi-calendar text-white/90 text-xs mr-1.5"></i>
+							<span class="text-white/90 text-xs font-medium"
+								>Year {{ survey.year }}</span
+							>
+						</div>
+						<h1 class="text-white font-bold text-xl leading-tight mb-2">
+							{{ survey.name }}
+						</h1>
+						<p class="text-white/80 text-sm mb-2" *ngIf="survey.description">
+							{{ survey.description }}
+						</p>
+						<div class="flex items-center gap-4 text-white/80 text-sm">
+							<div class="flex items-center">
+								<i class="pi pi-calendar-plus text-xs mr-1.5"></i>
+								<span>{{ formatDate(survey.startDate) }}</span>
+							</div>
+							<div class="flex items-center">
+								<i class="pi pi-calendar-minus text-xs mr-1.5"></i>
+								<span>{{ formatDate(survey.endDate) }}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			
+
 				<!-- Survey Metadata Card -->
-				<div class="space-y-4">
+				<div class="space-y-4 p-6">
 					<!-- Overview -->
 					<app-supervisor-survey-overview
 						[surveyId]="surveyId"
 						[survey]="survey"
 					></app-supervisor-survey-overview>
+
+					<!-- Global Sampling Configuration -->
+					<app-supervisor-survey-sampling-config
+						[surveyId]="survey.id"
+					></app-supervisor-survey-sampling-config>
 				</div>
 			</div>
 
 			<!-- Right Pane: Tabs Content -->
-			<div class="flex-1 relative bg-white rounded-2xl shadow-sm border border-gray-200">
-				<p-tabView class="h-full" styleClass="supervisor-tabview">
+			<div class="flex-1 min-w-0 relative bg-white rounded-2xl shadow-sm border border-gray-200">
+				<p-tabView class="h-full" styleClass="supervisor-tabview" [(activeIndex)]="activeTabIndex">
+					<!-- PRIMARY: Enumeration Areas Tab (Default) -->
+					<p-tabPanel header="Enumeration Areas">
+						<app-supervisor-survey-ea-view
+							[surveyId]="survey.id"
+						></app-supervisor-survey-ea-view>
+					</p-tabPanel>
+					
+					<!-- Secondary: Household Listings (All EAs view) -->
 					<p-tabPanel header="Household Listings">
 						<app-supervisor-survey-household-listings
 							[surveyId]="survey.id"
 							[surveyName]="survey.name"
 						></app-supervisor-survey-household-listings>
 					</p-tabPanel>
-					<p-tabPanel header="Enumerators">
-						<app-supervisor-survey-enumerators-view
-							[surveyId]="survey.id"
-						></app-supervisor-survey-enumerators-view>
-					</p-tabPanel>
-					<p-tabPanel header="Enumeration Areas">
-						<app-supervisor-survey-ea-view
-							[surveyId]="survey.id"
-						></app-supervisor-survey-ea-view>
-					</p-tabPanel>
+					
+					<!-- Secondary: Sampling Results Summary -->
 					<p-tabPanel header="Sampling Results">
 						<app-supervisor-survey-sampling-view
 							[surveyId]="survey.id"
 							[surveyName]="survey.name"
 						></app-supervisor-survey-sampling-view>
+					</p-tabPanel>
+					
+					<!-- Keep: Enumerators -->
+					<p-tabPanel header="Enumerators">
+						<app-supervisor-survey-enumerators-view
+							[surveyId]="survey.id"
+						></app-supervisor-survey-enumerators-view>
 					</p-tabPanel>
 				</p-tabView>
 			</div>

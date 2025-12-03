@@ -161,81 +161,11 @@ export class CurrentHouseholdListingComponent implements OnInit, OnChanges {
 		return '';
 	}
 
-	/**
-	 * Check if data has been submitted
-	 */
-	isSubmitted(): boolean {
-		return this.response?.data?.surveyEnumerationArea?.isSubmitted ?? false;
-	}
+	
 
-	/**
-	 * Get submitter name
-	 */
-	getSubmitterName(): string {
-		console.log(
-			'Submitter info:',
-			this.response?.data?.surveyEnumerationArea?.submitter
-		);
-		return this.response?.data?.surveyEnumerationArea?.submitter?.name || 'N/A';
-	}
 
-	/**
-	 * Get submitter phone number
-	 */
-	getSubmitterPhone(): string {
-		return (
-			this.response?.data?.surveyEnumerationArea?.submitter?.phoneNumber ||
-			'N/A'
-		);
-	}
 
-	/**
-	 * Navigate to survey details page
-	 */
-	navigateToSurvey(): void {
-		const surveyId = this.response?.data?.survey?.id;
-		if (surveyId) {
-			this.router.navigate(['/admin/survey/details', surveyId]);
-		}
-	}
 
-	/**
-	 * Get submission date
-	 */
-	getSubmissionDate(): Date | string | null {
-		return this.response?.data?.surveyEnumerationArea?.submissionDate || null;
-	}
-
-	/**
-	 * Check if data has been validated
-	 */
-	isValidated(): boolean {
-		return this.response?.data?.surveyEnumerationArea?.isValidated ?? false;
-	}
-
-	/**
-	 * Get validator name
-	 */
-	getValidatorName(): string {
-		return this.response?.data?.surveyEnumerationArea?.validator?.name || 'N/A';
-	}
-
-	/**
-	 * Get validator phone number
-	 */
-	getValidatorPhone(): string {
-		return (
-			this.response?.data?.surveyEnumerationArea?.validator?.phoneNumber ||
-			'N/A'
-		);
-	}
-
-	/**
-	 * Get validation date
-	 */
-	getValidationDate(): Date | string | null {
-		return this.response?.data?.surveyEnumerationArea?.validationDate || null;
-	}
 
 	/**
 	 * Download household listings as CSV
@@ -253,7 +183,6 @@ export class CurrentHouseholdListingComponent implements OnInit, OnChanges {
 		// CSV Headers
 		const headers = [
 			'Serial Number',
-			'Structure Number',
 			'Household ID',
 			'Head of Household',
 			'Phone Number',
@@ -261,15 +190,12 @@ export class CurrentHouseholdListingComponent implements OnInit, OnChanges {
 			'Female',
 			'Total Population',
 			'Remarks',
-			'Submitted By',
-			'Submitter Phone',
-			'Submission Date',
+			
 		];
 
 		// Convert data to CSV rows
 		const rows = this.householdListings.map((hh) => [
 			hh.householdSerialNumber || '',
-			hh.structureNumber || '',
 			hh.householdIdentification || '',
 			hh.nameOfHOH || '',
 			hh.phoneNumber || '',
@@ -277,11 +203,7 @@ export class CurrentHouseholdListingComponent implements OnInit, OnChanges {
 			hh.totalFemale || 0,
 			(hh.totalMale || 0) + (hh.totalFemale || 0),
 			hh.remarks || '',
-			this.getSubmitterName(),
-			this.getSubmitterPhone(),
-			this.getSubmissionDate()
-				? new Date(this.getSubmissionDate()!).toLocaleDateString()
-				: '',
+			
 		]);
 
 		// Combine headers and rows

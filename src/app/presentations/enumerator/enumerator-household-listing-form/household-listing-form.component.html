@@ -69,18 +69,27 @@
 						<div class="form-field">
 							<label class="block text-sm font-semibold text-gray-900 mb-2">
 								Structure Number <span class="text-red-500">*</span>
+								<span *ngIf="structureId" class="text-xs text-gray-500 font-normal ml-2">
+									(From selected structure)
+								</span>
 							</label>
 							<input
 								type="text"
 								pInputText
 								[(ngModel)]="householdForm.structureNumber"
 								name="structureNumber"
-								[disabled]="submitting"
+								[disabled]="submitting || !!structureId"
+								[readonly]="!!structureId"
 								placeholder="e.g., STR-001"
 								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+								[class.bg-gray-100]="!!structureId"
 								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
 								required
 							/>
+							<p *ngIf="structureId" class="mt-1 text-xs text-blue-600">
+								<i class="pi pi-info-circle mr-1"></i>
+								Structure selected from map. This field is auto-filled.
+							</p>
 						</div>
 
 						<!-- Household ID -->

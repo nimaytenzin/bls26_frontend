@@ -1,4 +1,4 @@
-import { SurveyEnumerationArea } from '../../survey/survey.dto';
+import { SurveyEnumerationArea } from '../../survey-enumeration-area/survey-enumeration-area.dto';
 import { SubAdministrativeZone } from '../sub-administrative-zone/sub-administrative-zone.dto';
 
 export interface EnumerationArea {

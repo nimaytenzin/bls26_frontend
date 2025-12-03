@@ -4,10 +4,6 @@ import {
 	Input,
 	OnChanges,
 	SimpleChanges,
-	ViewChild,
-	ElementRef,
-	AfterViewInit,
-	OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PrimeNgModules } from '../../../../../../primeng.modules';
@@ -17,10 +13,6 @@ import {
 	SurveyStatisticsResponseDto,
 } from '../../../../../../core/dataservice/survey/survey.dto';
 import { MessageService } from 'primeng/api';
-import { Chart, registerables } from 'chart.js';
-
-// Register Chart.js components
-Chart.register(...registerables);
 
 @Component({
 	selector: 'app-supervisor-survey-overview',
@@ -31,7 +23,7 @@ Chart.register(...registerables);
 	styleUrls: ['./supervisor-survey-overview.component.scss'],
 })
 export class SupervisorSurveyOverviewComponent
-	implements OnInit, OnChanges, AfterViewInit, OnDestroy
+	implements OnInit, OnChanges
 {
 	@Input() surveyId: number | null = null;
 	@Input({
@@ -39,12 +31,8 @@ export class SupervisorSurveyOverviewComponent
 	})
 	survey!: Survey;
 
-	@ViewChild('progressChart') progressChartRef!: ElementRef<HTMLCanvasElement>;
-
 	statistics: SurveyStatisticsResponseDto | null = null;
 	loadingStatistics = false;
-
-	private progressChart: Chart | null = null;
 
 	constructor(
 		private surveyService: SurveyDataService,
@@ -55,10 +43,6 @@ export class SupervisorSurveyOverviewComponent
 		if (this.surveyId) {
 			this.loadSurveyStatistics();
 		}
-	}
-
-	ngAfterViewInit() {
-		// Charts will be created after statistics are loaded
 	}
 
 	ngOnChanges(changes: SimpleChanges) {
@@ -78,8 +62,6 @@ export class SupervisorSurveyOverviewComponent
 			next: (stats) => {
 				this.statistics = stats;
 				this.loadingStatistics = false;
-				// Create charts after statistics are loaded
-				setTimeout(() => this.createCharts(), 100);
 			},
 			error: (error) => {
 				this.loadingStatistics = false;
@@ -94,106 +76,8 @@ export class SupervisorSurveyOverviewComponent
 		});
 	}
 
-	/**
-	 * Create all charts
-	 */
-	private createCharts(): void {
-		if (!this.statistics) return;
-		this.createProgressChart();
-	}
-
 	getSurveyDuration(): number {
 		return this.survey ? this.surveyService.getSurveyDuration(this.survey) : 0;
-	}
-
-	/**
-	 * Create progress doughnut chart
-	 */
-	private createProgressChart(): void {
-		if (this.progressChart) {
-			this.progressChart.destroy();
-		}
-
-		if (!this.progressChartRef?.nativeElement || !this.statistics) return;
-
-		const ctx = this.progressChartRef.nativeElement.getContext('2d');
-		if (!ctx) return;
-
-		this.progressChart = new Chart(ctx, {
-			type: 'doughnut',
-			data: {
-				labels: ['Validated', 'Submitted', 'Pending'],
-				datasets: [
-					{
-						data: [
-							this.statistics.validatedEnumerationAreas,
-							this.statistics.submittedEnumerationAreas -
-								this.statistics.validatedEnumerationAreas,
-							this.statistics.pendingEnumerationAreas,
-						],
-						backgroundColor: [
-							'rgba(16, 185, 129, 0.8)', // green-500 - validated
-							'rgba(26, 88, 175, 0.8)', // primary - submitted
-							'rgba(107, 114, 128, 0.8)', // gray-500 - pending
-						],
-						borderColor: '#ffffff',
-						borderWidth: 2,
-					},
-				],
-			},
-			options: {
-				responsive: true,
-				maintainAspectRatio: true,
-				plugins: {
-					legend: {
-						position: 'bottom',
-						labels: {
-							padding: 15,
-							font: {
-								size: 12,
-								family: 'Inter, sans-serif',
-							},
-							color: '#374151',
-							usePointStyle: true,
-							pointStyle: 'circle',
-						},
-					},
-					tooltip: {
-						backgroundColor: 'rgba(17, 24, 39, 0.9)',
-						padding: 12,
-						titleFont: {
-							size: 13,
-							weight: 'bold',
-						},
-						bodyFont: {
-							size: 12,
-						},
-						cornerRadius: 6,
-						callbacks: {
-							label: function (context) {
-								const label = context.label || '';
-								const value = context.parsed || 0;
-								const total = context.dataset.data.reduce(
-									(a: number, b: number) => a + b,
-									0
-								);
-								const percentage = ((value / total) * 100).toFixed(1);
-								return `${label}: ${value} (${percentage}%)`;
-							},
-						},
-					},
-				},
-			},
-		});
-	}
-
-	/**
-	 * Cleanup charts on component destroy
-	 */
-	ngOnDestroy(): void {
-		if (this.progressChart) {
-			this.progressChart.destroy();
-		}
 	}
 
 	/**
@@ -201,6 +85,66 @@ export class SupervisorSurveyOverviewComponent
 	 */
 	getPercentageNumber(value: string): number {
 		return parseFloat(value) || 0;
+	}
+
+	/**
+	 * Get total enumeration areas for percentage calculations
+	 */
+	getTotalEnumerationAreas(): number {
+		if (!this.statistics) return 0;
+		return this.statistics.totalEnumerationAreas || 0;
+	}
+
+	/**
+	 * Get published count
+	 */
+	getPublishedCount(): number {
+		if (!this.statistics) return 0;
+		return this.statistics.publishedEnumerationAreas || 0;
+	}
+
+	/**
+	 * Get sampled but not published count
+	 */
+	getSampledNotPublishedCount(): number {
+		if (!this.statistics) return 0;
+		const sampled = this.statistics.sampledEnumerationAreas || 0;
+		const published = this.statistics.publishedEnumerationAreas || 0;
+		return Math.max(0, sampled - published);
+	}
+
+	/**
+	 * Get enumerated but not sampled count
+	 */
+	getEnumeratedNotSampledCount(): number {
+		if (!this.statistics) return 0;
+		const enumerated = this.statistics.enumeratedEnumerationAreas || 0;
+		const sampled = this.statistics.sampledEnumerationAreas || 0;
+		return Math.max(0, enumerated - sampled);
+	}
+
+	/**
+	 * Get pending count
+	 */
+	getPendingCount(): number {
+		if (!this.statistics) return 0;
+		return this.statistics.pendingEnumerationAreas || 0;
+	}
+
+	/**
+	 * Get segment width percentage
+	 */
+	getSegmentWidthPercentage(count: number): number {
+		const total = this.getTotalEnumerationAreas();
+		if (total === 0) return 0;
+		return (count / total) * 100;
+	}
+
+	/**
+	 * Check if segment should be displayed (count > 0)
+	 */
+	shouldShowSegment(count: number): boolean {
+		return count > 0;
 	}
 }
 

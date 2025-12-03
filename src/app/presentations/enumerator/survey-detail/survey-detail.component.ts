@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { EnumeratorDataService } from '../../../core/dataservice/enumerator-service/enumerator.dataservice';
+import { EnumeratorMapStateService } from '../../../core/utility/enumerator-map-state.service';
 import { Survey } from '../../../core/dataservice/survey/survey.dto';
 import { EnumerationArea } from '../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 import { PrimeNgModules } from '../../../primeng.modules';
@@ -41,11 +42,14 @@ export class SurveyDetailComponent implements OnInit {
 	constructor(
 		private route: ActivatedRoute,
 		private router: Router,
-		private enumeratorService: EnumeratorDataService
+		private enumeratorService: EnumeratorDataService,
+		private mapStateService: EnumeratorMapStateService
 	) {}
 
 	ngOnInit() {
 		this.surveyId = Number(this.route.snapshot.paramMap.get('surveyId'));
+		// Clear all map states when entering survey detail page
+		this.mapStateService.clearAllMapStates();
 		this.loadSurveyDetails();
 	}
 
@@ -380,13 +384,14 @@ export class SurveyDetailComponent implements OnInit {
 	}
 
 	/**
-	 * Navigate to enumeration area detail from status view
+	 * Navigate to enumeration area map view
 	 */
 	navigateToEnumerationArea(surveyEnumerationAreaId: number) {
 		if (!surveyEnumerationAreaId) return;
 		this.router.navigate([
 			'/enumerator/survey-enumeration-area',
 			surveyEnumerationAreaId,
+			'map',
 		]);
 	}
 
@@ -402,5 +407,45 @@ export class SurveyDetailComponent implements OnInit {
 			month: 'long',
 			day: 'numeric',
 		});
+	}
+
+	/**
+	 * Get status for enumeration area based on isEnumerated, isSampled, isPublished
+	 */
+	getEnumerationAreaStatus(surveyEa: any): {
+		label: string;
+		severity: 'success' | 'info' | 'warning' | 'secondary';
+		color: string;
+		bgColor: string;
+	} {
+		if (surveyEa.isPublished) {
+			return {
+				label: 'Published',
+				severity: 'success',
+				color: '#059669',
+				bgColor: '#d1fae5',
+			};
+		} else if (surveyEa.isSampled) {
+			return {
+				label: 'Sampled',
+				severity: 'info',
+				color: '#0284c7',
+				bgColor: '#e0f2fe',
+			};
+		} else if (surveyEa.isEnumerated) {
+			return {
+				label: 'Enumerated',
+				severity: 'info',
+				color: '#1A58AF',
+				bgColor: '#E8F0FF',
+			};
+		} else {
+			return {
+				label: 'Pending',
+				severity: 'secondary',
+				color: '#6b7280',
+				bgColor: '#f3f4f6',
+			};
+		}
 	}
 }

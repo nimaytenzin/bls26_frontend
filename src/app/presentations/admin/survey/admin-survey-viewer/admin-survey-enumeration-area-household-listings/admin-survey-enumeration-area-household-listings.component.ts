@@ -463,7 +463,6 @@ export class AdminSurveyEnumerationAreaHouseholdListingsComponent
 
 		const csvData = this.householdListings.map((listing) => [
 			listing.id,
-			listing.structureNumber,
 			listing.householdIdentification,
 			listing.householdSerialNumber,
 			listing.nameOfHOH,
@@ -604,128 +603,9 @@ export class AdminSurveyEnumerationAreaHouseholdListingsComponent
 		});
 	}
 
-	/**
-	 * Approve the enumeration area data
-	 */
-	approveEnumerationArea() {
-		if (!this.currentValidationEA) return;
+	
 
-		const currentUser = this.authService.getCurrentUser();
-		if (!currentUser) {
-			this.messageService.add({
-				severity: 'error',
-				summary: 'Error',
-				detail: 'Unable to get current user information',
-			});
-			return;
-		}
-
-		this.validating = true;
-
-		this.surveyEAService
-			.validate(this.currentValidationEA.id, {
-				validatedBy: currentUser.id,
-				isApproved: true,
-				comments: this.validationComments || undefined,
-			})
-			.subscribe({
-				next: (updatedEA) => {
-					this.messageService.add({
-						severity: 'success',
-						summary: 'Approved',
-						detail: `Enumeration area ${updatedEA.enumerationArea?.name} has been approved and validated`,
-					});
-					this.validating = false;
-					this.showValidationDialog = false;
-					this.validationComments = '';
-					this.currentValidationEA = null;
-
-					// Reload hierarchy and household listings to reflect the updated status
-					this.loadHierarchy();
-					if (this.selectedEnumerationArea) {
-						this.loadHouseholdListingsByEA(this.selectedEnumerationArea.surveyEnumerationAreaId);
-					} else {
-						this.loadAllHouseholdListings();
-					}
-				},
-				error: (error) => {
-					this.validating = false;
-					console.error('Error approving enumeration area:', error);
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Error',
-						detail:
-							error?.error?.message || 'Failed to approve enumeration area',
-					});
-				},
-			});
-	}
-
-	/**
-	 * Reject the enumeration area data
-	 */
-	rejectEnumerationArea() {
-		if (!this.currentValidationEA) return;
-
-		if (!this.validationComments || this.validationComments.trim() === '') {
-			this.messageService.add({
-				severity: 'warn',
-				summary: 'Warning',
-				detail: 'Please provide comments explaining the rejection',
-			});
-			return;
-		}
-
-		const currentUser = this.authService.getCurrentUser();
-		if (!currentUser) {
-			this.messageService.add({
-				severity: 'error',
-				summary: 'Error',
-				detail: 'Unable to get current user information',
-			});
-			return;
-		}
-
-		this.validating = true;
-
-		this.surveyEAService
-			.validate(this.currentValidationEA.id, {
-				validatedBy: currentUser.id,
-				isApproved: false,
-				comments: this.validationComments,
-			})
-			.subscribe({
-				next: (updatedEA) => {
-					this.messageService.add({
-						severity: 'info',
-						summary: 'Rejected',
-						detail: `Enumeration area ${updatedEA.enumerationArea?.name} has been rejected. Supervisor will be notified to resubmit.`,
-					});
-					this.validating = false;
-					this.showValidationDialog = false;
-					this.validationComments = '';
-					this.currentValidationEA = null;
-
-					// Reload hierarchy and household listings to reflect the updated status
-					this.loadHierarchy();
-					if (this.selectedEnumerationArea) {
-						this.loadHouseholdListingsByEA(this.selectedEnumerationArea.surveyEnumerationAreaId);
-					} else {
-						this.loadAllHouseholdListings();
-					}
-				},
-				error: (error) => {
-					this.validating = false;
-					console.error('Error rejecting enumeration area:', error);
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Error',
-						detail:
-							error?.error?.message || 'Failed to reject enumeration area',
-					});
-				},
-			});
-	}
+	
 
 	/**
 	 * Close validation dialog
@@ -736,14 +616,7 @@ export class AdminSurveyEnumerationAreaHouseholdListingsComponent
 		this.currentValidationEA = null;
 	}
 
-	/**
-	 * Check if enumeration area can be validated
-	 */
-	canValidate(ea: SurveyEnumerationArea): boolean {
-		return ea.isSubmitted && !ea.isValidated;
-	}
-
-	/**
+		/**
 	 * Get formatted EA code
 	 * Format: DZONGKHAG.areaCodeAdmZon.areaCodeSubAdminZone.areaCodeEa
 	 * For now, returns the EA area code as-is since we don't have nested objects

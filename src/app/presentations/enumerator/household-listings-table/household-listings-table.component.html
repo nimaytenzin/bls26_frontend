@@ -1,0 +1,214 @@
+<div class="household-listings-table bg-gray-50 min-h-screen">
+	<!-- Header -->
+	<div class="bg-primary-600 shadow-lg">
+		<div class="flex items-center justify-between p-4">
+			<div class="flex items-center gap-3">
+				<button
+					pButton
+					type="button"
+					icon="pi pi-arrow-left"
+					(click)="goBack()"
+					class="p-button-text p-button-plain !text-white"
+				></button>
+				<div class="flex-1 flex flex-col justify-center overflow-hidden">
+					<h1 class="text-white font-bold leading-tight truncate">
+						Household Listings
+					</h1>
+					<p
+						class="text-white/80 text-xs truncate mt-0.5"
+						*ngIf="getLocationHierarchy()"
+					>
+						{{ getLocationHierarchy() }}
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Content -->
+	<div class="p-4">
+		<!-- Search Bar -->
+		<div class="mb-4">
+			<span class="p-input-icon-left w-full">
+				<input
+					type="text"
+					pInputText
+					[(ngModel)]="searchQuery"
+					(ngModelChange)="filterHouseholds()"
+					placeholder="Search by household ID, name, phone, structure number..."
+					class="w-full"
+				/>
+			</span>
+		</div>
+
+		<!-- Loading State -->
+		<div *ngIf="loading" class="flex items-center justify-center py-12">
+			<p-progressSpinner></p-progressSpinner>
+		</div>
+
+		<!-- Cards -->
+		<div *ngIf="!loading">
+			<!-- Empty State -->
+			<div
+				*ngIf="filteredStructures.length === 0"
+				class="bg-white rounded-lg shadow-sm p-8 text-center"
+			>
+				<i class="pi pi-inbox text-4xl text-gray-400 mb-3"></i>
+				<p class="text-gray-500 text-sm">No structures or household listings found</p>
+			</div>
+
+			<!-- Structures with Household Listings -->
+			<div *ngIf="filteredStructures.length > 0" class="space-y-4">
+				<div
+					*ngFor="
+						let structure of filteredStructures;
+						trackBy: trackByStructureId
+					"
+					class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden"
+				>
+					<!-- Structure Header -->
+					<div class="p-4 bg-gray-50 border-b border-gray-200">
+						<div class="flex items-center justify-between">
+							<div class="flex items-center gap-3">
+								<i class="pi pi-building text-lg text-blue-600"></i>
+								<span class="font-semibold text-gray-900 text-base">
+									{{ structure.structureNumber }}
+								</span>
+								<span class="text-sm text-gray-600">
+									{{ structure.householdListings.length }}
+									{{ structure.householdListings.length === 1 ? 'household' : 'households' }}
+								</span>
+							</div>
+							<div class="flex items-center gap-2">
+								<button
+									pButton
+									type="button"
+									icon="pi pi-plus"
+									styleClass="p-button-text p-button-sm"
+									(click)="addHouseholdToStructure(structure.id)"
+									title="Add Household"
+									size="small"
+									severity="secondary"
+									style="pointer-events: auto; z-index: 10; position: relative;"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-map-marker"
+									styleClass="p-button-text p-button-sm"
+									(click)="zoomToStructure(structure.id)"
+									title="Locate on Map"
+									severity="secondary"
+									size="small"
+									style="pointer-events: auto; z-index: 10; position: relative;"
+								></button>
+							</div>
+						</div>
+					</div>
+
+					<!-- Household Listings -->
+					<div class="divide-y divide-gray-100">
+						<div
+							*ngFor="
+								let household of structure.householdListings;
+								trackBy: trackByHouseholdId
+							"
+							class="p-4 hover:bg-gray-50 transition-colors"
+						>
+							<div class="flex items-center justify-between gap-4">
+								<div class="flex-1">
+									<div class="flex items-center gap-4 mb-2">
+										<div class="flex items-center gap-2">
+											<span class="text-xs text-gray-500">Serial Number:</span>
+											<span class="text-sm font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+												{{ household.householdSerialNumber }}
+											</span>
+										</div>
+										<div class="flex items-center gap-2">
+											<span class="text-xs text-gray-500">Household ID:</span>
+											<span class="text-sm font-medium text-gray-700">
+												{{ household.householdIdentification }}
+											</span>
+										</div>
+									</div>
+									<h3 class="font-semibold text-gray-900 text-base mb-3">
+										{{ household.nameOfHOH }}
+									</h3>
+									<div class="grid grid-cols-2 gap-3 text-sm">
+										<div class="flex items-center gap-2">
+											<span class="text-gray-600">Phone:</span>
+											<span class="font-medium text-gray-900">
+												{{ household.phoneNumber || "-" }}
+											</span>
+										</div>
+										<div class="flex items-center gap-2">
+											<span class="text-gray-600">Male:</span>
+											<span class="font-semibold text-gray-900">
+												{{ household.totalMale || 0 }}
+											</span>
+										</div>
+										<div class="flex items-center gap-2">
+											<span class="text-gray-600">Female:</span>
+											<span class="font-semibold text-gray-900">
+												{{ household.totalFemale || 0 }}
+											</span>
+										</div>
+										<div class="flex items-center gap-2">
+											<span class="text-gray-600">Total Population:</span>
+											<span class="font-bold text-gray-900">
+												{{ getTotalPopulation(household) }}
+											</span>
+										</div>
+									</div>
+								</div>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-pencil"
+									styleClass="p-button-text p-button-sm"
+									(click)="viewHouseholdDetails(household)"
+									title="Edit Household"
+									size="small"
+									style="pointer-events: auto; z-index: 10; position: relative; flex-shrink: 0;"
+									[attr.aria-label]="'Edit Household'"
+								></button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Summary -->
+			<div
+				*ngIf="!loading && filteredStructures.length > 0"
+				class="mt-4"
+			>
+				<div class="bg-white rounded-lg shadow-md p-4">
+					<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+						<div>
+							<p class="text-sm text-gray-600">
+								Showing
+								<span class="font-semibold">{{
+									getTotalStructures()
+								}}</span>
+								{{ getTotalStructures() === 1 ? 'structure' : 'structures' }} with
+								<span class="font-semibold">{{
+									getTotalHouseholds()
+								}}</span>
+								{{ getTotalHouseholds() === 1 ? 'household' : 'household listings' }}
+							</p>
+						</div>
+						<div class="flex gap-4 text-sm">
+							<div>
+								<span class="text-gray-600">Total Population: </span>
+								<span class="font-semibold text-gray-900">
+									{{ getTotalPopulationSum() }}
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

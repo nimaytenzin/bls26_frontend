@@ -1,6 +1,7 @@
 import { User } from '../auth/auth.interface';
 import { EnumerationArea } from '../location/enumeration-area/enumeration-area.dto';
-import { SurveyEnumerationArea } from '../survey/survey.dto';
+import { SurveyEnumerationArea } from '../survey-enumeration-area/survey-enumeration-area.dto';
+import { SurveyEnumerationAreaStructure } from '../survey-enumeration-area-structure/survey-enumeration-area-structure.dto';
 
 /**
  * Survey Enumeration Area Household Listing Entity Interface
@@ -8,7 +9,7 @@ import { SurveyEnumerationArea } from '../survey/survey.dto';
 export interface SurveyEnumerationAreaHouseholdListing {
 	id: number;
 	surveyEnumerationAreaId: number;
-	structureNumber: string;
+	structureId: number;
 	householdIdentification: string;
 	householdSerialNumber: number;
 	nameOfHOH: string;
@@ -18,7 +19,8 @@ export interface SurveyEnumerationAreaHouseholdListing {
 	remarks?: string;
 	createdAt?: Date;
 	updatedAt?: Date;
-	surveyEnumerationArea?: any;
+	surveyEnumerationArea?: SurveyEnumerationArea;
+	structure?: SurveyEnumerationAreaStructure;
 	submittedBy: number;
 	submitter?: User;
 }
@@ -28,7 +30,7 @@ export interface SurveyEnumerationAreaHouseholdListing {
  */
 export interface CreateSurveyEnumerationAreaHouseholdListingDto {
 	surveyEnumerationAreaId: number;
-	structureNumber: string;
+	structureId: number;
 	householdIdentification: string;
 	householdSerialNumber: number;
 	nameOfHOH: string;

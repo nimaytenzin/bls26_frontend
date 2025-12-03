@@ -31,7 +31,7 @@
 	</header>
 
 	<!-- Main Content Area -->
-	<main class="flex-1 overflow-y-auto pb-20">
+	<main [class.pb-20]="showBottomNav" [class.overflow-y-auto]="showBottomNav" class="flex-1">
 		<router-outlet></router-outlet>
 	</main>
 
