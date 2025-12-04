@@ -17,36 +17,6 @@
 
 			<!-- Action Controls -->
 			<div class="flex items-center gap-4">
-				<!-- View Mode Toggle -->
-				<div
-					class="flex bg-white rounded-lg shadow-sm border border-gray-200 p-1"
-				>
-					<button
-						class="px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-2"
-						[class.bg-blue-500]="currentView === 'table'"
-						[class.text-white]="currentView === 'table'"
-						[class.shadow-sm]="currentView === 'table'"
-						[class.text-gray-700]="currentView !== 'table'"
-						[class.hover:bg-gray-50]="currentView !== 'table'"
-						(click)="switchView('table')"
-					>
-						<i class="pi pi-table text-sm"></i>
-						<span>Table View</span>
-					</button>
-					<button
-						class="px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-2"
-						[class.bg-blue-500]="currentView === 'split'"
-						[class.text-white]="currentView === 'split'"
-						[class.shadow-sm]="currentView === 'split'"
-						[class.text-gray-700]="currentView !== 'split'"
-						[class.hover:bg-gray-50]="currentView !== 'split'"
-						(click)="switchView('split')"
-					>
-						<i class="pi pi-clone text-sm"></i>
-						<span>Split View</span>
-					</button>
-				</div>
-
 				<!-- Action Buttons -->
 				<div class="flex items-center gap-2">
 					<button
@@ -112,388 +82,11 @@
 			</div>
 		</div>
 
-		<!-- Statistics Cards -->
-		<div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center"
-						>
-							<i class="pi pi-map-marker text-pink-600"></i>
-						</div>
-					</div>
-					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">
-							{{
-								selectedDzongkhag
-									? selectedDzongkhag.name + " Areas"
-									: "Total Areas"
-							}}
-						</p>
-						<p class="text-lg font-semibold text-gray-900">
-							{{ enumerationAreas.length }}
-						</p>
-					</div>
-				</div>
-			</div>
-
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
-						>
-							<i class="pi pi-sitemap text-green-600"></i>
-						</div>
-					</div>
-					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Admin Zones</p>
-						<p class="text-lg font-semibold text-gray-900">
-							{{ administrativeZoneCount }}
-						</p>
-					</div>
-				</div>
-			</div>
-
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
-						>
-							<i class="pi pi-objects-column text-purple-600"></i>
-						</div>
-					</div>
-					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">
-							{{ selectedDzongkhag ? "Sub-Admin Zones" : "Selected" }}
-						</p>
-						<p class="text-lg font-semibold text-gray-900">
-							<span *ngIf="selectedDzongkhag">{{
-								subAdministrativeZoneCount
-							}}</span>
-							<span *ngIf="!selectedDzongkhag">{{
-								selectedEnumerationArea?.name || "None"
-							}}</span>
-						</p>
-					</div>
-				</div>
-			</div>
-		</div>
+	
 	</div>
 
-	<!-- Content Area -->
-	<div *ngIf="currentView === 'table'">
-		<!-- TabView for Table Only View -->
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
-			<p-tabView (onChange)="onTabChange($event)">
-				<!-- Table Tab -->
-				<p-tabPanel header="Data Management" leftIcon="pi pi-table">
-					<div class="p-4">
-						<div class="flex justify-between items-center mb-4">
-							<h2 class="text-lg font-semibold text-gray-900">
-								Enumeration Areas List
-							</h2>
-							<div class="flex items-center gap-3">
-								<span class="p-input-icon-left">
-									<input
-										pInputText
-										type="text"
-										[(ngModel)]="globalFilterValue"
-										placeholder="Search areas..."
-										class="p-inputtext-sm"
-										(input)="onGlobalFilter($event)"
-									/>
-								</span>
-							</div>
-						</div>
-
-						<!-- No Dzongkhag Selected Message -->
-						<div *ngIf="!selectedDzongkhag" class="text-center py-12">
-							<div class="text-gray-400 mb-4">
-								<i class="pi pi-map-marker text-6xl"></i>
-							</div>
-							<h3 class="text-lg font-medium text-gray-900 mb-2">
-								Select a Dzongkhag
-							</h3>
-							<p class="text-gray-500">
-								Please select a dzongkhag from the dropdown above to view
-								enumeration areas.
-							</p>
-						</div>
-
-						<!-- Table Content -->
-						<div *ngIf="selectedDzongkhag">
-							<!-- Hierarchical Table -->
-							<p-table
-								#dt
-								[value]="hierarchicalTableData"
-								[rows]="50"
-								[paginator]="false"
-								responsiveLayout="scroll"
-								[loading]="loadingEAs"
-								styleClass="p-datatable-sm hierarchical-table"
-								[globalFilterFields]="['name', 'areaCode', 'description']"
-								[filterDelay]="0"
-							>
-								<ng-template pTemplate="header">
-									<tr>
-										<th style="width: 50%">Name / Area Code</th>
-										<th style="width: 20%">Type</th>
-										<th style="width: 15%">Count / Geometry</th>
-										<th style="width: 15%">Actions</th>
-									</tr>
-								</ng-template>
-
-								<ng-template pTemplate="body" let-item>
-									<!-- Administrative Zone Row -->
-									<tr
-										*ngIf="item.type === 'admin-zone'"
-										class="bg-blue-50 font-semibold border-b-2 border-blue-200"
-									>
-										<td>
-											<div class="flex items-center py-2">
-												<div>
-													<div class="font-bold text-blue-900 text-lg">
-														{{ item.name }}
-													</div>
-													<div class="text-blue-700 font-mono">
-														{{ item.areaCode }}
-													</div>
-												</div>
-											</div>
-										</td>
-										<td>
-											<span class="font-medium text-blue-800">
-												{{ "ADMINISTRATIVE ZONE" }}
-											</span>
-										</td>
-										<td>
-											<span
-												class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded"
-											>
-												{{ item.totalEAs }} EAs
-											</span>
-										</td>
-										<td>
-											<button
-												pButton
-												type="button"
-												icon="pi pi-eye"
-												class="p-button-outlined p-button-sm p-button-info"
-												pTooltip="View Administrative Zone"
-												tooltipPosition="top"
-											></button>
-										</td>
-									</tr>
-
-									<!-- Sub-Administrative Zone Row -->
-									<tr
-										*ngIf="item.type === 'sub-admin-zone'"
-										class="bg-amber-50 font-medium border-b border-amber-200"
-									>
-										<td>
-											<div class="flex items-center py-1 pl-6">
-												<div>
-													<div class="font-semibold text-amber-900">
-														{{ item.name }}
-													</div>
-													<div class="text-amber-700 font-mono">
-														{{ item.areaCode }}
-													</div>
-												</div>
-											</div>
-										</td>
-										<td>
-											<span class="font-medium text-amber-800">
-												{{
-													(item.zoneType === "chiwog" ? "Chiwog" : "Lap")
-														| uppercase
-												}}
-											</span>
-										</td>
-										<td>
-											<span
-												class="bg-amber-100 text-amber-800 text-xs font-medium px-2 py-1 rounded"
-											>
-												{{ item.totalEAs }} EAs
-											</span>
-										</td>
-										<td>
-											<button
-												pButton
-												type="button"
-												icon="pi pi-eye"
-												class="p-button-outlined p-button-sm p-button-warning"
-												(click)="viewSubAdministrativeZoneDetails(item.data)"
-												pTooltip="View Sub-Administrative Zone"
-												tooltipPosition="top"
-											></button>
-										</td>
-									</tr>
-
-									<!-- Enumeration Area Row -->
-									<tr
-										*ngIf="item.type === 'enumeration-area'"
-										class="hover:bg-gray-50"
-										[class.bg-blue-50]="
-											selectedEnumerationArea?.id === item.data.id
-										"
-										(click)="onRowSelectHierarchical(item)"
-									>
-										<td>
-											<div class="flex items-center py-1 pl-12">
-												<div>
-													<div class="flex items-center gap-3">
-														<div class="font-medium text-gray-900">
-															{{ item.name }}
-														</div>
-														<div class="text-gray-400 font-mono">
-															{{ item.areaCode }}
-														</div>
-													</div>
-													<div class="text-gray-500 mt-1">
-														{{ item.description }}
-													</div>
-												</div>
-											</div>
-										</td>
-										<td>
-											<span class="font-medium text-gray-800">
-												{{ "ENUMERATION AREA" }}
-											</span>
-											<span
-												*ngIf="item.hasGeom"
-												class="font-medium text-green-800 ml-2"
-											>
-												(HAS GEOMETRY)
-											</span>
-										</td>
-										<td>
-											<div class="flex items-center gap-1">
-												<button
-													pButton
-													type="button"
-													icon="pi pi-eye"
-													class="p-button-outlined p-button-sm p-button-secondary"
-													(click)="
-														viewEnumerationAreaDetails(item.data);
-														$event.stopPropagation()
-													"
-													pTooltip="View Details"
-													tooltipPosition="top"
-												></button>
-												<button
-													pButton
-													type="button"
-													icon="pi pi-pencil"
-													class="p-button-outlined p-button-sm p-button-info"
-													(click)="
-														editEnumerationArea(item.data);
-														$event.stopPropagation()
-													"
-													pTooltip="Edit"
-													tooltipPosition="top"
-												></button>
-												<button
-													pButton
-													type="button"
-													[icon]="
-														item.hasGeom ? 'pi pi-refresh' : 'pi pi-upload'
-													"
-													class="p-button-outlined p-button-sm"
-													[class.p-button-success]="!item.hasGeom"
-													[class.p-button-warning]="item.hasGeom"
-													(click)="
-														openUploadGeojson(item.data);
-														$event.stopPropagation()
-													"
-													[pTooltip]="
-														item.hasGeom ? 'Replace GeoJSON' : 'Upload GeoJSON'
-													"
-													tooltipPosition="top"
-												></button>
-												<button
-													pButton
-													type="button"
-													icon="pi pi-trash"
-													class="p-button-outlined p-button-sm p-button-danger"
-													(click)="
-														confirmDelete(item.data); $event.stopPropagation()
-													"
-													pTooltip="Delete"
-													tooltipPosition="top"
-												></button>
-											</div>
-										</td>
-									</tr>
-								</ng-template>
-
-								<ng-template pTemplate="emptymessage">
-									<tr>
-										<td colspan="5" class="text-center py-8">
-											<div class="text-gray-500">
-												<i class="pi pi-info-circle text-2xl mb-2 block"></i>
-												No hierarchical data available
-											</div>
-										</td>
-									</tr>
-								</ng-template>
-							</p-table>
-						</div>
-					</div>
-				</p-tabPanel>
-
-				<!-- Map Tab -->
-				<p-tabPanel header="Geographic View" leftIcon="pi pi-map">
-					<!-- Map Tab Header -->
-					<div class="p-4 border-b border-gray-200 bg-gray-50">
-						<div class="flex justify-between items-center">
-							<div>
-								<h3 class="text-lg font-semibold text-gray-900">
-									Interactive Map
-								</h3>
-								<p class="text-sm text-gray-600 mt-1">
-									Click on areas to view details
-								</p>
-							</div>
-							<button
-								pButton
-								type="button"
-								label="Reload Map"
-								icon="pi pi-refresh"
-								class="p-button-outlined p-button-sm p-button-secondary"
-								(click)="reloadMap()"
-								pTooltip="Refresh map data"
-								tooltipPosition="bottom"
-							></button>
-						</div>
-					</div>
-
-					<div class="relative" style="height: 750px">
-						<div id="enumeration-area-map-tab" class="w-full h-full"></div>
-
-						<!-- Map Loading Overlay -->
-						<div
-							*ngIf="!enumerationAreaGeoJSON"
-							class="absolute inset-0 bg-gray-50 flex items-center justify-center"
-						>
-							<div class="text-center">
-								<div
-									class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
-								></div>
-								<p class="text-sm text-gray-600">Loading map data...</p>
-							</div>
-						</div>
-					</div>
-				</p-tabPanel>
-			</p-tabView>
-		</div>
-	</div>
-
-	<!-- Split View -->
-	<div *ngIf="currentView === 'split'">
+	<!-- Content Area - Split View -->
+	<div>
 		<!-- No Dzongkhag Selected Message -->
 		<div
 			*ngIf="!selectedDzongkhag"
@@ -505,7 +98,7 @@
 			<h3 class="text-lg font-medium text-gray-900 mb-2">Select a Dzongkhag</h3>
 			<p class="text-gray-500">
 				Please select a dzongkhag from the dropdown above to view enumeration
-				areas in split view.
+				areas.
 			</p>
 		</div>
 
@@ -538,18 +131,18 @@
 					#dtSplit
 					[value]="hierarchicalTableData"
 					[rows]="20"
-					[paginator]="false"
+					[paginator]="true"
+					[rowsPerPageOptions]="[10, 20, 50, 100]"
 					responsiveLayout="scroll"
 					[loading]="loadingEAs"
-					styleClass="p-datatable-sm hierarchical-table"
+					styleClass="p-datatable-sm hierarchical-table compact-table"
 					[globalFilterFields]="['name', 'areaCode', 'description']"
 					[filterDelay]="0"
 				>
 					<ng-template pTemplate="header">
 						<tr>
-							<th style="width: 60%">Name / Code</th>
-							<th style="width: 20%">Type</th>
-							<th style="width: 20%">Actions</th>
+							<th style="width: 70%">Name / Code</th>
+							<th style="width: 30%">Actions</th>
 						</tr>
 					</ng-template>
 
@@ -560,21 +153,19 @@
 							class="bg-blue-50 font-semibold"
 						>
 							<td>
-								<div class="flex items-center py-1">
-									<div>
-										<div class="font-bold text-blue-900">
+								<div class="flex items-center gap-2">
+									<div class="flex-1">
+										<div class="font-bold text-blue-900 text-sm">
 											{{ item.name }}
 										</div>
-										<div class="text-blue-700 font-mono">
+										<div class="text-blue-700 font-mono text-xs">
 											{{ item.areaCode }}
 										</div>
 									</div>
+									<span class="text-xs text-blue-600 font-medium">
+										{{ item.totalEAs }} EAs
+									</span>
 								</div>
-							</td>
-							<td>
-								<span class="font-medium text-blue-800">
-									{{ "ADMIN ZONE" }} ({{ item.totalEAs }} EAs)
-								</span>
 							</td>
 							<td>
 								<button
@@ -593,24 +184,19 @@
 							class="bg-amber-50 font-medium"
 						>
 							<td>
-								<div class="flex items-center py-1 pl-4">
-									<div>
-										<div class="font-semibold text-amber-900">
+								<div class="flex items-center gap-2 pl-4">
+									<div class="flex-1">
+										<div class="font-semibold text-amber-900 text-sm">
 											{{ item.name }}
 										</div>
-										<div class="text-amber-700 font-mono">
+										<div class="text-amber-700 font-mono text-xs">
 											{{ item.areaCode }}
 										</div>
 									</div>
+									<span class="text-xs text-amber-600 font-medium">
+										{{ item.totalEAs }} EAs
+									</span>
 								</div>
-							</td>
-							<td>
-								<span class="font-medium text-amber-800">
-									{{
-										(item.zoneType === "chiwog" ? "Chiwog" : "Lap") | uppercase
-									}}
-									({{ item.totalEAs }} EAs)
-								</span>
 							</td>
 							<td>
 								<button
@@ -627,34 +213,38 @@
 						<!-- Enumeration Area Row -->
 						<tr
 							*ngIf="item.type === 'enumeration-area'"
-							class="hover:bg-gray-50 cursor-pointer"
+							class="hover:bg-gray-50 cursor-pointer transition-colors"
 							[class.bg-blue-50]="selectedEnumerationArea?.id === item.data.id"
 							(click)="onRowSelectHierarchical(item)"
 						>
 							<td>
-								<div class="flex items-center py-1 pl-8">
-									<div>
-										<div class="flex items-center gap-3">
-											<div class="font-medium text-gray-900">
+								<div class="flex items-center gap-2 pl-8">
+									<!-- Geometry Indicator -->
+									<div class="flex-shrink-0">
+										<i
+											*ngIf="item.hasGeom"
+											class="pi pi-map-marker text-green-600 text-sm"
+											pTooltip="Has geometry"
+											tooltipPosition="right"
+										></i>
+										<i
+											*ngIf="!item.hasGeom"
+											class="pi pi-map text-gray-300 text-sm"
+											pTooltip="No geometry"
+											tooltipPosition="right"
+										></i>
+									</div>
+									<div class="flex-1 min-w-0">
+										<div class="flex items-center gap-2">
+											<div class="font-medium text-gray-900 text-sm truncate">
 												{{ item.name }}
 											</div>
-											<div class="text-gray-400 font-mono">
+											<div class="text-gray-400 font-mono text-xs flex-shrink-0">
 												{{ item.areaCode }}
 											</div>
 										</div>
 									</div>
 								</div>
-							</td>
-							<td>
-								<span class="font-medium text-gray-800">
-									{{ "ENUMERATION AREA" }}
-								</span>
-								<span
-									*ngIf="item.hasGeom"
-									class="font-medium text-green-800 ml-2"
-								>
-									(HAS GEOMETRY)
-								</span>
 							</td>
 							<td>
 								<div class="flex items-center gap-1">
@@ -679,52 +269,79 @@
 										"
 										pTooltip="Edit"
 									></button>
+									<button
+										pButton
+										type="button"
+										[icon]="
+											item.hasGeom ? 'pi pi-refresh' : 'pi pi-upload'
+										"
+										class="p-button-outlined p-button-sm"
+										[class.p-button-success]="!item.hasGeom"
+										[class.p-button-warning]="item.hasGeom"
+										(click)="
+											openUploadGeojson(item.data);
+											$event.stopPropagation()
+										"
+										[pTooltip]="
+											item.hasGeom ? 'Replace GeoJSON' : 'Upload GeoJSON'
+										"
+									></button>
+									<button
+										pButton
+										type="button"
+										icon="pi pi-trash"
+										class="p-button-outlined p-button-sm p-button-danger"
+										(click)="
+											confirmDelete(item.data); $event.stopPropagation()
+										"
+										pTooltip="Delete"
+									></button>
 								</div>
 							</td>
 						</tr>
 					</ng-template>
 				</p-table>
+			</div>
 
-				<!-- Map Section -->
-				<div class="bg-white rounded-lg shadow-sm border border-gray-200">
-					<div class="p-4 border-b border-gray-200">
-						<div class="flex justify-between items-center">
-							<div>
-								<h2 class="text-lg font-semibold text-gray-900">
-									Geographic View
-								</h2>
-								<div class="text-sm text-gray-600">Interactive Map</div>
-							</div>
-							<button
-								pButton
-								type="button"
-								label="Reload Map"
-								icon="pi pi-refresh"
-								class="p-button-outlined p-button-sm p-button-secondary"
-								(click)="reloadMap()"
-								pTooltip="Refresh map data"
-								tooltipPosition="bottom"
-							></button>
+			<!-- Map Section -->
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+				<div class="p-4 border-b border-gray-200">
+					<div class="flex justify-between items-center">
+						<div>
+							<h2 class="text-lg font-semibold text-gray-900">
+								Geographic View
+							</h2>
+							<div class="text-sm text-gray-600">Interactive Map</div>
 						</div>
+						<button
+							pButton
+							type="button"
+							label="Reload Map"
+							icon="pi pi-refresh"
+							class="p-button-outlined p-button-sm p-button-secondary"
+							(click)="reloadMap()"
+							pTooltip="Refresh map data"
+							tooltipPosition="bottom"
+						></button>
 					</div>
+				</div>
 
-					<div class="relative" style="height: 600px">
-						<div
-							id="enumeration-area-map"
-							class="w-full h-full rounded-b-lg"
-						></div>
+				<div class="relative" style="height: 600px">
+					<div
+						id="enumeration-area-map"
+						class="w-full h-full rounded-b-lg"
+					></div>
 
-						<!-- Map Loading Overlay -->
-						<div
-							*ngIf="!enumerationAreaGeoJSON"
-							class="absolute inset-0 bg-gray-50 flex items-center justify-center rounded-b-lg"
-						>
-							<div class="text-center">
-								<div
-									class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
-								></div>
-								<p class="text-sm text-gray-600">Loading map data...</p>
-							</div>
+					<!-- Map Loading Overlay -->
+					<div
+						*ngIf="!enumerationAreaGeoJSON"
+						class="absolute inset-0 bg-gray-50 flex items-center justify-center rounded-b-lg"
+					>
+						<div class="text-center">
+							<div
+								class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
+							></div>
+							<p class="text-sm text-gray-600">Loading map data...</p>
 						</div>
 					</div>
 				</div>

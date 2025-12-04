@@ -14,8 +14,10 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin'],
 				roles: [USERROLESENUM.ADMIN],
 			},
+
 		],
 	},
+	 
 	{
 		label: 'Survey Management',
 		items: [
@@ -61,33 +63,16 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin/master/enumeration-areas'],
 				roles: [USERROLESENUM.ADMIN],
 			},
-			{
-				label: 'Current Listings',
-				icon: 'pi pi-fw pi-ticket',
-				routerLink: ['/admin/master/current-household-listings'],
-				roles: [USERROLESENUM.ADMIN],
-			},
+			
 		],
 	},
 	{
 		label: 'User Management',
 		items: [
 			{
-				label: 'Admins',
+				label: 'User Management',
 				icon: 'pi pi-fw pi-shield',
-				routerLink: ['/admin/user-management/admins'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'Supervisors',
-				icon: 'pi pi-fw pi-users',
-				routerLink: ['/admin/user-management/supervisors'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'Enumerators',
-				icon: 'pi pi-fw pi-user',
-				routerLink: ['/admin/user-management/enumerators'],
+				routerLink: ['/admin/user-management'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 		],
@@ -96,8 +81,8 @@ export const ADMINSIDEBARITEMS = [
 		label: 'Download',
 		items: [
 			{
-				label: 'Reports & Data',
-				icon: 'pi pi-fw pi-chart-pie',
+				label: 'Download Data',
+				icon: 'pi pi-fw pi-download',
 				routerLink: ['/admin/reports/statistics'],
 				roles: [USERROLESENUM.ADMIN],
 			},
@@ -107,12 +92,13 @@ export const ADMINSIDEBARITEMS = [
 
 // Supervisor Menu - Survey field operations and data submission
 export const SUPERVISORMENUSIDEBARITEMS = [
+	
 	{
 		label: 'Dashboard',
 		items: [
 			{
 				label: 'Overview',
-				icon: 'pi pi-fw pi-home',
+				icon: 'pi pi-fw pi-chart-bar',
 				routerLink: ['/supervisor'],
 				roles: [USERROLESENUM.SUPERVISOR],
 			},

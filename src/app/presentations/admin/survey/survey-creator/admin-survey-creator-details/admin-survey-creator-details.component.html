@@ -53,15 +53,16 @@
 				<label for="year" class="block text-sm font-medium text-gray-700 mb-2">
 					Survey Year <span class="text-red-500">*</span>
 				</label>
-				<p-dropdown
-					[options]="yearOptions"
+				<p-calendar
 					formControlName="year"
+					view="year"
+					dateFormat="yy"
+					[showIcon]="true"
 					placeholder="Select Year"
-					[showClear]="false"
 					styleClass="w-full"
 					[ngClass]="{ 'ng-invalid ng-dirty': isFieldInvalid('year') }"
 				>
-				</p-dropdown>
+				</p-calendar>
 				<small *ngIf="isFieldInvalid('year')" class="p-error block mt-1">
 					{{ getErrorMessage("year") }}
 				</small>

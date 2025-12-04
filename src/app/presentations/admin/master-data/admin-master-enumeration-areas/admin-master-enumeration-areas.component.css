@@ -59,8 +59,16 @@
 }
 
 /* Compact table styling */
-.hierarchical-table .p-datatable-tbody > tr > td {
+.compact-table .p-datatable-tbody > tr > td {
+	padding: 0.375rem 0.5rem !important;
+}
+
+.compact-table .p-datatable-thead > tr > th {
 	padding: 0.5rem !important;
+}
+
+.compact-table .p-datatable-tbody > tr {
+	height: auto !important;
 }
 
 /* Custom button spacing for hierarchical table */
@@ -70,4 +78,9 @@
 
 .hierarchical-table .p-button:last-child {
 	margin-right: 0;
+}
+
+/* Reduce spacing in table cells */
+.compact-table .p-datatable-tbody > tr > td > div {
+	padding: 0;
 }

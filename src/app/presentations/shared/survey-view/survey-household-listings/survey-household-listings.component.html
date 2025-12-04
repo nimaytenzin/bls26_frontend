@@ -1,0 +1,417 @@
+<div class="household-listings-container p-4">
+	<p-toast></p-toast>
+
+	<!-- Loading State -->
+	<div *ngIf="loading" class="flex justify-center items-center h-64">
+		<div class="relative w-16 h-16">
+			<div
+				class="absolute inset-0 border-4 rounded-full"
+				style="border-color: #E8F0FF;"
+			></div>
+			<div
+				class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+				style="border-color: #1A58AF;"
+			></div>
+		</div>
+	</div>
+
+	<!-- Main Content -->
+	<div *ngIf="!loading" class="space-y-4">
+		<!-- Title and Action Buttons -->
+		<div class="flex items-center justify-between border-b border-gray-200 pb-3">
+			<h3 class="text-xl font-semibold text-gray-900">
+				<span *ngIf="selectedEnumerationArea">
+					Showing households for the selected EA
+				</span>
+				<span *ngIf="!selectedEnumerationArea">
+					Showing households for all enumeration areas
+				</span>
+				
+			</h3>
+			<div class="flex gap-2">
+				<p-button
+					label="Create Blank Entries"
+					icon="pi pi-plus"
+					(click)="openCreateBlankDialog()"
+					styleClass="p-button-outlined p-button-sm"
+					pTooltip="Create blank household listing entries"
+				></p-button>
+				<p-button
+					*ngIf="selectedEnumerationArea"
+					icon="pi pi-times"
+					(click)="clearSelection()"
+					styleClass="p-button-text p-button-sm"
+					pTooltip="Clear selection"
+				></p-button>
+			</div>
+		</div>
+
+		<!-- Statistics - Compact -->
+		<div
+			*ngIf="statistics"
+			class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 rounded-lg p-4 border border-gray-200"
+		>
+			<div class="text-center">
+				<div class="flex items-center justify-center gap-2 mb-1">
+					<i class="pi pi-home text-lg" style="color: #1A58AF;"></i>
+					<h3 class="text-xl font-bold text-gray-900">
+						{{ statistics.totalHouseholds | number }}
+					</h3>
+				</div>
+				<p class="text-xs text-gray-600">Total Households</p>
+			</div>
+
+			<div class="text-center">
+				<div class="flex items-center justify-center gap-2 mb-1">
+					<i class="pi pi-users text-lg" style="color: #10B981;"></i>
+					<h3 class="text-xl font-bold text-gray-900">
+						{{ statistics.totalPopulation | number }}
+					</h3>
+				</div>
+				<p class="text-xs text-gray-600">Total Population</p>
+			</div>
+
+			<div class="text-center">
+				<div class="flex items-center justify-center gap-2 mb-1">
+					<i class="pi pi-user text-lg" style="color: #1A58AF;"></i>
+					<h3 class="text-xl font-bold text-gray-900">
+						{{ statistics.totalMale | number }} / {{ statistics.totalFemale | number }}
+					</h3>
+				</div>
+				<p class="text-xs text-gray-600">Male / Female</p>
+			</div>
+
+			<div
+				class="text-center"
+				*ngIf="statistics.totalEnumerationAreas !== undefined"
+			>
+				<div class="flex items-center justify-center gap-2 mb-1">
+					<i class="pi pi-map-marker text-lg" style="color: #F59E0B;"></i>
+					<h3 class="text-xl font-bold text-gray-900">
+						{{ statistics.totalEnumerationAreas | number }}
+					</h3>
+				</div>
+				<p class="text-xs text-gray-600">Enumeration Areas</p>
+			</div>
+		</div>
+
+		<!-- Filters and Household Listings Table -->
+		<p-card>
+			<ng-template pTemplate="header">
+				<div class="flex items-center justify-between p-4 border-b border-gray-200">
+ 					<p-inputgroup>
+						<input
+							pInputText
+							type="text"
+							#searchInput
+							(input)="dt.filterGlobal($any($event.target).value, 'contains')"
+							placeholder="Search households..."
+							style="width: 250px"
+						/>
+						<p-inputgroup-addon>
+							<p-button
+								icon="pi pi-search"
+								severity="secondary"
+								variant="text"
+								(click)="dt.filterGlobal(searchInput.value, 'contains')"
+							/>
+						</p-inputgroup-addon>
+					</p-inputgroup>
+				</div>
+			</ng-template>
+
+			<!-- Filters Section -->
+			<div class="p-4 border-b border-gray-200 bg-gray-50">
+				<h4 class="text-sm font-semibold text-gray-700 mb-3">Filters</h4>
+				<div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+					<!-- Dzongkhag Filter -->
+					<div class="flex flex-col">
+						<label class="text-xs font-medium text-gray-600 mb-1">Dzongkhag</label>
+						<p-dropdown
+							[(ngModel)]="selectedDzongkhagFilter"
+							[options]="dzongkhagFilters"
+							optionLabel="name"
+							placeholder="All Dzongkhags"
+							(onChange)="onDzongkhagFilterChange()"
+							styleClass="w-full p-inputtext-sm"
+						></p-dropdown>
+					</div>
+
+					<!-- Admin Zone Filter -->
+					<div class="flex flex-col">
+						<label class="text-xs font-medium text-gray-600 mb-1">Admin Zone</label>
+						<p-dropdown
+							[(ngModel)]="selectedAdminZoneFilter"
+							[options]="adminZoneFilters"
+							optionLabel="name"
+							placeholder="All Admin Zones"
+							[disabled]="!selectedDzongkhagFilter"
+							(onChange)="onAdminZoneFilterChange()"
+							styleClass="w-full p-inputtext-sm"
+						></p-dropdown>
+					</div>
+
+					<!-- Sub-Admin Zone Filter -->
+					<div class="flex flex-col">
+						<label class="text-xs font-medium text-gray-600 mb-1">Sub-Admin Zone</label>
+						<p-dropdown
+							[(ngModel)]="selectedSubAdminZoneFilter"
+							[options]="subAdminZoneFilters"
+							optionLabel="name"
+							placeholder="All Sub-Admin Zones"
+							[disabled]="!selectedAdminZoneFilter"
+							(onChange)="onSubAdminZoneFilterChange()"
+							styleClass="w-full p-inputtext-sm"
+						></p-dropdown>
+					</div>
+
+					<!-- Enumeration Area Filter -->
+					<div class="flex flex-col">
+						<label class="text-xs font-medium text-gray-600 mb-1">Enumeration Area</label>
+						<p-dropdown
+							[(ngModel)]="selectedEnumerationArea"
+							[options]="enumerationAreaOptions"
+							optionLabel="name"
+							placeholder="All Enumeration Areas"
+							[disabled]="!selectedSubAdminZoneFilter"
+							(onChange)="onEnumerationAreaSelect()"
+							styleClass="w-full p-inputtext-sm"
+						></p-dropdown>
+					</div>
+				</div>
+			</div>
+
+			<p-table
+				#dt
+				[value]="householdListings"
+				[loading]="householdListingsLoading"
+				[lazy]="true"
+				(onLazyLoad)="onLazyLoad($event)"
+				[paginator]="true"
+				[rows]="householdListingsPageSize"
+				[totalRecords]="householdListingsTotalRecords"
+				[showCurrentPageReport]="true"
+				currentPageReportTemplate="Showing {first} to {last} of {totalRecords} households"
+				[rowsPerPageOptions]="[10, 25, 50, 100]"
+				[globalFilterFields]="[
+					'structureNumber',
+					'householdIdentification',
+					'nameOfHOH',
+					'phoneNumber'
+				]"
+				styleClass="p-datatable-sm p-datatable-striped"
+				responsiveLayout="scroll"
+				[scrollable]="true"
+				scrollHeight="500px"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th pSortableColumn="id" style="width: 60px">
+							ID <p-sortIcon field="id"></p-sortIcon>
+						</th>
+						<th pSortableColumn="structureNumber">
+							Structure #
+							<p-sortIcon field="structureNumber"></p-sortIcon>
+						</th>
+						<th pSortableColumn="householdIdentification">
+							Household ID
+							<p-sortIcon field="householdIdentification"></p-sortIcon>
+						</th>
+						<th pSortableColumn="householdSerialNumber">
+							Serial #
+							<p-sortIcon field="householdSerialNumber"></p-sortIcon>
+						</th>
+						<th pSortableColumn="nameOfHOH">
+							Head of Household
+							<p-sortIcon field="nameOfHOH"></p-sortIcon>
+						</th>
+						<th pSortableColumn="totalMale" class="text-center" style="width: 80px">
+							Male <p-sortIcon field="totalMale"></p-sortIcon>
+						</th>
+						<th pSortableColumn="totalFemale" class="text-center" style="width: 80px">
+							Female <p-sortIcon field="totalFemale"></p-sortIcon>
+						</th>
+						<th class="text-center" style="width: 80px">
+							<span class="font-semibold">Total</span>
+						</th>
+						<th>Phone Number</th>
+						<th>Remarks</th>
+						<th pSortableColumn="createdAt">
+							Submitted Date
+							<p-sortIcon field="createdAt"></p-sortIcon>
+						</th>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="body" let-listing>
+					<tr>
+						<td class="font-mono text-xs">{{ listing.id }}</td>
+						<td>{{ listing.structure?.structureNumber }}</td>
+						<td>{{ listing.householdIdentification }}</td>
+						<td>{{ listing.householdSerialNumber }}</td>
+						<td class="font-medium">{{ listing.nameOfHOH }}</td>
+						<td class="text-center">{{ listing.totalMale }}</td>
+						<td class="text-center">{{ listing.totalFemale }}</td>
+						<td class="text-center font-semibold" style="color: #1A58AF;">
+							{{ getTotalPopulation(listing) }}
+						</td>
+						<td>{{ listing.phoneNumber || "-" }}</td>
+						<td class="text-xs text-gray-600">{{ listing.remarks || "-" }}</td>
+						<td>
+							<div class="text-sm">{{ listing.createdAt | date: 'MMM d, y' }}</div>
+							<div class="text-xs text-gray-500">
+								{{ listing.createdAt | date: 'shortTime' }}
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="11" class="text-center py-12">
+							<div class="flex flex-col items-center gap-3">
+								<i class="pi pi-inbox text-5xl text-gray-300"></i>
+								<div>
+									<p class="text-gray-600 font-medium">
+										No household listings found
+									</p>
+									<p class="text-sm text-gray-500 mt-1">
+										{{
+											selectedEnumerationArea
+												? 'No households found for the selected enumeration area'
+												: 'No households found for this survey'
+										}}
+									</p>
+								</div>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</p-card>
+	</div>
+</div>
+
+<!-- Create Blank Household Listings Dialog -->
+<p-dialog
+	[(visible)]="showCreateBlankDialog"
+	[modal]="true"
+	[closable]="true"
+	[style]="{ width: '600px' }"
+	header="Create Blank Household Listings"
+>
+	<div class="space-y-4">
+		<p class="text-sm text-gray-600">
+			Create blank household listing entries for a selected enumeration area. These entries can be used for historical surveys or when data is not available.
+		</p>
+
+		<!-- Enumeration Area Selection -->
+		<div class="space-y-3">
+			<h4 class="text-sm font-semibold text-gray-900">Select Enumeration Area</h4>
+			
+			<!-- Dzongkhag Selection -->
+			<div class="flex flex-col gap-1.5">
+				<label class="text-xs font-medium text-gray-600">Dzongkhag</label>
+				<p-dropdown
+					[(ngModel)]="selectedDialogDzongkhag"
+					[options]="dialogDzongkhagFilters"
+					optionLabel="name"
+					placeholder="Select Dzongkhag"
+					(onChange)="onDialogDzongkhagChange()"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+
+			<!-- Admin Zone Selection -->
+			<div class="flex flex-col gap-1.5">
+				<label class="text-xs font-medium text-gray-600">Admin Zone</label>
+				<p-dropdown
+					[(ngModel)]="selectedDialogAdminZone"
+					[options]="dialogAdminZoneFilters"
+					optionLabel="name"
+					placeholder="Select Admin Zone"
+					[disabled]="!selectedDialogDzongkhag"
+					(onChange)="onDialogAdminZoneChange()"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+
+			<!-- Sub-Admin Zone Selection -->
+			<div class="flex flex-col gap-1.5">
+				<label class="text-xs font-medium text-gray-600">Sub-Admin Zone</label>
+				<p-dropdown
+					[(ngModel)]="selectedDialogSubAdminZone"
+					[options]="dialogSubAdminZoneFilters"
+					optionLabel="name"
+					placeholder="Select Sub-Admin Zone"
+					[disabled]="!selectedDialogAdminZone"
+					(onChange)="onDialogSubAdminZoneChange()"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+
+			<!-- Enumeration Area Selection -->
+			<div class="flex flex-col gap-1.5">
+				<label class="text-xs font-medium text-gray-600">Enumeration Area <span class="text-red-500">*</span></label>
+				<p-dropdown
+					[(ngModel)]="selectedEAForBlank"
+					[options]="dialogEnumerationAreaOptions"
+					optionLabel="name"
+					placeholder="Select Enumeration Area"
+					[disabled]="!selectedDialogSubAdminZone"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+		</div>
+
+		<!-- Count Input -->
+		<div class="flex flex-col gap-1.5">
+			<label class="text-xs font-medium text-gray-600">Number of Entries <span class="text-red-500">*</span></label>
+			<p-inputNumber
+				[(ngModel)]="blankForm.count"
+				[min]="1"
+				[max]="10000"
+				[showButtons]="true"
+				[useGrouping]="false"
+				styleClass="w-full"
+				placeholder="Enter count (1-10000)"
+			></p-inputNumber>
+			<small class="text-xs text-gray-500">Enter the number of blank entries to create (1-10000)</small>
+		</div>
+
+		<!-- Remarks Input -->
+		<div class="flex flex-col gap-1.5">
+			<label class="text-xs font-medium text-gray-600">Remarks (Optional)</label>
+			<textarea
+				pInputTextarea
+				[(ngModel)]="blankForm.remarks"
+				[rows]="3"
+				placeholder="Optional remarks for the blank entries (defaults to 'No data available - Historical survey entry' if not provided)"
+				styleClass="w-full"
+			></textarea>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				class="p-button-text"
+				[disabled]="creatingBlank"
+				(click)="closeCreateBlankDialog()"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Create"
+				class="p-button-primary"
+				[disabled]="creatingBlank || !selectedEAForBlank || !blankForm.count"
+				(click)="createBlankHouseholdListings()"
+			>
+				<p-progressSpinner *ngIf="creatingBlank" styleClass="w-4 h-4 mr-2" strokeWidth="4"></p-progressSpinner>
+			</button>
+		</div>
+	</ng-template>
+</p-dialog>

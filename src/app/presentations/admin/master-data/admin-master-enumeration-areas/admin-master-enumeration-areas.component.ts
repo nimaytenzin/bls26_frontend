@@ -66,7 +66,6 @@ export class AdminMasterEnumerationAreasComponent
 	implements OnInit, OnDestroy, AfterViewInit
 {
 	// Table references
-	@ViewChild('dt') dt!: Table;
 	@ViewChild('dtSplit') dtSplit!: Table;
 
 	// Data properties
@@ -80,8 +79,6 @@ export class AdminMasterEnumerationAreasComponent
 	loading = false;
 	loadingEAs = false;
 
-	// View control
-	currentView: 'table' | 'split' = 'table';
 
 	// Map properties
 	private map?: L.Map;
@@ -136,22 +133,8 @@ export class AdminMasterEnumerationAreasComponent
 		};
 	}
 	ngAfterViewInit() {
-		// Map initialization will happen when views are switched or tabs are changed
-	}
-
-	// View Management
-	switchView(view: 'table' | 'split') {
-		this.currentView = view;
-		if (view === 'split') {
-			setTimeout(() => this.initializeMap(), 100);
-		}
-	}
-
-	// Handle tab change for map initialization
-	onTabChange(event: any) {
-		if (event.index === 1) {
-			setTimeout(() => this.initializeMap('enumeration-area-map-tab'), 100);
-		}
+		// Initialize map for split view
+		setTimeout(() => this.initializeMap(), 100);
 	}
 
 	ngOnDestroy() {
@@ -409,17 +392,7 @@ export class AdminMasterEnumerationAreasComponent
 			this.map = undefined;
 		}
 
-		let containerId = 'enumeration-area-map';
-		if (this.currentView === 'table') {
-			if (document.getElementById('enumeration-area-map-tab')) {
-				containerId = 'enumeration-area-map-tab';
-			} else if (document.getElementById('enumeration-area-map')) {
-				containerId = 'enumeration-area-map';
-			}
-		} else {
-			containerId = 'enumeration-area-map';
-		}
-
+		const containerId = 'enumeration-area-map';
 		const el = document.getElementById(containerId);
 		if (el) {
 			setTimeout(() => this.initializeMap(containerId), 100);
@@ -691,16 +664,6 @@ export class AdminMasterEnumerationAreasComponent
 				...item.data,
 				description: item.data.description || '',
 			} as EnumerationArea;
-		}
-	}
-	onGlobalFilter(event: Event) {
-		const target = event.target as HTMLInputElement;
-		this.globalFilterValue = target.value;
-		if (this.dt) {
-			this.dt.filterGlobal(target.value, 'contains');
-		}
-		if (this.dtSplit) {
-			this.dtSplit.filterGlobal(target.value, 'contains');
 		}
 	}
 

@@ -1,0 +1,431 @@
+<div class="card">
+	<!-- Header Section -->
+	<div class="flex justify-between items-center mb-6">
+		<div>
+			<h2 class="text-2xl font-bold text-gray-900 mb-1">User Management</h2>
+			<p class="text-sm text-gray-600">
+				Manage users across all roles: Admins, Supervisors, and Enumerators
+			</p>
+		</div>
+		<button
+			pButton
+			type="button"
+			icon="pi pi-refresh"
+			label="Refresh All"
+			class="p-button-outlined"
+			(click)="loadAllUsers()"
+			[disabled]="loadingAdmins || loadingSupervisors || loadingEnumerators"
+		></button>
+	</div>
+
+	<!-- Unified Search Bar -->
+	<div class="mb-4">
+		<p-inputGroup class="flex-1">
+			<p-inputGroupAddon>
+				<i class="pi pi-search"></i>
+			</p-inputGroupAddon>
+			<input
+				pInputText
+				type="text"
+				[(ngModel)]="searchValue"
+				placeholder="Search by name, email, phone, or CID..."
+				class="w-full"
+				(input)="onGlobalFilter($event)"
+			/>
+			<p-inputGroupAddon *ngIf="searchValue">
+				<button
+					pButton
+					type="button"
+					icon="pi pi-times"
+					class="p-button-text p-button-sm"
+					(click)="clearSearch()"
+					pTooltip="Clear search"
+				></button>
+			</p-inputGroupAddon>
+		</p-inputGroup>
+	</div>
+
+	<!-- Tab View for Role-based Management -->
+	<p-tabView [(activeIndex)]="activeTabIndex">
+		<!-- Admins Tab -->
+		<p-tabPanel>
+			<ng-template pTemplate="header">
+				<span>Admins</span>
+				<p-badge [value]="admins.length.toString()" severity="info" styleClass="ml-2"></p-badge>
+			</ng-template>
+			<div class="mb-4">
+				<p class="text-sm text-gray-600 mb-4">
+					Manage admin accounts. Admins can be edited and have their passwords
+					reset.
+				</p>
+			</div>
+
+			<p-table
+				#adminTable
+				[value]="admins"
+				[rows]="rows"
+				[paginator]="true"
+				[globalFilterFields]="['name', 'cid', 'emailAddress', 'phoneNumber']"
+				[tableStyle]="{ 'min-width': '75rem' }"
+				[(first)]="firstAdmins"
+				[loading]="loadingAdmins"
+				[showCurrentPageReport]="true"
+				currentPageReportTemplate="Showing {first} to {last} of {totalRecords} admins"
+				[rowsPerPageOptions]="[10, 25, 50]"
+				styleClass="p-datatable-gridlines"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th pSortableColumn="id">ID <p-sortIcon field="id" /></th>
+						<th pSortableColumn="name">
+							Name <p-sortIcon field="name" />
+						</th>
+						<th>CID</th>
+						<th>Email</th>
+						<th>Phone</th>
+						<th pSortableColumn="role">
+							Role <p-sortIcon field="role" />
+						</th>
+						<th pSortableColumn="createdAt" style="min-width: 150px">
+							Created <p-sortIcon field="createdAt" />
+						</th>
+						<th style="min-width: 150px">Actions</th>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="body" let-admin>
+					<tr>
+						<td>
+							<div class="text-xs text-gray-500">{{ admin.id }}</div>
+						</td>
+						<td>
+							<div class="font-semibold">{{ admin.name }}</div>
+						</td>
+						<td>
+							<span class="font-mono text-sm">{{ admin.cid }}</span>
+						</td>
+						<td>
+							<div class="flex items-center gap-2">
+								<i class="pi pi-envelope text-gray-400"></i>
+								<span class="text-sm">{{ admin.emailAddress }}</span>
+							</div>
+						</td>
+						<td>
+							<div class="flex items-center gap-2">
+								<i class="pi pi-phone text-gray-400"></i>
+								<span class="text-sm">{{ admin.phoneNumber }}</span>
+							</div>
+						</td>
+						<td>
+							<p-tag [value]="admin.role" severity="info" />
+						</td>
+						<td>
+							<span class="text-sm">{{ formatDate(admin.createdAt) }}</span>
+						</td>
+						<td>
+							<div class="flex gap-2">
+								<button
+									pButton
+									type="button"
+									icon="pi pi-pencil"
+									class="p-button-text p-button-rounded p-button-info"
+									(click)="openEditDialog(admin)"
+									pTooltip="Edit"
+									tooltipPosition="top"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-key"
+									class="p-button-text p-button-rounded p-button-warning"
+									(click)="openResetPasswordDialog(admin)"
+									pTooltip="Reset Password"
+									tooltipPosition="top"
+								></button>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="8" class="text-center py-8">
+							<div class="flex flex-col items-center gap-3">
+								<i class="pi pi-users text-4xl text-gray-300"></i>
+								<p class="text-gray-500 font-medium">No admins found</p>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</p-tabPanel>
+
+		<!-- Supervisors Tab -->
+		<p-tabPanel>
+			<ng-template pTemplate="header">
+				<span>Supervisors</span>
+				<p-badge [value]="supervisors.length.toString()" severity="info" styleClass="ml-2"></p-badge>
+			</ng-template>
+			<div class="mb-4 flex justify-between items-center">
+				<p class="text-sm text-gray-600">
+					Manage supervisor accounts, assign dzongkhags, and control permissions.
+				</p>
+				<button
+					pButton
+					type="button"
+					label="Create Supervisor"
+					icon="pi pi-plus"
+					class="p-button-primary"
+					(click)="openCreateSupervisorDialog()"
+				></button>
+			</div>
+
+			<p-table
+				#supervisorTable
+				[value]="supervisors"
+				[rows]="rows"
+				[paginator]="true"
+				[globalFilterFields]="['name', 'cid', 'emailAddress', 'phoneNumber']"
+				[tableStyle]="{ 'min-width': '75rem' }"
+				[(first)]="firstSupervisors"
+				[loading]="loadingSupervisors"
+				[showCurrentPageReport]="true"
+				currentPageReportTemplate="Showing {first} to {last} of {totalRecords} supervisors"
+				[rowsPerPageOptions]="[10, 25, 50]"
+				styleClass="p-datatable-gridlines"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th pSortableColumn="id">ID <p-sortIcon field="id" /></th>
+						<th pSortableColumn="name">
+							Name <p-sortIcon field="name" />
+						</th>
+						<th>CID</th>
+						<th>Email</th>
+						<th>Phone</th>
+						<th>Assigned Dzongkhags</th>
+						<th pSortableColumn="createdAt" style="min-width: 150px">
+							Created <p-sortIcon field="createdAt" />
+						</th>
+						<th style="min-width: 200px">Actions</th>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="body" let-supervisor>
+					<tr>
+						<td>
+							<div class="text-xs text-gray-500">{{ supervisor.id }}</div>
+						</td>
+						<td>
+							<div class="font-semibold">{{ supervisor.name }}</div>
+						</td>
+						<td>
+							<span class="font-mono text-sm">{{ supervisor.cid }}</span>
+						</td>
+						<td>
+							<div class="flex items-center gap-2">
+								<i class="pi pi-envelope text-gray-400"></i>
+								<span class="text-sm">{{ supervisor.emailAddress }}</span>
+							</div>
+						</td>
+						<td>
+							<div class="flex items-center gap-2">
+								<i class="pi pi-phone text-gray-400"></i>
+								<span class="text-sm">{{ supervisor.phoneNumber }}</span>
+							</div>
+						</td>
+						<td>
+							<p class="text-sm text-gray-700">
+								{{ getDzongkhagNames(supervisor) }}
+							</p>
+						</td>
+						<td>
+							<span class="text-sm">{{
+								formatDate(supervisor.createdAt)
+							}}</span>
+						</td>
+						<td>
+							<div class="flex gap-2 flex-wrap">
+								<button
+									pButton
+									type="button"
+									class="p-button p-button-secondary p-button-sm"
+									(click)="openAssignDzongkhagDialog(supervisor)"
+									pTooltip="Assign Dzongkhags"
+									label="Assign"
+									tooltipPosition="top"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-pencil"
+									class="p-button-text p-button-rounded p-button-info"
+									(click)="openEditDialog(supervisor)"
+									pTooltip="Edit"
+									tooltipPosition="top"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-key"
+									class="p-button-text p-button-rounded p-button-warning"
+									(click)="openResetPasswordDialog(supervisor)"
+									pTooltip="Reset Password"
+									tooltipPosition="top"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-trash"
+									class="p-button-text p-button-rounded p-button-danger"
+									(click)="deleteSupervisor(supervisor, $event)"
+									pTooltip="Delete"
+									tooltipPosition="top"
+								></button>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="8" class="text-center py-8">
+							<div class="flex flex-col items-center gap-3">
+								<i class="pi pi-users text-4xl text-gray-300"></i>
+								<p class="text-gray-500 font-medium">No supervisors found</p>
+								<button
+									pButton
+									type="button"
+									label="Create First Supervisor"
+									icon="pi pi-plus"
+									class="p-button-sm"
+									(click)="openCreateSupervisorDialog()"
+								></button>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</p-tabPanel>
+
+		<!-- Enumerators Tab -->
+		<p-tabPanel>
+			<ng-template pTemplate="header">
+				<span>Enumerators</span>
+				<p-badge [value]="enumerators.length.toString()" severity="info" styleClass="ml-2"></p-badge>
+			</ng-template>
+			<div class="mb-4">
+				<p-message
+					severity="info"
+					text="Enumerators are created and managed through survey assignments. You can view, edit basic information, and reset passwords here."
+					styleClass="w-full mb-4"
+				/>
+			</div>
+
+			<p-table
+				#enumeratorTable
+				[value]="enumerators"
+				[rows]="rows"
+				[paginator]="true"
+				[globalFilterFields]="['name', 'cid', 'emailAddress', 'phoneNumber']"
+				[tableStyle]="{ 'min-width': '75rem' }"
+				[(first)]="firstEnumerators"
+				[loading]="loadingEnumerators"
+				[showCurrentPageReport]="true"
+				currentPageReportTemplate="Showing {first} to {last} of {totalRecords} enumerators"
+				[rowsPerPageOptions]="[10, 25, 50]"
+				styleClass="p-datatable-gridlines"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th pSortableColumn="id">ID <p-sortIcon field="id" /></th>
+						<th pSortableColumn="name">
+							Name <p-sortIcon field="name" />
+						</th>
+						<th>CID</th>
+						<th>Email</th>
+						<th>Phone</th>
+						<th pSortableColumn="createdAt" style="min-width: 150px">
+							Created <p-sortIcon field="createdAt" />
+						</th>
+						<th style="min-width: 150px">Actions</th>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="body" let-enumerator>
+					<tr>
+						<td>
+							<div class="text-xs text-gray-500">{{ enumerator.id }}</div>
+						</td>
+						<td>
+							<div class="font-semibold">{{ enumerator.name }}</div>
+						</td>
+						<td>
+							<span class="font-mono text-sm">{{ enumerator.cid }}</span>
+						</td>
+						<td>
+							<div class="flex items-center gap-2">
+								<i class="pi pi-envelope text-gray-400"></i>
+								<span class="text-sm">{{ enumerator.emailAddress }}</span>
+							</div>
+						</td>
+						<td>
+							<div class="flex items-center gap-2">
+								<i class="pi pi-phone text-gray-400"></i>
+								<span class="text-sm">{{ enumerator.phoneNumber }}</span>
+							</div>
+						</td>
+						<td>
+							<span class="text-sm">{{
+								formatDate(enumerator.createdAt)
+							}}</span>
+						</td>
+						<td>
+							<div class="flex gap-2">
+								<button
+									pButton
+									type="button"
+									icon="pi pi-pencil"
+									class="p-button-text p-button-rounded p-button-info"
+									(click)="openEditDialog(enumerator)"
+									pTooltip="Edit"
+									tooltipPosition="top"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-key"
+									class="p-button-text p-button-rounded p-button-warning"
+									(click)="openResetPasswordDialog(enumerator)"
+									pTooltip="Reset Password"
+									tooltipPosition="top"
+								></button>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+
+				<ng-template pTemplate="emptymessage">
+					<tr>
+						<td colspan="7" class="text-center py-8">
+							<div class="flex flex-col items-center gap-3">
+								<i class="pi pi-users text-4xl text-gray-300"></i>
+								<p class="text-gray-500 font-medium">No enumerators found</p>
+								<p class="text-sm text-gray-400">
+									Enumerators are created when they are assigned to surveys
+								</p>
+							</div>
+						</td>
+					</tr>
+				</ng-template>
+			</p-table>
+		</p-tabPanel>
+	</p-tabView>
+</div>
+
+<!-- Toast Messages -->
+<p-toast position="top-right"></p-toast>
+
+<!-- Confirmation Dialog -->
+<p-confirmDialog></p-confirmDialog>
+

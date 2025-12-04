@@ -79,25 +79,18 @@
 
 					<!-- Secondary: Household Listings (All EAs view) -->
 					<p-tabPanel header="Household Listings">
-						<app-supervisor-survey-household-listings
+						<app-survey-household-listings
 							[surveyId]="survey.id"
 							[surveyName]="survey.name"
-						></app-supervisor-survey-household-listings>
+						></app-survey-household-listings>
 					</p-tabPanel>
 
-					<!-- Secondary: Sampling Results Summary -->
-					<p-tabPanel header="Sampling Results">
-						<app-supervisor-survey-sampling-view
-							[surveyId]="survey.id"
-							[surveyName]="survey.name"
-						></app-supervisor-survey-sampling-view>
-					</p-tabPanel>
-
+					
 					<!-- Keep: Enumerators -->
 					<p-tabPanel header="Enumerators">
-						<app-supervisor-survey-enumerators-view
+						<app-survey-users
 							[surveyId]="survey.id"
-						></app-supervisor-survey-enumerators-view>
+						></app-survey-users>
 					</p-tabPanel>
 				</p-tabView>
 			</div>

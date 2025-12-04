@@ -7,7 +7,9 @@
 		<div class="flex flex-col items-center gap-4 text-slate-600">
 			<p-progressSpinner styleClass="w-12 h-12"></p-progressSpinner>
 			<div class="text-center">
-				<p class="text-lg font-semibold text-slate-900">Loading survey details</p>
+				<p class="text-lg font-semibold text-slate-900">
+					Loading survey details
+				</p>
 				<p class="text-sm text-slate-500">Please wait...</p>
 			</div>
 		</div>
@@ -43,39 +45,44 @@
 	<ng-container *ngIf="survey && !loading && !notFound">
 		<section class="flex gap-4 h-[calc(100vh-5rem)] bg-white">
 			<!-- Left Pane: Survey Details & Metadata -->
-			<div class="w-[25vw] flex flex-col overflow-y-auto p-6 bg-white border-r border-slate-200">
+			<div
+				class="w-[25vw] flex flex-col overflow-y-auto p-6 bg-white border-r border-slate-200"
+			>
 				<app-survey-overview
-				[surveyId]="surveyId"
-				[survey]="survey"
-			></app-survey-overview>
+					[surveyId]="surveyId"
+					[survey]="survey"
+				></app-survey-overview>
 			</div>
 
 			<!-- Right Pane: Tabs Content -->
 			<div class="flex-1 relative bg-white">
 				<p-tabView class="h-full">
+					<!-- PRIMARY: Enumeration Areas Tab (Default) -->
 					<p-tabPanel header="Enumeration Areas">
-						<app-admin-survey-ea-management
-								[surveyId]="survey.id"
-							></app-admin-survey-ea-management>
+						<app-survey-ea-management
+							[surveyId]="survey.id"
+						></app-survey-ea-management>
 					</p-tabPanel>
+
+					<!-- Secondary: Household Listings (All EAs view) -->
 					<p-tabPanel header="Household Listings">
-						<app-admin-survey-enumeration-area-household-listings
-						[surveyId]="survey.id"
-						[surveyName]="survey.name"
-					></app-admin-survey-enumeration-area-household-listings>
+						<app-survey-household-listings
+							[surveyId]="survey.id"
+							[surveyName]="survey.name"
+						></app-survey-household-listings>
 					</p-tabPanel>
-					<p-tabPanel header="Supervisors & Enumerators">
-						<app-admin-survey-supervisors-enumerators
-						[surveyId]="survey.id"
-					></app-admin-survey-supervisors-enumerators>
+
+					<!-- Keep: Enumerators -->
+					<p-tabPanel header="Enumerators">
+						<app-survey-users [surveyId]="survey.id"></app-survey-users>
 					</p-tabPanel>
-					
-					<p-tabPanel header="Sampling">
+
+					<!-- <p-tabPanel header="Sampling">
 						<app-admin-survey-sampling
-						[surveyId]="survey.id"
-						[surveyName]="survey.name"
-					></app-admin-survey-sampling>
-					</p-tabPanel>
+							[surveyId]="survey.id"
+							[surveyName]="survey.name"
+						></app-admin-survey-sampling>
+					</p-tabPanel> -->
 				</p-tabView>
 			</div>
 		</section>

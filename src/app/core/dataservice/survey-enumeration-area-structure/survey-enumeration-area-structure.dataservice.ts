@@ -118,6 +118,29 @@ export class SurveyEnumerationAreaStructureDataService {
 				})
 			);
 	}
+	/**
+	 * Get current structures for enumeration area
+	 * Retrieves all structures from the latest published survey for a specific enumeration area
+	 * @param enumerationAreaId - Enumeration area ID
+	 * @returns Observable of structure array
+	 */
+	getStructuresByEnumerationArea(
+		enumerationAreaId: number
+	): Observable<SurveyEnumerationAreaStructure[]> {
+		return this.http
+			.get<SurveyEnumerationAreaStructure[]>(
+				`${BASEAPI_URL}/survey-enumeration-area-household-listing/current/enumeration-area/${enumerationAreaId}/structures`
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error fetching structures for enumeration area ${enumerationAreaId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
 
 	/**
 	 * Get all structures for a survey enumeration area with household listings grouped by structure

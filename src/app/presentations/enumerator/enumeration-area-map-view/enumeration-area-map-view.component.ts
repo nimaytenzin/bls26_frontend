@@ -16,6 +16,7 @@ import { SurveyEnumerationAreaDataService } from '../../../core/dataservice/surv
 import { AuthService } from '../../../core/dataservice/auth/auth.service';
 import { PrimeNgModules } from '../../../primeng.modules';
 import { ConfirmationService } from 'primeng/api';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { CompleteEnumerationDto } from '../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
 import { EnumeratorMapStateService } from '../../../core/utility/enumerator-map-state.service';
 import * as L from 'leaflet';
@@ -24,6 +25,7 @@ import {
 	CreateSurveyEnumerationAreaStructureDto,
 	UpdateSurveyEnumerationAreaStructureDto,
 } from '../../../core/dataservice/survey-enumeration-area-structure/survey-enumeration-area-structure.dto';
+import { HouseholdByStructureComponent } from '../household-by-structure/household-by-structure.component';
 
 @Component({
 	selector: 'app-enumeration-area-map-view',
@@ -35,7 +37,7 @@ import {
 	],
 	templateUrl: './enumeration-area-map-view.component.html',
 	styleUrls: ['./enumeration-area-map-view.component.scss'],
-	providers: [ConfirmationService],
+	providers: [ConfirmationService, DialogService],
 })
 export class EnumerationAreaMapViewComponent
 	implements OnInit, OnDestroy, AfterViewInit
@@ -100,6 +102,9 @@ export class EnumerationAreaMapViewComponent
 	isCompletingEnumeration = false;
 	enumerationComments = '';
 
+	// Dialog references
+	householdDialogRef: DynamicDialogRef | undefined;
+
 	constructor(
 		private route: ActivatedRoute,
 		private router: Router,
@@ -109,7 +114,8 @@ export class EnumerationAreaMapViewComponent
 		private surveyEAService: SurveyEnumerationAreaDataService,
 		private authService: AuthService,
 		private confirmationService: ConfirmationService,
-		private mapStateService: EnumeratorMapStateService
+		private mapStateService: EnumeratorMapStateService,
+		private dialogService: DialogService
 	) {}
 
 	ngOnInit(): void {
@@ -1118,6 +1124,41 @@ export class EnumerationAreaMapViewComponent
 			this.surveyEnumerationAreaId,
 			'household-listings',
 		]);
+	}
+
+	/**
+	 * Open dialog to view households by structure
+	 */
+	viewHouseholdsByStructure(): void {
+		if (!this.selectedStructure) return;
+		this.showStructureActionsDialog = false;
+
+		this.householdDialogRef = this.dialogService.open(
+			HouseholdByStructureComponent,
+			{
+				header: `Households - Structure: ${this.selectedStructure.structureNumber}`,
+				width: '90vw',
+				style: { 'max-width': '1200px' },
+				modal: true,
+				closable: true,
+				data: {
+					structureId: this.selectedStructure.id,
+				},
+			}
+		);
+
+		// Handle dialog close
+		this.householdDialogRef.onClose.subscribe(() => {
+			this.householdDialogRef = undefined;
+		});
+	}
+
+	/**
+	 * Open Google Maps with coordinates
+	 */
+	openGoogleMaps(latitude: number, longitude: number): void {
+		const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
+		window.open(url, '_blank');
 	}
 }
 

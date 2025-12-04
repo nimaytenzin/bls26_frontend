@@ -396,24 +396,50 @@
 								selectedStructure.structureNumber
 							}}</span>
 						</div>
-						<p
-							class="flex justify-between"
+						<div
+							class="flex justify-between items-center"
 							*ngIf="selectedStructure.latitude && selectedStructure.longitude"
 						>
-							Location: {{ selectedStructure.latitude | number : "1.4-4" }},
-							{{ selectedStructure.longitude | number : "1.4-4" }}
-						</p>
+							<span class="text-gray-600">Location:</span>
+							<div class="flex items-center gap-2">
+								<span class="font-medium">
+									{{ selectedStructure.latitude | number : "1.4-4" }},
+									{{ selectedStructure.longitude | number : "1.4-4" }}
+								</span>
+								<button
+									pButton
+									type="button"
+									label="Google Maps"
+									icon="pi pi-external-link"
+									styleClass="p-button-text p-button-sm"
+									pTooltip="View on Google Maps"
+									tooltipPosition="top"
+									text="true"
+									size="small"
+									(click)="openGoogleMaps(selectedStructure.latitude!, selectedStructure.longitude!)"
+								></button>
+							</div>
+						</div>
+						
 					</div>
 				</div>
 
-				<div>
+				<div class="gap-3 flex">
 					<button
 						pButton
 						type="button"
 						label="Household"
+						size="small"
+						icon="pi pi-eye"
+ 						(click)="viewHouseholdsByStructure()"
+					></button>
+					<button
+						pButton
+						type="button"
+						label="Add"
+						size="small"
 						icon="pi pi-plus"
-						class="w-full"
-						(click)="addHousehold()"
+ 						(click)="addHousehold()"
 					></button>
 				</div>
 				<!-- Action Buttons -->
@@ -423,6 +449,8 @@
 						type="button"
 						icon="pi pi-pencil"
 						class="w-full"
+						label="Edit"
+						size="small"
 						styleClass="p-button-secondary"
 						(click)="openEditStructureDialog()"
 					></button>
@@ -432,8 +460,9 @@
 						type="button"
 						icon="pi pi-trash"
 						class="w-full"
-						styleClass="p-button-danger"
-						(click)="deleteStructure()"
+						size="small"
+						severity="danger"
+ 						(click)="deleteStructure()"
 						[loading]="isDeletingStructure"
 					></button>
 				</div>

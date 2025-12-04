@@ -185,7 +185,7 @@ export class SurveyEnumerationAreaDataService {
 	}
 
 	/**
-	 * Publish sampled data for a survey enumeration area (Admin only)
+	 * Publish enumeration area (Admin only)
 	 * @param id Survey enumeration area ID
 	 * @param dto Publishing data (publishedBy, comments)
 	 * @returns Observable of updated SurveyEnumerationArea

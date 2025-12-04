@@ -34,7 +34,6 @@ export class AdminSurveyCreatorDetailsComponent implements OnInit {
 
 	surveyForm!: FormGroup;
 	currentYear = new Date().getFullYear();
-	yearOptions: number[] = [];
 	statusOptions = [
 		{ label: 'Active', value: SurveyStatus.ACTIVE },
 		{ label: 'Ended', value: SurveyStatus.ENDED },
@@ -50,17 +49,7 @@ export class AdminSurveyCreatorDetailsComponent implements OnInit {
 	}
 
 	ngOnInit(): void {
-		this.initializeYearOptions();
 		this.initializeForm();
-	}
-
-	/**
-	 * Initialize year options (current year ± 5 years)
-	 */
-	initializeYearOptions() {
-		for (let i = this.currentYear - 5; i <= this.currentYear + 5; i++) {
-			this.yearOptions.push(i);
-		}
 	}
 
 	/**
@@ -74,8 +63,10 @@ export class AdminSurveyCreatorDetailsComponent implements OnInit {
 			],
 			description: [this.initialData.description || '', Validators.required],
 			year: [
-				this.initialData.year || this.currentYear,
-				[Validators.required, Validators.min(2000), Validators.max(2100)],
+				this.initialData.year 
+					? new Date(this.initialData.year, 0, 1) 
+					: new Date(this.currentYear, 0, 1),
+				[Validators.required],
 			],
 			startDate: [
 				this.initialData.startDate
@@ -151,9 +142,14 @@ export class AdminSurveyCreatorDetailsComponent implements OnInit {
 
 		const formValue = this.surveyForm.value;
 
-		// Format dates to ISO string
+		// Format dates to ISO string and extract year from Date object
+		const yearValue = formValue.year instanceof Date 
+			? formValue.year.getFullYear() 
+			: formValue.year;
+
 		const surveyData: SurveyFormData = {
 			...formValue,
+			year: yearValue,
 			startDate:
 				formValue.startDate instanceof Date
 					? formValue.startDate.toISOString().split('T')[0]

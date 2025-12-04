@@ -1,8 +1,9 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { AdminLayoutService } from '../service/admin-layout.service';
 import { Router } from '@angular/router';
 import { Popover } from 'primeng/popover';
+import { Subscription } from 'rxjs';
 
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { CommonModule } from '@angular/common';
@@ -40,7 +41,7 @@ import { User } from '../../core/dataservice/auth/auth.interface';
 	],
 	providers: [ConfirmationService, MessageService],
 })
-export class AdminTopbarComponent {
+export class AdminTopbarComponent implements OnInit, OnDestroy {
 	items!: MenuItem[];
 	@ViewChild('menubutton') menuButton!: ElementRef;
 
@@ -51,9 +52,11 @@ export class AdminTopbarComponent {
 	@ViewChild('profilePopover') profilePopover!: Popover;
 
 	isNotVerified: boolean = false;
+	isLoggingOut: boolean = false;
 
-	// Dummy user profile with Bhutanese name
-	userProfile: User | null;
+	// User profile
+	userProfile: User | null = null;
+	private authStateSubscription?: Subscription;
 
 	constructor(
 		public layoutService: AdminLayoutService,
@@ -61,20 +64,50 @@ export class AdminTopbarComponent {
 		private messageService: MessageService,
 		private authService: AuthService,
 		private router: Router
-	) {
+	) {}
+
+	ngOnInit(): void {
+		// Get initial user profile
 		this.userProfile = this.authService.getCurrentUser();
+
+		// Subscribe to auth state changes
+		this.authStateSubscription = this.authService.authState$.subscribe(
+			(authState) => {
+				this.userProfile = authState.user;
+			}
+		);
 	}
 
-	logout() {
+	ngOnDestroy(): void {
+		if (this.authStateSubscription) {
+			this.authStateSubscription.unsubscribe();
+		}
+	}
+
+	/**
+	 * Get avatar label (first letter of name) if no profile image
+	 */
+	getAvatarLabel(): string {
+		if (this.userProfile?.profileImage) {
+			return '';
+		}
+		return this.userProfile?.name?.charAt(0)?.toUpperCase() || 'U';
+	}
+
+	/**
+	 * Show logout confirmation dialog and execute logout if confirmed
+	 */
+	confirmLogout(event: Event): void {
+		this.profilePopover.hide();
+
 		this.confirmationService.confirm({
-			target: event?.target as EventTarget,
+			target: event.target as EventTarget,
 			message: 'Are you sure you want to sign out?',
-			header: 'Confirm Sign Out',
+			header: 'Sign Out',
 			icon: 'pi pi-sign-out',
-			acceptIcon: 'none',
-			rejectIcon: 'none',
-			rejectButtonStyleClass: 'p-button-text',
+			acceptButtonStyleClass: 'p-button-danger',
 			accept: () => {
+				this.isLoggingOut = true;
 				this.authService.logout().subscribe({
 					next: () => {
 						this.messageService.add({
@@ -95,10 +128,13 @@ export class AdminTopbarComponent {
 						// Force logout even if server call fails
 						this.authService.forceLogout();
 					},
+					complete: () => {
+						this.isLoggingOut = false;
+					},
 				});
 			},
 			reject: () => {
-				// User cancelled logout - do nothing
+				// User cancelled, do nothing
 			},
 		});
 	}

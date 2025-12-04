@@ -110,6 +110,22 @@ export class AuthDataService {
 	}
 
 	/**
+	 * Search users by query (phone, email, name, CID) with optional role filter
+	 * @param query - Search query string
+	 * @param role - Optional role filter
+	 * @returns Observable<User[]>
+	 */
+	searchUsers(query: string, role?: UserRole): Observable<User[]> {
+		let params = new HttpParams().set('query', query);
+		if (role) {
+			params = params.set('role', role);
+		}
+		return this.http
+			.get<User[]>(`${this.apiUrl}/users/search`, { params })
+			.pipe(catchError(this.handleError));
+	}
+
+	/**
 	 * Get user by ID
 	 * @param userId - User ID
 	 * @returns Observable<User>

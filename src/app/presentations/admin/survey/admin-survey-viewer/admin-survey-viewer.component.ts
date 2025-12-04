@@ -13,13 +13,12 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { AdminMasterSurveyEditComponent } from '../shared/admin-master-survey-edit/admin-master-survey-edit.component';
 import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
-import { AdminSurveySupervisorsEnumeratorsComponent } from './admin-survey-supervisors-enumerators/admin-survey-supervisors-enumerators.component';
-import { AdminSurveyEnumerationAreaHouseholdListingsComponent } from './admin-survey-enumeration-area-household-listings/admin-survey-enumeration-area-household-listings.component';
-import { AdminSurveyOverviewComponent } from './admin-survey-overview/admin-survey-overview.component';
-import { AdminSurveyEaManagementComponent } from './admin-survey-ea-management/admin-survey-ea-management.component';
-import { AdminSurveySamplingComponent } from './admin-survey-sampling/admin-survey-sampling.component';
+ import { AdminSurveySamplingComponent } from './admin-survey-sampling/admin-survey-sampling.component';
 import { SurveyStatus } from '../../../../core/constants/enums';
 import { SurveyOverviewComponent } from '../../../shared/survey-view/survey-overview/survey-overview.component';
+import { SurveyEaManagementComponent } from '../../../shared/survey-view/survey-ea-management/survey-ea-management.component';
+import { SurveyHouseholdListingsComponent } from '../../../shared/survey-view/survey-household-listings/survey-household-listings.component';
+import { SurveyUsersComponent } from '../../../shared/survey-view/survey-users/survey-users.component';
 
 @Component({
 	selector: 'app-admin-survey-viewer',
@@ -30,13 +29,13 @@ import { SurveyOverviewComponent } from '../../../shared/survey-view/survey-over
 		CommonModule,
 		FormsModule,
 		PrimeNgModules,
-		AdminSurveySupervisorsEnumeratorsComponent,
-		AdminSurveyEnumerationAreaHouseholdListingsComponent,
-		AdminSurveyOverviewComponent,
-		AdminSurveyEaManagementComponent,
+		
 		AdminSurveySamplingComponent,
 		
-		SurveyOverviewComponent
+		SurveyOverviewComponent,
+		SurveyEaManagementComponent,
+		SurveyHouseholdListingsComponent,
+		SurveyUsersComponent
 	],
 	providers: [MessageService, ConfirmationService, DialogService],
 })

@@ -1,0 +1,11 @@
+// Dzongkhag label styling for map
+::ng-deep .dzongkhag-label {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    pointer-events: none;
+
+    &::before {
+        display: none !important;
+    }
+}

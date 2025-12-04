@@ -39,8 +39,7 @@ import { ConfirmationService } from 'primeng/api';
 export class AdminMasterAdministrativeZonesComponent
 	implements OnInit, OnDestroy, AfterViewInit
 {
-	// Table references
-	@ViewChild('dt') dt!: Table;
+	// Table reference
 	@ViewChild('dtSplit') dtSplit!: Table;
 
 	// Data properties
@@ -55,8 +54,6 @@ export class AdminMasterAdministrativeZonesComponent
 	private allAdministrativeZonesLayer?: L.GeoJSON;
 	private baseLayer?: L.TileLayer;
 
-	// View control
-	currentView: 'table' | 'split' = 'table';
 
 	// Dialog states
 	administrativeZoneDialog = false;
@@ -99,31 +96,8 @@ export class AdminMasterAdministrativeZonesComponent
 	ngAfterViewInit() {
 		// Initialize map after view is ready
 		setTimeout(() => {
-			if (this.currentView === 'split') {
-				this.initializeMap();
-			}
+			this.initializeMap();
 		}, 200);
-	}
-
-	// View Management
-	switchView(view: 'table' | 'split') {
-		this.currentView = view;
-		if (view === 'split') {
-			setTimeout(() => this.initializeMap(), 100);
-		} else {
-			// Clean up map when switching away from split view
-			if (this.map) {
-				this.map.remove();
-				this.map = undefined;
-			}
-		}
-	}
-
-	// Handle tab change for map initialization
-	onTabChange(event: any) {
-		if (event.index === 1) {
-			setTimeout(() => this.initializeMap('administrative-zone-map-tab'), 100);
-		}
 	}
 
 	ngOnDestroy() {
@@ -179,17 +153,7 @@ export class AdminMasterAdministrativeZonesComponent
 			this.map = undefined;
 		}
 
-		let containerId = 'administrative-zone-map';
-		if (this.currentView === 'table') {
-			if (document.getElementById('administrative-zone-map-tab')) {
-				containerId = 'administrative-zone-map-tab';
-			} else if (document.getElementById('administrative-zone-map')) {
-				containerId = 'administrative-zone-map';
-			}
-		} else {
-			containerId = 'administrative-zone-map';
-		}
-
+		const containerId = 'administrative-zone-map';
 		const el = document.getElementById(containerId);
 		if (el) {
 			setTimeout(() => this.initializeMap(containerId), 100);
@@ -428,17 +392,6 @@ export class AdminMasterAdministrativeZonesComponent
 	onRowSelect(event: any) {
 		if (event.data) {
 			this.selectAdministrativeZone(event.data);
-		}
-	}
-
-	onGlobalFilter(event: Event) {
-		const target = event.target as HTMLInputElement;
-		this.globalFilterValue = target.value;
-		if (this.dt) {
-			this.dt.filterGlobal(target.value, 'contains');
-		}
-		if (this.dtSplit) {
-			this.dtSplit.filterGlobal(target.value, 'contains');
 		}
 	}
 

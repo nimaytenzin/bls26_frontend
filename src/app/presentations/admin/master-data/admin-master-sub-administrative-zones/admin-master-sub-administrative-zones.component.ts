@@ -40,7 +40,6 @@ export class AdminMasterSubAdministrativeZonesComponent
 	implements OnInit, OnDestroy, AfterViewInit
 {
 	// Table references
-	@ViewChild('dt') dt!: Table;
 	@ViewChild('dtSplit') dtSplit!: Table;
 
 	// Data properties
@@ -55,8 +54,6 @@ export class AdminMasterSubAdministrativeZonesComponent
 	private allSubAdministrativeZonesLayer?: L.GeoJSON;
 	private baseLayer?: L.TileLayer;
 
-	// View control
-	currentView: 'table' | 'split' = 'table';
 
 	// Dialog states
 	subAdministrativeZoneDialog = false;
@@ -100,25 +97,8 @@ export class AdminMasterSubAdministrativeZonesComponent
 	}
 
 	ngAfterViewInit() {
-		// Map initialization will happen when views are switched or tabs are changed
-	}
-
-	// View Management
-	switchView(view: 'table' | 'split') {
-		this.currentView = view;
-		if (view === 'split') {
-			setTimeout(() => this.initializeMap(), 100);
-		}
-	}
-
-	// Handle tab change for map initialization
-	onTabChange(event: any) {
-		if (event.index === 1) {
-			setTimeout(
-				() => this.initializeMap('sub-administrative-zone-map-tab'),
-				100
-			);
-		}
+		// Initialize map for split view
+		setTimeout(() => this.initializeMap(), 100);
 	}
 
 	ngOnDestroy() {
@@ -181,17 +161,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 			this.map = undefined;
 		}
 
-		let containerId = 'sub-administrative-zone-map';
-		if (this.currentView === 'table') {
-			if (document.getElementById('sub-administrative-zone-map-tab')) {
-				containerId = 'sub-administrative-zone-map-tab';
-			} else if (document.getElementById('sub-administrative-zone-map')) {
-				containerId = 'sub-administrative-zone-map';
-			}
-		} else {
-			containerId = 'sub-administrative-zone-map';
-		}
-
+		const containerId = 'sub-administrative-zone-map';
 		const el = document.getElementById(containerId);
 		if (el) {
 			setTimeout(() => this.initializeMap(containerId), 100);
@@ -473,16 +443,6 @@ export class AdminMasterSubAdministrativeZonesComponent
 		}
 	}
 
-	onGlobalFilter(event: Event) {
-		const target = event.target as HTMLInputElement;
-		this.globalFilterValue = target.value;
-		if (this.dt) {
-			this.dt.filterGlobal(target.value, 'contains');
-		}
-		if (this.dtSplit) {
-			this.dtSplit.filterGlobal(target.value, 'contains');
-		}
-	}
 
 	onGlobalFilterSplit(event: Event) {
 		const target = event.target as HTMLInputElement;

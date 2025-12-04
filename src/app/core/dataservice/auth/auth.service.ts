@@ -171,6 +171,16 @@ export class AuthService {
 	}
 
 	/**
+	 * Search users by query (phone, email, name, CID) with optional role filter
+	 * @param query - Search query string
+	 * @param role - Optional role filter
+	 * @returns Observable<User[]>
+	 */
+	searchUsers(query: string, role?: UserRole): Observable<User[]> {
+		return this.authDataService.searchUsers(query, role);
+	}
+
+	/**
 	 * Get user by ID
 	 * @param userId - User ID
 	 * @returns Observable<User>
@@ -402,6 +412,19 @@ export class AuthService {
 	 */
 	adminSignup(adminSignupDto: AdminSignupDto): Observable<any> {
 		return this.authDataService.adminSignup(adminSignupDto);
+	}
+
+	/**
+	 * Admin reset password
+	 * @param userId - User ID
+	 * @param resetPasswordData - Reset password data with newPassword
+	 * @returns Observable<any>
+	 */
+	adminResetPassword(
+		userId: number,
+		resetPasswordData: { newPassword: string }
+	): Observable<any> {
+		return this.authDataService.adminResetPassword(userId, resetPasswordData);
 	}
 
 	/**

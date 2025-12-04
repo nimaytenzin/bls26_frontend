@@ -8,12 +8,11 @@ import {
 } from '../../../../core/dataservice/survey/survey.dto';
 import { MessageService } from 'primeng/api';
 import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
-import { SupervisorSurveyEnumeratorsViewComponent } from './components/supervisor-survey-enumerators-view/supervisor-survey-enumerators-view.component';
- import { SupervisorSurveySamplingViewComponent } from './components/supervisor-survey-sampling-view/supervisor-survey-sampling-view.component';
-import { SurveyStatus } from '../../../../core/constants/enums';
+ import { SurveyStatus } from '../../../../core/constants/enums';
 import { SurveyOverviewComponent } from '../../../shared/survey-view/survey-overview/survey-overview.component';
 import { SurveyEaManagementComponent } from '../../../shared/survey-view/survey-ea-management/survey-ea-management.component';
-import { SupervisorSurveyHouseholdListingsComponent } from './components/supervisor-survey-household-listings/supervisor-survey-household-listings.component';
+import { SurveyHouseholdListingsComponent } from '../../../shared/survey-view/survey-household-listings/survey-household-listings.component';
+import { SurveyUsersComponent } from '../../../shared/survey-view/survey-users/survey-users.component';
 
 @Component({
 	selector: 'app-supervisor-survey-detailed-view',
@@ -24,13 +23,11 @@ import { SupervisorSurveyHouseholdListingsComponent } from './components/supervi
 		CommonModule,
 		FormsModule,
 		PrimeNgModules,
-		SupervisorSurveyEnumeratorsViewComponent,
- 		SupervisorSurveySamplingViewComponent,
-		SupervisorSurveyHouseholdListingsComponent,
-	
+   	
 		SurveyOverviewComponent,
-
-		SurveyEaManagementComponent
+		SurveyEaManagementComponent,
+		SurveyHouseholdListingsComponent,
+		SurveyUsersComponent
 		
 
 

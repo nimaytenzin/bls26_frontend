@@ -15,50 +15,20 @@
 				</p>
 			</div>
 
-			<!-- Action Controls -->
-			<div class="flex items-center gap-4">
-				<!-- View Mode Toggle -->
-				<div
-					class="flex bg-white rounded-lg shadow-sm border border-gray-200 p-1"
-				>
-					<button
-						class="px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-2"
-						[class.bg-blue-500]="currentView === 'table'"
-						[class.text-white]="currentView === 'table'"
-						[class.shadow-sm]="currentView === 'table'"
-						[class.text-gray-700]="currentView !== 'table'"
-						[class.hover:bg-gray-50]="currentView !== 'table'"
-						(click)="switchView('table')"
-					>
-						<i class="pi pi-table text-sm"></i>
-						<span>Table View</span>
-					</button>
-					<button
-						class="px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 flex items-center gap-2"
-						[class.bg-blue-500]="currentView === 'split'"
-						[class.text-white]="currentView === 'split'"
-						[class.shadow-sm]="currentView === 'split'"
-						[class.text-gray-700]="currentView !== 'split'"
-						[class.hover:bg-gray-50]="currentView !== 'split'"
-						(click)="switchView('split')"
-					>
-						<i class="pi pi-clone text-sm"></i>
-						<span>Split View</span>
-					</button>
-				</div>
-
-				<!-- Action Buttons -->
-				<div class="flex items-center gap-2">
-					<button
-						pButton
-						type="button"
-						label="Add Chiwog/LAP"
-						icon="pi pi-plus"
-						class="p-button-primary"
-						(click)="openNew()"
-					></button>
-				</div>
+		<!-- Action Controls -->
+		<div class="flex items-center gap-4">
+			<!-- Action Buttons -->
+			<div class="flex items-center gap-2">
+				<button
+					pButton
+					type="button"
+					label="Add Chiwog/LAP"
+					icon="pi pi-plus"
+					class="p-button-primary"
+					(click)="openNew()"
+				></button>
 			</div>
+		</div>
 		</div>
 
 		<!-- Statistics Cards -->
@@ -137,212 +107,8 @@
 		</div>
 	</div>
 
-	<!-- Content Area -->
-	<div *ngIf="currentView === 'table'">
-		<!-- TabView for Table Only View -->
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
-			<p-tabView (onChange)="onTabChange($event)">
-				<!-- Table Tab -->
-				<p-tabPanel header="Data Management" leftIcon="pi pi-table">
-					<div class="p-4">
-						<div class="flex justify-between items-center mb-4">
-							<h2 class="text-lg font-semibold text-gray-900">
-								Chiwogs/LAPs List
-							</h2>
-							<div class="flex items-center gap-3">
-								<span class="p-input-icon-left">
-									<input
-										pInputText
-										type="text"
-										[(ngModel)]="globalFilterValue"
-										placeholder="Search chiwogs/LAPs..."
-										class="p-inputtext-sm"
-										(input)="onGlobalFilter($event)"
-									/>
-								</span>
-							</div>
-						</div>
-
-						<p-table
-							#dt
-							[value]="subAdministrativeZones"
-							[rows]="10"
-							[paginator]="true"
-							responsiveLayout="scroll"
-							[loading]="loading"
-							selectionMode="single"
-							[(selection)]="selectedSubAdministrativeZone"
-							(onRowSelect)="onRowSelect($event)"
-							styleClass="p-datatable-sm"
-							[globalFilterFields]="['name', 'areaCode', 'type']"
-							[filterDelay]="0"
-						>
-							<ng-template pTemplate="header">
-								<tr>
-									<th pSortableColumn="name">
-										Name <p-sortIcon field="name"></p-sortIcon>
-									</th>
-									<th pSortableColumn="type">
-										Type <p-sortIcon field="type"></p-sortIcon>
-									</th>
-									<th pSortableColumn="administrativeZoneId">
-										Administrative Zone
-									</th>
-									<th pSortableColumn="areaCode">Code</th>
-									<th pSortableColumn="areaSqKm">
-										Area (km²) <p-sortIcon field="areaSqKm"></p-sortIcon>
-									</th>
-									<th>Actions</th>
-								</tr>
-							</ng-template>
-
-							<ng-template pTemplate="body" let-zone>
-								<tr
-									[class.bg-blue-50]="
-										selectedSubAdministrativeZone?.id === zone.id
-									"
-								>
-									<td>
-										<div class="font-medium text-gray-900">
-											{{ zone.name }}
-										</div>
-										<div class="text-sm text-gray-500">ID: {{ zone.id }}</div>
-									</td>
-									<td>
-										<span
-											class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-											[class.bg-purple-100]="zone.type === 'chiwog'"
-											[class.text-purple-800]="zone.type === 'chiwog'"
-											[class.bg-amber-100]="zone.type === 'lap'"
-											[class.text-amber-800]="zone.type === 'lap'"
-										>
-											{{ zone.type }}
-										</span>
-									</td>
-									<td>
-										<span class="text-sm text-gray-700">
-											{{ getAdministrativeZoneName(zone.administrativeZoneId) }}
-										</span>
-									</td>
-									<td>
-										<span class="font-mono text-xs text-gray-600">
-											{{ zone.areaCode || "N/A" }}
-										</span>
-									</td>
-									<td>
-										<span class="text-sm font-medium text-gray-900">
-											{{
-												zone.areaSqKm
-													? (getSafeAreaValue(zone.areaSqKm) | number : "1.2-2")
-													: "N/A"
-											}}
-										</span>
-									</td>
-									<td>
-										<div class="flex items-center gap-2">
-											<button
-												pButton
-												type="button"
-												icon="pi pi-eye"
-												class="p-button-outlined p-button-sm p-button-secondary"
-												(click)="viewSubAdministrativeZoneDetails(zone)"
-												pTooltip="View Details"
-											></button>
-											<button
-												pButton
-												type="button"
-												icon="pi pi-pencil"
-												class="p-button-outlined p-button-sm p-button-info"
-												(click)="editSubAdministrativeZone(zone)"
-												pTooltip="Edit"
-											></button>
-											<button
-												pButton
-												type="button"
-												icon="pi pi-upload"
-												class="p-button-outlined p-button-sm p-button-success"
-												(click)="openUploadGeojson(zone)"
-												pTooltip="Upload GeoJSON"
-											></button>
-											<button
-												pButton
-												type="button"
-												icon="pi pi-trash"
-												class="p-button-outlined p-button-sm p-button-danger"
-												(click)="confirmDelete(zone)"
-												pTooltip="Delete"
-											></button>
-										</div>
-									</td>
-								</tr>
-							</ng-template>
-
-							<ng-template pTemplate="emptymessage">
-								<tr>
-									<td colspan="6" class="text-center py-8">
-										<div class="text-gray-500">
-											<i class="pi pi-info-circle text-2xl mb-2 block"></i>
-											No chiwogs/LAPs found
-										</div>
-									</td>
-								</tr>
-							</ng-template>
-						</p-table>
-					</div>
-				</p-tabPanel>
-
-				<!-- Map Tab -->
-				<p-tabPanel header="Geographic View" leftIcon="pi pi-map">
-					<!-- Map Tab Header -->
-					<div class="p-4 border-b border-gray-200 bg-gray-50">
-						<div class="flex justify-between items-center">
-							<div>
-								<h3 class="text-lg font-semibold text-gray-900">
-									Interactive Map
-								</h3>
-								<p class="text-sm text-gray-600 mt-1">
-									Click on chiwogs/LAPs to view details
-								</p>
-							</div>
-							<button
-								pButton
-								type="button"
-								label="Reload Map"
-								icon="pi pi-refresh"
-								class="p-button-outlined p-button-sm p-button-secondary"
-								(click)="reloadMap()"
-								pTooltip="Refresh map data"
-								tooltipPosition="bottom"
-							></button>
-						</div>
-					</div>
-
-					<div class="relative" style="height: 750px">
-						<div
-							id="sub-administrative-zone-map-tab"
-							class="w-full h-full"
-						></div>
-
-						<!-- Map Loading Overlay -->
-						<div
-							*ngIf="!subAdministrativeZoneGeoJSON"
-							class="absolute inset-0 bg-gray-50 flex items-center justify-center"
-						>
-							<div class="text-center">
-								<div
-									class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
-								></div>
-								<p class="text-sm text-gray-600">Loading map data...</p>
-							</div>
-						</div>
-					</div>
-				</p-tabPanel>
-			</p-tabView>
-		</div>
-	</div>
-
-	<!-- Split View -->
-	<div *ngIf="currentView === 'split'" class="grid grid-cols-2 gap-6">
+	<!-- Content Area - Split View -->
+	<div class="grid grid-cols-2 gap-6">
 		<!-- Table Section -->
 		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
 			<div class="p-4 border-b border-gray-200">
@@ -506,7 +272,6 @@
 			</div>
 		</div>
 	</div>
-</div>
 
 <!-- Add/Edit Dialog -->
 <p-dialog

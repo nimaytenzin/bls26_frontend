@@ -7,7 +7,7 @@ import {
 	SimpleChanges,
 	EventEmitter,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -57,7 +57,8 @@ export class SurveyOverviewComponent
 		private dialogService: DialogService,
 		private confirmationService: ConfirmationService,
 		private authService: AuthService,
-		private router: Router
+		private router: Router,
+		private location: Location
 	) {}
 
 	ngOnInit() {
@@ -96,6 +97,10 @@ export class SurveyOverviewComponent
 				});
 			},
 		});
+	}
+
+	back(): void {
+		this.location.back();
 	}
 
 	getSurveyDuration(): number {

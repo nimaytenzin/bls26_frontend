@@ -172,7 +172,7 @@
 				<ng-template pTemplate="body" let-household>
 					<tr class="text-base">
 						<td>{{ household.householdSerialNumber }}</td>
-						<td>{{ household.structureNumber }}</td>
+						<td>{{ household.structure?.structureNumber }}</td>
 						<td>
 							<span class="font-mono text-gray-600">
 								{{ household.householdIdentification }}
@@ -241,10 +241,6 @@
 							>.
 						</p>
 
-						<!-- Submission and Validation Info -->
-						<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-							show published date and publisher,a 
-						</div>
 					</div>
 				</div>
 			</div>

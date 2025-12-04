@@ -9,6 +9,24 @@
 				View household listings and perform sampling by enumeration area
 			</p>
 		</div>
+		<div class="flex gap-2" *ngIf="canAddEA()">
+			<button
+				pButton
+				label="Add EA"
+				icon="pi pi-plus"
+				size="small"
+				(click)="openAddDialog()"
+			></button>
+
+			<button
+				pButton
+				label="Bulk Upload"
+				icon="pi pi-upload"
+				size="small"
+				class="p-button-secondary"
+				(click)="openBulkUploadDialog()"
+			></button>
+		</div>
 	</div>
 
 	<!-- Statistics Cards -->
@@ -202,16 +220,25 @@
 					styleClass="p-datatable-sm"
 				>
 					<ng-template pTemplate="caption">
-						<div class="flex justify-between items-center">
-							<span class="p-input-icon-left w-full max-w-md">
+						<div class="flex items-center justify-between p-4 border-b border-gray-200">
+							<p-inputgroup>
 								<input
 									pInputText
 									type="text"
+									#searchInput
+									(input)="dt.filterGlobal($any($event.target).value, 'contains')"
 									placeholder="Search by name, code, location..."
-									class="w-full"
-									(input)="onTableSearch($event)"
+									style="width: 250px"
 								/>
-							</span>
+								<p-inputgroup-addon>
+									<p-button
+										icon="pi pi-search"
+										severity="secondary"
+										variant="text"
+										(click)="dt.filterGlobal(searchInput.value, 'contains')"
+									/>
+								</p-inputgroup-addon>
+							</p-inputgroup>
 						</div>
 					</ng-template>
 
@@ -336,9 +363,9 @@
 							</td>
 							<td>
 								<div class="text-sm text-gray-600" *ngIf="ea.isSampled">
-									<span class="text-xs text-gray-500 font-normal">Method: </span>
-									{{ 'CSS' }} <!-- TODO: Get from sampling data -->
-								</div>
+									<span class="text-xs text-gray-500 font-normal">type: CSS </span>
+									<span class="text-xs text-gray-500 font-normal">n: {{ ea.sampleSize }}</span>
+ 								</div>
 								<div class="text-xs text-gray-500" *ngIf="!ea.isSampled">
 									Not sampled
 								</div>
@@ -378,6 +405,19 @@
 										(click)="openSamplingDialog(ea)"
 									></button>
 
+									<!-- Publish Data - Admin only, show if enumerated and not published -->
+									<button
+										*ngIf="canPublish(ea) && !ea.isPublished"
+										pButton
+										icon="pi pi-send"
+										severity="success"
+										styleClass="p-button-sm p-button-text"
+										pTooltip="Publish Data"
+										tooltipPosition="top"
+										size="small"
+										[disabled]="publishing"
+										(click)="openPublishDialog(ea)"
+									></button>
 									
 								</div>
 							</td>
@@ -634,6 +674,432 @@
 	</ng-template>
 </p-dialog>
 
+
+<!-- Add EA Dialog (Admin Only) -->
+<p-dialog
+	[(visible)]="showAddDialog"
+	[modal]="true"
+	[closable]="true"
+	[style]="{ width: '50vw', minWidth: '600px' }"
+	header="Add Enumeration Areas"
+>
+	<div class="space-y-4">
+		<!-- Instructions -->
+		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+			<div class="flex items-start gap-2">
+				<i class="pi pi-info-circle text-blue-600 mt-0.5"></i>
+				<div class="text-sm text-blue-800">
+					<p class="font-semibold mb-1">How to add enumeration areas:</p>
+					<ol class="list-decimal list-inside space-y-1 ml-2">
+						<li>Select a Dzongkhag from the dropdown</li>
+						<li>Select an Administrative Zone</li>
+						<li>Select a Sub-Administrative Zone</li>
+						<li>Select one or more Enumeration Areas</li>
+						<li>Click "Add to Survey" to assign them</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+
+		<!-- Cascading Dropdowns -->
+		<div class="grid grid-cols-2 gap-4">
+			<!-- Dzongkhag -->
+			<div class="flex flex-col">
+				<label class="text-sm font-medium text-gray-700 mb-1"
+					>Dzongkhag <span class="text-red-500">*</span></label
+				>
+				<p-dropdown
+					[(ngModel)]="selectedDzongkhag"
+					[options]="dzongkhags"
+					optionLabel="name"
+					placeholder="Select Dzongkhag"
+					[filter]="true"
+					filterBy="name"
+					[loading]="loadingDzongkhags"
+					(onChange)="onDzongkhagChange()"
+					styleClass="w-full"
+					appendTo="body"
+				></p-dropdown>
+			</div>
+
+			<!-- Administrative Zone -->
+			<div class="flex flex-col">
+				<label class="text-sm font-medium text-gray-700 mb-1"
+					>Administrative Zone <span class="text-red-500">*</span></label
+				>
+				<p-dropdown
+					[(ngModel)]="selectedAdminZone"
+					[options]="administrativeZones"
+					optionLabel="name"
+					placeholder="Select Admin Zone"
+					[filter]="true"
+					filterBy="name"
+					[disabled]="!selectedDzongkhag"
+					[loading]="loadingAdminZones"
+					(onChange)="onAdminZoneChange()"
+					styleClass="w-full"
+					appendTo="body"
+				></p-dropdown>
+			</div>
+
+			<!-- Sub-Administrative Zone -->
+			<div class="flex flex-col">
+				<label class="text-sm font-medium text-gray-700 mb-1"
+					>Sub-Administrative Zone <span class="text-red-500">*</span></label
+				>
+				<p-dropdown
+					[(ngModel)]="selectedSubAdminZone"
+					[options]="subAdministrativeZones"
+					optionLabel="name"
+					placeholder="Select Sub-Admin Zone"
+					[filter]="true"
+					filterBy="name"
+					[disabled]="!selectedAdminZone"
+					[loading]="loadingSubAdminZones"
+					(onChange)="onSubAdminZoneChange()"
+					styleClass="w-full"
+					appendTo="body"
+				></p-dropdown>
+			</div>
+		</div>
+
+		<!-- Enumeration Areas List -->
+		<div class="flex flex-col" *ngIf="selectedSubAdminZone">
+			<label class="text-sm font-medium text-gray-700 mb-1"
+				>Enumeration Areas <span class="text-red-500">*</span></label
+			>
+			<p-listbox
+				[(ngModel)]="selectedEAsToAdd"
+				[options]="enumerationAreas"
+				optionLabel="name"
+				[multiple]="true"
+				[checkbox]="true"
+				[filter]="true"
+				filterPlaceholder="Search EAs..."
+				styleClass="w-full"
+				[listStyle]="{ 'max-height': '300px' }"
+				appendTo="body"
+			>
+				<ng-template let-ea pTemplate="item">
+					<div class="flex items-center justify-between w-full">
+						<span>{{ ea.name }}</span>
+						<span class="text-xs text-gray-500">{{ ea.areaCode }}</span>
+					</div>
+				</ng-template>
+			</p-listbox>
+
+			<div
+				*ngIf="loadingEAs"
+				class="flex items-center justify-center py-4 border border-gray-200 rounded"
+			>
+				<p-progressSpinner
+					styleClass="w-8 h-8"
+					strokeWidth="4"
+				></p-progressSpinner>
+			</div>
+
+			<div
+				*ngIf="!loadingEAs && enumerationAreas.length === 0"
+				class="text-center py-4 text-gray-500 border border-gray-200 rounded"
+			>
+				<i class="pi pi-info-circle"></i>
+				<p class="text-sm">
+					No available enumeration areas in this sub-administrative zone
+				</p>
+			</div>
+		</div>
+
+		<!-- Selected Count -->
+		<div *ngIf="selectedEAsToAdd.length > 0" class="text-sm text-gray-600">
+			<i class="pi pi-check-circle text-green-600"></i>
+			{{ selectedEAsToAdd.length }} enumeration area(s) selected
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<button
+			pButton
+			label="Cancel"
+			icon="pi pi-times"
+			class="p-button-text"
+			(click)="showAddDialog = false"
+		></button>
+		<button
+			pButton
+			label="Add to Survey"
+			icon="pi pi-check"
+			class="p-button-success"
+			[disabled]="selectedEAsToAdd.length === 0"
+			(click)="addEAsToSurvey()"
+		></button>
+	</ng-template>
+</p-dialog>
+
+<!-- Bulk Upload Dialog (Admin Only) -->
+<p-dialog
+	[(visible)]="showBulkUploadDialog"
+	[modal]="true"
+	[closable]="true"
+	header="Bulk Upload Enumeration Areas"
+	(close)="closeBulkUploadDialog()"
+>
+	<div class="space-y-4">
+		<!-- Instructions -->
+		<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+			<div class="flex items-start gap-2">
+				<i class="pi pi-info-circle text-gray-600 mt-0.5"></i>
+				<div class="text-sm text-gray-700">
+					<p class="font-semibold mb-2">How to use bulk upload:</p>
+					<ol class="list-decimal list-inside space-y-1 ml-2">
+						<li>Download the CSV template</li>
+						<li>Fill in the enumeration area codes (Dzongkhag, Admin Zone, Sub Admin Zone, Enumeration Code)</li>
+						<li>Upload the completed CSV file</li>
+						<li>Review the results below</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+
+		<!-- Template Download -->
+		<div
+			class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
+		>
+			<div>
+				<span class="text-sm font-semibold text-gray-700 block">CSV Template</span>
+				<span class="text-xs text-gray-500">Download the template file to get started</span>
+			</div>
+			<button
+				type="button"
+				(click)="downloadTemplate()"
+				class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-semibold flex items-center gap-2"
+			>
+				<i class="pi pi-download"></i>
+				Download Template
+			</button>
+		</div>
+
+		<!-- File Upload -->
+		<div>
+			<label class="text-sm font-semibold text-gray-700 mb-2 block"
+				>Upload CSV File</label
+			>
+			<p-fileUpload
+				#fileUpload
+				mode="basic"
+				chooseLabel="Select CSV File"
+				accept=".csv"
+				[maxFileSize]="10000000"
+				(onSelect)="onBulkFileSelect($event)"
+				[auto]="false"
+				[showUploadButton]="false"
+				[showCancelButton]="false"
+				[disabled]="uploading"
+			></p-fileUpload>
+			<p class="text-xs text-gray-500 mt-1">Maximum file size: 10MB</p>
+		</div>
+
+		<!-- File Info -->
+		<div
+			*ngIf="bulkUploadFile"
+			class="flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-200"
+		>
+			<i class="pi pi-file text-gray-600"></i>
+			<span class="text-sm text-gray-700 font-medium">{{ bulkUploadFile.name }}</span>
+			<span class="text-xs text-gray-500 ml-auto">
+				{{ (bulkUploadFile.size / 1024).toFixed(2) }} KB
+			</span>
+		</div>
+
+		<!-- Loading State -->
+		<div *ngIf="uploading" class="flex items-center justify-center py-6">
+			<div class="flex flex-col items-center gap-3">
+				<p-progressSpinner styleClass="w-10 h-10"></p-progressSpinner>
+				<p class="text-sm text-gray-600">Uploading file...</p>
+			</div>
+		</div>
+
+		<!-- Upload Results -->
+		<div *ngIf="uploadResult && !uploading" class="space-y-4">
+			<div class="border-t border-gray-200 pt-4">
+				<h4 class="text-sm font-semibold text-gray-700 mb-3">Upload Results</h4>
+				
+				<!-- Statistics Grid -->
+				<div class="grid grid-cols-4 gap-3 mb-4">
+					<div class="bg-white border border-gray-200 rounded-lg p-3">
+						<p class="text-xs text-gray-500 mb-1">Total Rows</p>
+						<p class="text-xl font-bold text-gray-900">
+							{{ uploadResult.totalRows }}
+						</p>
+					</div>
+					<div class="bg-white border border-gray-200 rounded-lg p-3">
+						<p class="text-xs text-gray-500 mb-1">Successful</p>
+						<p class="text-xl font-bold" style="color: #1A58AF;">
+							{{ uploadResult.successful }}
+						</p>
+					</div>
+					<div class="bg-white border border-gray-200 rounded-lg p-3">
+						<p class="text-xs text-gray-500 mb-1">Created</p>
+						<p class="text-xl font-bold" style="color: #1A58AF;">
+							{{ uploadResult.created }}
+						</p>
+					</div>
+					<div class="bg-white border border-gray-200 rounded-lg p-3">
+						<p class="text-xs text-gray-500 mb-1">Failed</p>
+						<p class="text-xl font-bold text-red-600">
+							{{ uploadResult.failed }}
+						</p>
+					</div>
+				</div>
+
+				<!-- Errors Table -->
+				<div *ngIf="uploadResult.errors && uploadResult.errors.length > 0" class="mt-4">
+					<p class="text-sm font-semibold text-gray-700 mb-2">
+						Errors ({{ uploadResult.errors.length }})
+					</p>
+					<div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+						<div class="max-h-64 overflow-y-auto">
+							<table class="w-full text-sm">
+								<thead class="bg-gray-50 border-b border-gray-200">
+									<tr>
+										<th class="px-4 py-2 text-left font-semibold text-gray-700">Row</th>
+										<th class="px-4 py-2 text-left font-semibold text-gray-700">Codes</th>
+										<th class="px-4 py-2 text-left font-semibold text-gray-700">Error</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr
+										*ngFor="let error of uploadResult.errors"
+										class="border-b border-gray-100 hover:bg-gray-50"
+									>
+										<td class="px-4 py-2 text-gray-600">{{ error.row }}</td>
+										<td class="px-4 py-2 text-gray-600 font-mono text-xs">{{ error.codes }}</td>
+										<td class="px-4 py-2 text-red-600">{{ error.error }}</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<button
+			type="button"
+			(click)="closeBulkUploadDialog()"
+			class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-semibold"
+			[disabled]="uploading"
+		>
+			{{ uploadResult ? 'Close' : 'Cancel' }}
+		</button>
+		<button
+			type="button"
+			(click)="executeBulkUpload()"
+			class="px-4 py-2 text-white rounded-lg transition-colors text-sm font-semibold flex items-center gap-2"
+			style="background-color: #1A58AF;"
+			[disabled]="!bulkUploadFile || uploading"
+		>
+			<i class="pi pi-upload" *ngIf="!uploading"></i>
+			<p-progressSpinner *ngIf="uploading" styleClass="w-4 h-4" strokeWidth="4"></p-progressSpinner>
+			{{ uploading ? 'Uploading...' : 'Upload' }}
+		</button>
+	</ng-template>
+</p-dialog>
+
+<!-- Publish Data Dialog (Admin Only) -->
+<p-dialog
+	[(visible)]="showPublishDialog"
+	[modal]="true"
+	[closable]="!publishing"
+	[closeOnEscape]="!publishing"
+	[style]="{ width: '500px' }"
+	header="Publish Enumeration Area Data"
+>
+	<div *ngIf="currentEAForPublish" class="space-y-4">
+		<!-- EA Info -->
+		<div class="rounded-xl border border-gray-200 p-4 bg-gray-50">
+			<p class="text-sm font-semibold text-gray-900">{{ currentEAForPublish.enumerationArea?.name || 'N/A' }}</p>
+			<p class="text-xs text-gray-500">
+				{{ currentEAForPublish.enumerationArea?.areaCode || '—' }} · 
+				{{ getLocationHierarchy(currentEAForPublish.enumerationArea) }}
+			</p>
+			<p class="text-xs text-gray-500 mt-2">
+				Households: {{ getHouseholdCount(currentEAForPublish) | number }}
+			</p>
+			<div class="mt-2">
+				<p-tag
+					*ngIf="currentEAForPublish.isEnumerated"
+					value="Enumerated"
+					severity="info"
+					styleClass="text-xs"
+				></p-tag>
+				<p-tag
+					*ngIf="currentEAForPublish.isSampled"
+					value="Sampled"
+					severity="warning"
+					styleClass="text-xs ml-2"
+				></p-tag>
+			</div>
+		</div>
+
+		<!-- Info Message -->
+		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+			<div class="flex items-start gap-2">
+				<i class="pi pi-info-circle text-blue-600 mt-0.5"></i>
+				<div class="text-sm text-blue-800">
+					<p class="font-semibold mb-1">Publish Enumeration Area Data</p>
+					<p class="text-xs">
+						This will publish the enumeration area data. The EA must be enumerated to be published. 
+						Sampling is not required before publishing.
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Comments -->
+		<div class="flex flex-col gap-2">
+			<label class="text-sm font-medium text-gray-700">
+				Comments (Optional)
+			</label>
+			<textarea
+				[(ngModel)]="publishComments"
+				rows="3"
+				pInputTextarea
+				placeholder="Add any comments about this publication..."
+				class="w-full"
+				[disabled]="publishing"
+			></textarea>
+			<p class="text-xs text-gray-500">
+				Optional: Add notes or comments about this publication
+			</p>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				class="p-button-text"
+				(click)="closePublishDialog()"
+				[disabled]="publishing"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Publish"
+				icon="pi pi-send"
+				class="p-button-success"
+				[disabled]="publishing"
+				(click)="publishData()"
+			>
+				<p-progressSpinner *ngIf="publishing" styleClass="w-4 h-4 mr-2" strokeWidth="4"></p-progressSpinner>
+			</button>
+		</div>
+	</ng-template>
+</p-dialog>
 
 <!-- Toast Messages -->
 <p-toast position="top-right"></p-toast>

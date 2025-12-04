@@ -349,4 +349,31 @@ export class SurveyEnumerationAreaHouseholdListingDataService {
 				})
 			);
 	}
+
+	/**
+	 * Get household listings by structure ID
+	 * @param structureId - Structure ID
+	 * @returns Observable of household listing array ordered by serial number
+	 * @requires Authentication (ADMIN, SUPERVISOR, or ENUMERATOR role)
+	 */
+	findByStructure(
+		structureId: number
+	): Observable<SurveyEnumerationAreaHouseholdListing[]> {
+		return this.http
+			.get<SurveyEnumerationAreaHouseholdListing[]>(
+				`${this.apiUrl}/by-structure/${structureId}`,
+				{
+					headers: this.getAuthHeaders(),
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error fetching household listings for structure ${structureId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
 }

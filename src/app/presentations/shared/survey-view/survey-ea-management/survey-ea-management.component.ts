@@ -22,7 +22,15 @@ import { Dzongkhag } from '../../../../core/dataservice/location/dzongkhag/dzong
 import { SurveyEnumerationAreaHouseholdListing } from '../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
 import { RunEnumerationAreaSamplingDto, SamplingExistsCheckDto, SamplingMethod, SurveySamplingConfigDto } from '../../../../core/dataservice/sampling/sampling.dto';
 import { AuthService } from '../../../../core/dataservice/auth/auth.service';
- import { SurveyListingViewerComponent } from '../survey-enumeration-result-viewer/survey-listing-viewer.component';
+import { User, UserRole } from '../../../../core/dataservice/auth/auth.interface';
+import { SurveyListingViewerComponent } from '../survey-enumeration-result-viewer/survey-listing-viewer.component';
+import { EnumerationAreaDataService } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
+import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
+import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
+import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
+import { EnumerationArea } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
+import { BulkUploadResponse, PublishSurveyEnumerationAreaDto } from '../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
+import { finalize } from 'rxjs/operators';
 
 interface GroupedEA {
 	dzongkhag: Dzongkhag;
@@ -45,6 +53,10 @@ interface GroupedEA {
 })
 export class SurveyEaManagementComponent implements OnInit {
 	@Input() surveyId!: number;
+
+	// Authenticated user for role-based access
+	authenticatedUser: User | null = null;
+	UserRole = UserRole; // Expose to template
 
 	// Survey EAs (already assigned to this survey)
 	surveyEAs: SurveyEnumerationArea[] = [];
@@ -111,6 +123,39 @@ export class SurveyEaManagementComponent implements OnInit {
 	householdDialogRef: DynamicDialogRef | undefined;
 	resultDialogRef: DynamicDialogRef | undefined;
 
+	// Add EA Dialog (Admin only)
+	showAddDialog = false;
+	availableEAs: EnumerationArea[] = [];
+	selectedEAsToAdd: EnumerationArea[] = [];
+	loadingAvailableEAs = false;
+
+	// Add EA Dropdowns
+	dzongkhags: Dzongkhag[] = [];
+	administrativeZones: AdministrativeZone[] = [];
+	subAdministrativeZones: SubAdministrativeZone[] = [];
+	enumerationAreas: EnumerationArea[] = [];
+
+	selectedDzongkhag: Dzongkhag | null = null;
+	selectedAdminZone: AdministrativeZone | null = null;
+	selectedSubAdminZone: SubAdministrativeZone | null = null;
+
+	loadingDzongkhags = false;
+	loadingAdminZones = false;
+	loadingSubAdminZones = false;
+	loadingEAs = false;
+
+	// Bulk Upload Dialog (Admin only)
+	showBulkUploadDialog = false;
+	bulkUploadFile: File | null = null;
+	uploading = false;
+	uploadResult: BulkUploadResponse | null = null;
+
+	// Publish Dialog (Admin only)
+	showPublishDialog = false;
+	publishing = false;
+	publishComments = '';
+	currentEAForPublish: SurveyEnumerationArea | null = null;
+
 	// Table reference for filtering
 	@ViewChild('dt') tableRef: any;
 
@@ -123,7 +168,11 @@ export class SurveyEaManagementComponent implements OnInit {
 		private messageService: MessageService,
 		private confirmationService: ConfirmationService,
 		private authService: AuthService,
-		private dialogService: DialogService
+		private dialogService: DialogService,
+		private eaService: EnumerationAreaDataService,
+		private dzongkhagService: DzongkhagDataService,
+		private adminZoneService: AdministrativeZoneDataService,
+		private subAdminZoneService: SubAdministrativeZoneDataService
 	) {
 		// Initialize config form (for accessing default values)
 		this.configForm = this.fb.group({
@@ -149,10 +198,25 @@ export class SurveyEaManagementComponent implements OnInit {
 	}
 
 	ngOnInit() {
+		this.authenticatedUser = this.authService.getCurrentUser();
 		if (this.surveyId) {
 			this.loadSurveyEAs();
 			this.loadSurveyConfigForSampling();
 		}
+	}
+
+	/**
+	 * Check if user can add EA (admin only)
+	 */
+	canAddEA(): boolean {
+		return this.authenticatedUser?.role === UserRole.ADMIN;
+	}
+
+	/**
+	 * Check if EA can be published (admin only, must be enumerated)
+	 */
+	canPublish(ea: SurveyEnumerationArea): boolean {
+		return this.canAddEA() && ea.isEnumerated === true;
 	}
 
 	/**
@@ -1231,5 +1295,392 @@ export class SurveyEaManagementComponent implements OnInit {
 	 */
 	isSampled(ea: SurveyEnumerationArea): boolean {
 		return ea.isSampled === true;
+	}
+
+	// ==================== Add EA (Admin Only) ====================
+
+	/**
+	 * Open Add EA Dialog
+	 */
+	openAddDialog() {
+		this.showAddDialog = true;
+		this.selectedEAsToAdd = [];
+		this.selectedDzongkhag = null;
+		this.selectedAdminZone = null;
+		this.selectedSubAdminZone = null;
+		this.administrativeZones = [];
+		this.subAdministrativeZones = [];
+		this.enumerationAreas = [];
+		this.loadDzongkhags();
+	}
+
+	/**
+	 * Load dzongkhags
+	 */
+	loadDzongkhags() {
+		this.loadingDzongkhags = true;
+		this.dzongkhagService
+			.findAllDzongkhags()
+			.pipe(finalize(() => (this.loadingDzongkhags = false)))
+			.subscribe({
+				next: (data) => {
+					this.dzongkhags = data;
+				},
+				error: (error) => {
+					console.error('Error loading dzongkhags:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load dzongkhags',
+						life: 3000,
+					});
+				},
+			});
+	}
+
+	/**
+	 * Handle dzongkhag change
+	 */
+	onDzongkhagChange() {
+		this.selectedAdminZone = null;
+		this.selectedSubAdminZone = null;
+		this.administrativeZones = [];
+		this.subAdministrativeZones = [];
+		this.enumerationAreas = [];
+		this.selectedEAsToAdd = [];
+
+		if (this.selectedDzongkhag) {
+			this.loadAdministrativeZones(this.selectedDzongkhag.id);
+		}
+	}
+
+	/**
+	 * Load administrative zones
+	 */
+	loadAdministrativeZones(dzongkhagId: number) {
+		this.loadingAdminZones = true;
+		this.adminZoneService
+			.findAdministrativeZonesByDzongkhag(dzongkhagId)
+			.pipe(finalize(() => (this.loadingAdminZones = false)))
+			.subscribe({
+				next: (data) => {
+					this.administrativeZones = data;
+				},
+				error: (error) => {
+					console.error('Error loading administrative zones:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load administrative zones',
+						life: 3000,
+					});
+				},
+			});
+	}
+
+	/**
+	 * Handle admin zone change
+	 */
+	onAdminZoneChange() {
+		this.selectedSubAdminZone = null;
+		this.subAdministrativeZones = [];
+		this.enumerationAreas = [];
+		this.selectedEAsToAdd = [];
+
+		if (this.selectedAdminZone) {
+			this.loadSubAdministrativeZones(this.selectedAdminZone.id);
+		}
+	}
+
+	/**
+	 * Load sub-administrative zones
+	 */
+	loadSubAdministrativeZones(adminZoneId: number) {
+		this.loadingSubAdminZones = true;
+		this.subAdminZoneService
+			.findSubAdministrativeZonesByAdministrativeZone(adminZoneId)
+			.pipe(finalize(() => (this.loadingSubAdminZones = false)))
+			.subscribe({
+				next: (data) => {
+					this.subAdministrativeZones = data;
+				},
+				error: (error) => {
+					console.error('Error loading sub-administrative zones:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load sub-administrative zones',
+						life: 3000,
+					});
+				},
+			});
+	}
+
+	/**
+	 * Handle sub-admin zone change
+	 */
+	onSubAdminZoneChange() {
+		this.enumerationAreas = [];
+		this.selectedEAsToAdd = [];
+
+		if (this.selectedSubAdminZone) {
+			this.loadEnumerationAreas(this.selectedSubAdminZone.id);
+		}
+	}
+
+	/**
+	 * Load enumeration areas
+	 */
+	loadEnumerationAreas(subAdminZoneId: number) {
+		this.loadingEAs = true;
+		this.eaService
+			.findEnumerationAreasBySubAdministrativeZone(subAdminZoneId)
+			.pipe(finalize(() => (this.loadingEAs = false)))
+			.subscribe({
+				next: (data) => {
+					// Filter out EAs already assigned to this survey
+					const assignedEAIds = this.surveyEAs.map(
+						(sea) => sea.enumerationAreaId
+					);
+					this.enumerationAreas = data.filter(
+						(ea) => !assignedEAIds.includes(ea.id)
+					);
+				},
+				error: (error) => {
+					console.error('Error loading enumeration areas:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load enumeration areas',
+						life: 3000,
+					});
+				},
+			});
+	}
+
+	/**
+	 * Add selected EAs to survey
+	 */
+	addEAsToSurvey() {
+		if (this.selectedEAsToAdd.length === 0) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Selection',
+				detail: 'Please select at least one enumeration area',
+				life: 3000,
+			});
+			return;
+		}
+
+		const eaIds = this.selectedEAsToAdd.map((ea) => ea.id);
+		this.surveyService.addEnumerationAreas(this.surveyId, eaIds).subscribe({
+			next: () => {
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: `Added ${eaIds.length} enumeration area(s) to survey`,
+					life: 3000,
+				});
+				this.showAddDialog = false;
+				this.loadSurveyEAs();
+			},
+			error: (error) => {
+				console.error('Error adding EAs to survey:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: 'Failed to add enumeration areas',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	// ==================== Bulk Upload (Admin Only) ====================
+
+	/**
+	 * Open bulk upload dialog
+	 */
+	openBulkUploadDialog() {
+		this.showBulkUploadDialog = true;
+		this.bulkUploadFile = null;
+		this.uploadResult = null;
+		this.uploading = false;
+	}
+
+	/**
+	 * Close bulk upload dialog
+	 */
+	closeBulkUploadDialog() {
+		this.showBulkUploadDialog = false;
+		this.bulkUploadFile = null;
+		this.uploadResult = null;
+		this.uploading = false;
+	}
+
+	/**
+	 * Handle file selection
+	 */
+	onBulkFileSelect(event: any) {
+		const files = event.files;
+		if (files && files.length > 0) {
+			this.bulkUploadFile = files[0];
+			this.uploadResult = null; // Reset previous results
+		}
+	}
+
+	/**
+	 * Download CSV template
+	 */
+	downloadTemplate() {
+		this.surveyEAService.downloadTemplate().subscribe({
+			next: (blob: Blob) => {
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = 'enumeration_area_upload_template.csv';
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				window.URL.revokeObjectURL(url);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: 'Template downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading template:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: 'Failed to download template',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Execute bulk upload
+	 */
+	executeBulkUpload() {
+		if (!this.bulkUploadFile) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No File',
+				detail: 'Please select a file to upload',
+				life: 3000,
+			});
+			return;
+		}
+
+		if (!this.surveyId) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Error',
+				detail: 'Survey ID is missing',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.uploading = true;
+		this.uploadResult = null;
+
+		this.surveyEAService.bulkUpload(this.surveyId, this.bulkUploadFile).subscribe({
+			next: (result) => {
+				this.uploadResult = result;
+				this.uploading = false;
+				this.messageService.add({
+					severity: result.success ? 'success' : 'warn',
+					summary: result.success ? 'Success' : 'Partial Success',
+					detail: `Uploaded: ${result.successful}/${result.totalRows} rows. Created: ${result.created}, Skipped: ${result.skipped}, Failed: ${result.failed}`,
+					life: 5000,
+				});
+
+				// Reload survey EAs if any were created
+				if (result.created > 0) {
+					this.loadSurveyEAs();
+				}
+			},
+			error: (error) => {
+				this.uploading = false;
+				console.error('Error uploading CSV:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Upload Failed',
+					detail: error.error?.message || 'Failed to upload file',
+					life: 5000,
+				});
+			},
+		});
+	}
+
+	// ==================== Publish Data (Admin Only) ====================
+
+	/**
+	 * Open publish dialog
+	 */
+	openPublishDialog(ea: SurveyEnumerationArea): void {
+		if (!this.canPublish(ea)) {
+			return;
+		}
+
+		this.currentEAForPublish = ea;
+		this.publishComments = '';
+		this.showPublishDialog = true;
+	}
+
+	/**
+	 * Close publish dialog
+	 */
+	closePublishDialog(): void {
+		this.showPublishDialog = false;
+		this.currentEAForPublish = null;
+		this.publishComments = '';
+		this.publishing = false;
+	}
+
+	/**
+	 * Publish enumeration area data
+	 */
+	publishData(): void {
+		if (!this.currentEAForPublish || !this.authenticatedUser) {
+			return;
+		}
+
+		this.publishing = true;
+
+		const dto: PublishSurveyEnumerationAreaDto = {
+			publishedBy: this.authenticatedUser.id,
+			comments: this.publishComments?.trim() || undefined,
+		};
+
+		this.surveyEAService.publishData(this.currentEAForPublish.id, dto).subscribe({
+			next: () => {
+				this.publishing = false;
+				this.showPublishDialog = false;
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: 'Enumeration area data published successfully',
+					life: 3000,
+				});
+				// Reload survey EAs to update status
+				this.loadSurveyEAs();
+			},
+			error: (error) => {
+				this.publishing = false;
+				console.error('Error publishing data:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: error.error?.message || 'Failed to publish enumeration area data',
+					life: 3000,
+				});
+			},
+		});
 	}
 }
