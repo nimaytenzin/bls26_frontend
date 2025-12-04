@@ -858,13 +858,13 @@ export class AdminSurveySamplingComponent implements OnInit, OnChanges, OnDestro
 
 		const csvData = this.selectedHouseholds.map((item) => [
 			item.selectionOrder,
-			item.household.structureNumber,
+			item.household.structure?.structureNumber || '',
 			item.household.householdIdentification,
 			item.household.householdSerialNumber,
 			item.household.nameOfHOH,
 			item.household.totalMale,
 			item.household.totalFemale,
-			item.household.totalPopulation,
+			item.household.totalMale + item.household.totalFemale,
 			item.household.phoneNumber || '',
 			item.household.remarks || '',
 			item.isReplacement ? 'Yes' : 'No',

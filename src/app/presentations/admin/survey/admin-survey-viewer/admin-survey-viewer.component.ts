@@ -19,6 +19,7 @@ import { AdminSurveyOverviewComponent } from './admin-survey-overview/admin-surv
 import { AdminSurveyEaManagementComponent } from './admin-survey-ea-management/admin-survey-ea-management.component';
 import { AdminSurveySamplingComponent } from './admin-survey-sampling/admin-survey-sampling.component';
 import { SurveyStatus } from '../../../../core/constants/enums';
+import { SurveyOverviewComponent } from '../../../shared/survey-view/survey-overview/survey-overview.component';
 
 @Component({
 	selector: 'app-admin-survey-viewer',
@@ -34,6 +35,8 @@ import { SurveyStatus } from '../../../../core/constants/enums';
 		AdminSurveyOverviewComponent,
 		AdminSurveyEaManagementComponent,
 		AdminSurveySamplingComponent,
+		
+		SurveyOverviewComponent
 	],
 	providers: [MessageService, ConfirmationService, DialogService],
 })

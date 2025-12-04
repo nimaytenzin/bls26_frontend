@@ -76,11 +76,6 @@
 					</p>
 				</div>
 				<div class="flex items-center gap-2">
-					<p-tag
-						*ngIf="isEnumerated"
-						value="Completed"
-						severity="success"
-					></p-tag>
 					<button
 						*ngIf="!isEnumerated"
 						pButton
@@ -100,19 +95,34 @@
 					></button>
 				</div>
 			</div>
-			<p
-				*ngIf="locationError"
-				class="text-white text-xs flex items-center justify-center mt-2"
-			>
-				<i class="pi pi-exclamation-triangle mr-1 text-xs"></i>
-				<span class="truncate">{{ locationError }}</span>
-			</p>
+
+			<div class="flex items-center gap-2 mt-1 justify-end">
+				<p
+					*ngIf="locationError"
+					class="text-white text-xs flex items-center justify-center"
+				>
+					<i class="pi pi-exclamation-triangle mr-1 text-xs"></i>
+					<span class="truncate">{{ locationError }} | </span>
+				</p>
+				<span
+					class="text-xs text-white flex items-center gap-1"
+					*ngIf="isEnumerated"
+				>
+					Enumerated <i class="pi pi-check-circle text-xs"></i>
+				</span>
+
+				<span
+					class="text-xs text-white flex items-center gap-1"
+					*ngIf="isEnumerated"
+				>
+					Sampled <i class="pi pi-check-circle text-xs"></i>
+				</span>
+			</div>
 		</div>
 
 		<!-- Map Container -->
 		<div class="relative">
 			<div #mapContainer class="w-full h-[90vh]" style="z-index: 1"></div>
-
 
 			<!-- Map Controls Overlay - Compact Mobile Design -->
 			<div class="absolute top-2 right-2 z-50 flex flex-col gap-1.5">
@@ -133,7 +143,11 @@
 						'box-shadow': '0 2px 6px rgba(0, 0, 0, 0.2)',
 						color: editMode ? 'white' : '#6b7280'
 					}"
-					[title]="editMode ? 'Edit Mode ON - Click on map to add structure' : 'Enable Edit Mode - Add Structure'"
+					[title]="
+						editMode
+							? 'Edit Mode ON - Click on map to add structure'
+							: 'Enable Edit Mode - Add Structure'
+					"
 				></button>
 
 				<!-- Base Map Toggle Button -->

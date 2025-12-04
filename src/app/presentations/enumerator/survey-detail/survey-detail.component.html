@@ -8,11 +8,11 @@
 			<div class="relative w-20 h-20 mx-auto mb-6">
 				<div
 					class="absolute inset-0 border-4 rounded-full"
-					style="border-color: #E8F0FF;"
+					style="border-color: #e8f0ff"
 				></div>
 				<div
 					class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
-					style="border-color: #1A58AF"
+					style="border-color: #1a58af"
 				></div>
 			</div>
 			<p class="text-gray-600 font-medium">Loading survey details...</p>
@@ -37,7 +37,7 @@
 			<button
 				(click)="goBack()"
 				class="w-full text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
-				style="background-color: #1A58AF;"
+				style="background-color: #1a58af"
 				onmouseover="this.style.backgroundColor='#103975'"
 				onmouseout="this.style.backgroundColor='#1A58AF'"
 			>
@@ -52,7 +52,7 @@
 		<!-- Hero Header Section -->
 		<div
 			class="fixed top-0 left-0 right-0 z-40 shadow-xl"
-			style="background-color: #1A58AF"
+			style="background-color: #1a58af"
 		>
 			<div class="px-4 pt-4 pb-3">
 				<!-- Back Button & Title -->
@@ -97,11 +97,11 @@
 					<div class="flex items-center gap-4 text-white/80 text-sm">
 						<div class="flex items-center">
 							<i class="pi pi-calendar-plus text-xs mr-1.5"></i>
-							<span>{{ formatDate(survey.startDate) }}</span>
+							<span>{{ survey.startDate | date:'dd/MM/yyyy' }}</span>
 						</div>
 						<div class="flex items-center">
 							<i class="pi pi-calendar-minus text-xs mr-1.5"></i>
-							<span>{{ formatDate(survey.endDate) }}</span>
+							<span>{{ survey.endDate | date:'dd/MM/yyyy' }}</span>
 						</div>
 					</div>
 				</div>
@@ -116,7 +116,7 @@
 			<div
 				class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
 			>
-				<div class="px-5 py-3" style="background-color: #1A58AF;">
+				<div class="px-5 py-3" style="background-color: #1a58af">
 					<div class="flex items-center">
 						<div
 							class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center mr-3"
@@ -134,85 +134,86 @@
 
 					<!-- Dropdowns in 2x2 Grid -->
 					<div class="grid grid-cols-2 gap-3">
-					<!-- Dzongkhag Dropdown -->
-					<div class="form-field">
+						<!-- Dzongkhag Dropdown -->
+						<div class="form-field">
 							<label class="block text-xs font-semibold text-gray-900 mb-1.5">
-							Dzongkhag <span class="text-red-500">*</span>
-						</label>
-						<p-dropdown
-							[(ngModel)]="selectedDzongkhag"
-							[options]="dzongkhags"
+								Dzongkhag <span class="text-red-500">*</span>
+							</label>
+							<p-dropdown
+								[(ngModel)]="selectedDzongkhag"
+								[options]="dzongkhags"
 								optionLabel="name"
 								placeholder="Select"
-							[style]="{ width: '100%' }"
-							(onChange)="onDzongkhagChange()"
-							[appendTo]="'body'"
+								[style]="{ width: '100%' }"
+								(onChange)="onDzongkhagChange()"
+								[appendTo]="'body'"
 								styleClass="w-full text-sm"
-						>
-						</p-dropdown>
-					</div>
+							>
+							</p-dropdown>
+						</div>
 
-					<!-- Administrative Zone Dropdown -->
-					<div class="form-field">
+						<!-- Administrative Zone Dropdown -->
+						<div class="form-field">
 							<label class="block text-xs font-semibold text-gray-900 mb-1.5">
-							Gewog/Thromde <span class="text-red-500">*</span>
-						</label>
-						<p-dropdown
-							[(ngModel)]="selectedAdminZone"
-							[options]="adminZones"
-							optionLabel="name"
+								Gewog/Thromde <span class="text-red-500">*</span>
+							</label>
+							<p-dropdown
+								[(ngModel)]="selectedAdminZone"
+								[options]="adminZones"
+								optionLabel="name"
 								placeholder="Select"
-							[style]="{ width: '100%' }"
-							[filter]="true"
+								[style]="{ width: '100%' }"
+								[filter]="true"
 								filterPlaceholder="Search"
-							[disabled]="!selectedDzongkhag"
-							(onChange)="onAdminZoneChange()"
-							[appendTo]="'body'"
+								[disabled]="!selectedDzongkhag"
+								(onChange)="onAdminZoneChange()"
+								[appendTo]="'body'"
 								styleClass="w-full text-sm"
-						>
-						</p-dropdown>
-					</div>
+							>
+							</p-dropdown>
+						</div>
 
-					<!-- Sub Administrative Zone Dropdown -->
+						<!-- Sub Administrative Zone Dropdown -->
 						<div class="form-field col-span-2">
 							<label class="block text-xs font-semibold text-gray-900 mb-1.5">
-							Chiwog/Lap <span class="text-red-500">*</span>
-						</label>
-						<p-dropdown
-							[(ngModel)]="selectedSubAdminZone"
-							[options]="subAdminZones"
-							optionLabel="name"
+								Chiwog/Lap <span class="text-red-500">*</span>
+							</label>
+							<p-dropdown
+								[(ngModel)]="selectedSubAdminZone"
+								[options]="subAdminZones"
+								optionLabel="name"
 								placeholder="Select"
-							[style]="{ width: '100%' }"
-							[filter]="true"
+								[style]="{ width: '100%' }"
+								[filter]="true"
 								filterPlaceholder="Search"
-							[disabled]="!selectedAdminZone"
-							(onChange)="onSubAdminZoneChange()"
-							[appendTo]="'body'"
+								[disabled]="!selectedAdminZone"
+								(onChange)="onSubAdminZoneChange()"
+								[appendTo]="'body'"
 								styleClass="w-full text-sm"
-						>
-						</p-dropdown>
-						<p *ngIf="!selectedAdminZone" class="mt-1 text-xs text-gray-500">
-							<i class="pi pi-info-circle mr-1"></i>
+							>
+							</p-dropdown>
+							<p *ngIf="!selectedAdminZone" class="mt-1 text-xs text-gray-500">
+								<i class="pi pi-info-circle mr-1"></i>
 								Select Gewog/Thromde first
-						</p>
-					</div>
-					</div>
-							</div>
+							</p>
 						</div>
 					</div>
+				</div>
+			</div>
+		</div>
 
 		<!-- Divider with Enumeration Area Text -->
 		<div *ngIf="selectedSubAdminZone" class="px-4 my-4">
 			<div class="flex items-center gap-3">
 				<div class="flex-1 border-t border-gray-300"></div>
-				<div class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+				<div
+					class="text-xs font-semibold text-gray-600 uppercase tracking-wide"
+				>
 					Enumeration Areas
 				</div>
-				<div class="flex-1 border-t border-gray-300">				</div>
+				<div class="flex-1 border-t border-gray-300"></div>
 			</div>
 		</div>
-
 
 		<!-- Enumeration Areas Section (shown after SAZ selection) -->
 		<div *ngIf="selectedSubAdminZone" class="px-4">
@@ -230,7 +231,7 @@
 						(ngModelChange)="filterEnumerationAreas()"
 						placeholder="Search enumeration areas..."
 						class="w-full pl-11 pr-4 py-3 bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-						style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
+						style="--tw-ring-color: rgba(26, 88, 175, 0.5)"
 					/>
 					<div
 						*ngIf="searchQuery"
@@ -253,9 +254,9 @@
 				>
 					<div
 						class="w-24 h-24 rounded-full flex items-center justify-center mb-4 shadow-inner"
-						style="background-color: #E8F0FF;"
+						style="background-color: #e8f0ff"
 					>
-						<i class="pi pi-map-marker text-4xl" style="color: #1A58AF;"></i>
+						<i class="pi pi-map-marker text-4xl" style="color: #1a58af"></i>
 					</div>
 					<h3 class="text-lg font-bold text-gray-900 mb-2">
 						{{ searchQuery ? "No Results Found" : "No Enumeration Areas" }}
@@ -267,11 +268,14 @@
 								: "No enumeration areas found in this location"
 						}}
 					</p>
-							</div>
+				</div>
 
 				<!-- Enumeration Area Cards -->
 				<div
-					*ngFor="let surveyEa of filteredEnumerationAreas; trackBy: trackBySurveyEaId"
+					*ngFor="
+						let surveyEa of filteredEnumerationAreas;
+						trackBy: trackBySurveyEaId
+					"
 					class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer"
 					(click)="navigateToEnumerationArea(surveyEa.id)"
 				>
@@ -280,77 +284,71 @@
 						<div class="flex flex-col gap-2">
 							<div class="flex items-start justify-between">
 								<div class="flex-1 min-w-0">
-									<h3 class="text-sm font-bold text-gray-900 leading-tight mb-0.5 truncate">
-										{{ surveyEa.enumerationArea?.name || "N/A" }} - {{ surveyEa.enumerationArea?.areaCode || "" }}
+									<h3
+										class="text-sm font-bold text-gray-900 leading-tight mb-0.5 truncate"
+									>
+										{{ surveyEa.enumerationArea?.name || "N/A" }} -
+										{{ surveyEa.enumerationArea?.areaCode || "" }}
 									</h3>
-									 
 								</div>
 							</div>
-							<!-- Status Badge -->
-							<div class="flex-shrink-0">
-								<span
-									class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-									[style.background-color]="getEnumerationAreaStatus(surveyEa).bgColor"
-									[style.color]="getEnumerationAreaStatus(surveyEa).color"
-								>
-									{{ getEnumerationAreaStatus(surveyEa).label }}
-								</span>
-							</div>
+							 
+						</div>
 					</div>
-				</div>
 
 					<!-- Card Body -->
 					<div class="px-3 pb-3">
-						<!-- Enumeration Date (if enumerated) -->
-						<div
-							*ngIf="surveyEa.isEnumerated && surveyEa.enumerationDate"
-							class="flex items-center gap-1.5 text-xs text-gray-500 mb-2"
-						>
-							<i class="pi pi-calendar text-xs"></i>
-							<span class="truncate">Enumerated: {{ formatDate(surveyEa.enumerationDate) }}</span>
+						<div class="flex items-center justify-between py-1 gap-2  text-gray-600 text-xs  mb-2">
+							<p >
+								Enumerated <i *ngIf="surveyEa.isEnumerated " class="pi pi-check-circle text-xs text-green-300"></i>
+								<i *ngIf="!surveyEa.isEnumerated " class="pi pi-times text-xs text-red-300"></i>
+							</p>
+							<p >
+								Sampled <i *ngIf="surveyEa.isSampled " class="pi pi-check-circle text-xs text-green-300"></i>
+								<i *ngIf="!surveyEa.isSampled" class="pi pi-times text-xs text-red-300"></i>
+							</p>
 						</div>
 
-						<!-- Sampling Date (if sampled) -->
-						<div
-							*ngIf="surveyEa.isSampled && surveyEa.sampledDate"
-							class="flex items-center gap-1.5 text-xs text-gray-500 mb-2"
-						>
-							<i class="pi pi-calendar text-xs"></i>
-							<span class="truncate">Sampled: {{ formatDate(surveyEa.sampledDate) }}</span>
-						</div>
-
-						<!-- Published Date (if published) -->
-						<div
-							*ngIf="surveyEa.isPublished && surveyEa.publishedDate"
-							class="flex items-center gap-1.5 text-xs text-green-600 mb-2"
-						>
-							<i class="pi pi-check-circle text-xs"></i>
-							<span class="truncate">Published: {{ formatDate(surveyEa.publishedDate) }}</span>
-						</div>
-
+						
+						
 						<!-- Action Button -->
-						<button
-							class="w-full text-white py-2 px-3 rounded-lg font-semibold text-xs transition-all duration-200 flex items-center justify-center gap-1.5"
-							style="background-color: #1A58AF;"
-							onmouseover="this.style.backgroundColor='#103975'"
-							onmouseout="this.style.backgroundColor='#1A58AF'"
-							(click)="navigateToEnumerationArea(surveyEa.id); $event.stopPropagation()"
-						>
-							<span>{{
-								surveyEa.isPublished
-									? "View"
-									: surveyEa.isSampled
-									? "View"
-									: surveyEa.isEnumerated
-									? "View"
-									: "Start"
-							}}</span>
-							<i class="pi pi-arrow-right text-xs"></i>
-						</button>
-												</div>
-											</div>
-										</div>
-									</div>
+						<div class="flex flex-col gap-2">
+							<p-button
+								[label]="
+									surveyEa.isPublished
+										? 'View'
+										: surveyEa.isSampled
+										? 'View'
+										: surveyEa.isEnumerated
+										? 'View'
+										: 'Start'
+								"
+								[icon]="
+									surveyEa.isPublished
+										? 'pi pi-eye'
+										: surveyEa.isSampled
+										? 'pi pi-eye'
+										: surveyEa.isEnumerated
+										? 'pi pi-eye'
+										: 'pi pi-play'
+								"
+								iconPos="right"
+								styleClass="w-full"
+								size="small"
+ 								(click)="navigateToEnumerationArea(surveyEa.id); $event.stopPropagation()"
+							></p-button>
+							<p-button
+								label="View Sampling Results"
+								styleClass="w-full"
+								size="small"
+								severity="secondary"
+								[disabled]="!surveyEa.isSampled"
+								(click)="navigateToSamplingResults(surveyEa.id); $event.stopPropagation()"
+							></p-button>
+						</div>
+				</div>
+			</div>
+		</div>
 
 		<!-- Empty State when no location selected -->
 		<div
@@ -359,15 +357,16 @@
 		>
 			<div
 				class="w-32 h-32 rounded-full flex items-center justify-center mb-6 shadow-inner"
-				style="background-color: #E8F0FF;"
+				style="background-color: #e8f0ff"
 			>
-				<i class="pi pi-map-marker text-5xl" style="color: #1A58AF;"></i>
+				<i class="pi pi-map-marker text-5xl" style="color: #1a58af"></i>
 			</div>
 			<h3 class="text-xl font-bold text-gray-900 mb-2">
 				Select Location to View Enumeration Areas
 			</h3>
 			<p class="text-gray-500 text-center max-w-xs">
-				Choose Dzongkhag, Gewog/Thromde, and Chiwog/Lap to see available enumeration areas
+				Choose Dzongkhag, Gewog/Thromde, and Chiwog/Lap to see available
+				enumeration areas
 			</p>
 		</div>
 	</div>

@@ -395,57 +395,19 @@ export class SurveyDetailComponent implements OnInit {
 		]);
 	}
 
-
 	/**
-	 * Format date for display
+	 * Navigate to sampling results view
 	 */
-	formatDate(date: string | Date): string {
-		if (!date) return 'N/A';
-		const d = new Date(date);
-		return d.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric',
-		});
+	navigateToSamplingResults(surveyEnumerationAreaId: number) {
+		if (!surveyEnumerationAreaId || !this.surveyId) return;
+		this.router.navigate([
+			'/enumerator/survey',
+			this.surveyId,
+			'enumeration-area',
+			surveyEnumerationAreaId,
+			'sampling-results',
+		]);
 	}
 
-	/**
-	 * Get status for enumeration area based on isEnumerated, isSampled, isPublished
-	 */
-	getEnumerationAreaStatus(surveyEa: any): {
-		label: string;
-		severity: 'success' | 'info' | 'warning' | 'secondary';
-		color: string;
-		bgColor: string;
-	} {
-		if (surveyEa.isPublished) {
-			return {
-				label: 'Published',
-				severity: 'success',
-				color: '#059669',
-				bgColor: '#d1fae5',
-			};
-		} else if (surveyEa.isSampled) {
-			return {
-				label: 'Sampled',
-				severity: 'info',
-				color: '#0284c7',
-				bgColor: '#e0f2fe',
-			};
-		} else if (surveyEa.isEnumerated) {
-			return {
-				label: 'Enumerated',
-				severity: 'info',
-				color: '#1A58AF',
-				bgColor: '#E8F0FF',
-			};
-		} else {
-			return {
-				label: 'Pending',
-				severity: 'secondary',
-				color: '#6b7280',
-				bgColor: '#f3f4f6',
-			};
-		}
-	}
+
 }

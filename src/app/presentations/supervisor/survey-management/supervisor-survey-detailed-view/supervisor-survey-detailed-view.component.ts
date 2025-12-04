@@ -8,13 +8,12 @@ import {
 } from '../../../../core/dataservice/survey/survey.dto';
 import { MessageService } from 'primeng/api';
 import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
-import { SupervisorSurveyOverviewComponent } from './components/supervisor-survey-overview/supervisor-survey-overview.component';
 import { SupervisorSurveyEnumeratorsViewComponent } from './components/supervisor-survey-enumerators-view/supervisor-survey-enumerators-view.component';
-import { SupervisorSurveyEaViewComponent } from './components/supervisor-survey-ea-view/supervisor-survey-ea-view.component';
-import { SupervisorSurveySamplingViewComponent } from './components/supervisor-survey-sampling-view/supervisor-survey-sampling-view.component';
-import { SupervisorSurveyHouseholdListingsComponent } from './components/supervisor-survey-household-listings/supervisor-survey-household-listings.component';
-import { SupervisorSurveySamplingConfigComponent } from './components/supervisor-survey-sampling-config/supervisor-survey-sampling-config.component';
+ import { SupervisorSurveySamplingViewComponent } from './components/supervisor-survey-sampling-view/supervisor-survey-sampling-view.component';
 import { SurveyStatus } from '../../../../core/constants/enums';
+import { SurveyOverviewComponent } from '../../../shared/survey-view/survey-overview/survey-overview.component';
+import { SurveyEaManagementComponent } from '../../../shared/survey-view/survey-ea-management/survey-ea-management.component';
+import { SupervisorSurveyHouseholdListingsComponent } from './components/supervisor-survey-household-listings/supervisor-survey-household-listings.component';
 
 @Component({
 	selector: 'app-supervisor-survey-detailed-view',
@@ -25,12 +24,16 @@ import { SurveyStatus } from '../../../../core/constants/enums';
 		CommonModule,
 		FormsModule,
 		PrimeNgModules,
-		SupervisorSurveyOverviewComponent,
 		SupervisorSurveyEnumeratorsViewComponent,
-		SupervisorSurveyEaViewComponent,
-		SupervisorSurveySamplingViewComponent,
+ 		SupervisorSurveySamplingViewComponent,
 		SupervisorSurveyHouseholdListingsComponent,
-		SupervisorSurveySamplingConfigComponent,
+	
+		SurveyOverviewComponent,
+
+		SurveyEaManagementComponent
+		
+
+
 	],
 	providers: [MessageService],
 })

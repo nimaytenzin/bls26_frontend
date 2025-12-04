@@ -227,19 +227,7 @@ export interface SamplingExistsCheckDto {
 export interface SamplingResultHouseholdDto {
 	selectionOrder: number;
 	isReplacement: boolean;
-	household: {
-		id: number;
-		structureNumber: string;
-		householdIdentification: string;
-		householdSerialNumber: number;
-		nameOfHOH: string;
-		totalMale: number;
-		totalFemale: number;
-		totalPopulation: number;
-		phoneNumber: string | null;
-		remarks: string | null;
-		createdAt: string;
-	};
+	household: SurveyEnumerationAreaHouseholdListing;
 }
 
 /**

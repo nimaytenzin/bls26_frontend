@@ -1,6 +1,7 @@
 import { SurveyStatus } from '../../constants/enums';
 import { User } from '../auth/auth.interface';
 import { EnumerationArea } from '../location/enumeration-area/enumeration-area.dto';
+import { SurveyEnumerationArea } from '../survey-enumeration-area/survey-enumeration-area.dto';
 
 // Import and re-export pagination interfaces from utility
 export type {
@@ -27,30 +28,6 @@ export interface Survey {
 	updatedAt?: Date;
 	enumerationAreas?: EnumerationArea[];
 	surveyEnumerationAreas?: SurveyEnumerationArea[];
-}
-
-/**
- * Survey Enumeration Area Junction Interface
- * Represents the many-to-many relationship between surveys and enumeration areas
- * Contains submission and validation tracking at the EA level
- */
-export interface SurveyEnumerationArea {
-	id?: number;
-	surveyId: number;
-	enumerationAreaId: number;
-	isSubmitted?: boolean;
-	isValidated?: boolean;
-	submittedBy?: number;
-	submissionDate?: Date | string;
-	validatedBy?: number;
-	validationDate?: Date | string;
-	comments?: string;
-	createdAt?: Date;
-	updatedAt?: Date;
-	enumerationArea?: EnumerationArea;
-
-	submitter?: User;
-	validator?: User;
 }
 
 /**

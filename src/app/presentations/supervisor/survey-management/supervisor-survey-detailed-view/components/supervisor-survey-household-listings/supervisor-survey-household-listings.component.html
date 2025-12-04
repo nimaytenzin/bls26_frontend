@@ -17,7 +17,7 @@
 
 	<!-- Main Content -->
 	<div *ngIf="!loading" class="space-y-4">
-		<!-- Title and Download Button -->
+		<!-- Title and Action Buttons -->
 		<div class="flex items-center justify-between border-b border-gray-200 pb-3">
 			<h2 class="text-xl font-semibold text-gray-900">
 				<span *ngIf="selectedEnumerationArea">
@@ -28,6 +28,13 @@
 				</span>
 			</h2>
 			<div class="flex gap-2">
+				<p-button
+					label="Create Blank Entries"
+					icon="pi pi-plus"
+					(click)="openCreateBlankDialog()"
+					styleClass="p-button-outlined p-button-sm"
+					pTooltip="Create blank household listing entries"
+				></p-button>
 				<p-button
 					*ngIf="selectedEnumerationArea"
 					icon="pi pi-times"
@@ -239,7 +246,7 @@
 				<ng-template pTemplate="body" let-listing>
 					<tr>
 						<td class="font-mono text-xs">{{ listing.id }}</td>
-						<td>{{ listing.structureNumber }}</td>
+						<td>{{ listing.structure?.structureNumber }}</td>
 						<td>{{ listing.householdIdentification }}</td>
 						<td>{{ listing.householdSerialNumber }}</td>
 						<td class="font-medium">{{ listing.nameOfHOH }}</td>
@@ -284,3 +291,127 @@
 		</p-card>
 	</div>
 </div>
+
+<!-- Create Blank Household Listings Dialog -->
+<p-dialog
+	[(visible)]="showCreateBlankDialog"
+	[modal]="true"
+	[closable]="true"
+	[style]="{ width: '600px' }"
+	header="Create Blank Household Listings"
+>
+	<div class="space-y-4">
+		<p class="text-sm text-gray-600">
+			Create blank household listing entries for a selected enumeration area. These entries can be used for historical surveys or when data is not available.
+		</p>
+
+		<!-- Enumeration Area Selection -->
+		<div class="space-y-3">
+			<h4 class="text-sm font-semibold text-gray-900">Select Enumeration Area</h4>
+			
+			<!-- Dzongkhag Selection -->
+			<div class="flex flex-col gap-1.5">
+				<label class="text-xs font-medium text-gray-600">Dzongkhag</label>
+				<p-dropdown
+					[(ngModel)]="selectedDialogDzongkhag"
+					[options]="dialogDzongkhagFilters"
+					optionLabel="name"
+					placeholder="Select Dzongkhag"
+					(onChange)="onDialogDzongkhagChange()"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+
+			<!-- Admin Zone Selection -->
+			<div class="flex flex-col gap-1.5">
+				<label class="text-xs font-medium text-gray-600">Admin Zone</label>
+				<p-dropdown
+					[(ngModel)]="selectedDialogAdminZone"
+					[options]="dialogAdminZoneFilters"
+					optionLabel="name"
+					placeholder="Select Admin Zone"
+					[disabled]="!selectedDialogDzongkhag"
+					(onChange)="onDialogAdminZoneChange()"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+
+			<!-- Sub-Admin Zone Selection -->
+			<div class="flex flex-col gap-1.5">
+				<label class="text-xs font-medium text-gray-600">Sub-Admin Zone</label>
+				<p-dropdown
+					[(ngModel)]="selectedDialogSubAdminZone"
+					[options]="dialogSubAdminZoneFilters"
+					optionLabel="name"
+					placeholder="Select Sub-Admin Zone"
+					[disabled]="!selectedDialogAdminZone"
+					(onChange)="onDialogSubAdminZoneChange()"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+
+			<!-- Enumeration Area Selection -->
+			<div class="flex flex-col gap-1.5">
+				<label class="text-xs font-medium text-gray-600">Enumeration Area <span class="text-red-500">*</span></label>
+				<p-dropdown
+					[(ngModel)]="selectedEAForBlank"
+					[options]="dialogEnumerationAreaOptions"
+					optionLabel="name"
+					placeholder="Select Enumeration Area"
+					[disabled]="!selectedDialogSubAdminZone"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+		</div>
+
+		<!-- Count Input -->
+		<div class="flex flex-col gap-1.5">
+			<label class="text-xs font-medium text-gray-600">Number of Entries <span class="text-red-500">*</span></label>
+			<p-inputNumber
+				[(ngModel)]="blankForm.count"
+				[min]="1"
+				[max]="10000"
+				[showButtons]="true"
+				[useGrouping]="false"
+				styleClass="w-full"
+				placeholder="Enter count (1-10000)"
+			></p-inputNumber>
+			<small class="text-xs text-gray-500">Enter the number of blank entries to create (1-10000)</small>
+		</div>
+
+		<!-- Remarks Input -->
+		<div class="flex flex-col gap-1.5">
+			<label class="text-xs font-medium text-gray-600">Remarks (Optional)</label>
+			<textarea
+				pInputTextarea
+				[(ngModel)]="blankForm.remarks"
+				[rows]="3"
+				placeholder="Optional remarks for the blank entries (defaults to 'No data available - Historical survey entry' if not provided)"
+				styleClass="w-full"
+			></textarea>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				class="p-button-text"
+				[disabled]="creatingBlank"
+				(click)="closeCreateBlankDialog()"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Create"
+				class="p-button-primary"
+				[disabled]="creatingBlank || !selectedEAForBlank || !blankForm.count"
+				(click)="createBlankHouseholdListings()"
+			>
+				<p-progressSpinner *ngIf="creatingBlank" styleClass="w-4 h-4 mr-2" strokeWidth="4"></p-progressSpinner>
+			</button>
+		</div>
+	</ng-template>
+</p-dialog>

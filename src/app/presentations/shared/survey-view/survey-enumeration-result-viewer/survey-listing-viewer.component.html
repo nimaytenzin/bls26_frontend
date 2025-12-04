@@ -48,10 +48,6 @@
 					<span class="text-gray-500">Sampling Interval:</span>
 					<span class="font-semibold ml-2">{{ currentResult.sampling.samplingInterval }}</span>
 				</div>
-				<div *ngIf="currentResult?.sampling?.randomStart !== null && currentResult?.sampling?.randomStart !== undefined">
-					<span class="text-gray-500">Random Start:</span>
-					<span class="font-semibold ml-2">{{ currentResult.sampling.randomStart }}</span>
-				</div>
 				<div>
 					<span class="text-gray-500">Executed At:</span>
 					<span class="font-semibold ml-2">{{ currentResult.sampling.executedAt | date: 'short' }}</span>
@@ -74,54 +70,44 @@
 					>
 						<ng-template pTemplate="header">
 							<tr>
-								<th>Serial #</th>
+								<th>#</th>
 								<th>Structure #</th>
-								<th>Household ID</th>
+								<th>Structure GeoCoordinates</th>
+								<th>Household Serial Number</th>
+								<th>Household Identification</th>
 								<th>Head of Household</th>
-								<th class="text-center">Total Population<br/><span class="text-xs font-normal text-gray-500">(Male / Female)</span></th>
 								<th>Phone Number</th>
-								<th style="width: 100px">Status</th>
+								<th>Total Male</th>
+								<th>Total Female</th>
+								<th>Total</th>
+								<th>is Sampled?</th>
 							</tr>
 						</ng-template>
-						<ng-template pTemplate="body" let-listing>
-							<tr [ngClass]="{ 'bg-blue-50': isHouseholdSelected(listing.id) }">
+						<ng-template pTemplate="body" let-listing let-i="rowIndex">
+							<tr [class.bg-blue-50]="isHouseholdSelected(listing.id)" [style.background-color]="isHouseholdSelected(listing.id) ? '#eff6ff' : ''">
+								<td>{{ i+1 }}</td>
+								<td>{{ listing.structure?.structureNumber }}</td>
+								<td>
+									<p *ngIf="listing.structure?.latitude && listing.structure?.longitude">
+										{{ listing.structure?.latitude }}, {{ listing.structure?.longitude }}
+									</p>
+									<p *ngIf="!listing.structure?.latitude || !listing.structure?.longitude">
+										No GeoCoordinates
+									</p>
+								</td>
 								<td>{{ listing.householdSerialNumber }}</td>
-								<td>{{ listing.structureNumber }}</td>
-								<td>
-									<div class="flex items-center gap-2">
-										{{ listing.householdIdentification }}
-										<p-tag
-											*ngIf="isHouseholdSelected(listing.id)"
-											value="Selected"
-											severity="info"
-											styleClass="text-xs"
-										></p-tag>
-									</div>
-								</td>
-								<td class="font-medium">{{ listing.nameOfHOH }}</td>
-								<td class="text-center">
-									<div class="flex flex-col items-center">
-										<span class="font-semibold">{{ (listing.totalMale || 0) + (listing.totalFemale || 0) }}</span>
-										<span class="text-xs text-gray-500">
-											({{ listing.totalMale || 0 }}M / {{ listing.totalFemale || 0 }}F)
-										</span>
-									</div>
-								</td>
-								<td>{{ listing.phoneNumber || '—' }}</td>
-								<td>
-									<p-tag
-										*ngIf="isHouseholdSelected(listing.id)"
-										value="Sampled"
-										severity="success"
-										styleClass="text-xs"
-									></p-tag>
-									<span *ngIf="!isHouseholdSelected(listing.id)" class="text-xs text-gray-400">—</span>
-								</td>
+								<td>{{ listing.householdIdentification }}</td>
+								<td>{{ listing.nameOfHOH || 'NA' }}</td>
+								<td>{{ listing.phoneNumber || 'NA' }}</td>
+								<td>{{ listing.totalMale }}</td>
+								<td>{{ listing.totalFemale }}</td>
+								<td>{{ listing.totalMale + listing.totalFemale }}</td>
+								<td>{{ isHouseholdSelected(listing.id) ? 'Yes' : 'No' }}</td>
 							</tr>
 						</ng-template>
 						<ng-template pTemplate="emptymessage">
 							<tr>
-								<td colspan="7" class="text-center py-8 text-gray-500">
+								<td colspan="10" class="text-center py-8 text-gray-500">
 									No household listings found.
 								</td>
 							</tr>
@@ -145,35 +131,35 @@
 							<tr>
 								<th style="width: 60px">Selection Order</th>
 								<th>Structure Number</th>
+								<th>Structure GeoCoordinates</th>
+								<th>Household Serial Number</th>
 								<th>Household ID</th>
 								<th>Head of Household</th>
-								<th class="text-center">Total Population<br/><span class="text-xs font-normal text-gray-500">(Male / Female)</span></th>
 								<th>Phone Number</th>
-								<th style="width: 100px">Is Replacement</th>
+								<th>Total Male</th>
+								<th>Total Female</th>
+								<th>Total Population</th>
 							</tr>
 						</ng-template>
-						<ng-template pTemplate="body" let-item>
+						<ng-template pTemplate="body" let-item let-i="rowIndex">
 							<tr>
 								<td class="font-mono text-xs">{{ item.selectionOrder }}</td>
-								<td>{{ item.household.structureNumber }}</td>
-								<td>{{ item.household.householdIdentification }}</td>
-								<td class="font-medium">{{ item.household.nameOfHOH }}</td>
-								<td class="text-center">
-									<div class="flex flex-col items-center">
-										<span class="font-semibold">{{ item.household.totalPopulation }}</span>
-										<span class="text-xs text-gray-500">
-											({{ item.household.totalMale }}M / {{ item.household.totalFemale }}F)
-										</span>
-									</div>
-								</td>
-								<td>{{ item.household.phoneNumber || '—' }}</td>
+								<td>{{ item.household.structure?.structureNumber }}</td>
 								<td>
-									<p-tag
-										[value]="item.isReplacement ? 'Yes' : 'No'"
-										[severity]="item.isReplacement ? 'warning' : 'success'"
-										styleClass="text-xs"
-									></p-tag>
+									<p *ngIf="item.household.structure?.latitude && item.household.structure?.longitude">
+										{{ item.household.structure?.latitude }}, {{ item.household.structure?.longitude }}
+									</p>
+									<p *ngIf="!item.household.structure?.latitude || !item.household.structure?.longitude">
+										No GeoCoordinates
+									</p>
 								</td>
+								<td>{{ item.household.householdSerialNumber }}</td>
+								<td>{{ item.household.householdIdentification }}</td>
+								<td >{{ item.household.nameOfHOH || 'NA' }}</td>
+								<td>{{ item.household.phoneNumber || 'NA' }}</td>
+								<td>{{ item.household.totalMale }}</td>
+								<td>{{ item.household.totalFemale }}</td>
+								<td>{{ item.household.totalMale + item.household.totalFemale }}</td>
 							</tr>
 						</ng-template>
 						<ng-template pTemplate="emptymessage">
@@ -191,14 +177,26 @@
 
 	<!-- Footer Actions -->
 	<div class="flex justify-between w-full pt-4 border-t border-gray-200">
-		<button
-			pButton
-			type="button"
-			label="Download CSV"
-			class="p-button-outlined"
-			[disabled]="!currentResult"
-			(click)="downloadSamplingResult()"
-		></button>
+		<div class="flex gap-2">
+			<button
+				pButton
+				type="button"
+				label="Download All"
+				icon="pi pi-download"
+				class="p-button-outlined"
+				[disabled]="!allHouseholdListings || allHouseholdListings.length === 0"
+				(click)="downloadAllHouseholds()"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Download Sampled"
+				icon="pi pi-download"
+				class="p-button-outlined"
+				[disabled]="!currentResult || selectedHouseholds.length === 0"
+				(click)="downloadSampledHouseholds()"
+			></button>
+		</div>
 		<button
 			pButton
 			type="button"

@@ -64,46 +64,47 @@
 						let structure of filteredStructures;
 						trackBy: trackByStructureId
 					"
-					class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden"
+					class="bg-white rounded-lg  border border-gray-300 overflow-hidden"
 				>
 					<!-- Structure Header -->
 					<div class="p-4 bg-gray-50 border-b border-gray-200">
 						<div class="flex items-center justify-between">
 							<div class="flex items-center gap-3">
-								<i class="pi pi-building text-lg text-blue-600"></i>
 								<span class="font-semibold text-gray-900 text-base">
-									{{ structure.structureNumber }}
+									Structure #: {{ structure.structureNumber }}
 								</span>
-								<span class="text-sm text-gray-600">
-									{{ structure.householdListings.length }}
-									{{ structure.householdListings.length === 1 ? 'household' : 'households' }}
-								</span>
+								
+								
 							</div>
-							<div class="flex items-center gap-2">
+							<div class="flex  items-center gap-2">
 								<button
 									pButton
 									type="button"
 									icon="pi pi-plus"
-									styleClass="p-button-text p-button-sm"
-									(click)="addHouseholdToStructure(structure.id)"
-									title="Add Household"
+ 									(click)="addHouseholdToStructure(structure.id)"
+ 									label="Household"
 									size="small"
-									severity="secondary"
-									style="pointer-events: auto; z-index: 10; position: relative;"
-								></button>
+  								></button>
 								<button
+									*ngIf="structure.latitude"
 									pButton
 									type="button"
 									icon="pi pi-map-marker"
 									styleClass="p-button-text p-button-sm"
 									(click)="zoomToStructure(structure.id)"
-									title="Locate on Map"
-									severity="secondary"
+ 									
 									size="small"
 									style="pointer-events: auto; z-index: 10; position: relative;"
 								></button>
 							</div>
 						</div>
+						<span class="text-xs text-gray-600">
+							{{ structure.householdListings.length }}
+							{{ structure.householdListings.length === 1 ? 'household' : 'households' }}
+						</span>
+						<span *ngIf="!structure.latitude" class="text-xs text-red-500">
+							| No Geolocation Data available
+					</span>
 					</div>
 
 					<!-- Household Listings -->

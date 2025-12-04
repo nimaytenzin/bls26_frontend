@@ -1,23 +1,19 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PrimeNgModules } from '../../../../../../primeng.modules';
 import { MessageService } from 'primeng/api';
-import { SamplingDataService } from '../../../../../../core/dataservice/sampling/sampling.dataservice';
-import {
-	SurveySamplingConfigDto,
-	UpdateSurveySamplingConfigDto,
-} from '../../../../../../core/dataservice/sampling/sampling.dto';
-
+import { SamplingDataService } from '../../../../core/dataservice/sampling/sampling.dataservice';
+import { SurveySamplingConfigDto, UpdateSurveySamplingConfigDto } from '../../../../core/dataservice/sampling/sampling.dto';
+import { PrimeNgModules } from '../../../../primeng.modules';
 @Component({
-	selector: 'app-supervisor-survey-sampling-config',
+	selector: 'app-survey-sampling-global-parameters',
 	standalone: true,
 	imports: [CommonModule, FormsModule, ReactiveFormsModule, PrimeNgModules],
 	providers: [MessageService],
-	templateUrl: './supervisor-survey-sampling-config.component.html',
-	styleUrls: ['./supervisor-survey-sampling-config.component.scss'],
+	templateUrl: './survey-sampling-global-parameters.component.html',
+	styleUrls: ['./survey-sampling-global-parameters.component.scss'],
 })
-export class SupervisorSurveySamplingConfigComponent implements OnInit, OnChanges {
+export class SurveySamplingGlobalParametersComponent implements OnInit, OnChanges {
 	@Input() surveyId!: number;
 
 	configForm: FormGroup;

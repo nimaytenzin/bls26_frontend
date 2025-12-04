@@ -1,26 +1,23 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PrimeNgModules } from '../../../../../../primeng.modules';
 import { MessageService } from 'primeng/api';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
-import { SamplingDataService } from '../../../../../../core/dataservice/sampling/sampling.dataservice';
-import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dataservice';
-import {
-	SamplingResultsResponseDto,
-	SamplingResultHouseholdDto,
-} from '../../../../../../core/dataservice/sampling/sampling.dto';
-import { SurveyEnumerationArea } from '../../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
-import { SurveyEnumerationAreaHouseholdListing } from '../../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
+import { PrimeNgModules } from '../../../../primeng.modules';
+ import { SamplingResultHouseholdDto, SamplingResultsResponseDto } from '../../../../core/dataservice/sampling/sampling.dto';
+import { SurveyEnumerationAreaHouseholdListing } from '../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
+import { SamplingDataService } from '../../../../core/dataservice/sampling/sampling.dataservice';
+import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dataservice';
+import { SurveyEnumerationArea } from '../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
 
 @Component({
-	selector: 'app-supervisor-survey-sampling-results-view',
+	selector: 'app-supervisor-survey-household-result-viewer',
 	standalone: true,
 	imports: [CommonModule, PrimeNgModules],
 	providers: [MessageService],
-	templateUrl: './supervisor-survey-sampling-results-view.component.html',
-	styleUrls: ['./supervisor-survey-sampling-results-view.component.scss'],
+	templateUrl: './survey-listing-viewer.component.html',
+	styleUrls: ['./survey-listing-viewer.component.scss'],
 })
-export class SupervisorSurveySamplingResultsViewComponent implements OnInit {
+export class SurveyListingViewerComponent implements OnInit {
 	surveyId!: number;
 	enumerationArea!: SurveyEnumerationArea;
 
@@ -71,7 +68,9 @@ export class SupervisorSurveySamplingResultsViewComponent implements OnInit {
 						this.selectedHouseholds = response.data.selectedHouseholds;
 						// Store selected household IDs for highlighting
 						this.selectedHouseholdIds = new Set(
-							this.selectedHouseholds.map((item) => item.household.id)
+							this.selectedHouseholds
+								.map((item) => item.household?.id)
+								.filter((id): id is number => id !== undefined && id !== null)
 						);
 					}
 					// Load all household listings regardless of sampling results
@@ -121,8 +120,16 @@ export class SupervisorSurveySamplingResultsViewComponent implements OnInit {
 	/**
 	 * Check if a household is selected (sampled)
 	 */
-	isHouseholdSelected(householdId: number): boolean {
-		return this.selectedHouseholdIds.has(householdId);
+	isHouseholdSelected(householdId: number | undefined | null): boolean {
+		if (!householdId) {
+			return false;
+		}
+		if (!this.selectedHouseholdIds || this.selectedHouseholdIds.size === 0) {
+			return false;
+		}
+		// Ensure we're comparing numbers
+		const id = typeof householdId === 'number' ? householdId : Number(householdId);
+		return this.selectedHouseholdIds.has(id);
 	}
 
 	/**
@@ -145,44 +152,45 @@ export class SupervisorSurveySamplingResultsViewComponent implements OnInit {
 	}
 
 	/**
-	 * Download sampling result as CSV
+	 * Download all household listings as CSV
 	 */
-	downloadSamplingResult(): void {
-		if (!this.currentResult || !this.selectedHouseholds.length) {
+	downloadAllHouseholds(): void {
+		if (!this.allHouseholdListings || this.allHouseholdListings.length === 0) {
 			this.messageService.add({
 				severity: 'warn',
 				summary: 'No Data',
-				detail: 'No sampling results to export',
+				detail: 'No household listings to export',
 			});
 			return;
 		}
 
 		const headers = [
-			'Selection Order',
-			'Structure Number',
-			'Household ID',
 			'Serial Number',
+			'Structure Number',
+			'Latitude',
+			'Longitude',
+			'Household Serial Number',
+			'Household Identification',
 			'Head of Household',
+			'Phone Number',
 			'Total Male',
 			'Total Female',
 			'Total Population',
-			'Phone Number',
 			'Remarks',
-			'Is Replacement',
 		];
 
-		const csvData = this.selectedHouseholds.map((item) => [
-			item.selectionOrder,
-			item.household.structureNumber,
-			item.household.householdIdentification,
-			item.household.householdSerialNumber,
-			item.household.nameOfHOH,
-			item.household.totalMale,
-			item.household.totalFemale,
-			item.household.totalPopulation,
-			item.household.phoneNumber || '',
-			item.household.remarks || '',
-			item.isReplacement ? 'Yes' : 'No',
+		const csvData = this.allHouseholdListings.map((listing) => [
+			listing.householdSerialNumber,
+			listing.structure?.structureNumber || '',
+			listing.structure?.latitude || '',
+			listing.structure?.longitude || '',
+			listing.householdIdentification,
+			listing.nameOfHOH,
+			listing.phoneNumber || '',
+			listing.totalMale || 0,
+			listing.totalFemale || 0,
+			(listing.totalMale || 0) + (listing.totalFemale || 0),
+			listing.remarks || '',
 		]);
 
 		let csvContent = headers.join(',') + '\n';
@@ -193,15 +201,80 @@ export class SupervisorSurveySamplingResultsViewComponent implements OnInit {
 		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 		const url = window.URL.createObjectURL(blob);
 		const link = document.createElement('a');
+		const areaCode = this.enumerationArea.enumerationArea?.areaCode || 'ea';
 		link.href = url;
-		link.download = `sampling_results_${this.currentResult.enumerationArea.areaCode || 'ea'}_${Date.now()}.csv`;
+		link.download = `all_households_${areaCode}_${Date.now()}.csv`;
 		link.click();
 		window.URL.revokeObjectURL(url);
 
 		this.messageService.add({
 			severity: 'success',
 			summary: 'Success',
-			detail: 'Sampling results exported successfully',
+			detail: `All households exported successfully (${this.allHouseholdListings.length} records)`,
+		});
+	}
+
+	/**
+	 * Download sampled households as CSV
+	 */
+	downloadSampledHouseholds(): void {
+		if (!this.currentResult || !this.selectedHouseholds.length) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Data',
+				detail: 'No sampled households to export',
+			});
+			return;
+		}
+
+		const headers = [
+			'Selection Order',
+			'Structure Number',
+			'Latitude',
+			'Longitude',
+			'Household Serial Number',
+			'Household ID',
+			'Head of Household',
+			'Total Male',
+			'Total Female',
+			'Total Population',
+			'Phone Number',
+			'Remarks',
+ 		];
+
+		const csvData = this.selectedHouseholds.map((item) => [
+			item.selectionOrder,
+			item.household.structure?.structureNumber || '',
+			item.household.structure?.latitude || '',
+			item.household.structure?.longitude || '',
+			item.household.householdSerialNumber,
+			item.household.householdIdentification,
+			item.household.nameOfHOH || 'NA',
+			item.household.phoneNumber || '',
+			item.household.totalMale,
+			item.household.totalFemale,
+			item.household.totalMale + item.household.totalFemale,
+			item.household.remarks || '',
+ 		]);
+
+		let csvContent = headers.join(',') + '\n';
+		csvData.forEach((row) => {
+			csvContent += row.map((val) => `"${val}"`).join(',') + '\n';
+		});
+
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+		const url = window.URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		const areaCode = this.currentResult.enumerationArea.areaCode || 'ea';
+		link.href = url;
+		link.download = `sampled_households_${areaCode}_${Date.now()}.csv`;
+		link.click();
+		window.URL.revokeObjectURL(url);
+
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Success',
+			detail: `Sampled households exported successfully (${this.selectedHouseholds.length} records)`,
 		});
 	}
 

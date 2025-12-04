@@ -44,49 +44,20 @@
 		<section class="flex gap-4 h-[calc(100vh-5rem)] bg-white">
 			<!-- Left Pane: Survey Details & Metadata -->
 			<div class="w-[25vw] flex flex-col overflow-y-auto p-6 bg-white border-r border-slate-200">
-				<!-- Survey Header -->
-				<div class="mb-6">
-					<h1 class="text-3xl font-semibold text-slate-900">
-						{{ survey.name }}
-					</h1>
-					<p class="mt-2 text-sm text-slate-600" *ngIf="survey.description">
-						{{ survey.description }}
-					</p>
-				</div>
-
-				<!-- Action Buttons -->
-				<div class="flex items-center gap-2 mb-6">
-					<button
-						type="button"
-						(click)="editSurvey()"
-						class="flex-1 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
-					>
-						<i class="pi pi-pencil"></i>
-						Edit
-					</button>
-					<button
-						type="button"
-						(click)="deleteSurvey()"
-						class="flex-1 px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
-					>
-						<i class="pi pi-trash"></i>
-						Delete
-					</button>
-				</div>
-
-				<!-- Survey Metadata Card -->
-				<div class="space-y-4">
-					<!-- Overview -->
-					<app-admin-survey-overview
-						[surveyId]="surveyId"
-						[survey]="survey"
-					></app-admin-survey-overview>
-				</div>
+				<app-survey-overview
+				[surveyId]="surveyId"
+				[survey]="survey"
+			></app-survey-overview>
 			</div>
 
 			<!-- Right Pane: Tabs Content -->
 			<div class="flex-1 relative bg-white">
 				<p-tabView class="h-full">
+					<p-tabPanel header="Enumeration Areas">
+						<app-admin-survey-ea-management
+								[surveyId]="survey.id"
+							></app-admin-survey-ea-management>
+					</p-tabPanel>
 					<p-tabPanel header="Household Listings">
 						<app-admin-survey-enumeration-area-household-listings
 						[surveyId]="survey.id"
@@ -98,11 +69,7 @@
 						[surveyId]="survey.id"
 					></app-admin-survey-supervisors-enumerators>
 					</p-tabPanel>
-					<p-tabPanel header="Enumeration Areas">
-						<app-admin-survey-ea-management
-								[surveyId]="survey.id"
-							></app-admin-survey-ea-management>
-					</p-tabPanel>
+					
 					<p-tabPanel header="Sampling">
 						<app-admin-survey-sampling
 						[surveyId]="survey.id"

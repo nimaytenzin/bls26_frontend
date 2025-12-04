@@ -3,7 +3,7 @@
 	<div class="flex justify-between items-center">
 		<div>
 			<h3 class="text-xl font-semibold text-gray-800">
-				Enumeration Areas
+				 Enumeration Areas
 			</h3>
 			<p class="text-sm text-gray-500 mt-1">
 				View household listings and perform sampling by enumeration area
@@ -350,17 +350,18 @@
 							</td>
 							<td>
 								<div class="flex gap-2">
-									<!-- View Households - Show for all enumerated EAs -->
+
+									<!-- View Results - Show for sampled EAs -->
 									<button
-										*ngIf="canViewHouseholds(ea)"
+										
 										pButton
-										icon="pi pi-eye"
-										severity="secondary"
-										styleClass="p-button-sm p-button-text"
-										pTooltip="View Households"
+										icon="pi pi-list"
+ 										styleClass="p-button-sm p-button-text"
+										pTooltip="View Listings"
 										tooltipPosition="top"
 										size="small"
-										(click)="openViewHouseholdDialog(ea)"
+										[disabled]="isEAProcessing(ea)"
+										(click)="openResultDialog(ea)"
 									></button>
 									
 									<!-- Sample Households - Show only for enumerated, not sampled, not published -->
@@ -377,19 +378,7 @@
 										(click)="openSamplingDialog(ea)"
 									></button>
 
-									<!-- View Results - Show for sampled EAs -->
-									<button
-										*ngIf="isSampled(ea)"
-										pButton
-										icon="pi pi-list"
-										severity="success"
-										styleClass="p-button-sm p-button-text"
-										pTooltip="View Sampling Results"
-										tooltipPosition="top"
-										size="small"
-										[disabled]="isEAProcessing(ea)"
-										(click)="openResultDialog(ea)"
-									></button>
+									
 								</div>
 							</td>
 						</tr>
@@ -423,217 +412,7 @@
 	</div>
 </div>
 
-<!-- Submit Dialog -->
-<p-dialog
-	[(visible)]="showSubmitDialog"
-	[modal]="true"
-	[closable]="true"
-	[style]="{ width: '90vw', maxWidth: '1200px' }"
-	header="Enumeration Area Details"
->
-	<div class="space-y-4">
-		<!-- EA Info -->
-		<div
-			*ngIf="currentEAForSubmission"
-			class="bg-gray-50 rounded-lg p-4 border border-gray-200"
-		>
-			<div class="flex items-start gap-3">
-				<div
-					class="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
-					style="background-color: #E8F0FF;"
-				>
-					<i class="pi pi-map-marker text-xl" style="color: #1A58AF;"></i>
-				</div>
-				<div class="flex-1">
-					<h4 class="font-semibold text-gray-900 mb-1">
-						{{ currentEAForSubmission.enumerationArea?.name || 'N/A' }}
-					</h4>
-					<p class="text-sm text-gray-600">
-						Code: {{ currentEAForSubmission.enumerationArea?.areaCode || 'N/A' }}
-					</p>
-					<p class="text-xs text-gray-500 mt-1">
-						{{
-							currentEAForSubmission && currentEAForSubmission.enumerationArea
-								? getLocationHierarchy(currentEAForSubmission.enumerationArea)
-								: 'N/A'
-						}}
-					</p>
-				</div>
-			</div>
-		</div>
 
-		<!-- Statistics -->
-		<div
-			*ngIf="householdListingsStatistics"
-			class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 rounded-lg p-4 border border-gray-200"
-		>
-			<div class="text-center">
-				<div class="flex items-center justify-center gap-2 mb-1">
-					<i class="pi pi-home text-lg" style="color: #1A58AF;"></i>
-					<h3 class="text-xl font-bold text-gray-900">
-						{{ householdListingsStatistics.totalHouseholds | number }}
-					</h3>
-				</div>
-				<p class="text-xs text-gray-600">Total Households</p>
-			</div>
-			<div class="text-center">
-				<div class="flex items-center justify-center gap-2 mb-1">
-					<i class="pi pi-users text-lg" style="color: #10B981;"></i>
-					<h3 class="text-xl font-bold text-gray-900">
-						{{ householdListingsStatistics.totalPopulation | number }}
-					</h3>
-				</div>
-				<p class="text-xs text-gray-600">Total Population</p>
-			</div>
-			<div class="text-center">
-				<div class="flex items-center justify-center gap-2 mb-1">
-					<i class="pi pi-user text-lg" style="color: #1A58AF;"></i>
-					<h3 class="text-xl font-bold text-gray-900">
-						{{ householdListingsStatistics.totalMale | number }} / {{ householdListingsStatistics.totalFemale | number }}
-					</h3>
-				</div>
-				<p class="text-xs text-gray-600">Male / Female</p>
-			</div>
-			<div class="text-center">
-				<div class="flex items-center justify-center gap-2 mb-1">
-					<i class="pi pi-check-circle text-lg" style="color: #10B981;"></i>
-					<h3 class="text-xl font-bold text-gray-900">
-						{{ householdListingsStatistics.householdsWithPhone | number }}
-					</h3>
-				</div>
-				<p class="text-xs text-gray-600">With Phone</p>
-			</div>
-		</div>
-
-		<!-- Household Listings Table -->
-		<div class="bg-white border border-gray-200 rounded-lg">
-			<div class="p-4 border-b border-gray-200 flex items-center justify-between">
-				<h4 class="font-semibold text-gray-800">Household Listings</h4>
-				<button
-					pButton
-					label="Generate Blank Entries"
-					icon="pi pi-plus-circle"
-					size="small"
-					class="p-button-outlined p-button-sm"
-					(click)="openGenerateBlankDialog()"
-					[disabled]="loadingHouseholdListings"
-					style="border-color: #1A58AF; color: #1A58AF;"
-				></button>
-			</div>
-			<div class="p-4">
-				<!-- Loading State -->
-				<div
-					*ngIf="loadingHouseholdListings"
-					class="flex items-center justify-center py-8"
-				>
-					<div class="relative w-16 h-16">
-						<div
-							class="absolute inset-0 border-4 rounded-full"
-							style="border-color: #E8F0FF;"
-						></div>
-						<div
-							class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
-							style="border-color: #1A58AF;"
-						></div>
-					</div>
-				</div>
-
-				<!-- Table -->
-				<div *ngIf="!loadingHouseholdListings && householdListings.length > 0">
-					<p-table
-						[value]="householdListings"
-						[paginator]="true"
-						[rows]="10"
-						[rowsPerPageOptions]="[10, 25, 50]"
-						styleClass="p-datatable-sm"
-						[scrollable]="true"
-						scrollHeight="400px"
-					>
-						<ng-template pTemplate="header">
-							<tr>
-								<th>Structure #</th>
-								<th>HH Serial #</th>
-								<th>Household ID</th>
-								<th>Head of Household</th>
-								<th>Phone</th>
-								<th>Male</th>
-								<th>Female</th>
-								<th>Total</th>
-							</tr>
-						</ng-template>
-						<ng-template pTemplate="body" let-listing>
-							<tr>
-								<td>{{ listing.structureNumber }}</td>
-								<td>{{ listing.householdSerialNumber }}</td>
-								<td>{{ listing.householdIdentification }}</td>
-								<td>{{ listing.nameOfHOH }}</td>
-								<td>{{ listing.phoneNumber || '-' }}</td>
-								<td class="text-center">{{ listing.totalMale || 0 }}</td>
-								<td class="text-center">{{ listing.totalFemale || 0 }}</td>
-								<td class="text-center font-semibold" style="color: #1A58AF;">
-									{{ (listing.totalMale || 0) + (listing.totalFemale || 0) }}
-								</td>
-							</tr>
-						</ng-template>
-						<ng-template pTemplate="emptymessage">
-							<tr>
-								<td colspan="8" class="text-center py-8 text-gray-500">
-									No household listings found
-								</td>
-							</tr>
-						</ng-template>
-					</p-table>
-				</div>
-
-				<!-- Empty State -->
-				<div
-					*ngIf="!loadingHouseholdListings && householdListings.length === 0"
-					class="text-center py-12"
-				>
-					<i class="pi pi-inbox text-4xl text-gray-300 mb-3"></i>
-					<p class="text-gray-500">No household listings found for this enumeration area</p>
-				</div>
-			</div>
-		</div>
-
-		<!-- Comments -->
-		<div class="flex flex-col gap-2">
-			<label class="text-sm font-medium text-gray-700">
-				Comments (Optional)
-			</label>
-			<textarea
-				[(ngModel)]="submissionComments"
-				rows="3"
-				pInputTextarea
-				placeholder="Add any comments about this submission..."
-				class="w-full"
-			></textarea>
-			<p class="text-xs text-gray-500">
-				Optional: Add notes or comments about this submission
-			</p>
-		</div>
-	</div>
-
-	<ng-template pTemplate="footer">
-		<div class="flex justify-end gap-2">
-			<button
-				pButton
-				label="Cancel"
-				class="p-button-text"
-				(click)="closeSubmitDialog()"
-				[disabled]="submitting"
-			></button>
-			<button
-				pButton
-				label="Submit for Validation"
-				icon="pi pi-send"
-				
-				[disabled]="submitting || loadingHouseholdListings"
-				style="background-color: #1A58AF; border-color: #1A58AF;"
-			></button>
-		</div>
-	</ng-template>
-</p-dialog>
 
 <!-- Generate Blank Entries Dialog -->
 <p-dialog
@@ -758,17 +537,6 @@
 				></p-inputNumber>
 				<p class="text-xs text-gray-500">Number of households to select from this enumeration area</p>
 			</div>
-			<div class="flex flex-col gap-1.5">
-				<label class="text-sm font-medium text-gray-700">Random Start (Optional - CSS only)</label>
-				<p-inputNumber
-					formControlName="randomStart"
-					[min]="1"
-					placeholder="Enter random start position (1 to population size)"
-					class="w-full"
-					[disabled]="runForm.get('method')?.value !== 'CSS'"
-				></p-inputNumber>
-				<p class="text-xs text-gray-500">Starting position for CSS method. Leave empty for random selection.</p>
-			</div>
 			<div class="flex items-center gap-2 pt-2">
 				<p-inputSwitch formControlName="overwriteExisting"></p-inputSwitch>
 				<div class="flex flex-col">
@@ -833,16 +601,6 @@
 				[min]="1"
 				placeholder="Sample size"
 				class="w-full"
-			></p-inputNumber>
-		</div>
-		<div class="flex flex-col gap-1.5">
-			<label class="text-sm font-medium text-gray-700">Random Start (CSS only)</label>
-			<p-inputNumber
-				formControlName="randomStart"
-				[min]="1"
-				placeholder="Leave empty for auto-generated"
-				class="w-full"
-				[disabled]="bulkForm.get('method')?.value !== 'CSS'"
 			></p-inputNumber>
 		</div>
 		<div class="flex items-center gap-2">

@@ -1,0 +1,228 @@
+<div class="enumerator-sampling-results bg-gray-50 min-h-screen">
+	<!-- Header -->
+	<div class="bg-primary-600 shadow-lg">
+		<div class="flex items-center justify-between p-4">
+			<div class="flex items-center gap-3">
+				<button
+					pButton
+					type="button"
+					icon="pi pi-arrow-left"
+					(click)="goBack()"
+					class="p-button-text p-button-plain !text-white"
+				></button>
+				<div class="flex-1 flex flex-col justify-center overflow-hidden">
+					<h1 class="text-white font-bold leading-tight truncate">
+						Sampling Results
+					</h1>
+					<p
+						class="text-white/80 text-xs truncate mt-0.5"
+						*ngIf="getLocationHierarchy()"
+					>
+						{{ getLocationHierarchy() }}
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Content -->
+	<div class="p-4">
+		<!-- Sampling Metadata -->
+		<div *ngIf="currentResult" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+			<h4 class="text-sm font-semibold text-gray-900 mb-3">Sampling Details</h4>
+			<div class="grid grid-cols-2 gap-3 text-sm text-gray-700">
+				<div>
+					<span class="text-gray-500">Sample Size:</span>
+					<span class="font-semibold ml-2">{{ currentResult.sampling.sampleSize }}</span>
+				</div>
+				<div>
+					<span class="text-gray-500">Population Size:</span>
+					<span class="font-semibold ml-2">{{ currentResult.sampling.populationSize }}</span>
+				</div>
+				<div>
+					<span class="text-gray-500">Sampled At:</span>
+					<span class="font-semibold ml-2">{{ currentResult.sampling.executedAt | date: 'short' }}</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Search Bar -->
+		<div *ngIf="selectedHouseholds.length > 0" class="mb-4">
+			<span class="p-input-icon-left w-full">
+				<input
+					type="text"
+					pInputText
+					[(ngModel)]="searchQuery"
+					(ngModelChange)="filterHouseholds()"
+					placeholder="Search by household ID, name, phone, structure number..."
+					class="w-full"
+				/>
+			</span>
+		</div>
+
+		<!-- Loading State -->
+		<div *ngIf="loading || resultLoading" class="flex items-center justify-center py-12">
+			<p-progressSpinner></p-progressSpinner>
+		</div>
+
+		<!-- Cards -->
+		<div *ngIf="!loading && !resultLoading">
+			<!-- Empty State -->
+			<div
+				*ngIf="!currentResult"
+				class="bg-white rounded-lg shadow-sm p-8 text-center"
+			>
+				<i class="pi pi-inbox text-4xl text-gray-400 mb-3"></i>
+				<p class="text-gray-500 text-sm">No sampling results found</p>
+				<p class="text-gray-400 text-xs mt-2">Sampling has not been performed for this enumeration area yet</p>
+			</div>
+
+			<!-- Sampled Households List -->
+			<div *ngIf="currentResult && filteredHouseholds.length > 0" class="space-y-4">
+				<div
+					*ngFor="
+						let item of filteredHouseholds;
+						trackBy: trackByHouseholdId
+					"
+					class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-4 hover:bg-gray-50 transition-colors"
+				>
+					<div class="flex items-center justify-between gap-4">
+						<div class="flex-1">
+							<div class="flex items-center gap-4 mb-2">
+								<div class="flex items-center gap-2">
+									<span class="text-xs text-gray-500">Serial Number:</span>
+									<span class="text-xs  px-2 py-1 rounded">
+										{{ item.household.householdSerialNumber }}
+									</span>
+								</div>
+								<div class="flex items-center gap-2">
+									<span class="text-xs text-gray-500">Household ID:</span>
+									<span class="text-xs ">
+										{{ item.household.householdIdentification }}
+									</span>
+								</div>
+								
+							</div>
+
+							<!-- Head of Household & Phone -->
+							<div class="flex justify-between">
+							<p>
+								Name: {{ item.household.nameOfHOH }}
+							</p>
+							
+								<div class="flex items-center gap-2">
+									<p-button
+										*ngIf="item.household.phoneNumber"
+										type="button"
+										icon="pi pi-phone"
+										[label]="item.household.phoneNumber"
+										styleClass="p-button-sm"
+										(click)="callPhone(item.household.phoneNumber!)"
+										title="Call {{ item.household.phoneNumber }}"
+										size="small"
+										severity="success"
+									></p-button>
+									<span *ngIf="!item.household.phoneNumber" class="text-sm text-gray-400 flex items-center gap-1">
+										<i class="pi pi-phone text-xs"></i>
+										<span>N/A</span>
+									</span>
+								</div>
+							</div>
+							
+							
+							<!-- Population Stats -->
+							<div class="flex flex-wrap items-center gap-3 text-sm">
+								Population | Male({{item.household.totalMale}}) | Female({{item.household.totalFemale}}) | Total({{getTotalPopulation(item)}})
+							</div>
+
+
+							<!-- Structure Location -->
+							 <div class="flex justify-between mt-3">
+								<div *ngIf="item.household.structure?.structureNumber" class="flex items-center gap-2">
+									<span class="text-xs text-gray-500">Structure #:</span>
+									<span class="text-xs ">
+										{{ item.household.structure?.structureNumber }}
+									</span>
+								</div>
+
+
+								<div *ngIf="!item.household.structure?.latitude || !item.household.structure?.longitude" class="text-xs text-gray-500">
+										No Geolocation Data Available  
+								 </div>
+
+							<div class="flex items-center gap-2 mt-2">
+								<button
+									*ngIf="item.household.structure?.latitude && item.household.structure?.longitude"
+									pButton
+									type="button"
+									icon="pi pi-map-marker"
+									label="Map"
+									styleClass="p-button-sm p-button-text"
+									(click)="zoomToStructure(item.household.structureId, item.household.structure?.latitude, item.household.structure?.longitude)"
+									title="Locate on Map"
+									size="small"
+									severity="secondary"
+								></button>
+								<button
+									*ngIf="item.household.structure?.latitude && item.household.structure?.longitude"
+									pButton
+									type="button"
+									icon="pi pi-external-link"
+									label="Google Maps"
+									styleClass="p-button-sm p-button-text"
+									(click)="openGoogleMaps(item.household.structure?.latitude!, item.household.structure?.longitude!)"
+									title="Open in Google Maps"
+									size="small"
+									severity="secondary"
+								></button>
+							</div>
+							 </div>
+
+							
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- No Results After Search -->
+			<div
+				*ngIf="currentResult && selectedHouseholds.length > 0 && filteredHouseholds.length === 0"
+				class="bg-white rounded-lg shadow-sm p-8 text-center"
+			>
+				<i class="pi pi-search text-4xl text-gray-400 mb-3"></i>
+				<p class="text-gray-500 text-sm">No households match your search criteria</p>
+			</div>
+
+			<!-- Summary -->
+			<div
+				*ngIf="currentResult && filteredHouseholds.length > 0"
+				class="mt-4"
+			>
+				<div class="bg-white rounded-lg shadow-md p-4">
+					<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+						<div>
+							<p class="text-sm text-gray-600">
+								Showing
+								<span class="font-semibold">{{
+									getTotalHouseholds()
+								}}</span>
+								{{ getTotalHouseholds() === 1 ? 'sampled household' : 'sampled households' }}
+							</p>
+						</div>
+						<div class="flex gap-4 text-sm">
+							<div>
+								<span class="text-gray-600">Total Population: </span>
+								<span class="font-semibold text-gray-900">
+									{{ getTotalPopulationSum() }}
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Toast Messages -->
+<p-toast position="top-right"></p-toast>

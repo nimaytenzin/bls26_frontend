@@ -1,30 +1,28 @@
 import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PrimeNgModules } from '../../../../../../primeng.modules';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { SurveyDataService } from '../../../../../../core/dataservice/survey/survey.dataservice';
-import { SurveyEnumerationAreaDataService } from '../../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dataservice';
-import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dataservice';
-import { SamplingDataService } from '../../../../../../core/dataservice/sampling/sampling.dataservice';
-import {
-	SurveyEnumerationArea,
-} from '../../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
-import { Dzongkhag } from '../../../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
-import { AdministrativeZone, AdministrativeZoneType } from '../../../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
-import { SubAdministrativeZone } from '../../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
-import { AuthService } from '../../../../../../core/dataservice/auth/auth.service';
-import { SupervisorSurveyEaHouseholdPanelComponent } from '../supervisor-survey-ea-household-panel/supervisor-survey-ea-household-panel.component';
-import { SupervisorSurveySamplingResultsViewComponent } from '../supervisor-survey-sampling-results-view/supervisor-survey-sampling-results-view.component';
+
+
+
+
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import {
-	SurveySamplingConfigDto,
-	RunEnumerationAreaSamplingDto,
-	SamplingMethod,
-	SamplingExistsCheckDto,
-} from '../../../../../../core/dataservice/sampling/sampling.dto';
+  
+import { PrimeNgModules } from '../../../../primeng.modules';
+import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
+import { SurveyEnumerationAreaDataService } from '../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dataservice';
+import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dataservice';
+import { SamplingDataService } from '../../../../core/dataservice/sampling/sampling.dataservice';
+import { SurveyEnumerationArea } from '../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
+import { AdministrativeZone, AdministrativeZoneType } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import { SubAdministrativeZone } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
+import { Dzongkhag } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
+import { SurveyEnumerationAreaHouseholdListing } from '../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
+import { RunEnumerationAreaSamplingDto, SamplingExistsCheckDto, SamplingMethod, SurveySamplingConfigDto } from '../../../../core/dataservice/sampling/sampling.dto';
+import { AuthService } from '../../../../core/dataservice/auth/auth.service';
+ import { SurveyListingViewerComponent } from '../survey-enumeration-result-viewer/survey-listing-viewer.component';
 
 interface GroupedEA {
 	dzongkhag: Dzongkhag;
@@ -37,20 +35,15 @@ interface GroupedEA {
 	}>;
 }
 
-	@Component({
-	selector: 'app-supervisor-survey-ea-view',
-	templateUrl: './supervisor-survey-ea-view.component.html',
-	styleUrls: ['./supervisor-survey-ea-view.component.scss'],
+@Component({
+	selector: 'app-survey-ea-management',
+	templateUrl: './survey-ea-management.component.html',
+	styleUrls: ['./survey-ea-management.component.scss'],
 	standalone: true,
-	imports: [
-		CommonModule,
-		FormsModule,
-		ReactiveFormsModule,
-		PrimeNgModules,
-	],
+	imports: [CommonModule, FormsModule, ReactiveFormsModule, PrimeNgModules],
 	providers: [MessageService, ConfirmationService, DialogService],
 })
-export class SupervisorSurveyEaViewComponent implements OnInit {
+export class SurveyEaManagementComponent implements OnInit {
 	@Input() surveyId!: number;
 
 	// Survey EAs (already assigned to this survey)
@@ -83,7 +76,7 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 	currentEAForSubmission: SurveyEnumerationArea | null = null;
 
 	// Household listings for dialog
-	householdListings: any[] = [];
+	householdListings: SurveyEnumerationAreaHouseholdListing[] = [];
 	loadingHouseholdListings = false;
 	householdListingsStatistics: any = null;
 
@@ -144,7 +137,6 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 		this.runForm = this.fb.group({
 			method: ['CSS', Validators.required],
 			sampleSize: [12, [Validators.required, Validators.min(1)]],
-			randomStart: [null, [Validators.min(1)]],
 			overwriteExisting: [false],
 		});
 
@@ -152,7 +144,6 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 		this.bulkForm = this.fb.group({
 			method: ['CSS', Validators.required],
 			sampleSize: [12, [Validators.required, Validators.min(1)]],
-			randomStart: [null, [Validators.min(1)]],
 			overwriteExisting: [true],
 		});
 	}
@@ -169,31 +160,29 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 	 */
 	loadSurveyEAs() {
 		this.loadingSurveyEAs = true;
-		this.surveyEAService
-			.getBySurvey(this.surveyId)
-			.subscribe({
-				next: (data: any[]) => {
-					// Extract survey enumeration areas from hierarchical structure
-					this.surveyEAs = this.extractSurveyEAs(data);
-					this.extractFilterOptions();
-					this.updateSubAdminZoneOptions();
-					this.applyFilters();
-					this.groupEAs();
-					this.loadingSurveyEAs = false;
-					// Load household counts for all EAs
-					this.loadHouseholdCounts();
-				},
-				error: (error: any) => {
-					console.error('Error loading survey enumeration areas:', error);
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Error',
-						detail: 'Failed to load enumeration areas',
-						life: 3000,
-					});
-					this.loadingSurveyEAs = false;
-				},
-			});
+		this.surveyEAService.getBySurvey(this.surveyId).subscribe({
+			next: (data: any[]) => {
+				// Extract survey enumeration areas from hierarchical structure
+				this.surveyEAs = this.extractSurveyEAs(data);
+				this.extractFilterOptions();
+				this.updateSubAdminZoneOptions();
+				this.applyFilters();
+				this.groupEAs();
+				this.loadingSurveyEAs = false;
+				// Load household counts for all EAs
+				this.loadHouseholdCounts();
+			},
+			error: (error: any) => {
+				console.error('Error loading survey enumeration areas:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: 'Failed to load enumeration areas',
+					life: 3000,
+				});
+				this.loadingSurveyEAs = false;
+			},
+		});
 	}
 
 	/**
@@ -204,18 +193,13 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 
 		this.loadingHouseholdCounts = true;
 		const statisticsRequests = this.surveyEAs.map((ea) =>
-			this.householdService
-				.getStatisticsByEnumerationArea(ea.id)
-				.pipe(
-					catchError((error) => {
-						console.error(
-							`Error loading statistics for EA ${ea.id}:`,
-							error
-						);
-						// Return null on error, we'll handle it in the map
-						return of(null);
-					})
-				)
+			this.householdService.getStatisticsByEnumerationArea(ea.id).pipe(
+				catchError((error) => {
+					console.error(`Error loading statistics for EA ${ea.id}:`, error);
+					// Return null on error, we'll handle it in the map
+					return of(null);
+				})
+			)
 		);
 
 		forkJoin(statisticsRequests).subscribe({
@@ -305,8 +289,8 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 			}
 		}
 
-		this.availableAdminZones = Array.from(adminZoneMap.values()).sort(
-			(a, b) => a.name.localeCompare(b.name)
+		this.availableAdminZones = Array.from(adminZoneMap.values()).sort((a, b) =>
+			a.name.localeCompare(b.name)
 		);
 		this.availableSubAdminZones = Array.from(subAdminZoneMap.values()).sort(
 			(a, b) => a.name.localeCompare(b.name)
@@ -323,8 +307,8 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 		if (this.selectedAdminZoneId !== null) {
 			filtered = filtered.filter(
 				(ea) =>
-					ea.enumerationArea?.subAdministrativeZone?.administrativeZone
-						?.id === this.selectedAdminZoneId
+					ea.enumerationArea?.subAdministrativeZone?.administrativeZone?.id ===
+					this.selectedAdminZoneId
 			);
 		}
 
@@ -498,7 +482,8 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 	 * Get enumerated EA count
 	 */
 	getEnumeratedCount(): number {
-		return this.filteredSurveyEAs.filter((ea) => ea.isEnumerated === true).length;
+		return this.filteredSurveyEAs.filter((ea) => ea.isEnumerated === true)
+			.length;
 	}
 
 	/**
@@ -514,7 +499,8 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 	 * Get published EA count
 	 */
 	getPublishedCount(): number {
-		return this.filteredSurveyEAs.filter((ea) => ea.isPublished === true).length;
+		return this.filteredSurveyEAs.filter((ea) => ea.isPublished === true)
+			.length;
 	}
 
 	/**
@@ -529,7 +515,7 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 	 */
 	loadHouseholdListingsForDialog(surveyEAId: number) {
 		this.loadingHouseholdListings = true;
-		
+
 		// Load household listings
 		this.householdService.getBySurveyEA(surveyEAId).subscribe({
 			next: (listings: any[]) => {
@@ -559,7 +545,7 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 		});
 	}
 
-		/**
+	/**
 	 * Close submit dialog
 	 */
 	closeSubmitDialog() {
@@ -671,32 +657,6 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 		return parts.length > 0 ? parts.join(' > ') : 'N/A';
 	}
 
-	/**
-	 * Open view household dynamic dialog
-	 */
-	openViewHouseholdDialog(ea: SurveyEnumerationArea) {
-		this.householdDialogRef = this.dialogService.open(
-			SupervisorSurveyEaHouseholdPanelComponent,
-			{
-				header: ea.enumerationArea?.name || 'Household Listings',
-				
-				data: {
-					surveyEA: ea,
-					surveyId: this.surveyId,
-				},
-				modal: true,
-				dismissableMask: true,
-				
-				contentStyle: { overflow: 'auto' },
-			}
-		);
-
-		// Handle dialog close
-		this.householdDialogRef.onClose.subscribe(() => {
-			this.householdDialogRef = undefined;
-		});
-	}
-
 	// ==================== Config Loading for Sampling ====================
 
 	/**
@@ -717,14 +677,17 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 				}
 				this.samplingConfig = config;
 				// Update configForm with loaded values for use in forms
-				this.configForm.patchValue({
-					defaultMethod: config.defaultMethod,
-					defaultSampleSize: config.defaultSampleSize ?? 12,
-					urbanSampleSize:
-						config.urbanSampleSize ?? config.defaultSampleSize ?? 12,
-					ruralSampleSize:
-						config.ruralSampleSize ?? config.defaultSampleSize ?? 16,
-				}, { emitEvent: false });
+				this.configForm.patchValue(
+					{
+						defaultMethod: config.defaultMethod,
+						defaultSampleSize: config.defaultSampleSize ?? 12,
+						urbanSampleSize:
+							config.urbanSampleSize ?? config.defaultSampleSize ?? 12,
+						ruralSampleSize:
+							config.ruralSampleSize ?? config.defaultSampleSize ?? 16,
+					},
+					{ emitEvent: false }
+				);
 			},
 			error: (error) => {
 				if (error?.status === 404) {
@@ -752,8 +715,8 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 		const recommendedSize = this.getRecommendedSampleSize(ea);
 		this.runForm.reset({
 			method: this.configForm.value.defaultMethod ?? 'CSS',
-			sampleSize: recommendedSize ?? this.configForm.value.defaultSampleSize ?? 12,
-			randomStart: null,
+			sampleSize:
+				recommendedSize ?? this.configForm.value.defaultSampleSize ?? 12,
 			overwriteExisting: false,
 		});
 		this.showSamplingDialog = true;
@@ -798,7 +761,10 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 				},
 				error: (error) => {
 					// If check fails, proceed anyway (might be a new EA)
-					console.warn('Error checking sampling existence, proceeding anyway:', error);
+					console.warn(
+						'Error checking sampling existence, proceeding anyway:',
+						error
+					);
 					this.executeSampling(false);
 				},
 			});
@@ -807,7 +773,9 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 	/**
 	 * Show confirmation dialog when sampling already exists
 	 */
-	private showOverwriteConfirmation(existingSampling: SamplingExistsCheckDto['data']): void {
+	private showOverwriteConfirmation(
+		existingSampling: SamplingExistsCheckDto['data']
+	): void {
 		if (!existingSampling) return;
 
 		const executedDate = existingSampling.executedAt
@@ -849,7 +817,6 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 		const payload: RunEnumerationAreaSamplingDto = {
 			method: this.runForm.value.method,
 			sampleSize: this.runForm.value.sampleSize,
-			randomStart: this.runForm.value.randomStart,
 			overwriteExisting: overwriteExisting,
 		};
 
@@ -937,7 +904,8 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 			this.messageService.add({
 				severity: 'info',
 				summary: 'Select enumeration areas',
-				detail: 'Choose at least one enumerated enumeration area to run bulk sampling',
+				detail:
+					'Choose at least one enumerated enumeration area to run bulk sampling',
 			});
 			return;
 		}
@@ -945,7 +913,6 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 		this.bulkForm.reset({
 			method: this.configForm.value.defaultMethod ?? 'CSS',
 			sampleSize: this.configForm.value.defaultSampleSize ?? 12,
-			randomStart: null,
 			overwriteExisting: true,
 		});
 		this.bulkDialogVisible = true;
@@ -969,7 +936,8 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 			this.messageService.add({
 				severity: 'info',
 				summary: 'Select enumeration areas',
-				detail: 'Choose at least one enumerated enumeration area to run bulk sampling',
+				detail:
+					'Choose at least one enumerated enumeration area to run bulk sampling',
 			});
 			return;
 		}
@@ -981,8 +949,7 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 		// Process selected EAs sequentially
 		this.processSelectedEAsSequentially(
 			this.bulkForm.value.method,
-			this.bulkForm.value.sampleSize,
-			this.bulkForm.value.randomStart
+			this.bulkForm.value.sampleSize
 		);
 	}
 
@@ -991,8 +958,7 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 	 */
 	async processSelectedEAsSequentially(
 		method?: SamplingMethod,
-		sampleSize?: number,
-		randomStart?: number
+		sampleSize?: number
 	): Promise<void> {
 		if (!this.surveyId) {
 			return;
@@ -1027,12 +993,14 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 			this.messageService.add({
 				severity: 'info',
 				summary: 'Processing',
-				detail: `Processing EA ${i + 1} of ${totalEAs}: ${ea.enumerationArea?.name || 'N/A'}`,
+				detail: `Processing EA ${i + 1} of ${totalEAs}: ${
+					ea.enumerationArea?.name || 'N/A'
+				}`,
 				life: 3000,
 			});
 
 			try {
-				await this.processSingleEA(ea, method, sampleSize, randomStart);
+				await this.processSingleEA(ea, method, sampleSize);
 				this.completedEAs.add(ea.id);
 			} catch (error: any) {
 				const errorMessage = error?.error?.message || 'Unknown error';
@@ -1057,8 +1025,8 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 				severity: 'success',
 				summary: 'Processing Complete',
 				detail: `Successfully processed ${completed} enumeration area(s)`,
-						life: 5000,
-					});
+				life: 5000,
+			});
 		} else if (completed > 0 && failed > 0) {
 			this.messageService.add({
 				severity: 'warn',
@@ -1082,8 +1050,7 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 	private processSingleEA(
 		ea: SurveyEnumerationArea,
 		method?: SamplingMethod,
-		sampleSize?: number,
-		randomStart?: number
+		sampleSize?: number
 	): Promise<void> {
 		return new Promise((resolve, reject) => {
 			// Step 1: Check if sampling exists
@@ -1094,7 +1061,9 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 						if (checkResult.exists && checkResult.data) {
 							// Step 2: Show confirmation dialog
 							this.confirmationService.confirm({
-								message: `Sampling already exists for ${ea.enumerationArea?.name || 'this EA'}.
+								message: `Sampling already exists for ${
+									ea.enumerationArea?.name || 'this EA'
+								}.
 									<br/><br/>
 									<strong>Existing Sampling Details:</strong><br/>
 									Method: ${checkResult.data.method}<br/>
@@ -1109,7 +1078,7 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 								rejectLabel: 'Skip',
 								accept: () => {
 									// User confirmed - proceed with overwrite
-									this.executeSamplingForEA(ea, method, sampleSize, randomStart, true)
+									this.executeSamplingForEA(ea, method, sampleSize, true)
 										.then(resolve)
 										.catch(reject);
 								},
@@ -1120,7 +1089,7 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 							});
 						} else {
 							// No existing sampling - proceed directly
-							this.executeSamplingForEA(ea, method, sampleSize, randomStart, false)
+							this.executeSamplingForEA(ea, method, sampleSize, false)
 								.then(resolve)
 								.catch(reject);
 						}
@@ -1139,14 +1108,16 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 		ea: SurveyEnumerationArea,
 		method?: SamplingMethod,
 		sampleSize?: number,
-		randomStart?: number,
 		overwriteExisting: boolean = false
 	): Promise<void> {
 		return new Promise((resolve, reject) => {
 			const payload: RunEnumerationAreaSamplingDto = {
 				method: method || this.configForm.value.defaultMethod || 'CSS',
-				sampleSize: sampleSize || this.getRecommendedSampleSize(ea) || this.configForm.value.defaultSampleSize || 12,
-				randomStart: randomStart || undefined,
+				sampleSize:
+					sampleSize ||
+					this.getRecommendedSampleSize(ea) ||
+					this.configForm.value.defaultSampleSize ||
+					12,
 				overwriteExisting: overwriteExisting,
 			};
 
@@ -1167,12 +1138,19 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 	 * Get recommended sample size based on urban/rural
 	 */
 	getRecommendedSampleSize(ea: SurveyEnumerationArea): number | undefined {
-		const adminZone = ea.enumerationArea?.subAdministrativeZone?.administrativeZone;
+		const adminZone =
+			ea.enumerationArea?.subAdministrativeZone?.administrativeZone;
 		const isUrban = adminZone?.type === AdministrativeZoneType.Thromde;
 		if (isUrban) {
-			return this.configForm.value.urbanSampleSize || this.configForm.value.defaultSampleSize;
+			return (
+				this.configForm.value.urbanSampleSize ||
+				this.configForm.value.defaultSampleSize
+			);
 		}
-		return this.configForm.value.ruralSampleSize || this.configForm.value.defaultSampleSize;
+		return (
+			this.configForm.value.ruralSampleSize ||
+			this.configForm.value.defaultSampleSize
+		);
 	}
 
 	/**
@@ -1214,9 +1192,9 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 		}
 
 		this.resultDialogRef = this.dialogService.open(
-			SupervisorSurveySamplingResultsViewComponent,
+			SurveyListingViewerComponent,
 			{
-				header: 'Sampling Results',
+				header: 'Household Listings',
 				width: '90vw',
 				style: { 'max-width': '1200px' },
 				modal: true,
@@ -1245,11 +1223,7 @@ export class SupervisorSurveyEaViewComponent implements OnInit {
 	 * Check if EA is ready for sampling (enumerated but not sampled and not published)
 	 */
 	isReadyForSampling(ea: SurveyEnumerationArea): boolean {
-		return (
-			ea.isEnumerated === true &&
-			!ea.isSampled &&
-			!ea.isPublished
-		);
+		return ea.isEnumerated === true && !ea.isSampled && !ea.isPublished;
 	}
 
 	/**

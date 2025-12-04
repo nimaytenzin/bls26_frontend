@@ -15,6 +15,7 @@ import { SurveyDataService } from '../../../../../../core/dataservice/survey/sur
 import {
 	SurveyEnumerationAreaHouseholdListing,
 	HouseholdListingStatisticsResponseDto,
+	CreateBlankHouseholdListingsDto,
 } from '../../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
 import {
 	DzongkhagHierarchyDto,
@@ -65,6 +66,24 @@ export class SupervisorSurveyHouseholdListingsComponent
 	// UI State
 	loading = false;
 	loadingStatistics = false;
+
+	// Create Blank Household Listings Dialog
+	showCreateBlankDialog = false;
+	creatingBlank = false;
+	blankForm: CreateBlankHouseholdListingsDto = {
+		count: 1,
+		remarks: '',
+	};
+	selectedEAForBlank: EnumerationAreaHierarchyDto | null = null;
+	
+	// Dialog-specific filters (separate from main filters)
+	dialogDzongkhagFilters: DzongkhagHierarchyDto[] = [];
+	dialogAdminZoneFilters: AdministrativeZoneHierarchyDto[] = [];
+	dialogSubAdminZoneFilters: SubAdministrativeZoneHierarchyDto[] = [];
+	dialogEnumerationAreaOptions: EnumerationAreaHierarchyDto[] = [];
+	selectedDialogDzongkhag: DzongkhagHierarchyDto | null = null;
+	selectedDialogAdminZone: AdministrativeZoneHierarchyDto | null = null;
+	selectedDialogSubAdminZone: SubAdministrativeZoneHierarchyDto | null = null;
 
 	constructor(
 		private householdService: SurveyEnumerationAreaHouseholdListingDataService,
@@ -353,5 +372,154 @@ export class SupervisorSurveyHouseholdListingsComponent
 	 */
 	getTotalPopulation(listing: SurveyEnumerationAreaHouseholdListing): number {
 		return listing.totalMale + listing.totalFemale;
+	}
+
+	/**
+	 * Open create blank household listings dialog
+	 */
+	openCreateBlankDialog(): void {
+		this.showCreateBlankDialog = true;
+		this.selectedEAForBlank = null;
+		this.blankForm = {
+			count: 1,
+			remarks: '',
+		};
+		// Initialize dialog filters with full hierarchy
+		this.dialogDzongkhagFilters = [...this.dzongkhagFilters];
+		this.selectedDialogDzongkhag = null;
+		this.selectedDialogAdminZone = null;
+		this.selectedDialogSubAdminZone = null;
+		this.dialogAdminZoneFilters = [];
+		this.dialogSubAdminZoneFilters = [];
+		this.dialogEnumerationAreaOptions = [];
+	}
+
+	/**
+	 * Handle dzongkhag filter change in dialog
+	 */
+	onDialogDzongkhagChange(): void {
+		this.selectedDialogAdminZone = null;
+		this.selectedDialogSubAdminZone = null;
+		this.selectedEAForBlank = null;
+		this.dialogAdminZoneFilters = [];
+		this.dialogSubAdminZoneFilters = [];
+		this.dialogEnumerationAreaOptions = [];
+
+		if (this.selectedDialogDzongkhag) {
+			this.dialogAdminZoneFilters = this.selectedDialogDzongkhag.administrativeZones ?? [];
+		}
+	}
+
+	/**
+	 * Handle admin zone filter change in dialog
+	 */
+	onDialogAdminZoneChange(): void {
+		this.selectedDialogSubAdminZone = null;
+		this.selectedEAForBlank = null;
+		this.dialogSubAdminZoneFilters = [];
+		this.dialogEnumerationAreaOptions = [];
+
+		if (this.selectedDialogAdminZone) {
+			this.dialogSubAdminZoneFilters = this.selectedDialogAdminZone.subAdministrativeZones ?? [];
+		}
+	}
+
+	/**
+	 * Handle sub-admin zone filter change in dialog
+	 */
+	onDialogSubAdminZoneChange(): void {
+		this.selectedEAForBlank = null;
+		this.dialogEnumerationAreaOptions = [];
+
+		if (this.selectedDialogSubAdminZone) {
+			this.dialogEnumerationAreaOptions = this.selectedDialogSubAdminZone.enumerationAreas ?? [];
+		}
+	}
+
+	/**
+	 * Close create blank household listings dialog
+	 */
+	closeCreateBlankDialog(): void {
+		this.showCreateBlankDialog = false;
+		this.selectedEAForBlank = null;
+		this.blankForm = {
+			count: 1,
+			remarks: '',
+		};
+		this.selectedDialogDzongkhag = null;
+		this.selectedDialogAdminZone = null;
+		this.selectedDialogSubAdminZone = null;
+		this.dialogAdminZoneFilters = [];
+		this.dialogSubAdminZoneFilters = [];
+		this.dialogEnumerationAreaOptions = [];
+	}
+
+	/**
+	 * Create blank household listings for selected enumeration area
+	 */
+	createBlankHouseholdListings(): void {
+		if (!this.selectedEAForBlank || !this.selectedEAForBlank.surveyEnumerationAreaId) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Please select an enumeration area',
+			});
+			return;
+		}
+
+		if (!this.blankForm.count || this.blankForm.count < 1 || this.blankForm.count > 10000) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Count must be between 1 and 10000',
+			});
+			return;
+		}
+
+		this.creatingBlank = true;
+		const dto: CreateBlankHouseholdListingsDto = {
+			count: this.blankForm.count,
+			remarks: this.blankForm.remarks?.trim() || undefined,
+		};
+
+		this.householdService
+			.createBlankHouseholdListings(this.selectedEAForBlank.surveyEnumerationAreaId, dto)
+			.subscribe({
+				next: (response) => {
+					this.creatingBlank = false;
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: `Successfully created ${response.created} blank household listing(s)`,
+						life: 5000,
+					});
+					this.closeCreateBlankDialog();
+
+					// Refresh data
+					if (
+						this.selectedEAForBlank &&
+						this.selectedEnumerationArea?.surveyEnumerationAreaId === this.selectedEAForBlank.surveyEnumerationAreaId
+					) {
+						// If viewing the same EA, reload its listings
+						const eaId = this.selectedEAForBlank.surveyEnumerationAreaId;
+						this.loadHouseholdListingsByEA(eaId);
+						this.loadStatistics(eaId);
+					} else {
+						// Otherwise reload all listings
+						this.loadAllHouseholdListings();
+						this.loadSurveyStatistics();
+					}
+				},
+				error: (error) => {
+					this.creatingBlank = false;
+					console.error('Error creating blank household listings:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: error?.error?.message || 'Failed to create blank household listings',
+						life: 5000,
+					});
+				},
+			});
 	}
 }
