@@ -152,7 +152,8 @@ export class AdministrativeZoneDataService {
 	}
 
 	/**
-	 * Upload GeoJSON for administrative zone
+	 * Upload GeoJSON for administrative zone (legacy - updates full zone)
+	 * @deprecated Use uploadGeojsonByAdministrativeZone instead
 	 */
 	uploadAdministrativeZoneGeojson(
 		id: number,
@@ -162,6 +163,39 @@ export class AdministrativeZoneDataService {
 			.patch<ApiResponse<AdministrativeZone>>(
 				`${this.apiUrl}/geojson/${id}`,
 				geojsonData
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error uploading administrative zone geojson:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Upload GeoJSON file to update administrative zone geometry only
+	 * Accepts .geojson or .json files (max 50MB)
+	 * Supports Feature, FeatureCollection, or direct Geometry objects
+	 * 
+	 * @param administrativeZoneId - Administrative Zone ID
+	 * @param file - GeoJSON file to upload
+	 * @returns Observable<ApiResponse<AdministrativeZone>>
+	 * 
+	 * @example
+	 * const file = event.target.files[0];
+	 * uploadGeojsonByAdministrativeZone(1, file).subscribe(...)
+	 */
+	uploadGeojsonByAdministrativeZone(
+		administrativeZoneId: number,
+		file: File
+	): Observable<ApiResponse<AdministrativeZone>> {
+		const formData = new FormData();
+		formData.append('file', file);
+
+		return this.http
+			.post<ApiResponse<AdministrativeZone>>(
+				`${this.apiUrl}/upload-geojson/${administrativeZoneId}`,
+				formData
 			)
 			.pipe(
 				catchError((error) => {

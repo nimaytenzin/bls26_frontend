@@ -73,6 +73,7 @@ export class AdminMasterAdministrativeZonesComponent
 	uploadGeojsonDialog = false;
 	selectedZoneForUpload: AdministrativeZone | null = null;
 	selectedFile: File | null = null;
+	uploadGeojsonLoading = false;
 
 	// Bulk Upload Dialog
 	bulkUploadDialog = false;
@@ -812,50 +813,75 @@ export class AdminMasterAdministrativeZonesComponent
 
 	uploadGeojson() {
 		if (!this.selectedFile || !this.selectedZoneForUpload) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Missing Information',
+				detail: 'Please select a file and administrative zone',
+				life: 3000,
+			});
 			return;
 		}
 
-		const reader = new FileReader();
-		reader.onload = (e: any) => {
-			try {
-				const geojsonData = JSON.parse(e.target.result);
+		// Validate file type
+		if (!this.selectedFile.name.endsWith('.json') && !this.selectedFile.name.endsWith('.geojson')) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Invalid File Type',
+				detail: 'Please select a .json or .geojson file',
+				life: 3000,
+			});
+			return;
+		}
 
-				if (this.selectedZoneForUpload) {
-					this.administrativeZoneService
-						.uploadAdministrativeZoneGeojson(
-							this.selectedZoneForUpload.id,
-							geojsonData
-						)
-						.subscribe({
-							next: () => {
-								this.messageService.add({
-									severity: 'success',
-									summary: 'Success',
-									detail: 'GeoJSON uploaded successfully',
-									life: 3000,
-								});
-								this.uploadGeojsonDialog = false;
-								this.selectedFile = null;
-								this.selectedZoneForUpload = null;
-								this.loadAdministrativeZones();
-								this.loadAdministrativeZoneGeoJSON();
-							},
-							error: (error) => {
-								console.error('Error uploading GeoJSON:', error);
-								this.messageService.add({
-									severity: 'error',
-									summary: 'Error',
-									detail: 'Failed to upload GeoJSON',
-									life: 3000,
-								});
-							},
-						});
-				}
-			} catch (error) {
-				console.error('Error parsing GeoJSON file:', error);
-			}
-		};
-		reader.readAsText(this.selectedFile);
+		// Validate file size (50MB max)
+		const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+		if (this.selectedFile.size > maxSize) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'File Too Large',
+				detail: 'File size must be less than 50MB',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.uploadGeojsonLoading = true;
+
+		this.administrativeZoneService
+			.uploadGeojsonByAdministrativeZone(
+				this.selectedZoneForUpload.id,
+				this.selectedFile
+			)
+			.subscribe({
+				next: (response) => {
+					this.uploadGeojsonLoading = false;
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: 'GeoJSON geometry updated successfully',
+						life: 3000,
+					});
+					this.uploadGeojsonDialog = false;
+					this.selectedFile = null;
+					this.selectedZoneForUpload = null;
+					// Reload data to reflect changes
+					this.loadAdministrativeZones();
+					this.loadAdministrativeZoneGeoJSON();
+				},
+				error: (error) => {
+					this.uploadGeojsonLoading = false;
+					console.error('Error uploading GeoJSON:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Upload Failed',
+						detail:
+							error.error?.message ||
+							error.error?.detail ||
+							'Failed to upload GeoJSON. Please check the file format and try again.',
+						life: 5000,
+					});
+				},
+			});
 	}
 
 	cancelUploadGeojson() {

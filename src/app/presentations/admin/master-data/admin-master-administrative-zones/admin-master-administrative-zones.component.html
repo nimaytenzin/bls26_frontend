@@ -525,14 +525,15 @@
 					mode="basic"
 					chooseLabel="Choose GeoJSON File"
 					accept=".geojson,.json"
-					[maxFileSize]="10000000"
+					[maxFileSize]="52428800"
 					(onSelect)="onFileSelect($event)"
 					[auto]="false"
 					chooseIcon="pi pi-upload"
 					styleClass="w-full"
+					[disabled]="uploadGeojsonLoading"
 				></p-fileUpload>
 				<small class="text-gray-500 mt-1 block">
-					Accepted formats: .geojson, .json (Max size: 10MB)
+					Accepted formats: .geojson, .json (Max size: 50MB)
 				</small>
 			</div>
 
@@ -559,16 +560,22 @@
 					<div class="text-sm text-yellow-800">
 						<p class="font-medium mb-1">GeoJSON Format Requirements:</p>
 						<ul class="list-disc list-inside space-y-1 text-xs">
-							<li>Must be a valid GeoJSON Feature</li>
-							<li>Feature properties should include:
-								<ul class="list-disc list-inside ml-4 mt-1 space-y-0.5">
-									<li><code class="bg-yellow-100 px-1 rounded">dzongkhagId</code>, <code class="bg-yellow-100 px-1 rounded">name</code>, <code class="bg-yellow-100 px-1 rounded">areaCode</code>, <code class="bg-yellow-100 px-1 rounded">type</code>, <code class="bg-yellow-100 px-1 rounded">areaSqKm</code></li>
-								</ul>
-							</li>
+							<li>Accepts: Feature, FeatureCollection, or Geometry object</li>
 							<li>Geometry type: Polygon or MultiPolygon</li>
 							<li>Coordinates must be in WGS84 (EPSG:4326)</li>
-							<li>Properties will be merged with existing data</li>
+							<li><strong>Note:</strong> Only the geometry will be updated. Other properties remain unchanged.</li>
 						</ul>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Upload Progress -->
+			<div *ngIf="uploadGeojsonLoading" class="bg-blue-50 border border-blue-200 rounded p-3">
+				<div class="flex items-center gap-3">
+					<i class="pi pi-spin pi-spinner text-blue-600"></i>
+					<div class="flex-1">
+						<p class="text-sm font-medium text-blue-900">Uploading GeoJSON...</p>
+						<p class="text-xs text-blue-700">Updating geometry for {{ selectedZoneForUpload?.name }}</p>
 					</div>
 				</div>
 			</div>
@@ -590,7 +597,8 @@
 			label="Upload"
 			icon="pi pi-upload"
 			class="p-button-success"
-			[disabled]="!selectedFile"
+			[disabled]="!selectedFile || uploadGeojsonLoading"
+			[loading]="uploadGeojsonLoading"
 			(click)="uploadGeojson()"
 		></button>
 	</ng-template>
