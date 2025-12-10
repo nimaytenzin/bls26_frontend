@@ -6,7 +6,7 @@ import {
 	ViewChild,
 	ElementRef,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
@@ -178,6 +178,7 @@ export class AdminAdminstrativeZoneDataViewerComponent
 	constructor(
 		private route: ActivatedRoute,
 		private router: Router,
+		private location: Location,
 		private adminZoneService: AdministrativeZoneDataService,
 		private subAdminZoneAnnualStatsService: SubAdminZoneAnnualStatsDataService,
 		private basemapService: BasemapService,
@@ -420,7 +421,7 @@ export class AdminAdminstrativeZoneDataViewerComponent
 
 	goBack() {
 		// Navigate back to parent dzongkhag or administrative zones list
-		this.router.navigate(['/admin/master/administrative-zones']);
+		this.location.back();
 	}
 
 	navigateToSubAdminZone(subAdminZoneId: number) {

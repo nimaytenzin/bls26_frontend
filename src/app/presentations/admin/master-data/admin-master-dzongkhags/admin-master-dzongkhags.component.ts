@@ -53,6 +53,13 @@ export class AdminMasterDzongkhagsComponent
 	private allDzongkhagsLayer?: L.GeoJSON;
 	private baseLayer?: L.TileLayer;
 
+	// Basemap properties
+	selectedBasemapId = 'positron'; // Default basemap
+	basemapCategories: Record<
+		string,
+		{ label: string; basemaps: Array<{ id: string; name: string }> }
+	> = {};
+
 	// Dialog states
 	dzongkhagDialog = false;
 	deleteDialog = false;
@@ -82,6 +89,9 @@ export class AdminMasterDzongkhagsComponent
 			areaCode: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]+$/)]],
 			areaSqKm: ['', [Validators.required, Validators.min(0)]],
 		});
+		
+		// Initialize basemap categories
+		this.basemapCategories = this.basemapService.getBasemapCategories();
 	}
 
 	ngOnInit() {
@@ -160,13 +170,14 @@ export class AdminMasterDzongkhagsComponent
 			attributionControl: false,
 		});
 
-		// Add basemap using BasemapService (default: positron)
-		const defaultBasemap = this.basemapService.getDefaultBasemap();
-		const tileLayer = this.basemapService.createTileLayer(defaultBasemap.id);
-		if (tileLayer) {
-			this.baseLayer = tileLayer;
-			this.baseLayer.addTo(this.map);
-		}
+		// Use basemap service for base layer
+		this.baseLayer =
+			this.basemapService.createTileLayer(this.selectedBasemapId) ||
+			L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				maxZoom: 19,
+				attribution: '© OpenStreetMap contributors',
+			});
+		this.baseLayer.addTo(this.map);
 
 		// Load GeoJSON
 		this.loadDzongkhagGeoJSON();
@@ -546,6 +557,13 @@ export class AdminMasterDzongkhagsComponent
 		}
 	}
 
+	clearSearch(): void {
+		this.globalFilterValue = '';
+		if (this.dt) {
+			this.dt.filterGlobal('', 'contains');
+		}
+	}
+
 	// Safe number conversion for display
 	getSafeAreaValue(area: any): number {
 		const value = typeof area === 'string' ? parseFloat(area) : area;
@@ -566,5 +584,27 @@ export class AdminMasterDzongkhagsComponent
 			if (control.errors['min']) return `${field} must be positive`;
 		}
 		return '';
+	}
+
+	switchBasemap(): void {
+		if (!this.map || !this.basemapService.hasBasemap(this.selectedBasemapId)) {
+			console.error(`Basemap ${this.selectedBasemapId} not found`);
+			return;
+		}
+
+		// Remove existing basemap layer
+		if (this.baseLayer) {
+			this.map.removeLayer(this.baseLayer);
+			this.baseLayer = undefined;
+		}
+
+		// Add new basemap layer
+		this.baseLayer =
+			this.basemapService.createTileLayer(this.selectedBasemapId) || undefined;
+
+		if (this.baseLayer) {
+			this.baseLayer.addTo(this.map);
+			this.baseLayer.bringToBack();
+		}
 	}
 }

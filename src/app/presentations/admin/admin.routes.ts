@@ -5,6 +5,7 @@ import { AdminMasterDzongkhagsComponent } from './master-data/admin-master-dzong
 import { AdminMasterAdministrativeZonesComponent } from './master-data/admin-master-administrative-zones/admin-master-administrative-zones.component';
 import { AdminMasterSubAdministrativeZonesComponent } from './master-data/admin-master-sub-administrative-zones/admin-master-sub-administrative-zones.component';
 import { AdminMasterEnumerationAreasComponent } from './master-data/admin-master-enumeration-areas/admin-master-enumeration-areas.component';
+import { AdminAutoKmlUploadComponent } from './master-data/admin-auto-kml-upload/admin-auto-kml-upload.component';
 import { AdminMasterSurveyComponent } from './survey/admin-master-survey/admin-master-survey.component';
 import { AdminDzongkhagDataViewerComponent } from './data-viewer/admin-dzongkhag-data-viewer/admin-dzongkhag-data-viewer.component';
 import { AdminAdminstrativeZoneDataViewerComponent } from './data-viewer/admin-adminstrative-zone-data-viewer/admin-adminstrative-zone-data-viewer.component';
@@ -53,6 +54,10 @@ export const adminRoutes: Routes = [
 					{
 						path: 'enumeration-areas',
 						component: AdminMasterEnumerationAreasComponent,
+					},
+					{
+						path: 'auto-kml-upload',
+						component: AdminAutoKmlUploadComponent,
 					},
 				],
 			},

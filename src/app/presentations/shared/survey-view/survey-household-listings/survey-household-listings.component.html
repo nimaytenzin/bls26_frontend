@@ -6,11 +6,11 @@
 		<div class="relative w-16 h-16">
 			<div
 				class="absolute inset-0 border-4 rounded-full"
-				style="border-color: #E8F0FF;"
+				style="border-color: #e8f0ff"
 			></div>
 			<div
 				class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
-				style="border-color: #1A58AF;"
+				style="border-color: #1a58af"
 			></div>
 		</div>
 	</div>
@@ -18,7 +18,9 @@
 	<!-- Main Content -->
 	<div *ngIf="!loading" class="space-y-4">
 		<!-- Title and Action Buttons -->
-		<div class="flex items-center justify-between border-b border-gray-200 pb-3">
+		<div
+			class="flex items-center justify-between border-b border-gray-200 pb-3"
+		>
 			<h3 class="text-xl font-semibold text-gray-900">
 				<span *ngIf="selectedEnumerationArea">
 					Showing households for the selected EA
@@ -26,7 +28,6 @@
 				<span *ngIf="!selectedEnumerationArea">
 					Showing households for all enumeration areas
 				</span>
-				
 			</h3>
 			<div class="flex gap-2">
 				<p-button
@@ -35,6 +36,14 @@
 					(click)="openCreateBlankDialog()"
 					styleClass="p-button-outlined p-button-sm"
 					pTooltip="Create blank household listing entries"
+				></p-button>
+
+				<p-button
+					label="Bulk Upload Households"
+					icon="pi pi-upload"
+					styleClass="p-button-outlined p-button-sm"
+					pTooltip="Bulk upload household listings from CSV file"
+					(click)="openBulkUploadDialog()"
 				></p-button>
 				<p-button
 					*ngIf="selectedEnumerationArea"
@@ -53,7 +62,7 @@
 		>
 			<div class="text-center">
 				<div class="flex items-center justify-center gap-2 mb-1">
-					<i class="pi pi-home text-lg" style="color: #1A58AF;"></i>
+					<i class="pi pi-home text-lg" style="color: #1a58af"></i>
 					<h3 class="text-xl font-bold text-gray-900">
 						{{ statistics.totalHouseholds | number }}
 					</h3>
@@ -63,7 +72,7 @@
 
 			<div class="text-center">
 				<div class="flex items-center justify-center gap-2 mb-1">
-					<i class="pi pi-users text-lg" style="color: #10B981;"></i>
+					<i class="pi pi-users text-lg" style="color: #10b981"></i>
 					<h3 class="text-xl font-bold text-gray-900">
 						{{ statistics.totalPopulation | number }}
 					</h3>
@@ -73,9 +82,10 @@
 
 			<div class="text-center">
 				<div class="flex items-center justify-center gap-2 mb-1">
-					<i class="pi pi-user text-lg" style="color: #1A58AF;"></i>
+					<i class="pi pi-user text-lg" style="color: #1a58af"></i>
 					<h3 class="text-xl font-bold text-gray-900">
-						{{ statistics.totalMale | number }} / {{ statistics.totalFemale | number }}
+						{{ statistics.totalMale | number }} /
+						{{ statistics.totalFemale | number }}
 					</h3>
 				</div>
 				<p class="text-xs text-gray-600">Male / Female</p>
@@ -86,7 +96,7 @@
 				*ngIf="statistics.totalEnumerationAreas !== undefined"
 			>
 				<div class="flex items-center justify-center gap-2 mb-1">
-					<i class="pi pi-map-marker text-lg" style="color: #F59E0B;"></i>
+					<i class="pi pi-map-marker text-lg" style="color: #f59e0b"></i>
 					<h3 class="text-xl font-bold text-gray-900">
 						{{ statistics.totalEnumerationAreas | number }}
 					</h3>
@@ -98,8 +108,10 @@
 		<!-- Filters and Household Listings Table -->
 		<p-card>
 			<ng-template pTemplate="header">
-				<div class="flex items-center justify-between p-4 border-b border-gray-200">
- 					<p-inputgroup>
+				<div
+					class="flex items-center justify-between p-4 border-b border-gray-200"
+				>
+					<p-inputgroup>
 						<input
 							pInputText
 							type="text"
@@ -126,7 +138,9 @@
 				<div class="grid grid-cols-1 md:grid-cols-4 gap-3">
 					<!-- Dzongkhag Filter -->
 					<div class="flex flex-col">
-						<label class="text-xs font-medium text-gray-600 mb-1">Dzongkhag</label>
+						<label class="text-xs font-medium text-gray-600 mb-1"
+							>Dzongkhag</label
+						>
 						<p-dropdown
 							[(ngModel)]="selectedDzongkhagFilter"
 							[options]="dzongkhagFilters"
@@ -139,7 +153,9 @@
 
 					<!-- Admin Zone Filter -->
 					<div class="flex flex-col">
-						<label class="text-xs font-medium text-gray-600 mb-1">Admin Zone</label>
+						<label class="text-xs font-medium text-gray-600 mb-1"
+							>Admin Zone</label
+						>
 						<p-dropdown
 							[(ngModel)]="selectedAdminZoneFilter"
 							[options]="adminZoneFilters"
@@ -153,7 +169,9 @@
 
 					<!-- Sub-Admin Zone Filter -->
 					<div class="flex flex-col">
-						<label class="text-xs font-medium text-gray-600 mb-1">Sub-Admin Zone</label>
+						<label class="text-xs font-medium text-gray-600 mb-1"
+							>Sub-Admin Zone</label
+						>
 						<p-dropdown
 							[(ngModel)]="selectedSubAdminZoneFilter"
 							[options]="subAdminZoneFilters"
@@ -167,7 +185,9 @@
 
 					<!-- Enumeration Area Filter -->
 					<div class="flex flex-col">
-						<label class="text-xs font-medium text-gray-600 mb-1">Enumeration Area</label>
+						<label class="text-xs font-medium text-gray-600 mb-1"
+							>Enumeration Area</label
+						>
 						<p-dropdown
 							[(ngModel)]="selectedEnumerationArea"
 							[options]="enumerationAreaOptions"
@@ -225,10 +245,18 @@
 							Head of Household
 							<p-sortIcon field="nameOfHOH"></p-sortIcon>
 						</th>
-						<th pSortableColumn="totalMale" class="text-center" style="width: 80px">
+						<th
+							pSortableColumn="totalMale"
+							class="text-center"
+							style="width: 80px"
+						>
 							Male <p-sortIcon field="totalMale"></p-sortIcon>
 						</th>
-						<th pSortableColumn="totalFemale" class="text-center" style="width: 80px">
+						<th
+							pSortableColumn="totalFemale"
+							class="text-center"
+							style="width: 80px"
+						>
 							Female <p-sortIcon field="totalFemale"></p-sortIcon>
 						</th>
 						<th class="text-center" style="width: 80px">
@@ -252,15 +280,17 @@
 						<td class="font-medium">{{ listing.nameOfHOH }}</td>
 						<td class="text-center">{{ listing.totalMale }}</td>
 						<td class="text-center">{{ listing.totalFemale }}</td>
-						<td class="text-center font-semibold" style="color: #1A58AF;">
+						<td class="text-center font-semibold" style="color: #1a58af">
 							{{ getTotalPopulation(listing) }}
 						</td>
 						<td>{{ listing.phoneNumber || "-" }}</td>
 						<td class="text-xs text-gray-600">{{ listing.remarks || "-" }}</td>
 						<td>
-							<div class="text-sm">{{ listing.createdAt | date: 'MMM d, y' }}</div>
+							<div class="text-sm">
+								{{ listing.createdAt | date : "MMM d, y" }}
+							</div>
 							<div class="text-xs text-gray-500">
-								{{ listing.createdAt | date: 'shortTime' }}
+								{{ listing.createdAt | date : "shortTime" }}
 							</div>
 						</td>
 					</tr>
@@ -278,8 +308,8 @@
 									<p class="text-sm text-gray-500 mt-1">
 										{{
 											selectedEnumerationArea
-												? 'No households found for the selected enumeration area'
-												: 'No households found for this survey'
+												? "No households found for the selected enumeration area"
+												: "No households found for this survey"
 										}}
 									</p>
 								</div>
@@ -302,13 +332,17 @@
 >
 	<div class="space-y-4">
 		<p class="text-sm text-gray-600">
-			Create blank household listing entries for a selected enumeration area. These entries can be used for historical surveys or when data is not available.
+			Create blank household listing entries for a selected enumeration area.
+			These entries can be used for historical surveys or when data is not
+			available.
 		</p>
 
 		<!-- Enumeration Area Selection -->
 		<div class="space-y-3">
-			<h4 class="text-sm font-semibold text-gray-900">Select Enumeration Area</h4>
-			
+			<h4 class="text-sm font-semibold text-gray-900">
+				Select Enumeration Area
+			</h4>
+
 			<!-- Dzongkhag Selection -->
 			<div class="flex flex-col gap-1.5">
 				<label class="text-xs font-medium text-gray-600">Dzongkhag</label>
@@ -352,7 +386,9 @@
 
 			<!-- Enumeration Area Selection -->
 			<div class="flex flex-col gap-1.5">
-				<label class="text-xs font-medium text-gray-600">Enumeration Area <span class="text-red-500">*</span></label>
+				<label class="text-xs font-medium text-gray-600"
+					>Enumeration Area <span class="text-red-500">*</span></label
+				>
 				<p-dropdown
 					[(ngModel)]="selectedEAForBlank"
 					[options]="dialogEnumerationAreaOptions"
@@ -366,7 +402,9 @@
 
 		<!-- Count Input -->
 		<div class="flex flex-col gap-1.5">
-			<label class="text-xs font-medium text-gray-600">Number of Entries <span class="text-red-500">*</span></label>
+			<label class="text-xs font-medium text-gray-600"
+				>Number of Entries <span class="text-red-500">*</span></label
+			>
 			<p-inputNumber
 				[(ngModel)]="blankForm.count"
 				[min]="1"
@@ -376,12 +414,16 @@
 				styleClass="w-full"
 				placeholder="Enter count (1-10000)"
 			></p-inputNumber>
-			<small class="text-xs text-gray-500">Enter the number of blank entries to create (1-10000)</small>
+			<small class="text-xs text-gray-500"
+				>Enter the number of blank entries to create (1-10000)</small
+			>
 		</div>
 
 		<!-- Remarks Input -->
 		<div class="flex flex-col gap-1.5">
-			<label class="text-xs font-medium text-gray-600">Remarks (Optional)</label>
+			<label class="text-xs font-medium text-gray-600"
+				>Remarks (Optional)</label
+			>
 			<textarea
 				pInputTextarea
 				[(ngModel)]="blankForm.remarks"
@@ -410,8 +452,214 @@
 				[disabled]="creatingBlank || !selectedEAForBlank || !blankForm.count"
 				(click)="createBlankHouseholdListings()"
 			>
-				<p-progressSpinner *ngIf="creatingBlank" styleClass="w-4 h-4 mr-2" strokeWidth="4"></p-progressSpinner>
+				<p-progressSpinner
+					*ngIf="creatingBlank"
+					styleClass="w-4 h-4 mr-2"
+					strokeWidth="4"
+				></p-progressSpinner>
 			</button>
+		</div>
+	</ng-template>
+</p-dialog>
+
+<!-- Bulk Upload Household Listings Dialog -->
+<p-dialog
+	[(visible)]="showBulkUploadDialog"
+	[modal]="true"
+	[closable]="true"
+	[style]="{ width: '700px' }"
+	header="Bulk Upload Household Listings"
+>
+	<div class="space-y-4">
+		<p class="text-sm text-gray-600">
+			Upload household listings from a CSV file. First, select an enumeration area and download the template to ensure your CSV format is correct.
+		</p>
+
+		<!-- Enumeration Area Selection -->
+		<div class="space-y-3">
+			<h4 class="text-sm font-semibold text-gray-900">
+				Select Enumeration Area <span class="text-red-500">*</span>
+			</h4>
+
+			<!-- Dzongkhag Selection -->
+			<div class="flex flex-col gap-1.5">
+				<label class="text-xs font-medium text-gray-600">Dzongkhag</label>
+				<p-dropdown
+					[(ngModel)]="selectedDialogDzongkhag"
+					[options]="dialogDzongkhagFilters"
+					optionLabel="name"
+					placeholder="Select Dzongkhag"
+					(onChange)="onDialogDzongkhagChange()"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+
+			<!-- Admin Zone Selection -->
+			<div class="flex flex-col gap-1.5">
+				<label class="text-xs font-medium text-gray-600">Admin Zone</label>
+				<p-dropdown
+					[(ngModel)]="selectedDialogAdminZone"
+					[options]="dialogAdminZoneFilters"
+					optionLabel="name"
+					placeholder="Select Admin Zone"
+					[disabled]="!selectedDialogDzongkhag"
+					(onChange)="onDialogAdminZoneChange()"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+
+			<!-- Sub-Admin Zone Selection -->
+			<div class="flex flex-col gap-1.5">
+				<label class="text-xs font-medium text-gray-600">Sub-Admin Zone</label>
+				<p-dropdown
+					[(ngModel)]="selectedDialogSubAdminZone"
+					[options]="dialogSubAdminZoneFilters"
+					optionLabel="name"
+					placeholder="Select Sub-Admin Zone"
+					[disabled]="!selectedDialogAdminZone"
+					(onChange)="onDialogSubAdminZoneChange()"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+
+			<!-- Enumeration Area Selection -->
+			<div class="flex flex-col gap-1.5">
+				<label class="text-xs font-medium text-gray-600"
+					>Enumeration Area <span class="text-red-500">*</span></label
+				>
+				<p-dropdown
+					[(ngModel)]="selectedEAForBulkUpload"
+					[options]="dialogEnumerationAreaOptions"
+					optionLabel="name"
+					placeholder="Select Enumeration Area"
+					[disabled]="!selectedDialogSubAdminZone"
+					styleClass="w-full"
+				></p-dropdown>
+			</div>
+		</div>
+
+		<!-- Download Template Button -->
+		<div class="flex items-center gap-2">
+			<p-button
+				label="Download CSV Template"
+				icon="pi pi-download"
+				class="p-button-outlined p-button-sm"
+				[disabled]="!selectedEAForBulkUpload || downloadingTemplate"
+				[loading]="downloadingTemplate"
+				(click)="downloadTemplate()"
+				pTooltip="Download CSV template for the selected enumeration area"
+			></p-button>
+		</div>
+
+		<!-- File Upload -->
+		<div>
+			<label class="block text-sm font-medium text-gray-700 mb-2">
+				Select CSV File <span class="text-red-500">*</span>
+			</label>
+			<p-fileUpload
+				mode="basic"
+				[auto]="false"
+				accept=".csv"
+				[maxFileSize]="10000000"
+				chooseLabel="Choose CSV File"
+				chooseIcon="pi pi-upload"
+				(onSelect)="onBulkUploadFileSelect($event)"
+				(onRemove)="onBulkUploadFileRemove()"
+				[showUploadButton]="false"
+				[showCancelButton]="false"
+				styleClass="w-full"
+			></p-fileUpload>
+			<small class="text-gray-500 mt-1 block">
+				Maximum file size: 10 MB. Accepted format: .csv
+			</small>
+		</div>
+
+		<!-- Selected File Info -->
+		<div
+			*ngIf="bulkUploadFile"
+			class="bg-green-50 border border-green-200 rounded-lg p-3"
+		>
+			<div class="flex items-center justify-between">
+				<div class="flex items-center">
+					<i class="pi pi-file text-green-600 text-xl mr-3"></i>
+					<div>
+						<p class="font-medium text-green-900">{{ bulkUploadFile.name }}</p>
+						<p class="text-sm text-green-700">
+							{{ (bulkUploadFile.size / 1024).toFixed(2) }} KB
+						</p>
+					</div>
+				</div>
+				<i class="pi pi-check-circle text-green-600 text-xl"></i>
+			</div>
+		</div>
+
+		<!-- Upload Results -->
+		<div
+			*ngIf="bulkUploadResults"
+			class="bg-white border border-gray-300 rounded-lg p-4 space-y-3"
+		>
+			<h4 class="font-semibold text-gray-900 flex items-center">
+				<i class="pi pi-chart-bar text-purple-600 mr-2"></i>
+				Upload Results
+			</h4>
+
+			<!-- Statistics -->
+			<div class="grid grid-cols-2 gap-3">
+				<div class="bg-green-50 border border-green-200 rounded-lg p-3">
+					<p class="text-xs text-green-600 font-medium">Successfully Uploaded</p>
+					<p class="text-2xl font-bold text-green-700">
+						{{ bulkUploadResults.success }}
+					</p>
+				</div>
+				<div class="bg-red-50 border border-red-200 rounded-lg p-3">
+					<p class="text-xs text-red-600 font-medium">Failed</p>
+					<p class="text-2xl font-bold text-red-700">
+						{{ bulkUploadResults.failed }}
+					</p>
+				</div>
+			</div>
+
+			<!-- Errors -->
+			<div *ngIf="bulkUploadResults.errors.length > 0">
+				<p class="text-sm font-semibold text-red-700 mb-2">
+					✗ Errors ({{ bulkUploadResults.errors.length }})
+				</p>
+				<div class="max-h-32 overflow-y-auto space-y-1">
+					<div
+						*ngFor="let error of bulkUploadResults.errors"
+						class="text-xs bg-red-50 border border-red-200 rounded px-2 py-1"
+					>
+						{{ error.error }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				class="p-button-text"
+				[disabled]="bulkUploadLoading"
+				(click)="closeBulkUploadDialog()"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Upload"
+				icon="pi pi-upload"
+				class="p-button-primary"
+				[disabled]="
+					bulkUploadLoading ||
+					!selectedEAForBulkUpload ||
+					!bulkUploadFile
+				"
+				[loading]="bulkUploadLoading"
+				(click)="uploadHouseholdListings()"
+			></button>
 		</div>
 	</ng-template>
 </p-dialog>

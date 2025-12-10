@@ -1,152 +1,194 @@
 <!-- Toast Messages -->
 <p-toast></p-toast>
 
-<!-- Chiwogs/LAPs Management Dashboard -->
-<div class="p-6 bg-gray-50 min-h-screen">
+<!-- Chiwogs/LAPs Management -->
+<div class="h-[calc(100vh-5rem)] bg-white flex flex-col">
 	<!-- Header Section -->
-	<div class="mb-6">
-		<div class="flex justify-between items-center">
+	<div class="p-6 border-b border-slate-200 flex-shrink-0">
+		<div class="flex justify-between items-center mb-4">
 			<div>
-				<h1 class="text-2xl font-bold text-gray-900">
+				<h1 class="text-3xl font-semibold text-slate-900">
 					Chiwogs/LAPs Management
 				</h1>
-				<p class="text-sm text-gray-600 mt-1">
-					Manage chiwogs and laps within administrative zones
+				<p class="text-sm text-slate-600 mt-1">
+					Manage chiwogs and laps by dzongkhag or administrative zone
 				</p>
 			</div>
 
-		<!-- Action Controls -->
-		<div class="flex items-center gap-4">
-			<!-- Action Buttons -->
+			<!-- Action Controls -->
 			<div class="flex items-center gap-2">
 				<button
 					pButton
 					type="button"
 					label="Add Chiwog/LAP"
 					icon="pi pi-plus"
-					class="p-button-primary"
+					[disabled]="!selectedDzongkhag && !selectedAdministrativeZone"
 					(click)="openNew()"
+					pTooltip="Select a dzongkhag or administrative zone first"
+				></button>
+				<button
+					pButton
+					type="button"
+					label="Bulk Upload"
+					icon="pi pi-upload"
+					[disabled]="!selectedDzongkhag"
+					(click)="openBulkUploadDialog()"
+					class="p-button-outlined"
+					pTooltip="Select a dzongkhag first"
 				></button>
 			</div>
 		</div>
-		</div>
 
-		<!-- Statistics Cards -->
-		<div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
-						>
-							<i class="pi pi-map text-blue-600"></i>
-						</div>
-					</div>
-					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Total Chiwogs/LAPs</p>
-						<p class="text-lg font-semibold text-gray-900">
-							{{ subAdministrativeZones.length }}
-						</p>
-					</div>
+		<p-divider></p-divider>
+
+		<!-- Dzongkhag and Administrative Zone Selectors and Statistics -->
+		<div class="flex items-center justify-between gap-6">
+			<div class="flex items-center gap-4">
+				<div class="flex flex-col items-start gap-1">
+					<label
+						for="dzongkhag-selector"
+						class=" font-medium text-slate-700 whitespace-nowrap"
+					>
+						Select Dzongkhag
+					</label>
+					<p-dropdown
+						id="dzongkhag-selector"
+						[(ngModel)]="selectedDzongkhag"
+						[options]="dzongkhags"
+						optionLabel="name"
+						placeholder="Choose a dzongkhag"
+						styleClass="w-64"
+						(onChange)="onDzongkhagChange()"
+						[showClear]="true"
+					></p-dropdown>
+				</div>
+
+				<div class="flex flex-col items-start gap-1">
+					<label
+						for="administrative-zone-selector"
+						class=" font-medium text-slate-700 whitespace-nowrap"
+					>
+						Select Administrative Zone
+					</label>
+					<p-dropdown
+						id="administrative-zone-selector"
+						[(ngModel)]="selectedAdministrativeZone"
+						[options]="administrativeZones"
+						optionLabel="name"
+						placeholder="Choose an administrative zone"
+						styleClass="w-64"
+						(onChange)="onAdministrativeZoneChange()"
+						[showClear]="true"
+						[disabled]="!selectedDzongkhag"
+					></p-dropdown>
+					<small 
+						*ngIf="selectedDzongkhag && noAdministrativeZones && !loading"
+						class="text-amber-600 text-xs mt-1"
+					>
+						No administrative zones found for this dzongkhag
+					</small>
 				</div>
 			</div>
 
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center"
-						>
-							<i class="pi pi-building text-purple-600"></i>
-						</div>
-					</div>
-					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Chiwogs</p>
-						<p class="text-lg font-semibold text-gray-900">
-							{{ chiwogCount }}
-						</p>
-					</div>
+			<!-- Statistics Cards -->
+			<div class="flex items-center gap-6">
+				<div class="flex flex-col">
+					<p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
+						Total Zones
+					</p>
+					<p class="text-2xl font-bold text-slate-900 leading-none">
+						{{ subAdministrativeZones.length }}
+					</p>
 				</div>
-			</div>
 
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center"
-						>
-							<i class="pi pi-home text-amber-600"></i>
-						</div>
-					</div>
-					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Laps</p>
-						<p class="text-lg font-semibold text-gray-900">
-							{{ lapCount }}
-						</p>
-					</div>
+				<div class="h-8 w-px bg-slate-200"></div>
+
+				<div class="flex flex-col">
+					<p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
+						Chiwogs
+					</p>
+					<p class="text-2xl font-bold text-slate-900 leading-none">
+						{{ chiwogCount }}
+					</p>
 				</div>
-			</div>
 
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"
-						>
-							<i class="pi pi-eye text-green-600"></i>
-						</div>
-					</div>
-					<div class="ml-3">
-						<p class="text-sm font-medium text-gray-500">Selected</p>
-						<p class="text-lg font-semibold text-gray-900">
-							{{ selectedSubAdministrativeZone?.name || "None" }}
-						</p>
-					</div>
+				<div class="h-8 w-px bg-slate-200"></div>
+
+				<div class="flex flex-col">
+					<p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
+						LAPs
+					</p>
+					<p class="text-2xl font-bold text-slate-900 leading-none">
+						{{ lapCount }}
+					</p>
 				</div>
 			</div>
 		</div>
 	</div>
 
 	<!-- Content Area - Split View -->
-	<div class="grid grid-cols-2 gap-6">
-		<!-- Table Section -->
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
-			<div class="p-4 border-b border-gray-200">
+	<div class="flex-1 overflow-hidden flex gap-6 p-6" *ngIf="selectedDzongkhag || selectedAdministrativeZone">
+		<!-- Left: Table (50%) -->
+		<div class="w-1/2 flex flex-col bg-white rounded-lg border border-slate-200">
+			<!-- Table Header -->
+			<div class="p-4 border-b border-slate-200 flex-shrink-0">
 				<div class="flex justify-between items-center">
-					<h2 class="text-lg font-semibold text-gray-900">
+					<h2 class="text-lg font-semibold text-slate-900">
 						Chiwogs/LAPs List
+						<span class="text-sm font-normal text-slate-500 ml-2" *ngIf="selectedAdministrativeZone"
+							>({{ selectedAdministrativeZone.name }})</span
+						>
+						<span class="text-sm font-normal text-slate-500 ml-2" *ngIf="!selectedAdministrativeZone && selectedDzongkhag"
+							>({{ selectedDzongkhag.name }})</span
+						>
 					</h2>
 					<div class="flex items-center gap-3">
-						<span class="p-input-icon-left">
+						<p-inputGroup class="w-auto">
+							<p-inputGroupAddon>
+								<i class="pi pi-search"></i>
+							</p-inputGroupAddon>
 							<input
 								pInputText
 								type="text"
 								[(ngModel)]="globalFilterValue"
 								placeholder="Search chiwogs/LAPs..."
-								class="p-inputtext-sm"
 								(input)="onGlobalFilterSplit($event)"
 							/>
-						</span>
+							<p-inputGroupAddon *ngIf="globalFilterValue">
+								<button
+									pButton
+									type="button"
+									icon="pi pi-times"
+									class="p-button-text"
+									(click)="clearSearch()"
+									pTooltip="Clear search"
+								></button>
+							</p-inputGroupAddon>
+						</p-inputGroup>
 					</div>
 				</div>
 			</div>
 
-			<p-table
-				#dtSplit
-				[value]="subAdministrativeZones"
-				[rows]="10"
-				[paginator]="true"
-				responsiveLayout="scroll"
-				[loading]="loading"
-				selectionMode="single"
-				[(selection)]="selectedSubAdministrativeZone"
-				(onRowSelect)="onRowSelect($event)"
-				styleClass="p-datatable-sm"
-				[globalFilterFields]="['name', 'areaCode', 'type']"
-				[filterDelay]="0"
-			>
+			<!-- Table Content -->
+			<div class="flex-1 overflow-auto p-4">
+				<p-table
+					#dtSplit
+					[value]="subAdministrativeZones"
+					[paginator]="false"
+					responsiveLayout="scroll"
+					[loading]="loading"
+					selectionMode="single"
+					[(selection)]="selectedSubAdministrativeZone"
+					(onRowSelect)="onRowSelect($event)"
+					styleClass="p-datatable-sm"
+					[globalFilterFields]="['name', 'areaCode', 'type']"
+					[filterDelay]="0"
+					[scrollable]="true"
+					scrollHeight="100%"
+				>
 				<ng-template pTemplate="header">
 					<tr>
+						<th>ID</th>
 						<th pSortableColumn="name">
 							Name <p-sortIcon field="name"></p-sortIcon>
 						</th>
@@ -156,20 +198,19 @@
 				</ng-template>
 
 				<ng-template pTemplate="body" let-zone>
-					<tr
-						[class.bg-blue-50]="selectedSubAdministrativeZone?.id === zone.id"
-					>
+					<tr [class.bg-primary-50]="selectedSubAdministrativeZone?.id === zone.id">
+						<td>{{ zone.id }}</td>
 						<td>
-							<div class="font-medium text-gray-900 text-sm">
+							<div class="font-semibold text-slate-900">
 								{{ zone.name }}
 							</div>
-							<div class="text-xs text-gray-500">
+							<div class="text-xs text-slate-500 mt-0.5">
 								{{ getAdministrativeZoneName(zone.administrativeZoneId) }}
 							</div>
 						</td>
 						<td>
 							<span
-								class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+								class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium"
 								[class.bg-purple-100]="zone.type === 'chiwog'"
 								[class.text-purple-800]="zone.type === 'chiwog'"
 								[class.bg-amber-100]="zone.type === 'lap'"
@@ -179,7 +220,7 @@
 							</span>
 						</td>
 						<td>
-							<div class="flex items-center gap-1">
+							<div class="flex items-center gap-2">
 								<button
 									pButton
 									type="button"
@@ -199,10 +240,19 @@
 								<button
 									pButton
 									type="button"
-									icon="pi pi-upload"
-									class="p-button-outlined p-button-sm p-button-success"
+									icon="pi pi-file-arrow-up"
+									class="p-button-outlined p-button-sm  "
 									(click)="openUploadGeojson(zone)"
 									pTooltip="Upload GeoJSON"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-file-arrow-up"
+									label="Bulk EA"
+									class="p-button-outlined p-button-sm"
+									pTooltip="Bulk EA GeoJSON Upload"
+									(click)="openBulkUploadEA(zone)"
 								></button>
 								<button
 									pButton
@@ -219,39 +269,81 @@
 
 				<ng-template pTemplate="emptymessage">
 					<tr>
-						<td colspan="3" class="text-center py-6">
-							<div class="text-gray-500">
-								<i class="pi pi-info-circle text-xl mb-2 block"></i>
-								No chiwogs/LAPs found
+						<td colspan="3" class="text-center py-8">
+							<div class="text-slate-500" *ngIf="!noSubAdministrativeZones">
+								<i class="pi pi-inbox text-3xl mb-2 block"></i>
+								<p class="text-sm">No chiwogs/LAPs found</p>
+							</div>
+							<div class="text-amber-600" *ngIf="noSubAdministrativeZones">
+								<i class="pi pi-exclamation-triangle text-3xl mb-2 block"></i>
+								<p class="text-sm font-medium">No chiwogs/LAPs available</p>
+								<p class="text-xs mt-1">
+									<span *ngIf="selectedAdministrativeZone">
+										No chiwogs/LAPs found for {{ selectedAdministrativeZone.name }}
+									</span>
+									<span *ngIf="!selectedAdministrativeZone && selectedDzongkhag">
+										No chiwogs/LAPs found for {{ selectedDzongkhag.name }}
+									</span>
+								</p>
 							</div>
 						</td>
 					</tr>
 				</ng-template>
-			</p-table>
+				</p-table>
+			</div>
 		</div>
 
-		<!-- Map Section -->
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200">
-			<div class="p-4 border-b border-gray-200">
+		<!-- Right: Map (50%) -->
+		<div class="w-1/2 flex flex-col bg-white rounded-lg border border-slate-200">
+			<!-- Map Header -->
+			<div class="p-4 border-b border-slate-200 flex-shrink-0">
 				<div class="flex justify-between items-center">
 					<div>
-						<h2 class="text-lg font-semibold text-gray-900">Geographic View</h2>
-						<div class="text-sm text-gray-600">Interactive Map</div>
+						<div class="flex items-center gap-3">
+							<h2 class="text-lg font-semibold text-slate-900">Geographic View</h2>
+							<span
+								class="text-xs text-slate-600"
+							>
+								{{ geoJSONFeatureCount }} feature{{ geoJSONFeatureCount !== 1 ? 's' : '' }}
+							</span>
+						</div>
+						<p class="text-xs text-slate-600 mt-1">Click on zones to view details</p>
 					</div>
-					<button
-						pButton
-						type="button"
-						label="Reload Map"
-						icon="pi pi-refresh"
-						class="p-button-outlined p-button-sm p-button-secondary"
-						(click)="reloadMap()"
-						pTooltip="Refresh map data"
-						tooltipPosition="bottom"
-					></button>
+					<div class="flex items-center gap-2">
+						<!-- Basemap Selector -->
+						<select
+							[(ngModel)]="selectedBasemapId"
+							(change)="switchBasemap()"
+							class="text-sm border border-slate-300 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 w-48"
+						>
+							<ng-container
+								*ngFor="let category of basemapCategories | keyvalue"
+							>
+								<optgroup [label]="category.value.label">
+									<option
+										*ngFor="let basemap of category.value.basemaps"
+										[value]="basemap.id"
+									>
+										{{ basemap.name }}
+									</option>
+								</optgroup>
+							</ng-container>
+						</select>
+						
+						<button
+							pButton
+							type="button"
+							icon="pi pi-refresh"
+							class="p-button-outlined p-button-sm"
+							(click)="reloadMap()"
+							pTooltip="Reload Map"
+						></button>
+					</div>
 				</div>
 			</div>
 
-			<div class="relative" style="height: 600px">
+			<!-- Map Container -->
+			<div class="flex-1 relative">
 				<div
 					id="sub-administrative-zone-map"
 					class="w-full h-full rounded-b-lg"
@@ -259,19 +351,60 @@
 
 				<!-- Map Loading Overlay -->
 				<div
-					*ngIf="!subAdministrativeZoneGeoJSON"
-					class="absolute inset-0 bg-gray-50 flex items-center justify-center rounded-b-lg"
+					*ngIf="subAdministrativeZoneGeoJSON === null && !noGeoJSON && (selectedDzongkhag || selectedAdministrativeZone)"
+					class="absolute inset-0 bg-slate-50 flex items-center justify-center rounded-b-lg"
 				>
 					<div class="text-center">
 						<div
-							class="animate-spin rounded-full w-8 h-8 border-b-2 border-blue-500 mx-auto mb-3"
+							class="animate-spin rounded-full w-8 h-8 border-b-2 border-primary-600 mx-auto mb-3"
 						></div>
-						<p class="text-sm text-gray-600">Loading map data...</p>
+						<p class="text-sm text-slate-600">Loading geographic data...</p>
+					</div>
+				</div>
+
+				<!-- No GeoJSON Data Overlay -->
+				<div
+					*ngIf="noGeoJSON && (selectedDzongkhag || selectedAdministrativeZone)"
+					class="absolute inset-0 bg-amber-50 flex items-center justify-center rounded-b-lg"
+				>
+					<div class="text-center">
+						<i class="pi pi-info-circle text-amber-600 text-4xl mb-3 block"></i>
+						<p class="text-sm font-medium text-amber-900">No map data available</p>
+						<p class="text-xs text-amber-700 mt-1">
+							<span *ngIf="selectedAdministrativeZone">
+								No geographic data has been added for {{ selectedAdministrativeZone.name }}. Upload GeoJSON files for chiwogs/LAPs to view them on the map.
+							</span>
+							<span *ngIf="!selectedAdministrativeZone && selectedDzongkhag">
+								No geographic data has been added for {{ selectedDzongkhag.name }}. Upload GeoJSON files for chiwogs/LAPs to view them on the map.
+							</span>
+						</p>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
+
+	<!-- Empty State when no dzongkhag or administrative zone is selected -->
+	<div
+		*ngIf="!selectedDzongkhag && !selectedAdministrativeZone"
+		class="flex-1 flex items-center justify-center p-12"
+	>
+		<div class="text-center">
+			<div
+				class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4"
+			>
+				<i class="pi pi-map text-primary-600 text-2xl"></i>
+			</div>
+			<h3 class="text-lg font-semibold text-slate-900 mb-2">
+				Select a Dzongkhag or Administrative Zone
+			</h3>
+			<p class="text-sm text-slate-600">
+				Please select a dzongkhag or administrative zone from the dropdown above to view and manage
+				chiwogs and LAPs.
+			</p>
+		</div>
+	</div>
+</div>
 
 <!-- Add/Edit Dialog -->
 <p-dialog
@@ -589,3 +722,213 @@
 		></button>
 	</ng-template>
 </p-dialog>
+
+<!-- Bulk Upload Dialog -->
+<p-dialog
+	[(visible)]="bulkUploadDialog"
+	[modal]="true"
+	[closable]="true"
+	[style]="{ width: '700px' }"
+	header="Bulk Upload Chiwogs/LAPs"
+>
+	<div class="space-y-4">
+		<p class="text-sm text-gray-600">
+			Upload multiple chiwogs/LAPs from a GeoJSON FeatureCollection file for a specific Administrative Zone.
+		</p>
+
+		<!-- Administrative Zone Selection -->
+		<div class="flex flex-col gap-1.5">
+			<label class="text-xs font-medium text-gray-600"
+				>Administrative Zone
+				<span *ngIf="!selectedAdministrativeZone" class="text-red-500">*</span>
+				<span *ngIf="selectedAdministrativeZone" class="text-slate-500 text-xs ml-1">(Optional - using selected: {{ selectedAdministrativeZone.name }})</span>
+			</label>
+			<p-dropdown
+				[(ngModel)]="selectedAdministrativeZoneForBulkUpload"
+				[options]="administrativeZones"
+				optionLabel="name"
+				placeholder="Select Administrative Zone (or use selected from main view)"
+				styleClass="w-full"
+				[disabled]="!selectedDzongkhag"
+			></p-dropdown>
+			<small *ngIf="!selectedDzongkhag" class="text-amber-600 text-xs">
+				Please select a dzongkhag first to load administrative zones
+			</small>
+			<small *ngIf="selectedAdministrativeZone && !selectedAdministrativeZoneForBulkUpload" class="text-blue-600 text-xs">
+				Using selected administrative zone: {{ selectedAdministrativeZone.name }}
+			</small>
+		</div>
+
+		<!-- File Upload -->
+		<div>
+			<label class="block text-sm font-medium text-gray-700 mb-2">
+				Select GeoJSON File <span class="text-red-500">*</span>
+			</label>
+			<p-fileUpload
+				mode="basic"
+				[auto]="false"
+				accept=".json,.geojson"
+				[maxFileSize]="50000000"
+				chooseLabel="Choose GeoJSON File"
+				chooseIcon="pi pi-upload"
+				(onSelect)="onBulkUploadFileSelect($event)"
+				(onRemove)="onBulkUploadFileRemove()"
+				[showUploadButton]="false"
+				[showCancelButton]="false"
+				styleClass="w-full"
+			></p-fileUpload>
+			<small class="text-gray-500 mt-1 block">
+				Maximum file size: 50 MB. Accepted formats: .json, .geojson
+			</small>
+		</div>
+
+		<!-- Selected File Info -->
+		<div
+			*ngIf="bulkUploadFile"
+			class="bg-green-50 border border-green-200 rounded-lg p-3"
+		>
+			<div class="flex items-center justify-between">
+				<div class="flex items-center">
+					<i class="pi pi-file text-green-600 text-xl mr-3"></i>
+					<div>
+						<p class="font-medium text-green-900">{{ bulkUploadFile.name }}</p>
+						<p class="text-sm text-green-700">
+							{{ (bulkUploadFile.size / 1024 / 1024).toFixed(2) }} MB
+						</p>
+					</div>
+				</div>
+				<i class="pi pi-check-circle text-green-600 text-xl"></i>
+			</div>
+		</div>
+
+		<!-- Upload Progress -->
+		<div *ngIf="bulkUploadLoading" class="space-y-2">
+			<div class="flex items-center justify-between text-sm">
+				<span class="text-gray-600">Uploading...</span>
+				<span class="font-medium">{{ bulkUploadProgress }}%</span>
+			</div>
+			<p-progressBar [value]="bulkUploadProgress"></p-progressBar>
+		</div>
+
+		<!-- Upload Results -->
+		<div
+			*ngIf="bulkUploadResults"
+			class="bg-white border border-gray-300 rounded-lg p-4 space-y-3"
+		>
+			<h4 class="font-semibold text-gray-900 flex items-center">
+				<i class="pi pi-chart-bar text-purple-600 mr-2"></i>
+				Upload Results
+			</h4>
+
+			<!-- Statistics -->
+			<div class="grid grid-cols-2 gap-3">
+				<div class="bg-green-50 border border-green-200 rounded-lg p-3">
+					<p class="text-xs text-green-600 font-medium">Successfully Created</p>
+					<p class="text-2xl font-bold text-green-700">
+						{{ bulkUploadResults.success }}
+					</p>
+				</div>
+				<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+					<p class="text-xs text-yellow-600 font-medium">Skipped (Duplicates)</p>
+					<p class="text-2xl font-bold text-yellow-700">
+						{{ bulkUploadResults.skipped }}
+					</p>
+				</div>
+			</div>
+
+			<!-- Skipped Items -->
+			<div *ngIf="bulkUploadResults.skippedItems.length > 0">
+				<p class="text-sm font-semibold text-yellow-700 mb-2">
+					⚠ Skipped Items ({{ bulkUploadResults.skippedItems.length }})
+				</p>
+				<div class="max-h-32 overflow-y-auto space-y-1">
+					<div
+						*ngFor="let item of bulkUploadResults.skippedItems"
+						class="text-xs bg-yellow-50 border border-yellow-200 rounded px-2 py-1"
+					>
+						<span class="font-medium">{{ item.areaCode }}</span>:
+						{{ item.reason }}
+					</div>
+				</div>
+			</div>
+
+			<!-- Errors -->
+			<div *ngIf="bulkUploadResults.errors.length > 0">
+				<p class="text-sm font-semibold text-red-700 mb-2">
+					✗ Errors ({{ bulkUploadResults.errors.length }})
+				</p>
+				<div class="max-h-32 overflow-y-auto space-y-1">
+					<div
+						*ngFor="let error of bulkUploadResults.errors"
+						class="text-xs bg-red-50 border border-red-200 rounded px-2 py-1"
+					>
+						{{ error.error }}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- GeoJSON Format Info -->
+		<div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+			<div class="flex items-start gap-2">
+				<i class="pi pi-info-circle text-blue-600 mt-0.5"></i>
+				<div class="text-sm text-blue-800">
+					<p class="font-medium mb-1">GeoJSON Format Requirements:</p>
+					<ul class="list-disc list-inside space-y-1 text-xs">
+						<li>Must be a valid GeoJSON FeatureCollection</li>
+						<li>Each feature properties must include:
+							<ul class="list-disc list-inside ml-4 mt-1 space-y-0.5">
+								<li><code class="bg-blue-100 px-1 rounded">administrativeZoneId</code> (number)</li>
+								<li><code class="bg-blue-100 px-1 rounded">name</code> (string)</li>
+								<li><code class="bg-blue-100 px-1 rounded">areaCode</code> (string, optional)</li>
+								<li><code class="bg-blue-100 px-1 rounded">type</code> ("chiwog" or "lap")</li>
+								<li><code class="bg-blue-100 px-1 rounded">areaSqKm</code> (number, optional)</li>
+							</ul>
+						</li>
+						<li>Geometry type: Polygon or MultiPolygon</li>
+						<li>Coordinates must be in WGS84 (EPSG:4326)</li>
+						<li>All features will be assigned to the selected Administrative Zone</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				icon="pi pi-times"
+				class="p-button-text"
+				[disabled]="bulkUploadLoading"
+				(click)="closeBulkUploadDialog()"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Upload"
+				icon="pi pi-upload"
+				class="p-button-primary"
+				[disabled]="
+					bulkUploadLoading ||
+					(!selectedAdministrativeZoneForBulkUpload && !selectedAdministrativeZone) ||
+					!bulkUploadFile
+				"
+				[loading]="bulkUploadLoading"
+				(click)="uploadBulkSubAdministrativeZones()"
+			></button>
+		</div>
+	</ng-template>
+</p-dialog>
+
+<!-- Bulk Upload EA Dialog -->
+<app-bulk-upload-ea
+	[(visible)]="bulkUploadEADialog"
+	[subAdminZoneId]="selectedSubAdministrativeZoneForBulkUploadEA?.id || null"
+	[asDialog]="true"
+	[dialogHeader]="'Bulk Upload Enumeration Areas' + (selectedSubAdministrativeZoneForBulkUploadEA ? ' - ' + selectedSubAdministrativeZoneForBulkUploadEA.name : '')"
+	(onSuccess)="onBulkUploadEASuccess($event)"
+	(onCancel)="onBulkUploadEACancel()"
+></app-bulk-upload-ea>

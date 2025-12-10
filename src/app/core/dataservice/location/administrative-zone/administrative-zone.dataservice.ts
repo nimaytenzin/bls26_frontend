@@ -10,6 +10,7 @@ import {
 	AdministrativeZone,
 	AdministrativeZoneGeoJSON,
 	UpdateAdministrativeZoneDto,
+	BulkUploadResponse,
 } from './administrative-zone.dto';
 
 @Injectable({
@@ -180,5 +181,34 @@ export class AdministrativeZoneDataService {
 				return throwError(() => error);
 			})
 		);
+	}
+
+	/**
+	 * Bulk upload administrative zones by dzongkhag
+	 * @param dzongkhagId - The ID of the dzongkhag
+	 * @param file - GeoJSON FeatureCollection file to upload
+	 * @returns Observable of bulk upload response
+	 */
+	bulkUploadByDzongkhag(
+		dzongkhagId: number,
+		file: File
+	): Observable<BulkUploadResponse> {
+		const formData = new FormData();
+		formData.append('file', file);
+
+		return this.http
+			.post<BulkUploadResponse>(
+				`${this.apiUrl}/bulk-upload-geojson/by-dzongkhag/${dzongkhagId}`,
+				formData
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						'Error bulk uploading administrative zones:',
+						error
+					);
+					return throwError(() => error);
+				})
+			);
 	}
 }

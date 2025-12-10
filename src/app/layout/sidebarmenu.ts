@@ -63,7 +63,12 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin/master/enumeration-areas'],
 				roles: [USERROLESENUM.ADMIN],
 			},
-			
+			{
+				label: 'Auto KML Upload',
+				icon: 'pi pi-fw pi-cloud-upload',
+				routerLink: ['/admin/master/auto-kml-upload'],
+				roles: [USERROLESENUM.ADMIN],
+			},
 		],
 	},
 	{

@@ -75,3 +75,22 @@ export interface ApiResponse<T> {
 	message: string;
 	data: T;
 }
+
+/**
+ * Bulk Upload Response Interface
+ * Response from bulk upload operations for sub-administrative zones
+ */
+export interface BulkUploadResponse {
+	success: number;
+	skipped: number;
+	created: SubAdministrativeZone[];
+	skippedItems: Array<{
+		areaCode: string;
+		administrativeZoneId: number;
+		reason: string;
+	}>;
+	errors: Array<{
+		feature: any;
+		error: string;
+	}>;
+}

@@ -92,28 +92,12 @@
 							</p>
 						</div>
 
-						<!-- Household ID -->
-						<div class="form-field">
-							<label class="block text-sm font-semibold text-gray-900 mb-2">
-								Household ID <span class="text-red-500">*</span>
-							</label>
-							<input
-								type="text"
-								pInputText
-								[(ngModel)]="householdForm.householdIdentification"
-								name="householdIdentification"
-								[disabled]="submitting"
-								placeholder="e.g., HH-2024-001"
-								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
-								required
-							/>
-						</div>
+						
 
 						<!-- Serial Number -->
 						<div class="form-field">
 							<label class="block text-sm font-semibold text-gray-900 mb-2">
-								Serial Number <span class="text-red-500">*</span>
+								Household Serial Number <span class="text-red-500">*</span>
 							</label>
 							<input
 								type="number"
@@ -131,6 +115,24 @@
 								<i class="pi pi-info-circle mr-1"></i>
 								Sequential number for this household
 							</p>
+						</div>
+
+						<!-- Household ID -->
+						<div class="form-field">
+							<label class="block text-sm font-semibold text-gray-900 mb-2">
+								Household Identification 
+							</label>
+							<input
+								type="text"
+								pInputText
+								[(ngModel)]="householdForm.householdIdentification"
+								name="householdIdentification"
+								[disabled]="submitting"
+								placeholder="e.g., HH-2024-001"
+								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
+								required
+							/>
 						</div>
 
 						<!-- Head of Household -->

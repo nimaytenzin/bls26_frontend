@@ -6,6 +6,7 @@ import { map, catchError } from 'rxjs/operators';
 import { BASEAPI_URL } from '../../../constants/constants';
 import {
 	ApiResponse,
+	BulkUploadResponse,
 	CreateSubAdministrativeZoneDto,
 	SubAdministrativeZone,
 	SubAdministrativeZoneGeoJSON,
@@ -110,6 +111,52 @@ export class SubAdministrativeZoneDataService {
 	}
 
 	/**
+	 * Get all sub-administrative zones by dzongkhag ID
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @returns Observable<SubAdministrativeZone[]> - Array of sub-administrative zones
+	 */
+	findSubAdministrativeZonesByDzongkhag(
+		dzongkhagId: number
+	): Observable<SubAdministrativeZone[]> {
+		return this.http
+			.get<SubAdministrativeZone[]>(
+				`${this.apiUrl}/by-dzongkhag/${dzongkhagId}`
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						'Error fetching sub-administrative zones by dzongkhag:',
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get all sub-administrative zones by dzongkhag ID as GeoJSON
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @returns Observable<SubAdministrativeZoneGeoJSON> - GeoJSON FeatureCollection
+	 */
+	getSubAdministrativeZoneGeojsonByDzongkhag(
+		dzongkhagId: number
+	): Observable<SubAdministrativeZoneGeoJSON> {
+		return this.http
+			.get<SubAdministrativeZoneGeoJSON>(
+				`${this.apiUrl}/geojson/by-dzongkhag/${dzongkhagId}`
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						'Error fetching sub-administrative zone geojson by dzongkhag:',
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
 	 * Get sub-administrative zone by ID
 	 */
 	findSubAdministrativeZoneById(id: number): Observable<SubAdministrativeZone> {
@@ -203,6 +250,46 @@ export class SubAdministrativeZoneDataService {
 			.pipe(
 				catchError((error) => {
 					console.error('Error uploading geojson:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Bulk upload sub-administrative zones by administrative zone
+	 * Uploads a GeoJSON FeatureCollection file to create multiple sub-administrative zones
+	 * All features will be assigned to the specified administrative zone
+	 *
+	 * @param administrativeZoneId - The ID of the administrative zone
+	 * @param file - GeoJSON FeatureCollection file containing sub-administrative zone features
+	 * @returns Observable with bulk upload results including success count, skipped items, and errors
+	 *
+	 * @example
+	 * const file = event.target.files[0];
+	 * bulkUploadGeojsonByAdministrativeZone(5, file).subscribe({
+	 *   next: (response) => {
+	 *     console.log(`Created: ${response.success}, Skipped: ${response.skipped}`);
+	 *   }
+	 * });
+	 */
+	bulkUploadGeojsonByAdministrativeZone(
+		administrativeZoneId: number,
+		file: File
+	): Observable<BulkUploadResponse> {
+		const formData = new FormData();
+		formData.append('file', file);
+
+		return this.http
+			.post<BulkUploadResponse>(
+				`${this.apiUrl}/bulk-upload-geojson/by-administrative-zone/${administrativeZoneId}`,
+				formData
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						'Error bulk uploading sub-administrative zones:',
+						error
+					);
 					return throwError(() => error);
 				})
 			);

@@ -1,0 +1,22 @@
+/* Auto KML Upload Component Styles */
+
+/* Leaflet Map Styles */
+::host ::ng-deep .leaflet-container {
+	font-family: inherit;
+}
+
+::host ::ng-deep .leaflet-popup-content-wrapper {
+	border-radius: 8px;
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+::host ::ng-deep .leaflet-popup-content {
+	margin: 12px;
+	min-width: 200px;
+}
+
+::host ::ng-deep .leaflet-popup-content strong {
+	color: #1e293b;
+	font-weight: 600;
+}
+

@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -67,7 +67,8 @@ export class AdminEnumerationAreaDataViewerComponent
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
 		private dzongkhagService: DzongkhagDataService,
 		private messageService: MessageService,
-		private locationDownloadService: LocationDownloadService
+		private locationDownloadService: LocationDownloadService,
+		private location: Location,
 	) {}
 
 	ngOnInit() {

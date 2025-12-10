@@ -14,26 +14,34 @@ import {
 	FormGroup,
 	Validators,
 } from '@angular/forms';
+import { Observable } from 'rxjs';
 import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
+import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
 import {
 	SubAdministrativeZone,
 	CreateSubAdministrativeZoneDto,
 	UpdateSubAdministrativeZoneDto,
 	SubAdministrativeZoneType,
+	BulkUploadResponse,
 } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
 import { AdministrativeZone } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import { Dzongkhag } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import { Table } from 'primeng/table';
 import * as L from 'leaflet';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { BasemapService } from '../../../../core/utility/basemap.service';
+import { BulkUploadEaComponent } from '../admin-master-enumeration-areas/bulk-upload-ea/bulk-upload-ea.component';
+import { BulkUploadResponse as EABulkUploadResponse } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
+import { LocationSelectionService } from '../../../../core/services/location-selection.service';
 
 @Component({
 	selector: 'app-admin-master-sub-administrative-zones',
 	templateUrl: './admin-master-sub-administrative-zones.component.html',
 	styleUrls: ['./admin-master-sub-administrative-zones.component.css'],
 	standalone: true,
-	imports: [CommonModule, FormsModule, ReactiveFormsModule, PrimeNgModules],
+	imports: [CommonModule, FormsModule, ReactiveFormsModule, PrimeNgModules, BulkUploadEaComponent],
 	providers: [ConfirmationService, MessageService],
 })
 export class AdminMasterSubAdministrativeZonesComponent
@@ -46,13 +54,31 @@ export class AdminMasterSubAdministrativeZonesComponent
 	subAdministrativeZones: SubAdministrativeZone[] = [];
 	selectedSubAdministrativeZone: SubAdministrativeZone | null = null;
 	administrativeZones: AdministrativeZone[] = [];
+	selectedAdministrativeZone: AdministrativeZone | null = null;
+	dzongkhags: Dzongkhag[] = [];
+	selectedDzongkhag: Dzongkhag | null = null;
 	loading = false;
+	
+	// Data availability flags
+	noAdministrativeZones = false;
+	noSubAdministrativeZones = false;
+	noGeoJSON = false;
 
 	// Map properties
 	private map?: L.Map;
 	subAdministrativeZoneGeoJSON: any;
+	administrativeZoneGeoJSON: any;
 	private allSubAdministrativeZonesLayer?: L.GeoJSON;
+	private administrativeZonesLayer?: L.GeoJSON;
 	private baseLayer?: L.TileLayer;
+	showAdministrativeZoneLayer = false;
+
+	// Basemap properties
+	selectedBasemapId = 'positron'; // Default basemap
+	basemapCategories: Record<
+		string,
+		{ label: string; basemaps: Array<{ id: string; name: string }> }
+	> = {};
 
 
 	// Dialog states
@@ -68,6 +94,18 @@ export class AdminMasterSubAdministrativeZonesComponent
 	selectedFile: File | null = null;
 	uploadLoading = false;
 
+	// Bulk Upload Dialog
+	bulkUploadDialog = false;
+	bulkUploadFile: File | null = null;
+	selectedAdministrativeZoneForBulkUpload: AdministrativeZone | null = null;
+	bulkUploadLoading = false;
+	bulkUploadProgress = 0;
+	bulkUploadResults: BulkUploadResponse | null = null;
+
+	// Bulk Upload EA Dialog
+	bulkUploadEADialog = false;
+	selectedSubAdministrativeZoneForBulkUploadEA: SubAdministrativeZone | null = null;
+
 	// Enum for template access
 	SubAdministrativeZoneType = SubAdministrativeZoneType;
 	zoneTypes = Object.values(SubAdministrativeZoneType);
@@ -78,9 +116,12 @@ export class AdminMasterSubAdministrativeZonesComponent
 	constructor(
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
 		private administrativeZoneService: AdministrativeZoneDataService,
+		private dzongkhagService: DzongkhagDataService,
 		private fb: FormBuilder,
 		private messageService: MessageService,
-		private router: Router
+		private router: Router,
+		private basemapService: BasemapService,
+		private locationSelectionService: LocationSelectionService
 	) {
 		this.subAdministrativeZoneForm = this.fb.group({
 			name: ['', [Validators.required, Validators.minLength(2)]],
@@ -89,16 +130,61 @@ export class AdminMasterSubAdministrativeZonesComponent
 			type: ['', [Validators.required]],
 			areaSqKm: ['', [Validators.min(0)]],
 		});
+		
+		// Initialize basemap categories
+		this.basemapCategories = this.basemapService.getBasemapCategories();
 	}
 
 	ngOnInit() {
-		this.loadAdministrativeZones();
-		this.loadSubAdministrativeZones();
+		// Restore selections from service
+		const savedDzongkhag = this.locationSelectionService.getSelectedDzongkhag();
+		const savedAdministrativeZone = this.locationSelectionService.getSelectedAdministrativeZone();
+		const savedSubAdministrativeZone = this.locationSelectionService.getSelectedSubAdministrativeZone();
+		
+		if (savedDzongkhag) {
+			this.selectedDzongkhag = savedDzongkhag;
+		}
+		if (savedAdministrativeZone) {
+			this.selectedAdministrativeZone = savedAdministrativeZone;
+		}
+		if (savedSubAdministrativeZone) {
+			this.selectedSubAdministrativeZone = savedSubAdministrativeZone;
+		}
+		
+		this.loadDzongkhags();
+		
+		// Subscribe to selection changes
+		this.locationSelectionService.selectedDzongkhag$.subscribe((dzongkhag) => {
+			if (dzongkhag && dzongkhag.id !== this.selectedDzongkhag?.id) {
+				this.selectedDzongkhag = dzongkhag;
+				this.loadAdministrativeZones();
+				this.loadSubAdministrativeZones();
+				this.loadSubAdministrativeZoneGeoJSON();
+			}
+		});
+		
+		this.locationSelectionService.selectedAdministrativeZone$.subscribe((adminZone) => {
+			if (adminZone && adminZone.id !== this.selectedAdministrativeZone?.id) {
+				this.selectedAdministrativeZone = adminZone;
+				this.loadSubAdministrativeZones();
+				this.loadSubAdministrativeZoneGeoJSON();
+			}
+		});
+		
+		this.locationSelectionService.selectedSubAdministrativeZone$.subscribe((subAdminZone) => {
+			if (subAdminZone && subAdminZone.id !== this.selectedSubAdministrativeZone?.id) {
+				this.selectedSubAdministrativeZone = subAdminZone;
+			}
+		});
 	}
 
 	ngAfterViewInit() {
-		// Initialize map for split view
-		setTimeout(() => this.initializeMap(), 100);
+		// Initialize map if dzongkhag or administrative zone is already selected
+		if (this.selectedDzongkhag || this.selectedAdministrativeZone) {
+			setTimeout(() => {
+				this.initializeMap();
+			}, 300);
+		}
 	}
 
 	ngOnDestroy() {
@@ -107,53 +193,327 @@ export class AdminMasterSubAdministrativeZonesComponent
 		}
 	}
 
-	loadAdministrativeZones() {
-		this.administrativeZoneService.findAllAdministrativeZones().subscribe({
+	loadDzongkhags() {
+		this.dzongkhagService.findAllDzongkhags().subscribe({
 			next: (data) => {
-				this.administrativeZones = data;
+				this.dzongkhags = data;
+				// Restore saved dzongkhag if available, otherwise auto-select first
+				if (data && data.length > 0) {
+					if (this.selectedDzongkhag) {
+						// Find the saved dzongkhag in the list
+						const foundDzongkhag = data.find(d => d.id === this.selectedDzongkhag!.id);
+						if (foundDzongkhag) {
+							this.selectedDzongkhag = foundDzongkhag;
+							this.locationSelectionService.setSelectedDzongkhag(foundDzongkhag);
+						} else {
+							// Saved dzongkhag not found, use first one
+							this.selectedDzongkhag = data[0];
+							this.locationSelectionService.setSelectedDzongkhag(data[0]);
+						}
+					} else {
+						// No saved selection, auto-select first
+						this.selectedDzongkhag = data[0];
+						this.locationSelectionService.setSelectedDzongkhag(data[0]);
+					}
+					
+					// Load data and initialize map for the selected dzongkhag
+					this.loadAdministrativeZones();
+					this.loadSubAdministrativeZones();
+					this.loadSubAdministrativeZoneGeoJSON();
+					this.loadAdministrativeZoneGeoJSON();
+					// Initialize map after view is ready
+					setTimeout(() => {
+						this.initializeMap();
+					}, 300);
+				}
 			},
 			error: (error) => {
-				console.error('Error loading administrative zones:', error);
+				console.error('Error loading dzongkhags:', error);
 			},
 		});
 	}
 
-	loadSubAdministrativeZones() {
-		this.loading = true;
-		this.subAdministrativeZoneService
-			.findAllSubAdministrativeZones()
+	loadAdministrativeZones() {
+		if (!this.selectedDzongkhag) {
+			this.administrativeZones = [];
+			this.noAdministrativeZones = false;
+			return;
+		}
+
+		this.administrativeZoneService
+			.findAdministrativeZonesByDzongkhag(this.selectedDzongkhag.id)
 			.subscribe({
 				next: (data) => {
-					this.subAdministrativeZones = data;
+					this.administrativeZones = data || [];
+					this.noAdministrativeZones = !data || data.length === 0;
+					
+					// Restore saved administrative zone if available
+					const savedAdminZone = this.locationSelectionService.getSelectedAdministrativeZone();
+					if (savedAdminZone && data && data.find(az => az.id === savedAdminZone.id)) {
+						this.selectedAdministrativeZone = savedAdminZone;
+					}
+				},
+				error: (error) => {
+					console.error('Error loading administrative zones:', error);
+					this.administrativeZones = [];
+					this.noAdministrativeZones = true;
+				},
+			});
+	}
+
+	loadSubAdministrativeZones() {
+		// If administrative zone is selected, load by administrative zone
+		if (this.selectedAdministrativeZone) {
+			this.loading = true;
+			this.noSubAdministrativeZones = false;
+			this.subAdministrativeZoneService
+				.findSubAdministrativeZonesByAdministrativeZone(
+					this.selectedAdministrativeZone.id
+				)
+				.subscribe({
+					next: (data) => {
+						this.subAdministrativeZones = data || [];
+						this.noSubAdministrativeZones = !data || data.length === 0;
+						this.loading = false;
+						
+						// Restore saved sub-administrative zone if available
+						const savedSubAdminZone = this.locationSelectionService.getSelectedSubAdministrativeZone();
+						if (savedSubAdminZone && data && data.find(saz => saz.id === savedSubAdminZone.id)) {
+							this.selectedSubAdministrativeZone = savedSubAdminZone;
+						}
+					},
+					error: (error) => {
+						this.loading = false;
+						this.subAdministrativeZones = [];
+						this.noSubAdministrativeZones = true;
+						console.error('Error loading sub-administrative zones:', error);
+					},
+				});
+			return;
+		}
+
+		// Otherwise, load by dzongkhag
+		if (!this.selectedDzongkhag) {
+			this.subAdministrativeZones = [];
+			this.noSubAdministrativeZones = false;
+			return;
+		}
+
+		this.loading = true;
+		this.noSubAdministrativeZones = false;
+		this.subAdministrativeZoneService
+			.findSubAdministrativeZonesByDzongkhag(this.selectedDzongkhag.id)
+			.subscribe({
+				next: (data) => {
+					this.subAdministrativeZones = data || [];
+					this.noSubAdministrativeZones = !data || data.length === 0;
 					this.loading = false;
+					
+					// Restore saved sub-administrative zone if available
+					const savedSubAdminZone = this.locationSelectionService.getSelectedSubAdministrativeZone();
+					if (savedSubAdminZone && data && data.find(saz => saz.id === savedSubAdminZone.id)) {
+						this.selectedSubAdministrativeZone = savedSubAdminZone;
+					}
 				},
 				error: (error) => {
 					this.loading = false;
+					this.subAdministrativeZones = [];
+					this.noSubAdministrativeZones = true;
 					console.error('Error loading sub-administrative zones:', error);
 				},
 			});
 	}
 
 	loadSubAdministrativeZoneGeoJSON() {
-		this.subAdministrativeZoneService
-			.getAllSubAdministrativeZoneGeojson()
+		// Reset state
+		this.subAdministrativeZoneGeoJSON = null;
+		this.noGeoJSON = false;
+
+		// Determine which service method to use
+		let request: Observable<any>;
+		
+		if (this.selectedAdministrativeZone) {
+			request = this.subAdministrativeZoneService
+				.getSubAdministrativeZoneGeojsonByAdministrativeZone(
+					this.selectedAdministrativeZone.id
+				);
+		} else if (this.selectedDzongkhag) {
+			request = this.subAdministrativeZoneService
+				.getSubAdministrativeZoneGeojsonByDzongkhag(this.selectedDzongkhag.id);
+		} else {
+			// No selection - clear map and return
+			this.clearMapLayer();
+			return;
+		}
+
+		// Load GeoJSON data
+		request.subscribe({
+			next: (data) => {
+				if (this.isEmptyGeoJSON(data)) {
+					this.handleEmptyGeoJSON();
+				} else {
+					this.subAdministrativeZoneGeoJSON = data;
+					this.noGeoJSON = false;
+					if (this.map) {
+						setTimeout(() => this.renderAllSubAdministrativeZones(), 150);
+					}
+				}
+			},
+			error: (error) => {
+				console.error('Error loading GeoJSON:', error);
+				this.handleEmptyGeoJSON();
+			},
+		});
+	}
+
+	/**
+	 * Check if GeoJSON data is empty
+	 */
+	private isEmptyGeoJSON(data: any): boolean {
+		return !data || 
+			typeof data !== 'object' ||
+			!data.features || 
+			!Array.isArray(data.features) || 
+			data.features.length === 0;
+	}
+
+	/**
+	 * Handle empty GeoJSON response
+	 */
+	private handleEmptyGeoJSON() {
+		this.subAdministrativeZoneGeoJSON = null;
+		this.noGeoJSON = true;
+		this.clearMapLayer();
+	}
+
+	/**
+	 * Clear map layer if it exists
+	 */
+	private clearMapLayer() {
+		if (this.map && this.allSubAdministrativeZonesLayer) {
+			this.map.removeLayer(this.allSubAdministrativeZonesLayer);
+			this.allSubAdministrativeZonesLayer = undefined;
+		}
+	}
+
+	loadAdministrativeZoneGeoJSON() {
+		if (!this.selectedDzongkhag) {
+			this.administrativeZoneGeoJSON = null;
+			return;
+		}
+
+		this.administrativeZoneService
+			.getAdministrativeZoneGeojsonByDzongkhag(this.selectedDzongkhag.id)
 			.subscribe({
 				next: (data) => {
-					this.subAdministrativeZoneGeoJSON = data;
-					if (this.map) {
-						this.renderAllSubAdministrativeZones();
+					this.administrativeZoneGeoJSON = data;
+					if (this.map && this.showAdministrativeZoneLayer) {
+						this.renderAdministrativeZoneLayer();
 					}
 				},
 				error: (error) => {
-					console.error(
-						'Error loading sub-administrative zone GeoJSON:',
-						error
-					);
+					console.error('Error loading administrative zone GeoJSON:', error);
 				},
 			});
 	}
 
+	onDzongkhagChange() {
+		// Reset administrative zone selection when dzongkhag changes
+		this.selectedAdministrativeZone = null;
+		
+		// Reset selections
+		this.selectedSubAdministrativeZone = null;
+		this.subAdministrativeZones = [];
+		this.subAdministrativeZoneGeoJSON = null;
+		this.administrativeZoneGeoJSON = null;
+		
+		// Reset data availability flags
+		this.noAdministrativeZones = false;
+		this.noSubAdministrativeZones = false;
+		this.noGeoJSON = false;
+
+		// Clear map
+		if (this.map) {
+			if (this.allSubAdministrativeZonesLayer) {
+				this.map.removeLayer(this.allSubAdministrativeZonesLayer);
+				this.allSubAdministrativeZonesLayer = undefined;
+			}
+			if (this.administrativeZonesLayer) {
+				this.map.removeLayer(this.administrativeZonesLayer);
+				this.administrativeZonesLayer = undefined;
+			}
+			this.map.remove();
+			this.map = undefined;
+		}
+
+		// Load data for selected dzongkhag
+		if (this.selectedDzongkhag) {
+			this.loadAdministrativeZones();
+			this.loadSubAdministrativeZones();
+			this.loadSubAdministrativeZoneGeoJSON();
+			this.loadAdministrativeZoneGeoJSON();
+			// Initialize map after a short delay to ensure container is ready
+			setTimeout(() => {
+				this.initializeMap();
+			}, 300);
+		}
+	}
+
+	onAdministrativeZoneChange() {
+		// Save selection to service
+		if (this.selectedAdministrativeZone) {
+			this.locationSelectionService.setSelectedAdministrativeZone(this.selectedAdministrativeZone);
+		}
+		
+		// Reset selections
+		this.selectedSubAdministrativeZone = null;
+		this.locationSelectionService.setSelectedSubAdministrativeZone(null);
+		this.subAdministrativeZones = [];
+		this.subAdministrativeZoneGeoJSON = null;
+		
+		// Reset data availability flags
+		this.noSubAdministrativeZones = false;
+		this.noGeoJSON = false;
+
+		// Clear map layers
+		if (this.map) {
+			if (this.allSubAdministrativeZonesLayer) {
+				this.map.removeLayer(this.allSubAdministrativeZonesLayer);
+				this.allSubAdministrativeZonesLayer = undefined;
+			}
+		}
+
+		// Load data for selected administrative zone
+		if (this.selectedAdministrativeZone) {
+			this.loadSubAdministrativeZones();
+			this.loadSubAdministrativeZoneGeoJSON();
+			// Initialize map if not already initialized
+			if (!this.map) {
+				setTimeout(() => {
+					this.initializeMap();
+				}, 300);
+			} else {
+				// Map exists, just render the data
+				setTimeout(() => {
+					if (this.subAdministrativeZoneGeoJSON) {
+						this.renderAllSubAdministrativeZones();
+					}
+				}, 150);
+			}
+		} else {
+			// Administrative zone cleared, reload by dzongkhag if selected
+			if (this.selectedDzongkhag) {
+				this.loadSubAdministrativeZones();
+				this.loadSubAdministrativeZoneGeoJSON();
+			}
+		}
+	}
+
 	reloadMap() {
+		if (!this.selectedDzongkhag && !this.selectedAdministrativeZone) {
+			return;
+		}
+
 		this.subAdministrativeZoneGeoJSON = undefined;
 
 		if (this.map) {
@@ -167,6 +527,10 @@ export class AdminMasterSubAdministrativeZonesComponent
 			setTimeout(() => this.initializeMap(containerId), 100);
 		} else {
 			this.loadSubAdministrativeZoneGeoJSON();
+			if (this.selectedDzongkhag) {
+				this.administrativeZoneGeoJSON = undefined;
+				this.loadAdministrativeZoneGeoJSON();
+			}
 		}
 	}
 
@@ -177,6 +541,13 @@ export class AdminMasterSubAdministrativeZonesComponent
 			console.warn(
 				`Map container '${containerId}' not found. Skipping map initialization.`
 			);
+			return;
+		}
+
+		// Check if container has dimensions
+		if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+			console.warn('Map container has no dimensions. Retrying...');
+			setTimeout(() => this.initializeMap(containerId), 100);
 			return;
 		}
 
@@ -191,44 +562,91 @@ export class AdminMasterSubAdministrativeZonesComponent
 			attributionControl: false,
 		});
 
-		this.baseLayer = L.tileLayer(
-			'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-			{
+		// Use basemap service for base layer
+		this.baseLayer =
+			this.basemapService.createTileLayer(this.selectedBasemapId) ||
+			L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 				maxZoom: 19,
 				attribution: '© OpenStreetMap contributors',
-			}
-		);
+			});
 		this.baseLayer.addTo(this.map);
 
-		if (!this.subAdministrativeZoneGeoJSON) {
-			this.loadSubAdministrativeZoneGeoJSON();
-		} else {
-			this.renderAllSubAdministrativeZones();
+		// Invalidate map size to ensure proper rendering
+		setTimeout(() => {
+			if (this.map) {
+				this.map.invalidateSize();
+			}
+		}, 100);
+
+		if (this.selectedDzongkhag || this.selectedAdministrativeZone) {
+			if (!this.subAdministrativeZoneGeoJSON) {
+				this.loadSubAdministrativeZoneGeoJSON();
+			} else {
+				// Small delay to ensure map is fully initialized
+				setTimeout(() => {
+					this.renderAllSubAdministrativeZones();
+				}, 150);
+			}
+
+			if (this.selectedDzongkhag) {
+				if (this.showAdministrativeZoneLayer && !this.administrativeZoneGeoJSON) {
+					this.loadAdministrativeZoneGeoJSON();
+				} else if (this.showAdministrativeZoneLayer && this.administrativeZoneGeoJSON) {
+					setTimeout(() => {
+						this.renderAdministrativeZoneLayer();
+					}, 150);
+				}
+			}
 		}
 	}
 
 	private renderAllSubAdministrativeZones() {
-		if (!this.map || !this.subAdministrativeZoneGeoJSON) return;
+		if (!this.map || !this.subAdministrativeZoneGeoJSON) {
+			this.noGeoJSON = !this.subAdministrativeZoneGeoJSON;
+			return;
+		}
+
+		// Check if empty
+		if (this.isEmptyGeoJSON(this.subAdministrativeZoneGeoJSON)) {
+			this.handleEmptyGeoJSON();
+			return;
+		}
+
+		// Validate structure
+		if (!this.isValidGeoJSON(this.subAdministrativeZoneGeoJSON)) {
+			console.error('Invalid GeoJSON data structure');
+			this.handleEmptyGeoJSON();
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Invalid Data',
+				detail: 'The map data is invalid or corrupted',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.noGeoJSON = false;
 
 		if (this.allSubAdministrativeZonesLayer) {
 			this.map.removeLayer(this.allSubAdministrativeZonesLayer);
 		}
 
-		this.allSubAdministrativeZonesLayer = L.geoJSON(
-			this.subAdministrativeZoneGeoJSON,
-			{
-				style: (feature) => ({
-					fillColor:
-						feature?.properties?.type === 'lap' ? '#F59E0B' : '#8B5CF6',
-					fillOpacity: 0.3,
-					color: feature?.properties?.type === 'lap' ? '#D97706' : '#7C3AED',
-					weight: 2,
-					opacity: 1,
-				}),
-				onEachFeature: (feature, layer) => {
-					const props = feature.properties;
+		try {
+			this.allSubAdministrativeZonesLayer = L.geoJSON(
+				this.subAdministrativeZoneGeoJSON,
+				{
+					style: (feature) => ({
+						fillColor:
+							feature?.properties?.type === 'lap' ? '#F59E0B' : '#8B5CF6',
+						fillOpacity: 0.3,
+						color: feature?.properties?.type === 'lap' ? '#D97706' : '#7C3AED',
+						weight: 2,
+						opacity: 1,
+					}),
+					onEachFeature: (feature, layer) => {
+						const props = feature.properties;
 
-					layer.bindPopup(`
+						layer.bindPopup(`
 <div style="padding: 12px; min-width: 200px;">
   <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #111827;">${
 		props.name
@@ -247,33 +665,157 @@ export class AdminMasterSubAdministrativeZonesComponent
 </div>
 `);
 
-					layer.bindTooltip(props.name, {
-						permanent: false,
-						direction: 'top',
-					});
-
-					layer.on('click', () => {
-						this.selectSubAdministrativeZoneFromMap(props);
-					});
-
-					layer.on('mouseover', () => {
-						(layer as any).setStyle({
-							fillOpacity: 0.7,
-							weight: 3,
+						layer.bindTooltip(props.name, {
+							permanent: false,
+							direction: 'top',
 						});
-					});
 
-					layer.on('mouseout', () => {
-						if (this.allSubAdministrativeZonesLayer) {
-							this.allSubAdministrativeZonesLayer.resetStyle(layer as any);
-						}
-					});
-				},
+						layer.on('click', () => {
+							this.selectSubAdministrativeZoneFromMap(props);
+						});
+
+						layer.on('mouseover', () => {
+							(layer as any).setStyle({
+								fillOpacity: 0.7,
+								weight: 3,
+							});
+						});
+
+						layer.on('mouseout', () => {
+							if (this.allSubAdministrativeZonesLayer) {
+								this.allSubAdministrativeZonesLayer.resetStyle(layer as any);
+							}
+						});
+					},
+				}
+			);
+
+			this.allSubAdministrativeZonesLayer.addTo(this.map);
+
+			// Safely fit bounds
+			try {
+				const bounds = this.allSubAdministrativeZonesLayer.getBounds();
+				if (bounds.isValid()) {
+					this.map.fitBounds(bounds);
+				}
+			} catch (error) {
+				console.warn('Could not fit bounds:', error);
 			}
-		);
+		} catch (error) {
+			console.error('Error rendering sub-administrative zones:', error);
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Rendering Error',
+				detail: 'Failed to render map features. Please check the data format.',
+				life: 3000,
+			});
+		}
+	}
 
-		this.allSubAdministrativeZonesLayer.addTo(this.map);
-		this.map.fitBounds(this.allSubAdministrativeZonesLayer.getBounds());
+	private renderAdministrativeZoneLayer() {
+		if (!this.map || !this.administrativeZoneGeoJSON || !this.showAdministrativeZoneLayer) {
+			return;
+		}
+
+		// Validate GeoJSON structure
+		if (!this.isValidGeoJSON(this.administrativeZoneGeoJSON)) {
+			console.error('Invalid Administrative Zone GeoJSON data structure');
+			return;
+		}
+
+		if (this.administrativeZonesLayer) {
+			this.map.removeLayer(this.administrativeZonesLayer);
+		}
+
+		try {
+			this.administrativeZonesLayer = L.geoJSON(
+				this.administrativeZoneGeoJSON,
+				{
+					style: (feature) => ({
+						fillColor: feature?.properties?.type === 'Thromde' ? '#10B981' : '#3B82F6',
+						fillOpacity: 0.2,
+						color: feature?.properties?.type === 'Thromde' ? '#059669' : '#1D4ED8',
+						weight: 2,
+						opacity: 0.8,
+					}),
+					onEachFeature: (feature, layer) => {
+						const props = feature.properties;
+						layer.bindTooltip(props.name || 'N/A', {
+							permanent: false,
+							direction: 'top',
+						});
+					},
+				}
+			);
+
+			// Add to map but ensure SAZ layer is on top
+			this.administrativeZonesLayer.addTo(this.map);
+
+			// Move administrative zones layer to back
+			this.administrativeZonesLayer.bringToBack();
+		} catch (error) {
+			console.error('Error rendering administrative zone layer:', error);
+		}
+	}
+
+	toggleAdministrativeZoneLayer() {
+		this.showAdministrativeZoneLayer = !this.showAdministrativeZoneLayer;
+
+		if (this.showAdministrativeZoneLayer) {
+			if (!this.administrativeZoneGeoJSON) {
+				this.loadAdministrativeZoneGeoJSON();
+			} else {
+				this.renderAdministrativeZoneLayer();
+			}
+		} else {
+			if (this.administrativeZonesLayer && this.map) {
+				this.map.removeLayer(this.administrativeZonesLayer);
+				this.administrativeZonesLayer = undefined;
+			}
+		}
+	}
+
+	/**
+	 * Validate GeoJSON structure
+	 */
+	private isValidGeoJSON(geojson: any): boolean {
+		if (!geojson) return false;
+
+		// Check if it's a FeatureCollection
+		if (geojson.type === 'FeatureCollection') {
+			if (!Array.isArray(geojson.features)) return false;
+			// Validate each feature has valid geometry
+			return geojson.features.every((feature: any) => {
+				return (
+					feature &&
+					feature.type === 'Feature' &&
+					feature.geometry &&
+					feature.geometry.type &&
+					feature.geometry.coordinates &&
+					Array.isArray(feature.geometry.coordinates)
+				);
+			});
+		}
+
+		// Check if it's a single Feature
+		if (geojson.type === 'Feature') {
+			return (
+				geojson.geometry &&
+				geojson.geometry.type &&
+				geojson.geometry.coordinates &&
+				Array.isArray(geojson.geometry.coordinates)
+			);
+		}
+
+		// Check if it's a Geometry object
+		if (geojson.type && ['Point', 'LineString', 'Polygon', 'MultiPolygon'].includes(geojson.type)) {
+			return (
+				geojson.coordinates &&
+				Array.isArray(geojson.coordinates)
+			);
+		}
+
+		return false;
 	}
 
 	selectSubAdministrativeZoneFromMap(properties: any) {
@@ -282,17 +824,38 @@ export class AdminMasterSubAdministrativeZonesComponent
 		);
 		if (zone) {
 			this.selectedSubAdministrativeZone = zone;
+			this.locationSelectionService.setSelectedSubAdministrativeZone(zone);
 		}
 	}
 
 	// Table Functions
 	selectSubAdministrativeZone(zone: SubAdministrativeZone) {
 		this.selectedSubAdministrativeZone = zone;
+		this.locationSelectionService.setSelectedSubAdministrativeZone(zone);
 	}
 
 	// CRUD Operations
 	openNew() {
+		if (!this.selectedDzongkhag && !this.selectedAdministrativeZone) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Please select a dzongkhag or administrative zone first',
+				life: 3000,
+			});
+			return;
+		}
 		this.subAdministrativeZoneForm.reset();
+		// Pre-fill administrative zones for selected dzongkhag
+		if (this.selectedDzongkhag) {
+			this.loadAdministrativeZones();
+		}
+		// Pre-select administrative zone if one is selected
+		if (this.selectedAdministrativeZone) {
+			this.subAdministrativeZoneForm.patchValue({
+				administrativeZoneId: this.selectedAdministrativeZone.id,
+			});
+		}
 		this.isEditMode = false;
 		this.subAdministrativeZoneDialog = true;
 	}
@@ -325,6 +888,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 				.subscribe({
 					next: () => {
 						this.loadSubAdministrativeZones();
+						this.loadSubAdministrativeZoneGeoJSON();
 						this.subAdministrativeZoneDialog = false;
 						this.messageService.add({
 							severity: 'success',
@@ -350,6 +914,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 				.subscribe({
 					next: () => {
 						this.loadSubAdministrativeZones();
+						this.loadSubAdministrativeZoneGeoJSON();
 						this.subAdministrativeZoneDialog = false;
 						this.messageService.add({
 							severity: 'success',
@@ -383,6 +948,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 				.subscribe({
 					next: () => {
 						this.loadSubAdministrativeZones();
+						this.loadSubAdministrativeZoneGeoJSON();
 						this.deleteDialog = false;
 						this.selectedSubAdministrativeZone = null;
 						this.messageService.add({
@@ -437,6 +1003,15 @@ export class AdminMasterSubAdministrativeZonesComponent
 		).length;
 	}
 
+	get geoJSONFeatureCount(): number {
+		if (!this.subAdministrativeZoneGeoJSON || !this.subAdministrativeZoneGeoJSON.features) {
+			return 0;
+		}
+		return Array.isArray(this.subAdministrativeZoneGeoJSON.features)
+			? this.subAdministrativeZoneGeoJSON.features.length
+			: 0;
+	}
+
 	onRowSelect(event: any) {
 		if (event.data) {
 			this.selectSubAdministrativeZone(event.data);
@@ -452,6 +1027,13 @@ export class AdminMasterSubAdministrativeZonesComponent
 		}
 	}
 
+	clearSearch(): void {
+		this.globalFilterValue = '';
+		if (this.dtSplit) {
+			this.dtSplit.filterGlobal('', 'contains');
+		}
+	}
+
 	getSafeAreaValue(area: any): number {
 		const value = typeof area === 'string' ? parseFloat(area) : area;
 		return isNaN(value) ? 0 : value;
@@ -462,6 +1044,11 @@ export class AdminMasterSubAdministrativeZonesComponent
 			(z) => z.id === administrativeZoneId
 		);
 		return zone?.name || 'N/A';
+	}
+
+	getDzongkhagName(dzongkhagId: number): string {
+		const dzongkhag = this.dzongkhags.find((d) => d.id === dzongkhagId);
+		return dzongkhag?.name || 'N/A';
 	}
 
 	hasFormError(field: string): boolean {
@@ -485,6 +1072,31 @@ export class AdminMasterSubAdministrativeZonesComponent
 		this.selectedSubAdministrativeZone = zone;
 		this.selectedFile = null;
 		this.uploadGeojsonDialog = true;
+	}
+
+	openBulkUploadEA(zone: SubAdministrativeZone) {
+		this.selectedSubAdministrativeZoneForBulkUploadEA = zone;
+		this.bulkUploadEADialog = true;
+	}
+
+	closeBulkUploadEADialog() {
+		this.bulkUploadEADialog = false;
+		this.selectedSubAdministrativeZoneForBulkUploadEA = null;
+	}
+
+	onBulkUploadEASuccess(response: EABulkUploadResponse) {
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Bulk Upload Complete',
+			detail: `Successfully processed ${response.success} enumeration area(s)`,
+			life: 5000,
+		});
+		// Optionally refresh data if needed
+		// this.loadSubAdministrativeZones();
+	}
+
+	onBulkUploadEACancel() {
+		this.closeBulkUploadEADialog();
 	}
 
 	onFileSelect(event: any) {
@@ -517,6 +1129,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 					this.uploadGeojsonDialog = false;
 					this.selectedFile = null;
 					this.loadSubAdministrativeZones();
+					this.loadSubAdministrativeZoneGeoJSON();
 					this.messageService.add({
 						severity: 'success',
 						summary: 'Success',
@@ -537,8 +1150,174 @@ export class AdminMasterSubAdministrativeZonesComponent
 			});
 	}
 
+	// Bulk Upload Methods
+	openBulkUploadDialog() {
+		this.bulkUploadDialog = true;
+		this.bulkUploadFile = null;
+		// Pre-fill with selected administrative zone if available
+		this.selectedAdministrativeZoneForBulkUpload = this.selectedAdministrativeZone;
+		this.bulkUploadResults = null;
+		this.bulkUploadProgress = 0;
+		// Load administrative zones if not already loaded
+		if (this.selectedDzongkhag && this.administrativeZones.length === 0) {
+			this.loadAdministrativeZones();
+		}
+	}
+
+	closeBulkUploadDialog() {
+		this.bulkUploadDialog = false;
+		this.bulkUploadFile = null;
+		this.selectedAdministrativeZoneForBulkUpload = null;
+		this.bulkUploadResults = null;
+		this.bulkUploadProgress = 0;
+	}
+
+	onBulkUploadFileSelect(event: any) {
+		const file = event.files?.[0];
+		if (file) {
+			// Validate file type
+			if (!file.name.endsWith('.json') && !file.name.endsWith('.geojson')) {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Invalid File Type',
+					detail: 'Please select a .json or .geojson file',
+					life: 3000,
+				});
+				return;
+			}
+
+			// Validate file size (50MB limit)
+			if (file.size > 50 * 1024 * 1024) {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'File Too Large',
+					detail: 'File size exceeds 50MB limit',
+					life: 3000,
+				});
+				return;
+			}
+
+			this.bulkUploadFile = file;
+			this.bulkUploadResults = null;
+		}
+	}
+
+	onBulkUploadFileRemove() {
+		this.bulkUploadFile = null;
+		this.bulkUploadResults = null;
+	}
+
+	uploadBulkSubAdministrativeZones() {
+		// Use selected administrative zone from dialog or main view
+		const administrativeZoneToUse = this.selectedAdministrativeZoneForBulkUpload || this.selectedAdministrativeZone;
+		
+		if (!administrativeZoneToUse) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Please select an Administrative Zone',
+				life: 3000,
+			});
+			return;
+		}
+
+		if (!this.bulkUploadFile) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Please select a GeoJSON file to upload',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.bulkUploadLoading = true;
+		this.bulkUploadProgress = 0;
+		this.bulkUploadResults = null;
+
+		this.subAdministrativeZoneService
+			.bulkUploadGeojsonByAdministrativeZone(
+				administrativeZoneToUse.id,
+				this.bulkUploadFile
+			)
+			.subscribe({
+				next: (response: BulkUploadResponse) => {
+					this.bulkUploadLoading = false;
+					this.bulkUploadProgress = 100;
+					this.bulkUploadResults = response;
+
+					// Show success messages
+					if (response.success > 0) {
+						this.messageService.add({
+							severity: 'success',
+							summary: 'Upload Complete',
+							detail: `Successfully created ${response.success} chiwog/LAP(s)`,
+							life: 5000,
+						});
+					}
+
+					if (response.skipped > 0) {
+						this.messageService.add({
+							severity: 'info',
+							summary: 'Items Skipped',
+							detail: `${response.skipped} chiwog/LAP(s) already exist and were skipped`,
+							life: 5000,
+						});
+					}
+
+					if (response.errors.length > 0) {
+						this.messageService.add({
+							severity: 'warn',
+							summary: 'Errors Encountered',
+							detail: `${response.errors.length} feature(s) failed to process`,
+							life: 5000,
+						});
+					}
+
+					// Refresh data
+					this.loadSubAdministrativeZones();
+					this.loadSubAdministrativeZoneGeoJSON();
+				},
+				error: (error) => {
+					this.bulkUploadLoading = false;
+					this.bulkUploadProgress = 0;
+					console.error('Error bulk uploading sub-administrative zones:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Upload Failed',
+						detail:
+							error?.error?.message ||
+							'Failed to upload chiwogs/LAPs. Please try again.',
+						life: 5000,
+					});
+				},
+			});
+	}
+
 	// Navigate to sub-administrative zone detail viewer
 	viewSubAdministrativeZoneDetails(zone: SubAdministrativeZone) {
 		this.router.navigate(['/admin/data-view/sub-admzone', zone.id]);
+	}
+
+	switchBasemap(): void {
+		if (!this.map || !this.basemapService.hasBasemap(this.selectedBasemapId)) {
+			console.error(`Basemap ${this.selectedBasemapId} not found`);
+			return;
+		}
+
+		// Remove existing basemap layer
+		if (this.baseLayer) {
+			this.map.removeLayer(this.baseLayer);
+			this.baseLayer = undefined;
+		}
+
+		// Add new basemap layer
+		this.baseLayer =
+			this.basemapService.createTileLayer(this.selectedBasemapId) || undefined;
+
+		if (this.baseLayer) {
+			this.baseLayer.addTo(this.map);
+			this.baseLayer.bringToBack();
+		}
 	}
 }

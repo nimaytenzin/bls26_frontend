@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -55,6 +55,39 @@ export class EnumerationAreaDataService {
 	}
 
 	/**
+	 * Get all enumeration areas by administrative zone ID
+	 * @param administrativeZoneId - Administrative zone ID
+	 * @param withGeom - Include geometry (default: false)
+	 * @param includeSubAdminZone - Include sub-administrative zone data (default: false)
+	 * @returns Observable<EnumerationArea[]> - Array of enumeration areas
+	 */
+	findByAdministrativeZone(
+		administrativeZoneId: number,
+		withGeom: boolean = false,
+		includeSubAdminZone: boolean = false
+	): Observable<EnumerationArea[]> {
+		let params = new HttpParams();
+		if (withGeom) params = params.set('withGeom', 'true');
+		if (includeSubAdminZone)
+			params = params.set('includeSubAdminZone', 'true');
+
+		return this.http
+			.get<EnumerationArea[]>(
+				`${this.apiUrl}/by-administrative-zone/${administrativeZoneId}`,
+				{ params }
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						'Error fetching enumeration areas by administrative zone:',
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
 	 * Get all enumeration areas as GeoJSON
 	 */
 	getAllEnumerationAreaGeojson(): Observable<EnumerationAreaGeoJSON> {
@@ -96,6 +129,29 @@ export class EnumerationAreaDataService {
 				catchError((error) => {
 					console.error(
 						'Error fetching enumeration area geojson by sub-administrative zone:',
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get all enumeration areas by administrative zone ID as GeoJSON
+	 * @param administrativeZoneId - Administrative zone ID
+	 * @returns Observable<EnumerationAreaGeoJSON> - GeoJSON FeatureCollection
+	 */
+	findAllAsGeoJsonByAdministrativeZone(
+		administrativeZoneId: number
+	): Observable<EnumerationAreaGeoJSON> {
+		return this.http
+			.get<EnumerationAreaGeoJSON>(
+				`${this.apiUrl}/geojson/by-administrative-zone/${administrativeZoneId}`
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						'Error fetching enumeration area geojson by administrative zone:',
 						error
 					);
 					return throwError(() => error);

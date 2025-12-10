@@ -36,17 +36,28 @@
 						Dzongkhag List
 					</h2>
 					<div class="flex items-center gap-3">
-						<span class="p-input-icon-left">
-							<i class="pi pi-search"></i>
+						<p-inputGroup class="w-auto">
+							<p-inputGroupAddon>
+								<i class="pi pi-search"></i>
+							</p-inputGroupAddon>
 							<input
 								pInputText
 								type="text"
 								[(ngModel)]="globalFilterValue"
 								placeholder="Search dzongkhags..."
-								class="p-inputtext-sm"
 								(input)="onGlobalFilter($event)"
 							/>
-						</span>
+							<p-inputGroupAddon *ngIf="globalFilterValue">
+								<button
+									pButton
+									type="button"
+									icon="pi pi-times"
+									class="p-button-text "
+									(click)="clearSearch()"
+									pTooltip="Clear search"
+								></button>
+							</p-inputGroupAddon>
+						</p-inputGroup>
 					</div>
 				</div>
 			</div>
@@ -162,14 +173,36 @@
 						<h2 class="text-lg font-semibold text-slate-900">Geographic View</h2>
 						<p class="text-xs text-slate-600 mt-1">Click on dzongkhags to view details</p>
 					</div>
-					<button
-						type="button"
-						(click)="reloadMap()"
-						class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 transition-colors"
-						pTooltip="Reload Map"
-					>
-						<i class="pi pi-refresh text-sm"></i>
-					</button>
+					<div class="flex items-center gap-2">
+						<!-- Basemap Selector -->
+						<select
+							[(ngModel)]="selectedBasemapId"
+							(change)="switchBasemap()"
+							class="text-sm border border-slate-300 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 w-48"
+						>
+							<ng-container
+								*ngFor="let category of basemapCategories | keyvalue"
+							>
+								<optgroup [label]="category.value.label">
+									<option
+										*ngFor="let basemap of category.value.basemaps"
+										[value]="basemap.id"
+									>
+										{{ basemap.name }}
+									</option>
+								</optgroup>
+							</ng-container>
+						</select>
+						
+						<button
+							type="button"
+							(click)="reloadMap()"
+							class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 transition-colors"
+							pTooltip="Reload Map"
+						>
+							<i class="pi pi-refresh text-sm"></i>
+						</button>
+					</div>
 				</div>
 			</div>
 

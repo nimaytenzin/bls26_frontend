@@ -1,0 +1,399 @@
+<!-- Toast Messages -->
+<p-toast></p-toast>
+
+<!-- Auto KML Upload Management -->
+<div class="h-[calc(100vh-5rem)] bg-white flex flex-col">
+	<!-- Header Section -->
+	<div class="p-6 border-b border-slate-200 flex-shrink-0">
+		<div class="flex justify-between items-center">
+			<div>
+				<h1 class="text-3xl font-semibold text-slate-900">
+					Auto KML by LAP/Chiwog Uploader
+				</h1>
+				<p class="text-sm text-slate-600 mt-1">
+					Auto upload KML files to create SAZ and EAs in one complete workflow
+				</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Content Area -->
+	<div class="flex-1 overflow-auto p-6">
+		<div class="max-w-6xl mx-auto space-y-8">
+			<!-- Auto KML Upload Section -->
+			<div class="bg-white border border-slate-200 rounded-lg shadow-sm">
+				<div class="p-6 border-b border-slate-200">
+					<div class="flex items-center gap-3">
+						<div
+							class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"
+						>
+							<i class="pi pi-cloud-upload text-purple-600 text-xl"></i>
+						</div>
+						<div>
+							<h2 class="text-xl font-semibold text-slate-900">
+								Auto KML Upload
+							</h2>
+							<p class="text-sm text-slate-600">
+								Complete workflow: Convert KML → Create SAZ → Upload EAs
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="p-6 space-y-6">
+					<!-- File Upload -->
+					<div>
+						<label class="block text-sm font-medium text-slate-700 mb-2">
+							Select KML File <span class="text-red-500">*</span>
+						</label>
+						<p-fileUpload
+							mode="basic"
+							[auto]="false"
+							accept=".kml,.kmz"
+							[maxFileSize]="50000000"
+							chooseLabel="Choose KML File"
+							chooseIcon="pi pi-cloud-upload"
+							(onSelect)="onAutoUploadKmlFileSelect($event)"
+							(onRemove)="onAutoUploadKmlFileRemove()"
+							[showUploadButton]="false"
+							[showCancelButton]="false"
+							styleClass="w-full"
+							[disabled]="autoUploadLoading"
+						></p-fileUpload>
+						<small class="text-slate-500 mt-1 block">
+							Maximum file size: 50 MB. Accepted formats: .kml, .kmz
+						</small>
+					</div>
+
+					<!-- Selected File Info -->
+					<div
+						*ngIf="autoUploadKmlFile"
+						class="bg-green-50 border border-green-200 rounded-lg p-4"
+					>
+						<div class="flex items-center justify-between">
+							<div class="flex items-center gap-3">
+								<i class="pi pi-file text-green-600 text-xl"></i>
+								<div>
+									<p class="font-medium text-green-900">
+										{{ autoUploadKmlFile.name }}
+									</p>
+									<p class="text-sm text-green-700">
+										{{ formatFileSize(autoUploadKmlFile.size) }}
+									</p>
+								</div>
+							</div>
+							<i class="pi pi-check-circle text-green-600 text-xl"></i>
+						</div>
+					</div>
+
+					<!-- Hierarchical Selection -->
+					<div class="space-y-4">
+						<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+							<!-- Dzongkhag -->
+							<div>
+								<label class="block text-sm font-medium text-slate-700 mb-2">
+									Dzongkhag <span class="text-red-500">*</span>
+								</label>
+								<p-dropdown
+									[(ngModel)]="selectedDzongkhag"
+									[options]="dzongkhags"
+									optionLabel="name"
+									placeholder="Select Dzongkhag"
+									styleClass="w-full"
+									[disabled]="autoUploadLoading || loadingDzongkhags"
+									[loading]="loadingDzongkhags"
+									(onChange)="onDzongkhagChange()"
+								></p-dropdown>
+							</div>
+
+							<!-- Administrative Zone -->
+							<div>
+								<label class="block text-sm font-medium text-slate-700 mb-2">
+									Administrative Zone <span class="text-red-500">*</span>
+								</label>
+								<p-dropdown
+									[(ngModel)]="autoUploadAdministrativeZoneId"
+									[options]="administrativeZones"
+									optionLabel="name"
+									optionValue="id"
+									placeholder="Select Administrative Zone"
+									styleClass="w-full"
+									[disabled]="
+										autoUploadLoading ||
+										loadingAdministrativeZones ||
+										!selectedDzongkhag
+									"
+									[loading]="loadingAdministrativeZones"
+								></p-dropdown>
+								<small
+									*ngIf="!selectedDzongkhag"
+									class="text-amber-600 text-xs mt-1 block"
+								>
+									Please select a dzongkhag first
+								</small>
+							</div>
+						</div>
+
+						<!-- SAZ Information -->
+						<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+							<!-- SAZ Name -->
+							<div>
+								<label class="block text-sm font-medium text-slate-700 mb-2">
+									SAZ Name <span class="text-red-500">*</span>
+								</label>
+								<input
+									pInputText
+									type="text"
+									[(ngModel)]="autoUploadSazName"
+									placeholder="Enter SAZ name"
+									class="w-full"
+									[disabled]="autoUploadLoading"
+								/>
+							</div>
+
+							<!-- SAZ Area Code -->
+							<div>
+								<label class="block text-sm font-medium text-slate-700 mb-2">
+									SAZ Area Code <span class="text-red-500">*</span>
+								</label>
+								<input
+									pInputText
+									type="text"
+									[(ngModel)]="autoUploadSazAreaCode"
+									placeholder="Enter area code (e.g., TH-01)"
+									class="w-full"
+									[disabled]="autoUploadLoading"
+								/>
+							</div>
+
+							<!-- SAZ Type -->
+							<div>
+								<label class="block text-sm font-medium text-slate-700 mb-2">
+									SAZ Type <span class="text-red-500">*</span>
+								</label>
+								<p-dropdown
+									[(ngModel)]="autoUploadSazType"
+									[options]="[
+										{ label: 'Chiwog', value: 'chiwog' },
+										{ label: 'LAP', value: 'lap' }
+									]"
+									optionLabel="label"
+									optionValue="value"
+									styleClass="w-full"
+									[disabled]="autoUploadLoading"
+								></p-dropdown>
+							</div>
+						</div>
+					</div>
+
+					<!-- API Base URL Input -->
+					<div>
+						<label class="block text-sm font-medium text-slate-700 mb-2">
+							API Base URL <span class="text-red-500">*</span>
+						</label>
+						<input
+							pInputText
+							type="text"
+							[(ngModel)]="autoUploadApiBaseUrl"
+							placeholder="http://localhost:3000"
+							class="w-full font-mono"
+							[disabled]="autoUploadLoading"
+							(blur)="onApiBaseUrlChange()"
+							(keyup.enter)="onApiBaseUrlChange()"
+						/>
+						<small class="text-slate-500 mt-1 block">
+							This URL will be used to create SAZ and upload EAs. Must be a valid HTTP or HTTPS URL. Saved to your browser.
+						</small>
+					</div>
+
+					<!-- Upload Button -->
+					<div class="flex justify-end gap-2">
+						<button
+							pButton
+							type="button"
+							label="Reset"
+							icon="pi pi-refresh"
+							class="p-button-outlined"
+							[disabled]="autoUploadLoading"
+							(click)="resetAutoUpload()"
+						></button>
+						<button
+							pButton
+							type="button"
+							label="Upload & Process"
+							icon="pi pi-upload"
+							class="p-button-primary"
+							[disabled]="
+								!autoUploadKmlFile ||
+								!autoUploadAdministrativeZoneId ||
+								!autoUploadSazName.trim() ||
+								!autoUploadSazAreaCode.trim() ||
+								autoUploadLoading
+							"
+							[loading]="autoUploadLoading"
+							(click)="autoUploadKml()"
+						></button>
+					</div>
+
+					<!-- Upload Result -->
+					<div
+						*ngIf="autoUploadResult"
+						class="bg-green-50 border border-green-200 rounded-lg p-6 space-y-4"
+					>
+						<div class="flex items-center justify-between">
+							<div>
+								<h3 class="text-lg font-semibold text-green-900 mb-1">
+									Upload Complete
+								</h3>
+								<p class="text-sm text-green-700">
+									{{ autoUploadResult.message }}
+								</p>
+							</div>
+							<i class="pi pi-check-circle text-green-600 text-3xl"></i>
+						</div>
+
+						<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+							<div class="bg-white rounded-lg p-4 border border-green-100">
+								<p class="text-xs text-green-600 font-medium mb-1">SAZ ID</p>
+								<p class="text-sm font-semibold text-green-900">
+									{{ autoUploadResult.saz_id }}
+								</p>
+							</div>
+							<div class="bg-white rounded-lg p-4 border border-green-100">
+								<p class="text-xs text-green-600 font-medium mb-1">Area (km²)</p>
+								<p class="text-sm font-semibold text-green-900">
+									{{ autoUploadResult.area_sq_km }}
+								</p>
+							</div>
+							<div class="bg-white rounded-lg p-4 border border-green-100">
+								<p class="text-xs text-green-600 font-medium mb-1">
+									Boundary Features
+								</p>
+								<p class="text-sm font-semibold text-green-900">
+									{{ autoUploadResult.boundary_features_count }}
+								</p>
+							</div>
+							<div class="bg-white rounded-lg p-4 border border-green-100">
+								<p class="text-xs text-green-600 font-medium mb-1">
+									EA Features
+								</p>
+								<p class="text-sm font-semibold text-green-900">
+									{{ autoUploadResult.eas_features_count }}
+								</p>
+							</div>
+						</div>
+
+						<!-- EA Upload Results -->
+						<div class="bg-white rounded-lg p-4 border border-green-100">
+							<h4 class="text-sm font-semibold text-green-900 mb-3">
+								EA Upload Statistics
+							</h4>
+							<div class="grid grid-cols-3 gap-4">
+								<div>
+									<p class="text-xs text-green-600 font-medium mb-1">
+										Successfully Created
+									</p>
+									<p class="text-lg font-bold text-green-700">
+										{{ autoUploadResult.eas_upload.success }}
+									</p>
+								</div>
+								<div>
+									<p class="text-xs text-yellow-600 font-medium mb-1">Skipped</p>
+									<p class="text-lg font-bold text-yellow-700">
+										{{ autoUploadResult.eas_upload.skipped }}
+									</p>
+								</div>
+								<div>
+									<p class="text-xs text-red-600 font-medium mb-1">Errors</p>
+									<p class="text-lg font-bold text-red-700">
+										{{ autoUploadResult.eas_upload.errors.length }}
+									</p>
+								</div>
+							</div>
+
+							<!-- Errors List -->
+							<div
+								*ngIf="autoUploadResult.eas_upload.errors.length > 0"
+								class="mt-4"
+							>
+								<p class="text-sm font-semibold text-red-700 mb-2">
+									Errors ({{ autoUploadResult.eas_upload.errors.length }})
+								</p>
+								<div class="max-h-32 overflow-y-auto space-y-1">
+									<div
+										*ngFor="let error of autoUploadResult.eas_upload.errors"
+										class="text-xs bg-red-50 border border-red-200 rounded px-2 py-1"
+									>
+										{{ error.error }}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- GeoJSON Preview Dialog -->
+<p-dialog
+	[(visible)]="previewDialogVisible"
+	[modal]="true"
+	[closable]="true"
+	[style]="{ width: '90vw', maxWidth: '1400px' }"
+	[header]="previewTitle"
+	styleClass="p-fluid"
+>
+	<ng-template pTemplate="content">
+		<div class="space-y-4">
+			<!-- Statistics -->
+			<div
+				*ngIf="previewGeojson"
+				class="grid grid-cols-2 gap-4 mb-4"
+			>
+				<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+					<p class="text-xs text-blue-600 font-medium mb-1">GeoJSON Type</p>
+					<p class="text-sm font-semibold text-blue-900">
+						{{ previewGeojson.type || 'FeatureCollection' }}
+					</p>
+				</div>
+				<div class="bg-green-50 border border-green-200 rounded-lg p-4">
+					<p class="text-xs text-green-600 font-medium mb-1">Features Count</p>
+					<p class="text-sm font-semibold text-green-900">
+						{{ previewGeojson.features?.length || 0 }}
+					</p>
+				</div>
+			</div>
+
+			<!-- Map Preview -->
+			<div>
+				<label class="block text-sm font-medium text-slate-700 mb-2">
+					Map Preview (Click on features to view properties)
+				</label>
+				<div
+					#previewMapContainer
+					id="preview-map"
+					class="w-full rounded-lg border border-slate-200 bg-slate-100"
+					style="height: 600px;"
+				></div>
+				<small class="text-slate-500 mt-1 block">
+					Satellite imagery basemap. Click on any feature to view its properties.
+				</small>
+			</div>
+		</div>
+	</ng-template>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				type="button"
+				label="Close"
+				icon="pi pi-times"
+				class="p-button-text"
+				(click)="closePreviewDialog()"
+			></button>
+		</div>
+	</ng-template>
+</p-dialog>

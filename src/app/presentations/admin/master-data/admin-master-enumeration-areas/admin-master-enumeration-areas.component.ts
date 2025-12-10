@@ -16,6 +16,7 @@ import {
 } from '@angular/forms';
 import { EnumerationAreaDataService } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
 import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
+import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
 import {
 	EnumerationArea,
@@ -53,6 +54,8 @@ import { PrimeNgModules } from '../../../../primeng.modules';
 import { Table } from 'primeng/table';
 import * as L from 'leaflet';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { BasemapService } from '../../../../core/utility/basemap.service';
+import { LocationSelectionService } from '../../../../core/services/location-selection.service';
 
 @Component({
 	selector: 'app-admin-master-enumeration-areas',
@@ -71,6 +74,9 @@ export class AdminMasterEnumerationAreasComponent
 	// Data properties
 	dzongkhags: Dzongkhag[] = [];
 	selectedDzongkhag: Dzongkhag | null = null;
+	administrativeZones: AdministrativeZone[] = [];
+	selectedAdministrativeZone: AdministrativeZone | null = null;
+	selectedSubAdministrativeZone: SubAdministrativeZone | null = null;
 	hierarchicalData: HierarchicalDzongkhagResponse | null = null;
 	enumerationAreas: EnumerationArea[] = [];
 	hierarchicalTableData: any[] = []; // For hierarchical table display
@@ -85,6 +91,13 @@ export class AdminMasterEnumerationAreasComponent
 	enumerationAreaGeoJSON: any;
 	private allEnumerationAreasLayer?: L.GeoJSON;
 	private baseLayer?: L.TileLayer;
+
+	// Basemap properties
+	selectedBasemapId = 'positron'; // Default basemap
+	basemapCategories: Record<
+		string,
+		{ label: string; basemaps: Array<{ id: string; name: string }> }
+	> = {};
 
 	// Dialog states
 	enumerationAreaDialog = false;
@@ -111,10 +124,13 @@ export class AdminMasterEnumerationAreasComponent
 	constructor(
 		private enumerationAreaService: EnumerationAreaDataService,
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
+		private administrativeZoneService: AdministrativeZoneDataService,
 		private dzongkhagService: DzongkhagDataService,
 		private fb: FormBuilder,
 		private messageService: MessageService,
-		private router: Router
+		private router: Router,
+		private basemapService: BasemapService,
+		private locationSelectionService: LocationSelectionService
 	) {
 		this.enumerationAreaForm = this.fb.group({
 			name: ['', [Validators.required, Validators.minLength(2)]],
@@ -122,6 +138,9 @@ export class AdminMasterEnumerationAreasComponent
 			areaCode: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]+$/)]],
 			subAdministrativeZoneId: ['', [Validators.required]],
 		});
+		
+		// Initialize basemap categories
+		this.basemapCategories = this.basemapService.getBasemapCategories();
 	}
 
 	ngOnInit() {
@@ -148,26 +167,95 @@ export class AdminMasterEnumerationAreasComponent
 
 	loadDzongkhags() {
 		this.loading = true;
+		
+		// Restore selections from service
+		const savedDzongkhag = this.locationSelectionService.getSelectedDzongkhag();
+		const savedAdministrativeZone = this.locationSelectionService.getSelectedAdministrativeZone();
+		const savedSubAdministrativeZone = this.locationSelectionService.getSelectedSubAdministrativeZone();
+		
+		if (savedDzongkhag) {
+			this.selectedDzongkhag = savedDzongkhag;
+		}
+		if (savedAdministrativeZone) {
+			this.selectedAdministrativeZone = savedAdministrativeZone;
+		}
+		if (savedSubAdministrativeZone) {
+			this.selectedSubAdministrativeZone = savedSubAdministrativeZone;
+		}
+		
 		this.dzongkhagService.findAllDzongkhags().subscribe({
 			next: (data) => {
 				this.dzongkhags = data;
 				this.loading = false;
 
-				// Default to Thimphu dzongkhag
-				const thimphu = data.find(
-					(d) =>
-						d.name.toLowerCase().includes('thimphu') ||
-						d.name.toLowerCase().includes('thimpu')
-				);
+				// Restore saved dzongkhag if available, otherwise default to Thimphu
+				if (this.selectedDzongkhag) {
+					// Find the saved dzongkhag in the list
+					const foundDzongkhag = data.find(d => d.id === this.selectedDzongkhag!.id);
+					if (foundDzongkhag) {
+						this.selectedDzongkhag = foundDzongkhag;
+						this.locationSelectionService.setSelectedDzongkhag(foundDzongkhag);
+					} else {
+						// Saved dzongkhag not found, try Thimphu
+						const thimphu = data.find(
+							(d) =>
+								d.name.toLowerCase().includes('thimphu') ||
+								d.name.toLowerCase().includes('thimpu')
+						);
+						if (thimphu) {
+							this.selectedDzongkhag = thimphu;
+							this.locationSelectionService.setSelectedDzongkhag(thimphu);
+						} else if (data.length > 0) {
+							this.selectedDzongkhag = data[0];
+							this.locationSelectionService.setSelectedDzongkhag(data[0]);
+						}
+					}
+				} else {
+					// No saved selection, default to Thimphu
+					const thimphu = data.find(
+						(d) =>
+							d.name.toLowerCase().includes('thimphu') ||
+							d.name.toLowerCase().includes('thimpu')
+					);
 
-				if (thimphu) {
-					this.selectedDzongkhag = thimphu;
-					this.loadEnumerationAreasByDzongkhag();
-				} else if (data.length > 0) {
-					// Fallback to first dzongkhag if Thimphu not found
-					this.selectedDzongkhag = data[0];
-					this.loadEnumerationAreasByDzongkhag();
+					if (thimphu) {
+						this.selectedDzongkhag = thimphu;
+						this.locationSelectionService.setSelectedDzongkhag(thimphu);
+					} else if (data.length > 0) {
+						// Fallback to first dzongkhag if Thimphu not found
+						this.selectedDzongkhag = data[0];
+						this.locationSelectionService.setSelectedDzongkhag(data[0]);
+					}
 				}
+				
+				// Load administrative zones for dropdown
+				this.loadAdministrativeZones();
+				// Load enumeration areas (which also loads hierarchical data)
+				this.loadEnumerationAreasByDzongkhag();
+				
+				// Subscribe to selection changes
+				this.locationSelectionService.selectedDzongkhag$.subscribe((dzongkhag) => {
+					if (dzongkhag && dzongkhag.id !== this.selectedDzongkhag?.id) {
+						this.selectedDzongkhag = dzongkhag;
+						this.loadAdministrativeZones();
+						this.loadEnumerationAreasByDzongkhag();
+					}
+				});
+				
+				this.locationSelectionService.selectedAdministrativeZone$.subscribe((adminZone) => {
+					if (adminZone && adminZone.id !== this.selectedAdministrativeZone?.id) {
+						this.selectedAdministrativeZone = adminZone;
+						this.loadSubAdministrativeZonesByAdministrativeZone();
+						this.loadEnumerationAreas();
+					}
+				});
+				
+				this.locationSelectionService.selectedSubAdministrativeZone$.subscribe((subAdminZone) => {
+					if (subAdminZone && subAdminZone.id !== this.selectedSubAdministrativeZone?.id) {
+						this.selectedSubAdministrativeZone = subAdminZone;
+						this.loadEnumerationAreas();
+					}
+				});
 			},
 			error: (error) => {
 				this.loading = false;
@@ -204,6 +292,8 @@ export class AdminMasterEnumerationAreasComponent
 
 					// Load sub-administrative zones for form dropdown
 					this.loadSubAdministrativeZonesForDzongkhag();
+					// Load GeoJSON for map
+					this.loadEnumerationAreaGeoJSON();
 				},
 				error: (error) => {
 					this.loadingEAs = false;
@@ -311,8 +401,10 @@ export class AdminMasterEnumerationAreasComponent
 							this.hierarchicalTableData.push({
 								type: 'enumeration-area',
 								id: `ea-${ea.id}`,
+								eaId: ea.id,
 								name: ea.name,
 								areaCode: ea.areaCode,
+								fullEACode: this.getFullEACode(ea, subAdminZone, adminZone),
 								description: ea.description,
 								level: 2,
 								isHeader: false,
@@ -341,13 +433,148 @@ export class AdminMasterEnumerationAreasComponent
 	}
 
 	onDzongkhagChange() {
+		// Save selection to service
 		if (this.selectedDzongkhag) {
-			this.loadEnumerationAreasByDzongkhag();
+			this.locationSelectionService.setSelectedDzongkhag(this.selectedDzongkhag);
+		}
+		
+		// Reset selections when dzongkhag changes
+		this.selectedAdministrativeZone = null;
+		this.locationSelectionService.setSelectedAdministrativeZone(null);
+		this.selectedSubAdministrativeZone = null;
+		this.locationSelectionService.setSelectedSubAdministrativeZone(null);
+		this.administrativeZones = [];
+		this.subAdministrativeZones = [];
+
+		if (this.selectedDzongkhag) {
+			// Load administrative zones for dropdown
+			this.loadAdministrativeZones();
+			// Load enumeration areas (which also loads hierarchical data)
+			this.loadEnumerationAreas();
 		} else {
 			this.enumerationAreas = [];
 			this.subAdministrativeZones = [];
+			this.administrativeZones = [];
 			this.hierarchicalData = null;
+			this.hierarchicalTableData = [];
+			this.enumerationAreaGeoJSON = null;
 		}
+	}
+
+	loadAdministrativeZones() {
+		if (!this.selectedDzongkhag) {
+			this.administrativeZones = [];
+			return;
+		}
+
+		this.administrativeZoneService
+			.findAdministrativeZonesByDzongkhag(this.selectedDzongkhag.id)
+			.subscribe({
+				next: (data) => {
+					this.administrativeZones = data || [];
+					
+					// Restore saved administrative zone if available
+					const savedAdminZone = this.locationSelectionService.getSelectedAdministrativeZone();
+					if (savedAdminZone && data && data.find(az => az.id === savedAdminZone.id)) {
+						this.selectedAdministrativeZone = savedAdminZone;
+					}
+				},
+				error: (error) => {
+					console.error('Error loading administrative zones:', error);
+					this.administrativeZones = [];
+				},
+			});
+	}
+
+	onAdministrativeZoneChange() {
+		// Save selection to service
+		if (this.selectedAdministrativeZone) {
+			this.locationSelectionService.setSelectedAdministrativeZone(this.selectedAdministrativeZone);
+		}
+		
+		// Reset sub-administrative zone selection when administrative zone changes
+		this.selectedSubAdministrativeZone = null;
+		this.locationSelectionService.setSelectedSubAdministrativeZone(null);
+		this.subAdministrativeZones = [];
+
+		if (this.selectedAdministrativeZone) {
+			// Load sub-administrative zones for the selected administrative zone
+			this.loadSubAdministrativeZonesByAdministrativeZone();
+		}
+
+		// Load enumeration areas based on current selection
+		this.loadEnumerationAreas();
+	}
+
+	loadSubAdministrativeZonesByAdministrativeZone() {
+		if (!this.selectedAdministrativeZone) {
+			this.subAdministrativeZones = [];
+			return;
+		}
+
+		// Try to extract from hierarchical data first
+		if (this.hierarchicalData?.administrativeZones) {
+			const adminZone = this.hierarchicalData.administrativeZones.find(
+				(az) => az.id === this.selectedAdministrativeZone!.id
+			);
+			if (adminZone?.subAdministrativeZones && adminZone.subAdministrativeZones.length > 0) {
+				this.subAdministrativeZones = adminZone.subAdministrativeZones.map(
+					(subZone: HierarchicalSubAdministrativeZone) => {
+						const mappedType =
+							subZone.type === 'chiwog'
+								? SubAdministrativeZoneType.CHIWOG
+								: SubAdministrativeZoneType.LAP;
+						return {
+							id: subZone.id,
+							name: subZone.name,
+							areaCode: subZone.areaCode,
+							type: mappedType,
+							administrativeZoneId: subZone.administrativeZoneId,
+							geom: subZone.geom,
+						} as SubAdministrativeZone;
+					}
+				);
+				
+				// Restore saved sub-administrative zone if available
+				const savedSubAdminZone = this.locationSelectionService.getSelectedSubAdministrativeZone();
+				if (savedSubAdminZone && this.subAdministrativeZones.find(saz => saz.id === savedSubAdminZone.id)) {
+					this.selectedSubAdministrativeZone = savedSubAdminZone;
+				}
+				
+				return; // Successfully loaded from hierarchical data
+			}
+		}
+		
+		// Fallback: always load from service to ensure dropdown is populated
+		this.subAdministrativeZoneService
+			.findSubAdministrativeZonesByAdministrativeZone(
+				this.selectedAdministrativeZone.id
+			)
+			.subscribe({
+				next: (data) => {
+					this.subAdministrativeZones = data || [];
+					
+					// Restore saved sub-administrative zone if available
+					const savedSubAdminZone = this.locationSelectionService.getSelectedSubAdministrativeZone();
+					if (savedSubAdminZone && data && data.find(saz => saz.id === savedSubAdminZone.id)) {
+						this.selectedSubAdministrativeZone = savedSubAdminZone;
+					}
+				},
+				error: (error) => {
+					console.error('Error loading sub-administrative zones:', error);
+					this.subAdministrativeZones = [];
+				},
+			});
+	}
+
+	onSubAdministrativeZoneChange() {
+		// Save selection to service
+		if (this.selectedSubAdministrativeZone) {
+			this.locationSelectionService.setSelectedSubAdministrativeZone(this.selectedSubAdministrativeZone);
+		}
+		
+		// Load enumeration areas based on current selection
+		this.loadEnumerationAreas();
 	}
 
 	loadSubAdministrativeZones() {
@@ -358,30 +585,226 @@ export class AdminMasterEnumerationAreasComponent
 	}
 
 	loadEnumerationAreas() {
-		// This method is now replaced by loadEnumerationAreasByDzongkhag
-		if (this.selectedDzongkhag) {
+		// Priority: Sub-Administrative Zone > Administrative Zone > Dzongkhag
+		if (this.selectedSubAdministrativeZone) {
+			this.loadEnumerationAreasBySubAdministrativeZone();
+		} else if (this.selectedAdministrativeZone) {
+			this.loadEnumerationAreasByAdministrativeZone();
+		} else if (this.selectedDzongkhag) {
 			this.loadEnumerationAreasByDzongkhag();
+		} else {
+			this.enumerationAreas = [];
+			this.hierarchicalTableData = [];
 		}
 	}
 
-	loadEnumerationAreaGeoJSON() {
-		this.enumerationAreaService.getAllEnumerationAreaGeojson().subscribe({
-			next: (data) => {
-				this.enumerationAreaGeoJSON = data;
-				if (this.map) {
-					this.renderAllEnumerationAreas();
-				}
-			},
-			error: (error) => {
-				console.error('Error loading enumeration area GeoJSON:', error);
-				this.messageService.add({
-					severity: 'error',
-					summary: 'Error',
-					detail: 'Failed to load map data',
-					life: 3000,
-				});
-			},
+	loadEnumerationAreasBySubAdministrativeZone() {
+		if (!this.selectedSubAdministrativeZone) return;
+
+		this.loadingEAs = true;
+		this.enumerationAreaService
+			.findEnumerationAreasBySubAdministrativeZone(
+				this.selectedSubAdministrativeZone.id
+			)
+			.subscribe({
+				next: (data) => {
+					this.enumerationAreas = data;
+					// Build flat table data for SAZ view
+					this.hierarchicalTableData = data.map((ea) => ({
+						type: 'enumeration-area',
+						id: `ea-${ea.id}`,
+						eaId: ea.id,
+						name: ea.name,
+						areaCode: ea.areaCode,
+						fullEACode: this.getFullEACode(ea),
+						description: ea.description,
+						level: 2,
+						data: ea,
+						hasGeom: !!ea.geom,
+					}));
+					this.loadingEAs = false;
+					// Load GeoJSON for map
+					this.loadEnumerationAreaGeoJSON();
+				},
+				error: (error) => {
+					this.loadingEAs = false;
+					console.error(
+						'Error loading enumeration areas by sub-administrative zone:',
+						error
+					);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load enumeration areas',
+						life: 3000,
+					});
+				},
+			});
+	}
+
+	loadEnumerationAreasByAdministrativeZone() {
+		if (!this.selectedAdministrativeZone) return;
+
+		this.loadingEAs = true;
+		this.enumerationAreaService
+			.findByAdministrativeZone(
+				this.selectedAdministrativeZone.id,
+				true, // withGeom
+				true // includeSubAdminZone
+			)
+			.subscribe({
+				next: (data) => {
+					this.enumerationAreas = data;
+					// Build hierarchical table data for AZ view
+					this.buildHierarchicalTableDataForAdministrativeZone(data);
+					this.loadingEAs = false;
+					// Load GeoJSON for map
+					this.loadEnumerationAreaGeoJSON();
+				},
+				error: (error) => {
+					this.loadingEAs = false;
+					console.error(
+						'Error loading enumeration areas by administrative zone:',
+						error
+					);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load enumeration areas',
+						life: 3000,
+					});
+				},
+			});
+	}
+
+	buildHierarchicalTableDataForAdministrativeZone(enumerationAreas: EnumerationArea[]) {
+		this.hierarchicalTableData = [];
+
+		if (!this.selectedAdministrativeZone) return;
+
+		// Group enumeration areas by sub-administrative zone
+		const groupedBySAZ = new Map<number, EnumerationArea[]>();
+		enumerationAreas.forEach((ea) => {
+			const sazId = ea.subAdministrativeZoneId;
+			if (!groupedBySAZ.has(sazId)) {
+				groupedBySAZ.set(sazId, []);
+			}
+			groupedBySAZ.get(sazId)!.push(ea);
 		});
+
+		// Add Administrative Zone header
+		this.hierarchicalTableData.push({
+			type: 'admin-zone',
+			id: `admin-${this.selectedAdministrativeZone.id}`,
+			name: this.selectedAdministrativeZone.name,
+			areaCode: this.selectedAdministrativeZone.areaCode,
+			level: 0,
+			totalEAs: enumerationAreas.length,
+		});
+
+		// Add Sub-Administrative Zones and their Enumeration Areas
+		groupedBySAZ.forEach((eas, sazId) => {
+			const saz = this.subAdministrativeZones.find((s) => s.id === sazId);
+			if (saz) {
+				// Add Sub-Administrative Zone row
+				this.hierarchicalTableData.push({
+					type: 'sub-admin-zone',
+					id: `saz-${saz.id}`,
+					name: saz.name,
+					areaCode: saz.areaCode,
+					level: 1,
+					totalEAs: eas.length,
+					data: saz,
+				});
+
+				// Add Enumeration Area rows
+				eas.forEach((ea) => {
+					this.hierarchicalTableData.push({
+						type: 'enumeration-area',
+						id: `ea-${ea.id}`,
+						eaId: ea.id,
+						name: ea.name,
+						areaCode: ea.areaCode,
+						fullEACode: this.getFullEACode(ea, saz),
+						description: ea.description,
+						level: 2,
+						data: ea,
+						hasGeom: !!ea.geom,
+					});
+				});
+			}
+		});
+	}
+
+	loadEnumerationAreaGeoJSON() {
+		// Priority: Sub-Administrative Zone > Administrative Zone > Dzongkhag
+		if (this.selectedSubAdministrativeZone) {
+			this.enumerationAreaService
+				.getEnumerationAreaGeojsonBySubAdministrativeZone(
+					this.selectedSubAdministrativeZone.id
+				)
+				.subscribe({
+					next: (data) => {
+						this.enumerationAreaGeoJSON = data;
+						if (this.map) {
+							this.renderAllEnumerationAreas();
+						}
+					},
+					error: (error) => {
+						console.error('Error loading enumeration area GeoJSON:', error);
+						this.messageService.add({
+							severity: 'error',
+							summary: 'Error',
+							detail: 'Failed to load map data',
+							life: 3000,
+						});
+					},
+				});
+		} else if (this.selectedAdministrativeZone) {
+			this.enumerationAreaService
+				.findAllAsGeoJsonByAdministrativeZone(
+					this.selectedAdministrativeZone.id
+				)
+				.subscribe({
+					next: (data) => {
+						this.enumerationAreaGeoJSON = data;
+						if (this.map) {
+							this.renderAllEnumerationAreas();
+						}
+					},
+					error: (error) => {
+						console.error('Error loading enumeration area GeoJSON:', error);
+						this.messageService.add({
+							severity: 'error',
+							summary: 'Error',
+							detail: 'Failed to load map data',
+							life: 3000,
+						});
+					},
+				});
+		} else if (this.selectedDzongkhag) {
+			this.dzongkhagService
+				.getEnumerationAreasGeojsonByDzongkhag(this.selectedDzongkhag.id)
+				.subscribe({
+					next: (data) => {
+						this.enumerationAreaGeoJSON = data;
+						if (this.map) {
+							this.renderAllEnumerationAreas();
+						}
+					},
+					error: (error) => {
+						console.error('Error loading enumeration area GeoJSON:', error);
+						this.messageService.add({
+							severity: 'error',
+							summary: 'Error',
+							detail: 'Failed to load map data',
+							life: 3000,
+						});
+					},
+				});
+		} else {
+			this.enumerationAreaGeoJSON = null;
+		}
 	}
 
 	reloadMap() {
@@ -422,13 +845,13 @@ export class AdminMasterEnumerationAreasComponent
 			attributionControl: false,
 		});
 
-		this.baseLayer = L.tileLayer(
-			'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-			{
+		// Use basemap service for base layer
+		this.baseLayer =
+			this.basemapService.createTileLayer(this.selectedBasemapId) ||
+			L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 				maxZoom: 19,
 				attribution: '© OpenStreetMap contributors',
-			}
-		);
+			});
 		this.baseLayer.addTo(this.map);
 
 		if (!this.enumerationAreaGeoJSON) {
@@ -675,6 +1098,13 @@ export class AdminMasterEnumerationAreasComponent
 		}
 	}
 
+	clearSearch(): void {
+		this.globalFilterValue = '';
+		if (this.dtSplit) {
+			this.dtSplit.filterGlobal('', 'contains');
+		}
+	}
+
 	getSubAdministrativeZoneName(subAdministrativeZoneId: number): string {
 		const zone = this.subAdministrativeZones.find(
 			(z) => z.id === subAdministrativeZoneId
@@ -865,5 +1295,70 @@ export class AdminMasterEnumerationAreasComponent
 
 	get subAdministrativeZoneCount(): number {
 		return this.subAdministrativeZones.length;
+	}
+
+	/**
+	 * Generate full EA code from hierarchy: DZ-AZ-SAZ-EA
+	 */
+	getFullEACode(
+		ea: EnumerationArea,
+		subAdminZone?: HierarchicalSubAdministrativeZone | SubAdministrativeZone,
+		adminZone?: HierarchicalAdministrativeZone | AdministrativeZone
+	): string {
+		const parts: string[] = [];
+		
+		// Try to get from EA's relationship data first
+		if (ea.subAdministrativeZone?.administrativeZone?.dzongkhag?.areaCode) {
+			parts.push(ea.subAdministrativeZone.administrativeZone.dzongkhag.areaCode);
+		} else if (this.selectedDzongkhag?.areaCode) {
+			parts.push(this.selectedDzongkhag.areaCode);
+		}
+		
+		// Get administrative zone code
+		if (ea.subAdministrativeZone?.administrativeZone?.areaCode) {
+			parts.push(ea.subAdministrativeZone.administrativeZone.areaCode);
+		} else if (adminZone?.areaCode) {
+			parts.push(adminZone.areaCode);
+		} else if (this.selectedAdministrativeZone?.areaCode) {
+			parts.push(this.selectedAdministrativeZone.areaCode);
+		}
+		
+		// Get sub-administrative zone code
+		if (ea.subAdministrativeZone?.areaCode) {
+			parts.push(ea.subAdministrativeZone.areaCode);
+		} else if (subAdminZone?.areaCode) {
+			parts.push(subAdminZone.areaCode);
+		} else if (this.selectedSubAdministrativeZone?.areaCode) {
+			parts.push(this.selectedSubAdministrativeZone.areaCode);
+		}
+		
+		// Get EA code
+		if (ea.areaCode) {
+			parts.push(ea.areaCode);
+		}
+		
+		return parts.length > 0 ? parts.join('') : ea.areaCode || 'N/A';
+	}
+
+	switchBasemap(): void {
+		if (!this.map || !this.basemapService.hasBasemap(this.selectedBasemapId)) {
+			console.error(`Basemap ${this.selectedBasemapId} not found`);
+			return;
+		}
+
+		// Remove existing basemap layer
+		if (this.baseLayer) {
+			this.map.removeLayer(this.baseLayer);
+			this.baseLayer = undefined;
+		}
+
+		// Add new basemap layer
+		this.baseLayer =
+			this.basemapService.createTileLayer(this.selectedBasemapId) || undefined;
+
+		if (this.baseLayer) {
+			this.baseLayer.addTo(this.map);
+			this.baseLayer.bringToBack();
+		}
 	}
 }

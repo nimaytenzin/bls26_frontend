@@ -1,1 +1,15 @@
+/* Remove Leaflet zoom controls */
+:host ::ng-deep .leaflet-control-zoom {
+	display: none !important;
+}
 
+/* Remove any bounding box or selection rectangle */
+:host ::ng-deep .leaflet-interactive {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+/* Remove focus outline on map features */
+:host ::ng-deep .leaflet-interactive:focus {
+	outline: none !important;
+}
