@@ -9,7 +9,34 @@ export const publicRoutes: Routes = [
 		path: '',
 		component: PublicLayoutComponentComponent,
 		children: [
-			{ path: '', component: PublicHomeComponent },
+			{
+				path: '',
+				children: [
+					{
+						path: '',
+						loadComponent: () =>
+							import(
+								'./data-viewer/public-national-data-viewer/public-national-data-viewer.component'
+							).then((m) => m.PublicNationalDataViewerComponent),
+					},
+					{
+						path: 'dzongkhag/:id',
+						loadComponent: () =>
+							import(
+								'./data-viewer/public-dzongkhag-data-viewer/public-dzongkhag-data-viewer.component'
+							).then((m) => m.PublicDzongkhagDataViewerComponent),
+					},
+					{
+						path: 'administrative-zone/:dzongkhagId/:id',
+						component: PublicAdministrativezoneViewerComponent,
+					},
+					{
+						path: 'sub-administrative-zone/:administrativeZoneId/:id',
+						component: PublicSubadministrativezoneViewerComponent,
+					},
+				],
+			},
+			// Legacy routes (keep for backward compatibility)
 			{
 				path: 'dzongkhag-viewer/:id',
 				loadComponent: () =>

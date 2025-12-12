@@ -1,0 +1,371 @@
+<!-- Public Dzongkhag Data Viewer -->
+<div class="h-100vh">
+	<!-- Loading State -->
+	<section
+		*ngIf="loading"
+		class="h-[calc(100%-5rem)] flex items-center justify-center"
+	>
+		<div class="flex flex-col items-center gap-4 text-slate-600">
+			<p-progressSpinner styleClass="w-12 h-12"></p-progressSpinner>
+			<div class="text-center">
+				<p class="text-lg font-semibold text-slate-900">
+					Preparing the dzongkhag view
+				</p>
+				<p class="text-sm text-slate-500">
+					Fetching boundary layers, statistics, and sampling frame insights…
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- Error State -->
+	<section
+		*ngIf="!loading && error"
+		class="h-screen flex items-center justify-center"
+	>
+		<div
+			class="rounded-lg border border-red-200 bg-red-50 p-8 text-center text-red-700 shadow-sm max-w-md"
+		>
+			<h2 class="text-lg font-semibold">We could not load this dzongkhag</h2>
+			<p class="mt-2 text-sm">{{ error }}</p>
+			<div class="mt-6 flex flex-wrap justify-center gap-3">
+				<button
+					type="button"
+					(click)="loadData()"
+					class="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+				>
+					Try Again
+				</button>
+				<button
+					type="button"
+					(click)="goBack()"
+					class="inline-flex items-center justify-center rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 transition hover:border-red-300"
+				>
+					Return to National View
+				</button>
+			</div>
+		</div>
+	</section>
+
+	<!-- Main Content -->
+	<ng-container *ngIf="!loading && !error">
+		<!-- Split UI Layout -->
+		<section class="flex gap-4 h-screen bg-white">
+			<!-- Left Pane: Data and Statistics -->
+			<div class="w-[25vw] flex flex-col gap-4 overflow-y-auto p-6">
+				<div>
+					<div class="flex-1">
+						<h1 class="text-2xl font-semibold text-slate-900">
+							{{ dzongkhag?.name || "Dzongkhag Data Viewer" }} Dzongkhag
+						</h1>
+						<p class="mt-1 text-sm text-slate-600">
+							Comprehensive sampling frame data and geographic layers
+						</p>
+					</div>
+				</div>
+				<div class="">
+					<div class="space-y-4">
+						<!-- Main Tabs: Overview & Gewogs/Thromdes -->
+						<div class="flex gap-2 border-b border-slate-200">
+							<button
+								type="button"
+								(click)="activeMainTab = 'overview'"
+								class="px-4 py-2 font-semibold transition border-b-2"
+								[ngClass]="
+									activeMainTab === 'overview'
+										? 'border-primary-600 text-primary-600'
+										: 'border-transparent text-slate-600 hover:text-slate-900'
+								"
+							>
+								Overview
+							</button>
+							<button
+								type="button"
+								(click)="activeMainTab = 'gewogs-thromdes'"
+								class="px-4 py-2 font-semibold transition border-b-2"
+								[ngClass]="
+									activeMainTab === 'gewogs-thromdes'
+										? 'border-primary-600 text-primary-600'
+										: 'border-transparent text-slate-600 hover:text-slate-900'
+								"
+							>
+								Gewogs/Thromdes
+							</button>
+						</div>
+
+						<!-- Overview Tab Content -->
+						<div *ngIf="activeMainTab === 'overview'" class="space-y-4">
+							<div class="space-y-4 text-base text-slate-600">
+								<!-- Total Households Card -->
+								<div
+									class="space-y-3 rounded-lg border border-slate-200 bg-white p-4 cursor-pointer transition-all relative"
+									[style.border-color]="
+										mapVisualizationMode === 'households' ? '#67A4CA' : ''
+									"
+									(click)="switchVisualizationMode('households')"
+								>
+									<div class="flex items-center justify-between">
+										<p class="text-lg font-semibold text-slate-800">
+											Total Households
+										</p>
+										<i
+											*ngIf="mapVisualizationMode === 'households'"
+											class="pi pi-bookmark-fill text-2xl"
+											style="color: #67a4ca"
+										></i>
+									</div>
+									<div class="mb-3">
+										<p class="text-3xl font-bold text-primary-600">
+											{{ stats.totalHouseholds | number }}
+										</p>
+									</div>
+								</div>
+
+								<!-- Total Enumeration Areas Card -->
+								<div
+									(click)="switchVisualizationMode('enumerationAreas')"
+									class="p-4 rounded-lg border border-slate-200 bg-white transition-all duration-200 cursor-pointer relative"
+									[style.border-color]="
+										mapVisualizationMode === 'enumerationAreas' ? '#67A4CA' : ''
+									"
+								>
+									<div class="space-y-2">
+										<div class="flex items-center justify-between">
+											<p class="text-base font-semibold text-slate-800">
+												Total Enumeration Areas
+											</p>
+											<i
+												*ngIf="mapVisualizationMode === 'enumerationAreas'"
+												class="pi pi-bookmark-fill text-2xl"
+												style="color: #67a4ca"
+											></i>
+										</div>
+										<div class="mb-3">
+											<p class="text-3xl font-bold text-primary-600">
+												{{ stats.totalEnumerationAreas | number }}
+											</p>
+										</div>
+										<!-- Average Stats -->
+										<div class="space-y-1 text-sm text-slate-600">
+											<div class="flex items-center justify-between">
+												<span>Households per EA (avg):</span>
+												<span class="font-semibold text-slate-900">{{
+													stats.totalEnumerationAreas > 0
+														? (
+																stats.totalHouseholds /
+																stats.totalEnumerationAreas
+														  ).toFixed(1)
+														: '0'
+												}}</span>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- Administrative Zones Summary -->
+								<div
+									class="p-4 rounded-lg border border-slate-200 bg-white"
+								>
+									<div class="space-y-2">
+										<p class="text-base font-semibold text-slate-800">
+											Administrative Zones
+										</p>
+										<div class="space-y-1 text-sm text-slate-600">
+											<div class="flex items-center justify-between">
+												<span>Total:</span>
+												<span class="font-semibold text-slate-900">{{
+													stats.totalAdminZones
+												}}</span>
+											</div>
+											<div class="flex items-center justify-between">
+												<span>Gewogs:</span>
+												<span class="font-semibold text-slate-900">{{
+													stats.totalGewogs
+												}}</span>
+											</div>
+											<div class="flex items-center justify-between">
+												<span>Thromdes:</span>
+												<span class="font-semibold text-slate-900">{{
+													stats.totalThromdes
+												}}</span>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Gewogs/Thromdes Tab Content -->
+						<div *ngIf="activeMainTab === 'gewogs-thromdes'" class="space-y-4">
+							<div class="space-y-3">
+								<div
+									*ngFor="let zone of adminZones; trackBy: trackByAdminZoneId"
+									(click)="viewAdministrativeZone(zone.id)"
+									class="p-4 rounded-lg border border-slate-200 bg-white hover:border-primary-300 cursor-pointer transition"
+								>
+									<!-- Header -->
+									<div class="flex items-center justify-between mb-3">
+										<p class="font-bold text-lg text-slate-900">
+											{{ zone.name }}
+											<span class="text-sm font-normal text-slate-600"
+												>{{ zone.type }}</span
+											>
+										</p>
+										<i class="pi pi-chevron-right text-slate-400"></i>
+									</div>
+
+									<!-- Stats Grid -->
+									<div class="space-y-3 text-sm">
+										<!-- Total Households -->
+										<div>
+											<div class="flex items-center justify-between mb-1">
+												<span class="text-slate-600">Households:</span>
+												<span class="font-bold text-primary-600">{{
+													zone.totalHouseholds | number
+												}}</span>
+											</div>
+										</div>
+
+										<!-- Total Enumeration Areas -->
+										<div>
+											<div class="flex items-center justify-between mb-1">
+												<span class="text-slate-600">Enumeration Areas:</span>
+												<span class="font-bold text-primary-600">{{
+													zone.totalEnumerationAreas
+												}}</span>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Right Pane: Map -->
+			<div class="flex-1 relative rounded-lg overflow-hidden shadow-sm">
+				<!-- Map Container -->
+				<div #mapContainer class="w-full h-full bg-slate-100"></div>
+
+				<!-- Popovers for Data Download (Top Left) -->
+				<div class="absolute top-4 left-4 flex gap-2 z-[1001]">
+					<!-- Download Popover -->
+					<p-button
+						(click)="downloadPopover.toggle($event)"
+						icon="pi pi-save"
+						severity="secondary"
+						[label]="'Download'"
+						size="small"
+					/>
+					<p-popover #downloadPopover>
+						<div class="flex flex-col gap-3 w-[18rem]">
+							<div>
+								<span class="font-semibold text-slate-900 block mb-3 text-sm">
+									Download Data
+								</span>
+								<div class="flex flex-col gap-2">
+									<button
+										type="button"
+										(click)="downloadAdminZonesGeojson(); downloadPopover.hide()"
+										class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition flex items-center justify-center gap-2"
+									>
+										<i class="pi pi-download text-xs"></i>
+										Download GeoJSON
+									</button>
+									<button
+										type="button"
+										(click)="downloadAdminZonesKml(); downloadPopover.hide()"
+										class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition flex items-center justify-center gap-2"
+									>
+										<i class="pi pi-download text-xs"></i>
+										Download KML
+									</button>
+								</div>
+							</div>
+						</div>
+					</p-popover>
+				</div>
+
+				<!-- Map Controls Overlay -->
+				<div
+					class="absolute top-4 right-4 bg-white rounded-lg border border-slate-200 shadow-lg p-3 space-y-3 z-[1000]"
+				>
+					<div>
+						<p class="text-sm font-semibold text-slate-700 mb-2">
+							Map Controls
+						</p>
+						<!-- Basemap Selector -->
+						<div class="mb-3">
+							<label class="text-xs text-slate-600 mb-1 block">Basemap:</label>
+							<select
+								[(ngModel)]="selectedBasemapId"
+								(change)="switchBasemap()"
+								class="w-full text-sm border border-slate-300 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+							>
+								<ng-container
+									*ngFor="let category of basemapCategories | keyvalue"
+								>
+									<optgroup [label]="category.value.label">
+										<option
+											*ngFor="let basemap of category.value.basemaps"
+											[value]="basemap.id"
+										>
+											{{ basemap.name }}
+										</option>
+									</optgroup>
+								</ng-container>
+							</select>
+						</div>
+					</div>
+
+					<!-- Legend -->
+					<div class="pt-2 border-t border-slate-200">
+						<p class="text-sm font-semibold text-slate-700 mb-2">
+							{{ getLegendTitle() }}
+						</p>
+						<div
+							*ngIf="getLegendBreaks().length > 0; else noDataLegend"
+							class="relative"
+						>
+							<div class="flex items-start gap-3">
+								<!-- Gradient Bar -->
+								<div class="relative flex-shrink-0">
+									<div
+										class="w-6 h-32 rounded border border-slate-300 shadow-sm"
+										[style.background]="getLegendGradient()"
+									></div>
+								</div>
+								<!-- Labels Container -->
+								<div class="relative flex-1" style="height: 8rem">
+									<div
+										*ngFor="let break of getLegendBreaks()"
+										class="absolute text-xs font-medium text-slate-700 whitespace-nowrap"
+										[style.bottom]="break.position + '%'"
+										[style.transform]="'translateY(50%)'"
+									>
+										{{ break.label }}
+									</div>
+								</div>
+							</div>
+						</div>
+						<ng-template #noDataLegend>
+							<div class="text-slate-500 italic text-xs">
+								No data available
+							</div>
+						</ng-template>
+					</div>
+				</div>
+
+				<!-- Loading Overlay -->
+				<div
+					*ngIf="loading"
+					class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center"
+				>
+					<p-progressSpinner styleClass="w-12 h-12"></p-progressSpinner>
+				</div>
+			</div>
+		</section>
+	</ng-container>
+</div>
+
