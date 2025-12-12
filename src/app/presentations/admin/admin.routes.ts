@@ -15,6 +15,7 @@ import { AdminSurveyViewerComponent } from './survey/admin-survey-viewer/admin-s
 import { AdminSurveyCreatorComponent } from './survey/survey-creator/admin-survey-creator.component';
 import { AdminNationalDataViewerComponent } from './data-viewer/admin-national-data-viewer/admin-national-data-viewer.component';
 import { AdminUserManagementComponent } from './user-mangement/admin-user-management/admin-user-management.component';
+import { AdminPublicPageSettingsComponent } from './settings/admin-public-page-settings/admin-public-page-settings.component';
 
 export const adminRoutes: Routes = [
 	{
@@ -33,6 +34,17 @@ export const adminRoutes: Routes = [
 			{
 				path: 'user-management',
 				component: AdminUserManagementComponent,
+			},
+
+			// Settings Routes
+			{
+				path: 'settings',
+				children: [
+					{
+						path: 'public-page',
+						component: AdminPublicPageSettingsComponent,
+					},
+				],
 			},
 
 			//Mater data managmenet

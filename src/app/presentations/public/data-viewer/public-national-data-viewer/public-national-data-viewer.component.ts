@@ -22,6 +22,7 @@ import { DzongkhagAnnualStatsDataService } from '../../../../core/dataservice/an
 import { LocationDownloadService } from '../../../../core/dataservice/downloads/location.download.service';
 import { BasemapConfig, BasemapService } from '../../../../core/utility/basemap.service';
 import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';
+import { PublicPageSettingsService } from '../../../../core/services/public-page-settings.service';
 
 interface DzongkhagStats {
 	dzongkhagId: number;
@@ -69,7 +70,7 @@ export class PublicNationalDataViewerComponent
 	private map?: L.Map;
 	private baseLayer?: L.TileLayer;
 	private currentGeoJSONLayer?: L.GeoJSON;
-	selectedBasemapId = 'positron'; // Default basemap
+	selectedBasemapId = 'positron'; // Default basemap (will be overridden by settings)
 	showDzongkhagBoundaries = true;
 	basemapCategories: Record<
 		string,
@@ -83,12 +84,18 @@ export class PublicNationalDataViewerComponent
 		private colorScaleService: MapFeatureColorService,
 		private basemapService: BasemapService,
 		private locationDownloadService: LocationDownloadService,
-		private messageService: MessageService
+		private messageService: MessageService,
+		private publicPageSettingsService: PublicPageSettingsService
 	) {}
 
 	ngOnInit() {
 		// Initialize basemap categories from service
 		this.basemapCategories = this.basemapService.getBasemapCategories();
+
+		// Load settings from localStorage
+		const settings = this.publicPageSettingsService.getSettings();
+		this.mapVisualizationMode = settings.mapVisualizationMode;
+		this.selectedBasemapId = settings.selectedBasemapId;
 
 		this.loadDzongkhagStatistics();
 	}
@@ -97,6 +104,10 @@ export class PublicNationalDataViewerComponent
 		// Initialize map after view is ready
 		setTimeout(() => {
 			this.initializeMap();
+			// If data is already loaded, apply visualization mode from settings
+			if (this.map && this.geoJsonData) {
+				this.loadDzongkhagBoundaries();
+			}
 		}, 100);
 	}
 

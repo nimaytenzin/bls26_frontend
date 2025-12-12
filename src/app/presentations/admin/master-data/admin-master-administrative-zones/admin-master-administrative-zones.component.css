@@ -13,3 +13,15 @@
 :host ::ng-deep .leaflet-interactive:focus {
 	outline: none !important;
 }
+
+/* Administrative Zone Label Styling */
+::ng-deep .administrative-zone-label {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	pointer-events: none;
+}
+
+::ng-deep .administrative-zone-label::before {
+	display: none !important;
+}

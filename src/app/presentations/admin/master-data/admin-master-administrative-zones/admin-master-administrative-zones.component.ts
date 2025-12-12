@@ -233,9 +233,8 @@ export class AdminMasterAdministrativeZonesComponent
 	loadAdministrativeZoneGeoJSON() {
 		if (!this.selectedDzongkhag) {
 			this.administrativeZoneGeoJSON = null;
-			if (this.map && this.allAdministrativeZonesLayer) {
-				this.map.removeLayer(this.allAdministrativeZonesLayer);
-				this.allAdministrativeZonesLayer = undefined;
+			if (this.map) {
+				this.removeAdministrativeZonesLayer();
 			}
 			return;
 		}
@@ -305,10 +304,7 @@ export class AdminMasterAdministrativeZonesComponent
 
 		// Clear map
 		if (this.map) {
-			if (this.allAdministrativeZonesLayer) {
-				this.map.removeLayer(this.allAdministrativeZonesLayer);
-				this.allAdministrativeZonesLayer = undefined;
-			}
+			this.removeAdministrativeZonesLayer();
 			this.map.remove();
 			this.map = undefined;
 		}
@@ -387,20 +383,14 @@ export class AdminMasterAdministrativeZonesComponent
 		// Check if GeoJSON has features
 		if (!this.administrativeZoneGeoJSON.features || this.administrativeZoneGeoJSON.features.length === 0) {
 			// Empty GeoJSON - just remove any existing layer and return silently
-			if (this.allAdministrativeZonesLayer) {
-				this.map.removeLayer(this.allAdministrativeZonesLayer);
-				this.allAdministrativeZonesLayer = undefined;
-			}
+			this.removeAdministrativeZonesLayer();
 			return;
 		}
 
 		// Validate GeoJSON structure before rendering
 		if (!this.isValidGeoJSON(this.administrativeZoneGeoJSON)) {
 			console.error('Invalid GeoJSON data structure');
-			if (this.allAdministrativeZonesLayer) {
-				this.map.removeLayer(this.allAdministrativeZonesLayer);
-				this.allAdministrativeZonesLayer = undefined;
-			}
+			this.removeAdministrativeZonesLayer();
 			this.messageService.add({
 				severity: 'error',
 				summary: 'Invalid Data',
@@ -410,9 +400,7 @@ export class AdminMasterAdministrativeZonesComponent
 			return;
 		}
 
-		if (this.allAdministrativeZonesLayer) {
-			this.map.removeLayer(this.allAdministrativeZonesLayer);
-		}
+		this.removeAdministrativeZonesLayer();
 
 		try {
 			this.allAdministrativeZonesLayer = L.geoJSON(
@@ -472,7 +460,43 @@ export class AdminMasterAdministrativeZonesComponent
 							}
 						});
 
-						layer.bindTooltip(props.name || 'N/A', {
+						// Add permanent label with name and area code
+						const labelContent = `
+							<div style="
+								color: black;
+								font-weight: 700;
+								font-size: 11px;
+								text-shadow: 
+									-1px -1px 0 #fff,
+									1px -1px 0 #fff,
+									-1px 1px 0 #fff,
+									1px 1px 0 #fff;
+								pointer-events: none;
+								white-space: nowrap;
+							">
+								${props.name || 'N/A'}
+								${props.areaCode ? `<br/><span style="font-size: 9px; font-weight: 600;">${props.areaCode}</span>` : ''}
+							</div>
+						`;
+
+						// Get centroid for label placement
+						const bounds = (layer as L.GeoJSON).getBounds();
+						const center = bounds.getCenter();
+
+						const label = L.marker(center, {
+							icon: L.divIcon({
+								className: 'administrative-zone-label',
+								html: labelContent,
+								iconSize: [150, 40],
+								iconAnchor: [75, 20],
+							}),
+						}).addTo(this.map!);
+
+						// Store label reference on layer for cleanup
+						(layer as any)._label = label;
+
+						// Also add hover tooltip
+						layer.bindTooltip(`${props.name || 'N/A'}${props.areaCode ? ` (${props.areaCode})` : ''}`, {
 							permanent: false,
 							direction: 'top',
 						});
@@ -748,6 +772,36 @@ export class AdminMasterAdministrativeZonesComponent
 		return Array.isArray(this.administrativeZoneGeoJSON.features)
 			? this.administrativeZoneGeoJSON.features.length
 			: 0;
+	}
+
+	/**
+	 * Remove administrative zones layer and clean up labels
+	 */
+	private removeAdministrativeZonesLayer(): void {
+		if (this.allAdministrativeZonesLayer) {
+			// Remove labels before removing layer
+			this.allAdministrativeZonesLayer.eachLayer((layer: any) => {
+				if (layer._label) {
+					this.map?.removeLayer(layer._label);
+					layer._label = null;
+				}
+			});
+			this.map?.removeLayer(this.allAdministrativeZonesLayer);
+			this.allAdministrativeZonesLayer = undefined;
+		}
+	}
+
+	/**
+	 * Get sorted administrative zones: Thromdes (urban) first, then Gewogs (rural)
+	 */
+	get sortedAdministrativeZones(): AdministrativeZone[] {
+		const thromdes = this.administrativeZones.filter(
+			(z) => z.type === AdministrativeZoneType.Thromde
+		);
+		const gewogs = this.administrativeZones.filter(
+			(z) => z.type === AdministrativeZoneType.Gewog
+		);
+		return [...thromdes, ...gewogs];
 	}
 
 	onRowSelect(event: any) {

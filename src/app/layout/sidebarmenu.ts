@@ -83,6 +83,17 @@ export const ADMINSIDEBARITEMS = [
 		],
 	},
 	{
+		label: 'Settings',
+		items: [
+			{
+				label: 'Public Page Settings',
+				icon: 'pi pi-fw pi-cog',
+				routerLink: ['/admin/settings/public-page'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+		],
+	},
+	{
 		label: 'Download',
 		items: [
 			{

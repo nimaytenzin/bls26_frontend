@@ -1,0 +1,75 @@
+<div class="card p-6">
+	<!-- Header Section -->
+	<div class="flex justify-between items-center mb-6">
+		<div>
+			<h2 class="text-2xl font-bold text-gray-900 mb-1">
+				Public Page Settings
+			</h2>
+			<p class="text-sm text-gray-600">
+				Configure default map visualization and basemap for public data viewers
+			</p>
+		</div>
+	</div>
+
+	<!-- Settings Form -->
+	<div class="grid grid-cols-1 gap-6">
+		<!-- Map Visualization Mode -->
+		<div class="p-4 border border-slate-200 rounded-lg bg-white">
+			<label class="block text-sm font-semibold text-slate-700 mb-3">
+				<i class="pi pi-palette mr-2"></i>
+				Default Map Visualization Mode
+			</label>
+			<p class="text-xs text-slate-500 mb-4">
+				Select the default visualization mode that will be displayed when users
+				visit the public national data viewer.
+			</p>
+			<p-dropdown
+				[(ngModel)]="settings.mapVisualizationMode"
+				[options]="visualizationModeOptions"
+				optionLabel="label"
+				optionValue="value"
+				placeholder="Select visualization mode"
+				class="w-full"
+				[style]="{ width: '100%' }"
+			></p-dropdown>
+		</div>
+
+		<!-- Basemap Selection -->
+		<div class="p-4 border border-slate-200 rounded-lg bg-white">
+			<label class="block text-sm font-semibold text-slate-700 mb-3">
+				<i class="pi pi-map mr-2"></i>
+				Default Basemap
+			</label>
+			<p class="text-xs text-slate-500 mb-4">
+				Select the default basemap that will be displayed on the public data
+				viewer map.
+			</p>
+			<p-dropdown
+				[(ngModel)]="settings.selectedBasemapId"
+				[options]="basemapOptions"
+				optionLabel="label"
+				optionValue="value"
+				placeholder="Select basemap"
+				class="w-full"
+				[style]="{ width: '100%' }"
+			></p-dropdown>
+		</div>
+
+		<!-- Action Buttons -->
+		<div class="flex gap-3 justify-end pt-4 border-t border-slate-200">
+			<p-button
+				label="Reset to Defaults"
+				icon="pi pi-refresh"
+				severity="secondary"
+				(click)="resetSettings()"
+				[outlined]="true"
+			></p-button>
+			<p-button
+				label="Save Settings"
+				icon="pi pi-save"
+				(click)="saveSettings()"
+			></p-button>
+		</div>
+	</div>
+</div>
+

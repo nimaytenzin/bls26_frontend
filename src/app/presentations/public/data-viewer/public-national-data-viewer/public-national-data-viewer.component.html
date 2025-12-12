@@ -1,5 +1,5 @@
 <!-- Public National Data Viewer -->
-<div class="h-screen bg-gradient-to-br from-slate-50 to-white">
+<div class="h-screen w-screen relative overflow-hidden">
 	<!-- Loading State -->
 	<section
 		*ngIf="loading"
@@ -42,12 +42,16 @@
 
 	<!-- Main Content -->
 	<ng-container *ngIf="!loading && !errorMessage">
-		<!-- Split UI Layout -->
-		<section class="flex gap-6 h-screen p-6">
-			<!-- Left Pane: Data and Statistics -->
-			<div class="w-[28vw] flex flex-col h-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-				<!-- Header Section - Fixed -->
-				<div class="sticky top-0 z-10 bg-gradient-to-br from-primary-50 to-white p-8 pb-6 border-b-2 border-primary-100">
+		<!-- Map Container - Full Screen -->
+		<div class="absolute inset-0 w-full h-full">
+			<!-- Map Container -->
+			<div #mapContainer class="w-full h-full bg-slate-100"></div>
+		</div>
+
+		<!-- Left Pane: Data and Statistics - Absolute Overlay -->
+		<div class="absolute top-0 left-0 w-[32vw] max-w-md h-full flex flex-col bg-white/95 backdrop-blur-md shadow-2xl border-r-2 border-slate-200 overflow-hidden z-[1000]">
+			<!-- Header Section - Fixed -->
+			<div class="sticky top-0 z-10 bg-gradient-to-br from-primary-50/95 to-white/95 backdrop-blur-md p-8 pb-6 border-b-2 border-primary-100">
 					<div class="flex items-start gap-4 mb-4">
 						<div class="flex-shrink-0 w-14 h-14 rounded-xl bg-primary-600 flex items-center justify-center shadow-lg">
 							<i class="pi pi-map text-2xl text-white"></i>
@@ -80,8 +84,8 @@
 					</div>
 				</div>
 
-				<!-- Scrollable Content Area -->
-				<div class="flex-1 overflow-y-auto p-6 pt-6">
+			<!-- Scrollable Content Area -->
+			<div class="flex-1 overflow-y-auto p-6 pt-6">
 					<div class="space-y-6">
 						<!-- Main Tabs: Frame Insights & Dzongkhag List -->
 						<div class="flex gap-2 bg-slate-50 rounded-lg p-1 border border-slate-200">
@@ -115,45 +119,7 @@
 
 						<!-- Frame Insights Tab Content -->
 						<div *ngIf="activeMainTab === 'insights'" class="space-y-5">
-							<!-- Total Households Card -->
-							<div
-								class="group rounded-xl border-2 transition-all duration-300 cursor-pointer relative overflow-hidden bg-gradient-to-br from-white to-primary-50/30 shadow-md hover:shadow-xl"
-								[class.border-primary-500]="mapVisualizationMode === 'households'"
-								[class.border-slate-200]="mapVisualizationMode !== 'households'"
-								(click)="switchVisualizationMode('households')"
-							>
-								<div class="absolute top-0 right-0 w-32 h-32 bg-primary-100/20 rounded-full -mr-16 -mt-16"></div>
-								<div class="relative p-6">
-									<div class="flex items-center justify-between mb-4">
-										<div class="flex items-center gap-3">
-											<div class="w-12 h-12 rounded-lg bg-primary-600 flex items-center justify-center shadow-lg">
-												<i class="pi pi-home text-xl text-white"></i>
-											</div>
-											<p class="text-base font-bold text-slate-800">
-												Total Households
-											</p>
-										</div>
-										<div
-											*ngIf="mapVisualizationMode === 'households'"
-											class="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center shadow-md"
-										>
-											<i class="pi pi-check text-sm text-white"></i>
-										</div>
-									</div>
-									<div class="mb-4">
-										<p class="text-4xl font-extrabold text-primary-600 mb-1">
-											{{ stats.totalHouseholds | number }}
-										</p>
-										<p class="text-xs text-slate-500">Across all dzongkhags</p>
-									</div>
-									<div class="pt-3 border-t border-slate-200/50">
-										<p class="text-xs text-slate-600">
-											<i class="pi pi-info-circle mr-1"></i>
-											Click to visualize on map
-										</p>
-									</div>
-								</div>
-							</div>
+
 
 							<!-- Total Enumeration Areas Card -->
 							<div
@@ -199,6 +165,46 @@
 									</div>
 								</div>
 							</div>
+							<!-- Total Households Card -->
+							<div
+								class="group rounded-xl border-2 transition-all duration-300 cursor-pointer relative overflow-hidden bg-gradient-to-br from-white to-primary-50/30 shadow-md hover:shadow-xl"
+								[class.border-primary-500]="mapVisualizationMode === 'households'"
+								[class.border-slate-200]="mapVisualizationMode !== 'households'"
+								(click)="switchVisualizationMode('households')"
+							>
+								<div class="absolute top-0 right-0 w-32 h-32 bg-primary-100/20 rounded-full -mr-16 -mt-16"></div>
+								<div class="relative p-6">
+									<div class="flex items-center justify-between mb-4">
+										<div class="flex items-center gap-3">
+											<div class="w-12 h-12 rounded-lg bg-primary-600 flex items-center justify-center shadow-lg">
+												<i class="pi pi-home text-xl text-white"></i>
+											</div>
+											<p class="text-base font-bold text-slate-800">
+												Total Households
+											</p>
+										</div>
+										<div
+											*ngIf="mapVisualizationMode === 'households'"
+											class="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center shadow-md"
+										>
+											<i class="pi pi-check text-sm text-white"></i>
+										</div>
+									</div>
+									<div class="mb-4">
+										<p class="text-4xl font-extrabold text-primary-600 mb-1">
+											{{ stats.totalHouseholds | number }}
+										</p>
+										<p class="text-xs text-slate-500">Across all dzongkhags</p>
+									</div>
+									<div class="pt-3 border-t border-slate-200/50">
+										<p class="text-xs text-slate-600">
+											<i class="pi pi-info-circle mr-1"></i>
+											Click to visualize on map
+										</p>
+									</div>
+								</div>
+							</div>
+
 						</div>
 
 						<!-- Dzongkhag List Tab Content -->
@@ -256,17 +262,15 @@
 								</div>
 							</div>
 						</div>
-					</div>
 				</div>
 			</div>
+		</div>
 
-			<!-- Right Pane: Map -->
-			<div class="flex-1 relative rounded-2xl overflow-hidden shadow-2xl border-2 border-slate-100 bg-white">
-				<!-- Map Container -->
-				<div #mapContainer class="w-full h-full bg-slate-100"></div>
+		<!-- Map Controls and Overlays -->
+		<div class="absolute inset-0 pointer-events-none z-[999]">
 
-				<!-- Popovers for Data Download (Top Left) -->
-				<div class="absolute top-6 left-6 flex gap-2 z-[1001]">
+			<!-- Popovers for Data Download (Top Left - after panel) -->
+			<div class="absolute top-6 left-[calc(32vw+1rem)] flex gap-2 pointer-events-auto">
 					<!-- Download Popover -->
 					<p-button
 						(click)="downloadPopover.toggle($event)"
@@ -309,10 +313,10 @@
 					</p-popover>
 				</div>
 
-				<!-- Map Controls Overlay -->
-				<div
-					class="absolute top-6 right-6 bg-white/95 backdrop-blur-sm rounded-xl border-2 border-slate-200 shadow-2xl p-5 space-y-4 z-[1000] max-w-xs"
-				>
+			<!-- Map Controls Overlay -->
+			<div
+				class="absolute top-6 right-6 bg-white/95 backdrop-blur-sm rounded-xl border-2 border-slate-200 shadow-2xl p-5 space-y-4 max-w-xs pointer-events-auto"
+			>
 					<div>
 						<div class="flex items-center gap-2 mb-4 pb-2 border-b border-slate-200">
 							<i class="pi pi-sliders-h text-primary-600"></i>
@@ -397,21 +401,20 @@
 								No data available
 							</div>
 						</ng-template>
-					</div>
-				</div>
-
-				<!-- Loading Overlay -->
-				<div
-					*ngIf="loading"
-					class="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center rounded-2xl"
-				>
-					<div class="flex flex-col items-center gap-4">
-						<p-progressSpinner styleClass="w-16 h-16"></p-progressSpinner>
-						<p class="text-sm font-semibold text-slate-600">Loading map data...</p>
-					</div>
 				</div>
 			</div>
-		</section>
+		</div>
+
+		<!-- Loading Overlay -->
+		<div
+			*ngIf="loading"
+			class="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-[2000]"
+		>
+			<div class="flex flex-col items-center gap-4">
+				<p-progressSpinner styleClass="w-16 h-16"></p-progressSpinner>
+				<p class="text-sm font-semibold text-slate-600">Loading map data...</p>
+			</div>
+		</div>
 	</ng-container>
 </div>
 

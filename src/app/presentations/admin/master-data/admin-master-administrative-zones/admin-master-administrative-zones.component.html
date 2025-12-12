@@ -44,23 +44,42 @@
 
 		<!-- Dzongkhag Selector and Statistics -->
 		<div class="flex items-center justify-between gap-6">
-			<div class="flex flex-col items-start gap-1">
-				<label
-					for="dzongkhag-selector"
-					class=" font-medium text-slate-700 whitespace-nowrap"
-				>
-					Select Dzongkhag <span class="text-red-500">*</span>
-				</label>
-				<p-dropdown
-					id="dzongkhag-selector"
-					[(ngModel)]="selectedDzongkhag"
-					[options]="dzongkhags"
-					optionLabel="name"
-					placeholder="Choose a dzongkhag to manage"
-					styleClass="w-64"
-					(onChange)="onDzongkhagChange()"
-					[showClear]="true"
-				></p-dropdown>
+			<div class="flex items-center gap-6">
+				<div class="flex flex-col items-start gap-1">
+					<label
+						for="dzongkhag-selector"
+						class=" font-medium text-slate-700 whitespace-nowrap"
+					>
+						Select Dzongkhag <span class="text-red-500">*</span>
+					</label>
+					<p-dropdown
+						id="dzongkhag-selector"
+						[(ngModel)]="selectedDzongkhag"
+						[options]="dzongkhags"
+						optionLabel="name"
+						placeholder="Choose a dzongkhag to manage"
+						styleClass="w-64"
+						(onChange)="onDzongkhagChange()"
+						[showClear]="true"
+					></p-dropdown>
+				</div>
+				<!-- Dzongkhag Title and Area Code Display -->
+				<div *ngIf="selectedDzongkhag" class="flex flex-col">
+					<p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
+						Selected Dzongkhag
+					</p>
+					<div class="flex items-center gap-2">
+						<p class="text-lg font-bold text-slate-900">
+							{{ selectedDzongkhag.name }}
+						</p>
+						<span
+							*ngIf="selectedDzongkhag.areaCode"
+							class="text-sm font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded"
+						>
+							{{ selectedDzongkhag.areaCode }}
+						</span>
+					</div>
+				</div>
 			</div>
 
 			<!-- Statistics Cards -->
@@ -143,7 +162,7 @@
 			<div class="flex-1 overflow-auto p-4">
 				<p-table
 					#dtSplit
-					[value]="administrativeZones"
+					[value]="sortedAdministrativeZones"
 					[paginator]="false"
 					responsiveLayout="scroll"
 					[loading]="loading"
@@ -161,6 +180,9 @@
 						<th pSortableColumn="name">
 							Name <p-sortIcon field="name"></p-sortIcon>
 						</th>
+						<th pSortableColumn="areaCode">
+							Area Code <p-sortIcon field="areaCode"></p-sortIcon>
+						</th>
 						<th pSortableColumn="type">Type</th>
 						<th>Actions</th>
 					</tr>
@@ -172,9 +194,11 @@
 							<div class="font-semibold text-slate-900">
 								{{ zone.name }}
 							</div>
-							<div class="text-xs text-slate-500 mt-0.5">
-								{{ getDzongkhagName(zone.dzongkhagId) }}
-							</div>
+						</td>
+						<td>
+							<span class="text-sm font-mono text-slate-600">
+								{{ zone.areaCode || 'N/A' }}
+							</span>
 						</td>
 						<td>
 							<span
@@ -220,7 +244,7 @@
 
 				<ng-template pTemplate="emptymessage">
 					<tr>
-						<td colspan="3" class="text-center py-8">
+						<td colspan="4" class="text-center py-8">
 							<div class="text-slate-500">
 								<i class="pi pi-inbox text-3xl mb-2 block"></i>
 								<p class="text-sm">No gewogs/thromdes found</p>
