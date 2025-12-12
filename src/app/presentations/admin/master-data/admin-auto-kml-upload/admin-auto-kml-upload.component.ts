@@ -15,7 +15,7 @@ import { BasemapService } from '../../../../core/utility/basemap.service';
 import { KmlParserDataService } from '../../../../core/dataservice/kml-parser/kml-parser.dataservice';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
-import { AdministrativeZone } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import { AdministrativeZone, AdministrativeZoneType } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
 import { Dzongkhag } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
 import {
 	AutoKmlUploadRequest,
@@ -55,7 +55,7 @@ export class AdminAutoKmlUploadComponent
 	autoUploadAdministrativeZoneId: number | null = null;
 	autoUploadSazName: string = '';
 	autoUploadSazAreaCode: string = '';
-	autoUploadSazType: 'chiwog' | 'lap' = 'chiwog';
+	autoUploadSazType: 'chiwog' | 'lap' = 'lap';
 	autoUploadLoading: boolean = false;
 	autoUploadResult: AutoKmlUploadResponse | null = null;
 	autoUploadApiBaseUrl: string = 'http://localhost:3000';
@@ -89,15 +89,7 @@ export class AdminAutoKmlUploadComponent
 	private loadApiBaseUrlFromStorage(): void {
 		const savedUrl = localStorage.getItem(this.API_URL_STORAGE_KEY);
 		if (savedUrl && savedUrl.trim()) {
-			// Validate the saved URL
-			const normalizedUrl = this.validateAndNormalizeApiUrl(savedUrl);
-			if (normalizedUrl) {
-				this.autoUploadApiBaseUrl = normalizedUrl;
-			} else {
-				// Invalid URL in storage, use default
-				this.autoUploadApiBaseUrl = 'http://localhost:3000';
-				this.saveApiBaseUrlToStorage();
-			}
+			this.autoUploadApiBaseUrl = savedUrl.trim();
 		} else {
 			// No saved URL, use default
 			this.autoUploadApiBaseUrl = 'http://localhost:3000';
@@ -116,20 +108,8 @@ export class AdminAutoKmlUploadComponent
 	 * Handle API Base URL change
 	 */
 	onApiBaseUrlChange(): void {
-		// Validate and normalize the URL
-		const normalizedUrl = this.validateAndNormalizeApiUrl(this.autoUploadApiBaseUrl);
-		if (normalizedUrl) {
-			this.autoUploadApiBaseUrl = normalizedUrl;
-			this.saveApiBaseUrlToStorage();
-		} else {
-			// Invalid URL, show error but keep the input value for user to fix
-			this.messageService.add({
-				severity: 'warn',
-				summary: 'Invalid URL',
-				detail: 'Please enter a valid HTTP or HTTPS URL (e.g., http://localhost:3000)',
-				life: 3000,
-			});
-		}
+		this.autoUploadApiBaseUrl = this.autoUploadApiBaseUrl;
+		this.saveApiBaseUrlToStorage();
 	}
 
 	ngAfterViewInit(): void {
@@ -161,11 +141,39 @@ export class AdminAutoKmlUploadComponent
 	}
 
 	onDzongkhagChange() {
+		// Reset administrative zone selection when dzongkhag changes
 		this.autoUploadAdministrativeZoneId = null;
 		this.administrativeZones = [];
+		this.autoUploadSazType = 'lap'; // Reset to default
 
 		if (this.selectedDzongkhag) {
 			this.loadAdministrativeZones();
+		}
+	}
+
+	/**
+	 * Handle administrative zone selection change
+	 * Automatically sets SAZ type based on administrative zone type:
+	 * - Thromde -> lap
+	 * - Gewog -> chiwog
+	 */
+	onAdministrativeZoneChange() {
+		if (!this.autoUploadAdministrativeZoneId) {
+			this.autoUploadSazType = 'lap'; // Reset to default
+			return;
+		}
+
+		const selectedZone = this.administrativeZones.find(
+			(zone) => zone.id === this.autoUploadAdministrativeZoneId
+		);
+
+		if (selectedZone) {
+			// Set SAZ type based on administrative zone type
+			if (selectedZone.type === AdministrativeZoneType.Thromde) {
+				this.autoUploadSazType = 'lap';
+			} else if (selectedZone.type === AdministrativeZoneType.Gewog) {
+				this.autoUploadSazType = 'chiwog';
+			}
 		}
 	}
 
@@ -367,41 +375,7 @@ export class AdminAutoKmlUploadComponent
 		this.autoUploadResult = null;
 	}
 
-	/**
-	 * Validate and normalize API base URL
-	 * @param url - URL to validate
-	 * @returns Normalized URL or null if invalid
-	 */
-	private validateAndNormalizeApiUrl(url: string): string | null {
-		if (!url || !url.trim()) {
-			return null;
-		}
-
-		let normalizedUrl = url.trim();
-
-		// Remove trailing slashes
-		normalizedUrl = normalizedUrl.replace(/\/+$/, '');
-
-		// Validate URL format
-		try {
-			const urlObj = new URL(normalizedUrl);
-			
-			// Check if scheme is http or https
-			if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
-				return null;
-			}
-
-			// Check if hostname exists
-			if (!urlObj.hostname) {
-				return null;
-			}
-
-			return normalizedUrl;
-		} catch (error) {
-			// Invalid URL format
-			return null;
-		}
-	}
+	
 
 	autoUploadKml() {
 		if (!this.autoUploadKmlFile) {
@@ -455,31 +429,26 @@ export class AdminAutoKmlUploadComponent
 			return;
 		}
 
-		// Validate and normalize API URL
-		const apiBaseUrl = this.validateAndNormalizeApiUrl(this.autoUploadApiBaseUrl);
-		if (!apiBaseUrl) {
-			this.messageService.add({
-				severity: 'error',
-				summary: 'Invalid API URL',
-				detail: 'The API base URL is invalid. Please ensure it is a valid HTTP or HTTPS URL (e.g., http://localhost:3000)',
-				life: 5000,
-			});
-			return;
-		}
-
 		this.autoUploadLoading = true;
 		this.autoUploadResult = null;
+
+		// Combine name with type (e.g., "Bumthang Thromde" or "Bumthang LAP")
+		const sazNameWithType = this.getSazNameWithType(
+			this.autoUploadSazName.trim(),
+			this.autoUploadSazType
+		);
 
 		const request: AutoKmlUploadRequest = {
 			kmlFile: this.autoUploadKmlFile,
 			administrativeZoneId: this.autoUploadAdministrativeZoneId,
-			sazName: this.autoUploadSazName.trim(),
+			sazName: sazNameWithType,
 			sazAreaCode: this.autoUploadSazAreaCode.trim(),
 			sazType: this.autoUploadSazType,
-			apiBaseUrl: apiBaseUrl,
+			apiBaseUrl: this.autoUploadApiBaseUrl.trim(),
 			token: token,
 		};
 
+		console.log("Auto Upload Request:", request);
 		this.kmlParserService.autoUploadKml(request).subscribe({
 			next: (response) => {
 				this.autoUploadLoading = false;
@@ -521,6 +490,102 @@ export class AdminAutoKmlUploadComponent
 		this.autoUploadSazAreaCode = '';
 		this.autoUploadSazType = 'chiwog';
 		this.autoUploadResult = null;
+	}
+
+	/**
+	 * Get SAZ name with type appended
+	 * @param name - Base name (e.g., "Bumthang")
+	 * @param type - SAZ type ('chiwog' or 'lap')
+	 * @returns Formatted name with type (e.g., "Bumthang Thromde" or "Bumthang Chiwog")
+	 */
+	getSazNameWithType(name: string, type: 'chiwog' | 'lap'): string {
+		if (!name || !name.trim()) {
+			return '';
+		}
+
+		const trimmedName = name.trim();
+		// Map type to display label: 'lap' -> 'Thromde', 'chiwog' -> 'Chiwog'
+		const typeLabel = type === 'chiwog' ? 'Chiwog' : 'Thromde';
+
+		// Check if the name already ends with the type (case-insensitive)
+		const nameLower = trimmedName.toLowerCase();
+		const typeLower = typeLabel.toLowerCase();
+		const typeLowerVariants = [typeLower, 'lap', 'thromde', 'chiwog'];
+
+		// Check if name already ends with any variant of the type
+		const alreadyHasType = typeLowerVariants.some((variant) =>
+			nameLower.endsWith(' ' + variant) || nameLower.endsWith(variant)
+		);
+
+		if (alreadyHasType) {
+			// Name already includes type, return as is
+			return trimmedName;
+		}
+
+		// Append type to name
+		return `${trimmedName} ${typeLabel}`;
+	}
+
+	/**
+	 * Get display name for SAZ (name with type)
+	 */
+	getDisplaySazName(): string {
+		if (!this.autoUploadSazName.trim()) {
+			return '';
+		}
+		return this.getSazNameWithType(
+			this.autoUploadSazName.trim(),
+			this.autoUploadSazType
+		);
+	}
+
+	/**
+	 * Get display name for Administrative Zone (name with type)
+	 * @param zone - Administrative Zone object
+	 * @returns Formatted name with type (e.g., "Bumthang Thromde" or "Bumthang Gewog")
+	 */
+	getAdministrativeZoneDisplayName(zone: AdministrativeZone | null | undefined): string {
+		if (!zone || !zone.name) {
+			return '';
+		}
+
+		const name = zone.name.trim();
+		const type = zone.type || AdministrativeZoneType.Gewog;
+
+		// Check if name already includes the type
+		const nameLower = name.toLowerCase();
+		const typeLower = type.toLowerCase();
+
+		if (nameLower.endsWith(' ' + typeLower) || nameLower.endsWith(typeLower)) {
+			// Name already includes type, return as is
+			return name;
+		}
+
+		// Append type to name
+		return `${name} ${type}`;
+	}
+
+	/**
+	 * Get display name for the selected Administrative Zone
+	 * @returns Formatted name with type for the selected zone
+	 */
+	getSelectedAdministrativeZoneDisplayName(): string {
+		if (!this.autoUploadAdministrativeZoneId) {
+			return '';
+		}
+		const selectedZone = this.administrativeZones.find(
+			(zone) => zone.id === this.autoUploadAdministrativeZoneId
+		);
+		return this.getAdministrativeZoneDisplayName(selectedZone);
+	}
+
+	/**
+	 * Check if SAZ type dropdown should be disabled
+	 * It should be disabled when an administrative zone is selected
+	 * @returns true if SAZ type should be disabled
+	 */
+	isSazTypeDisabled(): boolean {
+		return !!this.autoUploadAdministrativeZoneId;
 	}
 
 	// Utility Methods
