@@ -176,20 +176,10 @@
 									pInputText
 									type="text"
 									[(ngModel)]="autoUploadSazName"
-									[placeholder]="
-										autoUploadSazType === 'chiwog'
-											? 'Enter name (e.g., Bumthang)'
-											: 'Enter name (e.g., Bumthang)'
-									"
+									placeholder="Enter SAZ name"
 									class="w-full"
 									[disabled]="autoUploadLoading"
 								/>
-								<small
-									*ngIf="autoUploadSazName.trim()"
-									class="text-slate-500 mt-1 block text-xs"
-								>
-									Will be saved as: <strong>{{ getDisplaySazName() }}</strong>
-								</small>
 							</div>
 
 							<!-- SAZ Area Code -->

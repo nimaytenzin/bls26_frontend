@@ -432,16 +432,10 @@ export class AdminAutoKmlUploadComponent
 		this.autoUploadLoading = true;
 		this.autoUploadResult = null;
 
-		// Combine name with type (e.g., "Bumthang Thromde" or "Bumthang LAP")
-		const sazNameWithType = this.getSazNameWithType(
-			this.autoUploadSazName.trim(),
-			this.autoUploadSazType
-		);
-
 		const request: AutoKmlUploadRequest = {
 			kmlFile: this.autoUploadKmlFile,
 			administrativeZoneId: this.autoUploadAdministrativeZoneId,
-			sazName: sazNameWithType,
+			sazName: this.autoUploadSazName.trim(),
 			sazAreaCode: this.autoUploadSazAreaCode.trim(),
 			sazType: this.autoUploadSazType,
 			apiBaseUrl: this.autoUploadApiBaseUrl.trim(),
@@ -490,53 +484,6 @@ export class AdminAutoKmlUploadComponent
 		this.autoUploadSazAreaCode = '';
 		this.autoUploadSazType = 'chiwog';
 		this.autoUploadResult = null;
-	}
-
-	/**
-	 * Get SAZ name with type appended
-	 * @param name - Base name (e.g., "Bumthang")
-	 * @param type - SAZ type ('chiwog' or 'lap')
-	 * @returns Formatted name with type (e.g., "Bumthang Thromde" or "Bumthang Chiwog")
-	 */
-	getSazNameWithType(name: string, type: 'chiwog' | 'lap'): string {
-		if (!name || !name.trim()) {
-			return '';
-		}
-
-		const trimmedName = name.trim();
-		// Map type to display label: 'lap' -> 'Thromde', 'chiwog' -> 'Chiwog'
-		const typeLabel = type === 'chiwog' ? 'Chiwog' : 'Thromde';
-
-		// Check if the name already ends with the type (case-insensitive)
-		const nameLower = trimmedName.toLowerCase();
-		const typeLower = typeLabel.toLowerCase();
-		const typeLowerVariants = [typeLower, 'lap', 'thromde', 'chiwog'];
-
-		// Check if name already ends with any variant of the type
-		const alreadyHasType = typeLowerVariants.some((variant) =>
-			nameLower.endsWith(' ' + variant) || nameLower.endsWith(variant)
-		);
-
-		if (alreadyHasType) {
-			// Name already includes type, return as is
-			return trimmedName;
-		}
-
-		// Append type to name
-		return `${trimmedName} ${typeLabel}`;
-	}
-
-	/**
-	 * Get display name for SAZ (name with type)
-	 */
-	getDisplaySazName(): string {
-		if (!this.autoUploadSazName.trim()) {
-			return '';
-		}
-		return this.getSazNameWithType(
-			this.autoUploadSazName.trim(),
-			this.autoUploadSazType
-		);
 	}
 
 	/**
