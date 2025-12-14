@@ -358,7 +358,12 @@ export class AdminMasterEnumerationAreasComponent
 			}
 		);
 
-		return flatAreas;
+		// Sort by area code in ascending order
+		return flatAreas.sort((a, b) => {
+			const codeA = (a.areaCode || '').toUpperCase();
+			const codeB = (b.areaCode || '').toUpperCase();
+			return codeA.localeCompare(codeB);
+		});
 	}
 
 	buildHierarchicalTableData() {
@@ -366,7 +371,14 @@ export class AdminMasterEnumerationAreasComponent
 
 		if (!this.hierarchicalData?.administrativeZones) return;
 
-		this.hierarchicalData.administrativeZones.forEach(
+		// Sort Administrative Zones by area code
+		const sortedAdminZones = [...this.hierarchicalData.administrativeZones].sort((a, b) => {
+			const codeA = (a.areaCode || '').toUpperCase();
+			const codeB = (b.areaCode || '').toUpperCase();
+			return codeA.localeCompare(codeB);
+		});
+
+		sortedAdminZones.forEach(
 			(adminZone: HierarchicalAdministrativeZone) => {
 				// Add Administrative Zone header row
 				this.hierarchicalTableData.push({
@@ -380,8 +392,15 @@ export class AdminMasterEnumerationAreasComponent
 					data: adminZone,
 				});
 
+				// Sort Sub-Administrative Zones by area code within each Administrative Zone
+				const sortedSubAdminZones = [...(adminZone.subAdministrativeZones || [])].sort((a, b) => {
+					const codeA = (a.areaCode || '').toUpperCase();
+					const codeB = (b.areaCode || '').toUpperCase();
+					return codeA.localeCompare(codeB);
+				});
+
 				// Add Sub-Administrative Zones
-				adminZone.subAdministrativeZones?.forEach(
+				sortedSubAdminZones.forEach(
 					(subAdminZone: HierarchicalSubAdministrativeZone) => {
 						// Add Sub-Administrative Zone header row
 						this.hierarchicalTableData.push({
@@ -397,7 +416,14 @@ export class AdminMasterEnumerationAreasComponent
 						});
 
 						// Add Enumeration Areas under this Sub-Administrative Zone
-						subAdminZone.enumerationAreas?.forEach((ea: EnumerationArea) => {
+						// Sort enumeration areas by area code before adding to table
+						const sortedEAs = [...(subAdminZone.enumerationAreas || [])].sort((a, b) => {
+							const codeA = (a.areaCode || '').toUpperCase();
+							const codeB = (b.areaCode || '').toUpperCase();
+							return codeA.localeCompare(codeB);
+						});
+						
+						sortedEAs.forEach((ea: EnumerationArea) => {
 							this.hierarchicalTableData.push({
 								type: 'enumeration-area',
 								id: `ea-${ea.id}`,
@@ -608,9 +634,14 @@ export class AdminMasterEnumerationAreasComponent
 			)
 			.subscribe({
 				next: (data) => {
-					this.enumerationAreas = data;
-					// Build flat table data for SAZ view
-					this.hierarchicalTableData = data.map((ea) => ({
+					// Sort by area code in ascending order
+					this.enumerationAreas = data.sort((a, b) => {
+						const codeA = (a.areaCode || '').toUpperCase();
+						const codeB = (b.areaCode || '').toUpperCase();
+						return codeA.localeCompare(codeB);
+					});
+					// Build flat table data for SAZ view (use sorted enumerationAreas)
+					this.hierarchicalTableData = this.enumerationAreas.map((ea) => ({
 						type: 'enumeration-area',
 						id: `ea-${ea.id}`,
 						eaId: ea.id,
@@ -654,9 +685,14 @@ export class AdminMasterEnumerationAreasComponent
 			)
 			.subscribe({
 				next: (data) => {
-					this.enumerationAreas = data;
+					// Sort by area code in ascending order
+					this.enumerationAreas = data.sort((a, b) => {
+						const codeA = (a.areaCode || '').toUpperCase();
+						const codeB = (b.areaCode || '').toUpperCase();
+						return codeA.localeCompare(codeB);
+					});
 					// Build hierarchical table data for AZ view
-					this.buildHierarchicalTableDataForAdministrativeZone(data);
+					this.buildHierarchicalTableDataForAdministrativeZone(this.enumerationAreas);
 					this.loadingEAs = false;
 					// Load GeoJSON for map
 					this.loadEnumerationAreaGeoJSON();
@@ -692,6 +728,15 @@ export class AdminMasterEnumerationAreasComponent
 			groupedBySAZ.get(sazId)!.push(ea);
 		});
 
+		// Sort enumeration areas within each group by area code
+		groupedBySAZ.forEach((eas, sazId) => {
+			eas.sort((a, b) => {
+				const codeA = (a.areaCode || '').toUpperCase();
+				const codeB = (b.areaCode || '').toUpperCase();
+				return codeA.localeCompare(codeB);
+			});
+		});
+
 		// Add Administrative Zone header
 		this.hierarchicalTableData.push({
 			type: 'admin-zone',
@@ -702,8 +747,17 @@ export class AdminMasterEnumerationAreasComponent
 			totalEAs: enumerationAreas.length,
 		});
 
+		// Sort Sub-Administrative Zones by area code before adding to table
+		const sortedSAZEntries = Array.from(groupedBySAZ.entries()).sort(([sazIdA], [sazIdB]) => {
+			const sazA = this.subAdministrativeZones.find((s) => s.id === sazIdA);
+			const sazB = this.subAdministrativeZones.find((s) => s.id === sazIdB);
+			const codeA = (sazA?.areaCode || '').toUpperCase();
+			const codeB = (sazB?.areaCode || '').toUpperCase();
+			return codeA.localeCompare(codeB);
+		});
+
 		// Add Sub-Administrative Zones and their Enumeration Areas
-		groupedBySAZ.forEach((eas, sazId) => {
+		sortedSAZEntries.forEach(([sazId, eas]) => {
 			const saz = this.subAdministrativeZones.find((s) => s.id === sazId);
 			if (saz) {
 				// Add Sub-Administrative Zone row
@@ -717,7 +771,7 @@ export class AdminMasterEnumerationAreasComponent
 					data: saz,
 				});
 
-				// Add Enumeration Area rows
+				// Add Enumeration Area rows (already sorted by area code)
 				eas.forEach((ea) => {
 					this.hierarchicalTableData.push({
 						type: 'enumeration-area',
