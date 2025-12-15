@@ -933,6 +933,48 @@ export class AdminMasterEnumerationAreasComponent
 			onEachFeature: (feature, layer) => {
 				const props = feature.properties;
 
+				// Look up SAZ and AZ names from hierarchical data
+				let sazName = 'N/A';
+				let azName = 'N/A';
+
+				if (this.hierarchicalData?.administrativeZones) {
+					for (const adminZone of this.hierarchicalData.administrativeZones) {
+						if (adminZone.subAdministrativeZones) {
+							for (const subAdminZone of adminZone.subAdministrativeZones) {
+								if (subAdminZone.enumerationAreas) {
+									const foundEA = subAdminZone.enumerationAreas.find(
+										(ea) => ea.id === props.id
+									);
+									if (foundEA) {
+										sazName = subAdminZone.name || 'N/A';
+										azName = adminZone.name || 'N/A';
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+
+				// Fallback to enumerationAreas array if hierarchical lookup fails
+				if (sazName === 'N/A' || azName === 'N/A') {
+					const ea = this.enumerationAreas.find((area) => area.id === props.id);
+					if (ea?.subAdministrativeZone?.name) {
+						sazName = ea.subAdministrativeZone.name;
+					}
+					if (ea?.subAdministrativeZone?.administrativeZone?.name) {
+						azName = ea.subAdministrativeZone.administrativeZone.name;
+					}
+				}
+
+				// Final fallback to GeoJSON properties
+				if (sazName === 'N/A') {
+					sazName = props.subAdministrativeZoneName || props.sazName || 'N/A';
+				}
+				if (azName === 'N/A') {
+					azName = props.administrativeZoneName || props.azName || 'N/A';
+				}
+
 				const popupContent = `
 <div style="padding: 4px; ">
   <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #111827;">${
@@ -941,6 +983,12 @@ export class AdminMasterEnumerationAreasComponent
   <div style="display: grid; gap: 4px; font-size: 13px; margin-bottom: 12px;">
     <div><span style="font-weight: 600; color: #6b7280;">Code:</span> <span style="color: #374151;">${
 			props.areaCode || 'N/A'
+		}</span></div>
+    <div><span style="font-weight: 600; color: #6b7280;">Administrative Zone:</span> <span style="color: #374151;">${
+			azName
+		}</span></div>
+    <div><span style="font-weight: 600; color: #6b7280;">Sub-Administrative Zone:</span> <span style="color: #374151;">${
+			sazName
 		}</span></div>
     <div><span style="font-weight: 600; color: #6b7280;">Description:</span> <span style="color: #374151;">${
 			props.description || 'N/A'

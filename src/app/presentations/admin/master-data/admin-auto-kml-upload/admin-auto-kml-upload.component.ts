@@ -59,6 +59,8 @@ export class AdminAutoKmlUploadComponent
 	autoUploadLoading: boolean = false;
 	autoUploadResult: AutoKmlUploadResponse | null = null;
 	autoUploadApiBaseUrl: string = 'http://localhost:3000';
+	kmlFields: string[] = [];
+	loadingKmlFields: boolean = false;
 	
 	// LocalStorage key for API URL
 	private readonly API_URL_STORAGE_KEY = 'auto_kml_upload_api_base_url';
@@ -367,12 +369,105 @@ export class AdminAutoKmlUploadComponent
 		const files = event.files;
 		if (files && files.length > 0) {
 			this.autoUploadKmlFile = files[0];
+			this.kmlFields = [];
+			this.extractKmlFields(files[0]);
 		}
 	}
 
 	onAutoUploadKmlFileRemove() {
 		this.autoUploadKmlFile = null;
 		this.autoUploadResult = null;
+		this.kmlFields = [];
+	}
+
+	/**
+	 * Extract field names from KML file
+	 * Parses the KML XML and extracts field names from ExtendedData/Data elements
+	 */
+	private extractKmlFields(file: File): void {
+		this.loadingKmlFields = true;
+		this.kmlFields = [];
+
+		const reader = new FileReader();
+		reader.onload = (e: any) => {
+			try {
+				const kmlContent = e.target.result;
+				const parser = new DOMParser();
+				
+				// Handle KMZ files (ZIP archives)
+				if (file.name.toLowerCase().endsWith('.kmz')) {
+					this.messageService.add({
+						severity: 'warn',
+						summary: 'KMZ File',
+						detail: 'KMZ file parsing for fields is not yet supported. Please use a .kml file to view fields.',
+						life: 5000,
+					});
+					this.loadingKmlFields = false;
+					return;
+				}
+
+				const xmlDoc = parser.parseFromString(kmlContent, 'text/xml');
+				
+				// Check for parsing errors
+				const parserError = xmlDoc.querySelector('parsererror');
+				if (parserError) {
+					throw new Error('Failed to parse KML file as XML');
+				}
+
+				// Extract field names from ExtendedData/Data elements
+				const dataElements = xmlDoc.querySelectorAll('ExtendedData Data, ExtendedData SimpleData');
+				const fieldSet = new Set<string>();
+
+				dataElements.forEach((dataElement) => {
+					const name = dataElement.getAttribute('name');
+					if (name && name.trim()) {
+						fieldSet.add(name.trim());
+					}
+				});
+
+				// Also check for SchemaData/SimpleData elements
+				const simpleDataElements = xmlDoc.querySelectorAll('SchemaData SimpleData');
+				simpleDataElements.forEach((simpleData) => {
+					const name = simpleData.getAttribute('name');
+					if (name && name.trim()) {
+						fieldSet.add(name.trim());
+					}
+				});
+
+				this.kmlFields = Array.from(fieldSet).sort();
+				this.loadingKmlFields = false;
+
+				if (this.kmlFields.length === 0) {
+					this.messageService.add({
+						severity: 'info',
+						summary: 'No Fields Found',
+						detail: 'No ExtendedData fields found in the KML file. The file may only contain geometry data.',
+						life: 3000,
+					});
+				}
+			} catch (error) {
+				console.error('Error extracting KML fields:', error);
+				this.loadingKmlFields = false;
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Parse Error',
+					detail: 'Failed to parse KML file. Please ensure it is a valid KML file.',
+					life: 3000,
+				});
+			}
+		};
+
+		reader.onerror = () => {
+			this.loadingKmlFields = false;
+			this.messageService.add({
+				severity: 'error',
+				summary: 'File Read Error',
+				detail: 'Failed to read the selected file.',
+				life: 3000,
+			});
+		};
+
+		reader.readAsText(file);
 	}
 
 	
@@ -484,6 +579,7 @@ export class AdminAutoKmlUploadComponent
 		this.autoUploadSazAreaCode = '';
 		this.autoUploadSazType = 'chiwog';
 		this.autoUploadResult = null;
+		this.kmlFields = [];
 	}
 
 	/**

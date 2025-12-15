@@ -6,6 +6,7 @@ import { AdminMasterAdministrativeZonesComponent } from './master-data/admin-mas
 import { AdminMasterSubAdministrativeZonesComponent } from './master-data/admin-master-sub-administrative-zones/admin-master-sub-administrative-zones.component';
 import { AdminMasterEnumerationAreasComponent } from './master-data/admin-master-enumeration-areas/admin-master-enumeration-areas.component';
 import { AdminAutoKmlUploadComponent } from './master-data/admin-auto-kml-upload/admin-auto-kml-upload.component';
+import { AdminAutoHouseholdDataUploadByDzongkhagComponent } from './master-data/admin-auto-household-data-upload-by-dzongkhag/admin-auto-household-data-upload-by-dzongkhag.component';
 import { AdminMasterSurveyComponent } from './survey/admin-master-survey/admin-master-survey.component';
 import { AdminDzongkhagDataViewerComponent } from './data-viewer/admin-dzongkhag-data-viewer/admin-dzongkhag-data-viewer.component';
 import { AdminAdminstrativeZoneDataViewerComponent } from './data-viewer/admin-adminstrative-zone-data-viewer/admin-adminstrative-zone-data-viewer.component';
@@ -70,6 +71,10 @@ export const adminRoutes: Routes = [
 					{
 						path: 'auto-kml-upload',
 						component: AdminAutoKmlUploadComponent,
+					},
+					{
+						path: 'auto-household-data-upload-by-dzongkhag',
+						component: AdminAutoHouseholdDataUploadByDzongkhagComponent,
 					},
 				],
 			},

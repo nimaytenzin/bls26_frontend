@@ -11,6 +11,8 @@ import {
 	SurveyStatisticsResponseDto,
 	PaginationQueryDto,
 	PaginatedResponse,
+	AutoHouseholdUploadRequestDto,
+	AutoHouseholdUploadResponseDto,
 } from './survey.dto';
 import { SurveyStatus } from '../../constants/enums';
 import { SurveyEnumerationHierarchyDto } from './survey-enumeration-hierarchy.dto';
@@ -298,6 +300,33 @@ export class SurveyDataService {
 						`Error fetching hierarchy for survey ${surveyId}:`,
 						error
 					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Auto household upload
+	 * Bulk upload household counts for multiple Enumeration Area and Survey combinations
+	 * Automatically creates SurveyEnumerationArea records if they don't exist
+	 * @param dto Auto household upload request data
+	 * @returns Observable of upload response with summary
+	 * @requires Authentication (ADMIN role)
+	 */
+	autoHouseholdUpload(
+		dto: AutoHouseholdUploadRequestDto
+	): Observable<AutoHouseholdUploadResponseDto> {
+		return this.http
+			.post<AutoHouseholdUploadResponseDto>(
+				`${this.apiUrl}/auto-household-upload`,
+				dto,
+				{
+					headers: this.getAuthHeaders(),
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error uploading household data:', error);
 					return throwError(() => error);
 				})
 			);

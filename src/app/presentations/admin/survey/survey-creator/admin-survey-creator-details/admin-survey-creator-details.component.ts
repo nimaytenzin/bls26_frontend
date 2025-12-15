@@ -39,14 +39,7 @@ export class AdminSurveyCreatorDetailsComponent implements OnInit {
 		{ label: 'Ended', value: SurveyStatus.ENDED },
 	];
 
-	minDate: Date;
-	maxDate: Date;
-
-	constructor(private fb: FormBuilder) {
-		// Set min/max dates for date pickers
-		this.minDate = new Date(this.currentYear - 5, 0, 1);
-		this.maxDate = new Date(this.currentYear + 5, 11, 31);
-	}
+	constructor(private fb: FormBuilder) {}
 
 	ngOnInit(): void {
 		this.initializeForm();

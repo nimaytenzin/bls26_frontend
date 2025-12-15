@@ -1,0 +1,219 @@
+<!-- Toast Messages -->
+<p-toast></p-toast>
+
+<!-- Auto Household Data Upload by Dzongkhag -->
+<div class="h-[calc(100vh-5rem)] bg-white flex flex-col">
+	<!-- Header Section -->
+	<div class="p-6 border-b border-slate-200 flex-shrink-0">
+		<div class="flex justify-between items-center">
+			<div>
+				<h1 class="text-3xl font-semibold text-slate-900">
+					Auto Household Data Upload by Dzongkhag
+				</h1>
+				<p class="text-sm text-slate-600 mt-1">
+					Upload household data for enumeration areas by dzongkhag
+				</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Content Area -->
+	<div class="flex-1 overflow-auto p-6">
+		<div class="max-w-full mx-auto space-y-6">
+			<!-- Dzongkhag Selection -->
+			<div class="bg-white border border-slate-200 rounded-lg shadow-sm p-6">
+				<div class="flex items-center gap-4">
+					<label
+						for="dzongkhagSelect"
+						class="font-medium text-slate-700 whitespace-nowrap"
+					>
+						Select Dzongkhag
+					</label>
+					<p-dropdown
+						id="dzongkhagSelect"
+						[options]="dzongkhags"
+						[(ngModel)]="selectedDzongkhag"
+						optionLabel="name"
+						placeholder="Choose a dzongkhag"
+						[loading]="loadingDzongkhags"
+						[showClear]="true"
+						(onChange)="onDzongkhagChange()"
+						styleClass="w-64"
+					></p-dropdown>
+				</div>
+			</div>
+
+			<!-- Tabs and Table -->
+			<div
+				*ngIf="selectedDzongkhag"
+				class="bg-white border border-slate-200 rounded-lg shadow-sm"
+			>
+				<!-- Tabs -->
+				<div class="border-b border-slate-200">
+					<div class="flex">
+						<button
+							type="button"
+							class="px-6 py-4 font-medium text-sm border-b-2 transition-colors"
+							[class.border-primary-600]="activeTab === 'rural'"
+							[class.text-primary-600]="activeTab === 'rural'"
+							[class.border-transparent]="activeTab !== 'rural'"
+							[class.text-slate-600]="activeTab !== 'rural'"
+							[class.hover:text-slate-900]="activeTab !== 'rural'"
+							(click)="onTabChange('rural')"
+						>
+							<i class="pi pi-home mr-2"></i>
+							Rural
+						</button>
+						<button
+							type="button"
+							class="px-6 py-4 font-medium text-sm border-b-2 transition-colors"
+							[class.border-primary-600]="activeTab === 'urban'"
+							[class.text-primary-600]="activeTab === 'urban'"
+							[class.border-transparent]="activeTab !== 'urban'"
+							[class.text-slate-600]="activeTab !== 'urban'"
+							[class.hover:text-slate-900]="activeTab !== 'urban'"
+							(click)="onTabChange('urban')"
+						>
+							<i class="pi pi-building mr-2"></i>
+							Urban
+						</button>
+					</div>
+				</div>
+
+				<!-- Table Content -->
+				<div class="p-6">
+					<!-- Loading Indicator -->
+					<div *ngIf="loadingTableData" class="flex items-center justify-center py-12">
+						<i class="pi pi-spin pi-spinner text-3xl text-slate-400"></i>
+						<span class="ml-3 text-slate-600">Loading enumeration areas...</span>
+					</div>
+
+					<!-- Table -->
+					<div
+						*ngIf="!loadingTableData && getCurrentTableData().length > 0"
+						class="overflow-x-auto"
+					>
+						<p-table
+							[value]="getCurrentTableData()"
+							[scrollable]="true"
+							scrollHeight="calc(100vh - 400px)"
+							styleClass="p-datatable-sm"
+							[resizableColumns]="true"
+							[reorderableColumns]="true"
+						>
+							<ng-template pTemplate="header">
+								<tr>
+									<th style="min-width: 150px">Gewog/Thromde</th>
+									<th style="min-width: 150px">Chiwog/LAP</th>
+									<th style="min-width: 150px">Enumeration Area</th>
+									<th style="min-width: 120px">Area Code</th>
+									<th
+										*ngFor="let survey of surveys"
+										style="min-width: 150px"
+									>
+										{{ survey.name }}
+									</th>
+								</tr>
+							</ng-template>
+							<ng-template pTemplate="body" let-row>
+								<tr>
+									<td>
+										<div class="font-medium text-slate-900">
+											{{ row.gewogName }}
+										</div>
+										<div class="text-xs text-slate-500">
+											{{ row.gewogAreaCode }}
+										</div>
+									</td>
+									<td>
+										<div class="font-medium text-slate-900">
+											{{ row.chiwogName }}
+										</div>
+										<div class="text-xs text-slate-500">
+											{{ row.chiwogAreaCode }}
+										</div>
+									</td>
+									<td>
+										<div class="font-medium text-slate-900">
+											{{ row.eaName }}
+										</div>
+										<div class="text-xs text-slate-500">
+											{{ row.eaAreaCode }}
+										</div>
+									</td>
+									<td>
+										<span class="font-mono text-sm text-slate-600">
+											{{ row.fullAreaCode }}
+										</span>
+									</td>
+									<td *ngFor="let survey of surveys">
+										<input
+											pInputText
+											type="number"
+											[min]="0"
+											[value]="getHouseholdDataValue(row, survey.id)"
+											(blur)="onHouseholdDataChange(row, survey.id, $any($event.target).value)"
+											(keyup.enter)="onHouseholdDataChange(row, survey.id, $any($event.target).value)"
+											placeholder="Enter count"
+											class="w-full text-sm"
+										/>
+									</td>
+								</tr>
+							</ng-template>
+							<ng-template pTemplate="emptymessage">
+								<tr>
+									<td [attr.colspan]="4 + surveys.length" class="text-center py-8">
+										<div class="text-slate-500">
+											<i class="pi pi-info-circle mr-2"></i>
+											No enumeration areas found
+										</div>
+									</td>
+								</tr>
+							</ng-template>
+						</p-table>
+					</div>
+
+					<!-- Empty State -->
+					<div
+						*ngIf="!loadingTableData && getCurrentTableData().length === 0"
+						class="text-center py-12"
+					>
+						<i class="pi pi-inbox text-4xl text-slate-300 mb-3"></i>
+						<p class="text-slate-500">
+							No {{ activeTab === 'rural' ? 'rural' : 'urban' }} enumeration
+							areas found for this dzongkhag
+						</p>
+					</div>
+				</div>
+
+				<!-- Save Button -->
+				<div
+					*ngIf="!loadingTableData && getCurrentTableData().length > 0"
+					class="p-6 border-t border-slate-200 flex justify-end"
+				>
+					<button
+						pButton
+						type="button"
+						[label]="saving ? 'Saving...' : 'Save Data'"
+						[icon]="saving ? 'pi pi-spin pi-spinner' : 'pi pi-save'"
+						class="p-button-primary"
+						[disabled]="saving"
+						(click)="saveData()"
+					></button>
+				</div>
+			</div>
+
+			<!-- No Dzongkhag Selected -->
+			<div
+				*ngIf="!selectedDzongkhag"
+				class="bg-slate-50 border border-slate-200 rounded-lg p-12 text-center"
+			>
+				<i class="pi pi-map-marker text-4xl text-slate-300 mb-3"></i>
+				<p class="text-slate-500">
+					Please select a dzongkhag to view enumeration areas
+				</p>
+			</div>
+		</div>
+	</div>
+</div>
+

@@ -105,3 +105,44 @@ export interface SurveyStatisticsResponseDto {
 	totalPopulation: number;
 	averageHouseholdSize: string;
 }
+
+/**
+ * Auto Household Upload Item DTO
+ * Represents a single item in the auto household upload request
+ */
+export interface AutoHouseholdUploadItemDto {
+	enumerationAreaId: number;
+	surveyId: number;
+	householdCount: number;
+}
+
+/**
+ * Auto Household Upload Request DTO
+ * Request body for bulk uploading household counts
+ */
+export interface AutoHouseholdUploadRequestDto {
+	items: AutoHouseholdUploadItemDto[];
+}
+
+/**
+ * Auto Household Upload Error DTO
+ * Represents an error for a specific item in the upload
+ */
+export interface AutoHouseholdUploadErrorDto {
+	enumerationAreaId: number;
+	surveyId: number;
+	householdCount: number;
+	reason: string;
+}
+
+/**
+ * Auto Household Upload Response DTO
+ * Response from the auto household upload endpoint
+ */
+export interface AutoHouseholdUploadResponseDto {
+	totalItems: number;
+	created: number;
+	skipped: number;
+	householdListingsCreated: number;
+	errors: AutoHouseholdUploadErrorDto[];
+}

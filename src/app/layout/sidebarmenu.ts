@@ -69,6 +69,12 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin/master/auto-kml-upload'],
 				roles: [USERROLESENUM.ADMIN],
 			},
+			{
+				label: 'Auto Household Data Upload by Dzongkhag',
+				icon: 'pi pi-fw pi-upload',
+				routerLink: ['/admin/master/auto-household-data-upload-by-dzongkhag'],
+				roles: [USERROLESENUM.ADMIN],
+			},
 		],
 	},
 	{
