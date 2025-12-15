@@ -13,6 +13,7 @@ import {
 	PaginatedResponse,
 	AutoHouseholdUploadRequestDto,
 	AutoHouseholdUploadResponseDto,
+	AutoHouseholdUploadCsvResponseDto,
 } from './survey.dto';
 import { SurveyStatus } from '../../constants/enums';
 import { SurveyEnumerationHierarchyDto } from './survey-enumeration-hierarchy.dto';
@@ -38,6 +39,17 @@ export class SurveyDataService {
 		const token = localStorage.getItem('access_token');
 		return new HttpHeaders({
 			'Content-Type': 'application/json',
+			Authorization: `Bearer ${token}`,
+		});
+	}
+
+	/**
+	 * Get auth headers for multipart/form-data requests
+	 * Leaves Content-Type unset so the browser sets the boundary
+	 */
+	private getAuthHeadersForMultipart(): HttpHeaders {
+		const token = localStorage.getItem('access_token');
+		return new HttpHeaders({
 			Authorization: `Bearer ${token}`,
 		});
 	}
@@ -327,6 +339,32 @@ export class SurveyDataService {
 			.pipe(
 				catchError((error) => {
 					console.error('Error uploading household data:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Auto household upload via CSV
+	 * Accepts a CSV file in multipart/form-data
+	 * @param formData FormData containing the file under "file"
+	 * @returns Observable of CSV upload response with parse errors and bulk result
+	 * @requires Authentication (ADMIN role)
+	 */
+	autoHouseholdUploadCsv(
+		formData: FormData
+	): Observable<AutoHouseholdUploadCsvResponseDto> {
+		return this.http
+			.post<AutoHouseholdUploadCsvResponseDto>(
+				`${this.apiUrl}/auto-household-upload/csv`,
+				formData,
+				{
+					headers: this.getAuthHeadersForMultipart(),
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error uploading household data via CSV:', error);
 					return throwError(() => error);
 				})
 			);

@@ -146,3 +146,12 @@ export interface AutoHouseholdUploadResponseDto {
 	householdListingsCreated: number;
 	errors: AutoHouseholdUploadErrorDto[];
 }
+
+/**
+ * Auto Household Upload CSV Response DTO
+ * CSV uploads return parse errors plus the bulk result
+ */
+export interface AutoHouseholdUploadCsvResponseDto {
+	parseErrors: string[];
+	bulkResult: AutoHouseholdUploadResponseDto;
+}

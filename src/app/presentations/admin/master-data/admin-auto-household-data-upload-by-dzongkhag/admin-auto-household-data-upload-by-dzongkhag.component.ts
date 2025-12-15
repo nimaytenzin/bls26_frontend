@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PrimeNgModules } from '../../../../primeng.modules';
@@ -10,7 +10,9 @@ import {
 	Survey,
 	AutoHouseholdUploadRequestDto,
 	AutoHouseholdUploadItemDto,
+	AutoHouseholdUploadCsvResponseDto,
 } from '../../../../core/dataservice/survey/survey.dto';
+import { FileUpload } from 'primeng/fileupload';
 import { AdministrativeZone, AdministrativeZoneType } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
 import { SubAdministrativeZone } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
 import { EnumerationArea } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
@@ -60,6 +62,14 @@ export class AdminAutoHouseholdDataUploadByDzongkhagComponent implements OnInit 
 
 	// Save state
 	saving = false;
+
+	// CSV upload state
+	csvFile: File | null = null;
+	csvUploading = false;
+	csvParseErrors: string[] = [];
+	csvBulkResult: AutoHouseholdUploadCsvResponseDto['bulkResult'] | null = null;
+
+	@ViewChild('csvFileUpload') csvFileUpload?: FileUpload;
 
 	constructor(
 		private dzongkhagService: DzongkhagDataService,
@@ -237,6 +247,105 @@ export class AdminAutoHouseholdDataUploadByDzongkhagComponent implements OnInit 
 	getHouseholdDataValue(row: HouseholdDataRow, surveyId: number): string {
 		const value = row.surveyData[surveyId];
 		return value === null || value === undefined ? '' : value.toString();
+	}
+
+	onCsvFileSelected(event: { files?: File[] }): void {
+		this.csvFile = event.files && event.files.length > 0 ? event.files[0] : null;
+	}
+
+	onCsvFileRemoved(): void {
+		this.csvFile = null;
+	}
+
+	uploadCsv(event?: { files?: File[] }): void {
+		const file = event?.files?.[0] || this.csvFile;
+		if (!file) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No File',
+				detail: 'Please choose a CSV file to upload.',
+				life: 3000,
+			});
+			return;
+		}
+
+		const formData = new FormData();
+		formData.append('file', file);
+
+		this.csvUploading = true;
+		this.csvParseErrors = [];
+		this.csvBulkResult = null;
+
+		this.surveyService.autoHouseholdUploadCsv(formData).subscribe({
+			next: (response) => {
+				this.csvUploading = false;
+				this.csvParseErrors = response.parseErrors || [];
+				this.csvBulkResult = response.bulkResult;
+
+				if (this.csvParseErrors.length > 0) {
+					this.messageService.add({
+						severity: 'error',
+						summary: 'CSV Parse Errors',
+						detail: this.csvParseErrors.join(' | '),
+						life: 6000,
+					});
+				}
+
+				if (this.csvBulkResult) {
+					const hasErrors =
+						this.csvBulkResult.errors && this.csvBulkResult.errors.length > 0;
+					let detail = `Processed ${this.csvBulkResult.totalItems} item(s). `;
+					detail += `Created ${this.csvBulkResult.created}, skipped ${this.csvBulkResult.skipped}, `;
+					detail += `household listings created ${this.csvBulkResult.householdListingsCreated}.`;
+
+					if (hasErrors) {
+						const errorDetails = this.csvBulkResult.errors
+							.map(
+								(err) =>
+									`EA ${err.enumerationAreaId}, Survey ${err.surveyId}: ${err.reason}`
+							)
+							.join('; ');
+
+						this.messageService.add({
+							severity: 'warn',
+							summary: 'Partial Success',
+							detail: `${detail} Errors: ${errorDetails}`,
+							life: 7000,
+						});
+					} else {
+						this.messageService.add({
+							severity: 'success',
+							summary: 'CSV Upload Successful',
+							detail,
+							life: 5000,
+						});
+					}
+				}
+
+				// Clear uploader selection after success
+				this.csvFile = null;
+				this.csvFileUpload?.clear();
+			},
+			error: (error) => {
+				this.csvUploading = false;
+				console.error('Error uploading household data via CSV:', error);
+				let errorMessage = 'Failed to upload CSV.';
+				if (error.error?.message) {
+					errorMessage = Array.isArray(error.error.message)
+						? error.error.message.join(' | ')
+						: error.error.message;
+				} else if (error.message) {
+					errorMessage = error.message;
+				}
+
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Upload Failed',
+					detail: errorMessage,
+					life: 5000,
+				});
+			},
+		});
 	}
 
 	saveData(): void {
