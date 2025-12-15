@@ -11,6 +11,8 @@ import {
 	SubAdministrativeZone,
 	SubAdministrativeZoneGeoJSON,
 	UpdateSubAdministrativeZoneDto,
+	SazEaUploadDto,
+	SazEaUploadResponse,
 } from './sub-administrative-zone.dto';
 import { AdministrativeZone } from '../administrative-zone/administrative-zone.dto';
 
@@ -290,6 +292,42 @@ export class SubAdministrativeZoneDataService {
 						'Error bulk uploading sub-administrative zones:',
 						error
 					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Upload a single SAZ with its corresponding EA (EA1)
+	 * 
+	 * Creates both Sub-Administrative Zone and Enumeration Area in one operation.
+	 * EA is automatically created with:
+	 * - name: "EA1"
+	 * - areaCode: "01"
+	 * - areaSqKm: 22.22
+	 * - Same geometry as SAZ
+	 * 
+	 * @param data - Upload data including form fields and GeoJSON file
+	 * @returns Observable with created SAZ and EA
+	 */
+	uploadSazWithEa(data: SazEaUploadDto): Observable<SazEaUploadResponse> {
+		const formData = new FormData();
+		
+		formData.append('administrativeZoneId', data.administrativeZoneId.toString());
+		formData.append('name', data.name);
+		formData.append('areaCode', data.areaCode);
+		formData.append('type', data.type);
+		formData.append('areaSqKm', data.areaSqKm.toString());
+		formData.append('file', data.file, data.file.name);
+
+		return this.http
+			.post<SazEaUploadResponse>(
+				`${this.apiUrl}/upload-saz-ea`,
+				formData
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error uploading SAZ with EA:', error);
 					return throwError(() => error);
 				})
 			);

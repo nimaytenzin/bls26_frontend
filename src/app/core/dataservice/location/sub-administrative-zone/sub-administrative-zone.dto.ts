@@ -94,3 +94,43 @@ export interface BulkUploadResponse {
 		error: string;
 	}>;
 }
+
+/**
+ * SAZ + EA Upload Request DTO
+ * Data Transfer Object for uploading a single SAZ with its corresponding EA
+ */
+export interface SazEaUploadDto {
+	administrativeZoneId: number;
+	name: string;
+	areaCode: string;
+	type: 'chiwog' | 'lap';
+	areaSqKm: number;
+	file: File; // GeoJSON file
+}
+
+/**
+ * SAZ + EA Upload Response
+ * Response from the upload-saz-ea endpoint
+ */
+export interface SazEaUploadResponse {
+	subAdministrativeZone: {
+		id: number;
+		administrativeZoneId: number;
+		name: string;
+		areaCode: string;
+		type: 'chiwog' | 'lap';
+		areaSqKm: number;
+		createdAt: string;
+		updatedAt: string;
+	};
+	enumerationArea: {
+		id: number;
+		subAdministrativeZoneId: number;
+		name: string; // Always "EA1"
+		areaCode: string; // Always "01"
+		description: string;
+		areaSqKm: number; // Always 22.22
+		createdAt: string;
+		updatedAt: string;
+	};
+}

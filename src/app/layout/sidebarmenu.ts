@@ -63,6 +63,13 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin/master/enumeration-areas'],
 				roles: [USERROLESENUM.ADMIN],
 			},
+			
+		],
+	},
+	{
+
+		label: 'Data Management',
+		items: [
 			{
 				label: 'Auto KML Upload',
 				icon: 'pi pi-fw pi-cloud-upload',
@@ -75,6 +82,13 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin/master/auto-household-data-upload-by-dzongkhag'],
 				roles: [USERROLESENUM.ADMIN],
 			},
+			{
+				label: 'Single SAZ + EA Uploader',
+				icon: 'pi pi-fw pi-upload',
+				routerLink: ['/admin/master/saz-ea-upload'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+		 
 		],
 	},
 	{
