@@ -142,39 +142,31 @@
 			</small>
 		</div>
 
-		<!-- Sub-Administrative Zone Field -->
+		<!-- Sub-Administrative Zone Field (Multi-Select) -->
 		<div>
 			<label
-				for="subAdministrativeZoneId"
+				for="subAdministrativeZoneIds"
 				class="block text-sm font-medium text-gray-700 mb-2"
 			>
-				Sub-Administrative Zone *
+				Sub-Administrative Zone(s) *
+				<span class="text-xs text-gray-500 ml-1">(Select at least one)</span>
 			</label>
-			<p-dropdown
-				id="subAdministrativeZoneId"
+			<p-multiSelect
+				id="subAdministrativeZoneIds"
 				[options]="subAdministrativeZones"
-				formControlName="subAdministrativeZoneId"
+				formControlName="subAdministrativeZoneIds"
 				optionLabel="name"
 				optionValue="id"
-				placeholder="Select sub-administrative zone"
-				[class.ng-invalid]="hasFormError('subAdministrativeZoneId')"
+				placeholder="Select sub-administrative zone(s)"
+				[class.ng-invalid]="hasFormError('subAdministrativeZoneIds')"
 				styleClass="w-full"
 				[filter]="true"
 				filterBy="name"
 				[loading]="loadingZones"
+				[showClear]="true"
+				display="chip"
 				appendTo="body"
 			>
-				<ng-template pTemplate="selectedItem" let-selectedOption>
-					<div *ngIf="selectedOption" class="flex align-items-center">
-						<span class="mr-2">{{ selectedOption.name }}</span>
-						<p-tag
-							[value]="selectedOption.type === 'chiwog' ? 'Chiwog' : 'Lap'"
-							[severity]="selectedOption.type === 'chiwog' ? 'success' : 'info'"
-							[rounded]="true"
-						></p-tag>
-					</div>
-				</ng-template>
-
 				<ng-template pTemplate="item" let-zone>
 					<div class="flex align-items-center justify-content-between">
 						<div>
@@ -188,23 +180,15 @@
 						></p-tag>
 					</div>
 				</ng-template>
-			</p-dropdown>
+			</p-multiSelect>
 			<small
-				*ngIf="hasFormError('subAdministrativeZoneId')"
+				*ngIf="hasFormError('subAdministrativeZoneIds')"
 				class="p-error block mt-1"
 			>
-				{{ getFormError("subAdministrativeZoneId") }}
+				{{ getFormError("subAdministrativeZoneIds") }}
 			</small>
-			<small
-				*ngIf="!hasFormError('subAdministrativeZoneId') && hasSelectedZone"
-				class="text-gray-500 block mt-1"
-			>
-				Selected:
-				{{
-					getSubAdministrativeZoneName(
-						enumerationAreaForm.get("subAdministrativeZoneId")?.value
-					)
-				}}
+			<small class="text-gray-500 block mt-1">
+				You can select multiple Sub-Administrative Zones to combine them into a single Enumeration Area.
 			</small>
 		</div>
 

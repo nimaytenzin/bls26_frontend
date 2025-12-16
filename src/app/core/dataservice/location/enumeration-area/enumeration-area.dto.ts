@@ -3,16 +3,14 @@ import { SubAdministrativeZone } from '../sub-administrative-zone/sub-administra
 
 export interface EnumerationArea {
 	id: number;
-	subAdministrativeZoneId: number;
 	name: string;
 	description: string;
 	areaCode: string;
-	areaSqKm?: number;
 	geom?: any; // GeoJSON geometry
 	createdAt?: Date;
 	updatedAt?: Date;
 
-	subAdministrativeZone?: SubAdministrativeZone;
+	subAdministrativeZones?: SubAdministrativeZone[]; // Array via junction table
 	surveyEnumerationAreas: SurveyEnumerationArea[];
 }
 
@@ -30,11 +28,10 @@ export interface EnumerationAreaFeature {
 
 export interface EnumerationAreaProperties {
 	id: number;
-	subAdministrativeZoneId: number;
+	subAdministrativeZoneIds?: number[]; // Array of SAZ IDs
 	name: string;
 	description: string;
 	areaCode: string;
-	areaSqKm?: number;
 	[key: string]: any; // Allow additional properties
 }
 
@@ -50,19 +47,18 @@ export interface EnumerationAreaGeometry {
 }
 
 export interface CreateEnumerationAreaDto {
-	subAdministrativeZoneId: number;
+	subAdministrativeZoneIds: number[]; // Array, min 1
 	name: string;
 	description: string;
 	areaCode: string;
-	areaSqKm?: number;
+	geom?: string; // Optional geometry string
 }
 
 export interface UpdateEnumerationAreaDto {
-	subAdministrativeZoneId?: number;
+	subAdministrativeZoneIds?: number[]; // Array, min 1 if provided
 	name?: string;
 	description?: string;
 	areaCode?: string;
-	areaSqKm?: number;
 }
 
 export interface ApiResponse<T> {
@@ -77,7 +73,7 @@ export interface BulkUploadResponse {
 	created: EnumerationArea[];
 	skippedItems: Array<{
 		areaCode: string;
-		subAdministrativeZoneId: number;
+		subAdministrativeZoneIds?: number[];
 		reason: string;
 	}>;
 	errors: Array<{

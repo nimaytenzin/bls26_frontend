@@ -176,15 +176,20 @@ export class EnumeratorSamplingResultsComponent implements OnInit {
 		const ea = this.surveyEnumerationArea?.enumerationArea;
 		if (!ea) return '';
 
+		// Use first SAZ if multiple exist
+		const firstSaz = ea.subAdministrativeZones && ea.subAdministrativeZones.length > 0
+			? ea.subAdministrativeZones[0]
+			: null;
+
 		const parts = [];
-		if (ea.subAdministrativeZone?.administrativeZone?.dzongkhag?.name) {
-			parts.push(ea.subAdministrativeZone.administrativeZone.dzongkhag.name);
+		if (firstSaz?.administrativeZone?.dzongkhag?.name) {
+			parts.push(firstSaz.administrativeZone.dzongkhag.name);
 		}
-		if (ea.subAdministrativeZone?.administrativeZone?.name) {
-			parts.push(ea.subAdministrativeZone.administrativeZone.name);
+		if (firstSaz?.administrativeZone?.name) {
+			parts.push(firstSaz.administrativeZone.name);
 		}
-		if (ea.subAdministrativeZone?.name) {
-			parts.push(ea.subAdministrativeZone.name);
+		if (firstSaz?.name) {
+			parts.push(firstSaz.name);
 		}
 		if (ea.name) {
 			parts.push(ea.name);

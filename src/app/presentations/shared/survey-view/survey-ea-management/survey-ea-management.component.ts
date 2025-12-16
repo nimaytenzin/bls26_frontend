@@ -342,14 +342,18 @@ export class SurveyEaManagementComponent implements OnInit {
 			const ea = surveyEA.enumerationArea;
 			if (!ea) continue;
 
-			const subAdminZone = ea.subAdministrativeZone;
-			if (subAdminZone && !subAdminZoneMap.has(subAdminZone.id)) {
-				subAdminZoneMap.set(subAdminZone.id, subAdminZone);
-			}
+			// Handle multiple SAZs - add all unique SAZs and their admin zones
+			if (ea.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
+				ea.subAdministrativeZones.forEach((subAdminZone) => {
+					if (!subAdminZoneMap.has(subAdminZone.id)) {
+						subAdminZoneMap.set(subAdminZone.id, subAdminZone);
+					}
 
-			const adminZone = subAdminZone?.administrativeZone;
-			if (adminZone && !adminZoneMap.has(adminZone.id)) {
-				adminZoneMap.set(adminZone.id, adminZone);
+					const adminZone = subAdminZone?.administrativeZone;
+					if (adminZone && !adminZoneMap.has(adminZone.id)) {
+						adminZoneMap.set(adminZone.id, adminZone);
+					}
+				});
 			}
 		}
 
@@ -371,8 +375,9 @@ export class SurveyEaManagementComponent implements OnInit {
 		if (this.selectedAdminZoneId !== null) {
 			filtered = filtered.filter(
 				(ea) =>
-					ea.enumerationArea?.subAdministrativeZone?.administrativeZone?.id ===
-					this.selectedAdminZoneId
+					ea.enumerationArea?.subAdministrativeZones?.some(
+						saz => saz.administrativeZone?.id === this.selectedAdminZoneId
+					) || false
 			);
 		}
 
@@ -380,8 +385,9 @@ export class SurveyEaManagementComponent implements OnInit {
 		if (this.selectedSubAdminZoneId !== null) {
 			filtered = filtered.filter(
 				(ea) =>
-					ea.enumerationArea?.subAdministrativeZone?.id ===
-					this.selectedSubAdminZoneId
+					ea.enumerationArea?.subAdministrativeZones?.some(
+						saz => saz.id === this.selectedSubAdminZoneId
+					) || false
 			);
 		}
 
@@ -437,9 +443,13 @@ export class SurveyEaManagementComponent implements OnInit {
 			// Show all sub admin zones
 			const subAdminZoneMap = new Map<number, SubAdministrativeZone>();
 			for (const surveyEA of this.surveyEAs) {
-				const subAdminZone = surveyEA.enumerationArea?.subAdministrativeZone;
-				if (subAdminZone && !subAdminZoneMap.has(subAdminZone.id)) {
-					subAdminZoneMap.set(subAdminZone.id, subAdminZone);
+				const ea = surveyEA.enumerationArea;
+				if (ea?.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
+					ea.subAdministrativeZones.forEach((subAdminZone) => {
+						if (!subAdminZoneMap.has(subAdminZone.id)) {
+							subAdminZoneMap.set(subAdminZone.id, subAdminZone);
+						}
+					});
 				}
 			}
 			this.availableSubAdminZones = Array.from(subAdminZoneMap.values()).sort(
@@ -449,13 +459,16 @@ export class SurveyEaManagementComponent implements OnInit {
 			// Show only sub admin zones for selected admin zone
 			const subAdminZoneMap = new Map<number, SubAdministrativeZone>();
 			for (const surveyEA of this.surveyEAs) {
-				const subAdminZone = surveyEA.enumerationArea?.subAdministrativeZone;
-				if (
-					subAdminZone &&
-					subAdminZone.administrativeZone?.id === this.selectedAdminZoneId &&
-					!subAdminZoneMap.has(subAdminZone.id)
-				) {
-					subAdminZoneMap.set(subAdminZone.id, subAdminZone);
+				const ea = surveyEA.enumerationArea;
+				if (ea?.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
+					ea.subAdministrativeZones.forEach((subAdminZone) => {
+						if (
+							subAdminZone.administrativeZone?.id === this.selectedAdminZoneId &&
+							!subAdminZoneMap.has(subAdminZone.id)
+						) {
+							subAdminZoneMap.set(subAdminZone.id, subAdminZone);
+						}
+					});
 				}
 			}
 			this.availableSubAdminZones = Array.from(subAdminZoneMap.values()).sort(
@@ -485,7 +498,10 @@ export class SurveyEaManagementComponent implements OnInit {
 			const ea = surveyEA.enumerationArea;
 			if (!ea) continue;
 
-			const subAdminZone = ea.subAdministrativeZone;
+			// Use first SAZ if multiple exist
+			const subAdminZone = ea.subAdministrativeZones && ea.subAdministrativeZones.length > 0
+				? ea.subAdministrativeZones[0]
+				: null;
 			if (!subAdminZone) continue;
 
 			const adminZone = subAdminZone.administrativeZone;
@@ -709,14 +725,18 @@ export class SurveyEaManagementComponent implements OnInit {
 	getLocationHierarchy(ea: any): string {
 		if (!ea) return 'N/A';
 		const parts: string[] = [];
-		if (ea.subAdministrativeZone?.administrativeZone?.dzongkhag?.name) {
-			parts.push(ea.subAdministrativeZone.administrativeZone.dzongkhag.name);
+		// Use first SAZ if multiple exist
+		const firstSaz = ea.subAdministrativeZones && ea.subAdministrativeZones.length > 0
+			? ea.subAdministrativeZones[0]
+			: null;
+		if (firstSaz?.administrativeZone?.dzongkhag?.name) {
+			parts.push(firstSaz.administrativeZone.dzongkhag.name);
 		}
-		if (ea.subAdministrativeZone?.administrativeZone?.name) {
-			parts.push(ea.subAdministrativeZone.administrativeZone.name);
+		if (firstSaz?.administrativeZone?.name) {
+			parts.push(firstSaz.administrativeZone.name);
 		}
-		if (ea.subAdministrativeZone?.name) {
-			parts.push(ea.subAdministrativeZone.name);
+		if (firstSaz?.name) {
+			parts.push(firstSaz.name);
 		}
 		return parts.length > 0 ? parts.join(' > ') : 'N/A';
 	}
@@ -1203,7 +1223,9 @@ export class SurveyEaManagementComponent implements OnInit {
 	 */
 	getRecommendedSampleSize(ea: SurveyEnumerationArea): number | undefined {
 		const adminZone =
-			ea.enumerationArea?.subAdministrativeZone?.administrativeZone;
+			ea.enumerationArea?.subAdministrativeZones && ea.enumerationArea.subAdministrativeZones.length > 0
+				? ea.enumerationArea.subAdministrativeZones[0].administrativeZone
+				: null;
 		const isUrban = adminZone?.type === AdministrativeZoneType.Thromde;
 		if (isUrban) {
 			return (

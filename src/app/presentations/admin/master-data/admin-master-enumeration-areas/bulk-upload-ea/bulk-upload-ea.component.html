@@ -156,13 +156,13 @@
 							<li>
 								Each feature must have properties:
 								<strong
-									>subAdministrativeZoneId, name, areaCode, description</strong
+									>subAdministrativeZoneIds (array), name, areaCode, description</strong
 								>
 							</li>
 							<li>Projection: <strong>WGS84 (EPSG:4326)</strong></li>
 							<li>Supported geometry types: Polygon, MultiPolygon</li>
 							<li>
-								Existing areas (same areaCode + subAdministrativeZoneId) will be
+								Existing areas (same areaCode + subAdministrativeZoneIds combination) will be
 								skipped
 							</li>
 						</ul>
@@ -203,7 +203,7 @@
     &#123;
       "type": "Feature",
       "properties": &#123;
-        "subAdministrativeZoneId": 1,
+        "subAdministrativeZoneIds": [1, 2],
         "name": "EA Zone 1",
         "areaCode": "EA001",
         "description": "Enumeration Area 1"

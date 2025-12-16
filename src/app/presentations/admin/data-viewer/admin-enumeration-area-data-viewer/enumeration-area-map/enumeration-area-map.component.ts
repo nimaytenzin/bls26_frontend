@@ -126,7 +126,30 @@ export class EnumerationAreaMapComponent
 		if (this.enumerationAreaId && !this.enumerationArea) {
 			this.loadEnumerationAreaData();
 		} else if (this.enumerationArea) {
-			this.loadMapData();
+			// Check if subAdministrativeZones are loaded, if not, reload with includeSubAdminZone
+			if (!this.enumerationArea.subAdministrativeZones || this.enumerationArea.subAdministrativeZones.length === 0) {
+				const eaId = this.enumerationArea.id || this.enumerationAreaId;
+				if (eaId) {
+					this.enumerationAreaService
+						.findEnumerationAreaById(eaId, false, true)
+						.pipe(takeUntil(this.destroy$))
+						.subscribe({
+							next: (ea) => {
+								this.enumerationArea = ea;
+								this.loadMapData();
+							},
+							error: (error) => {
+								console.error('Error loading enumeration area with hierarchy:', error);
+								// Still try to load map data even if hierarchy fails
+								this.loadMapData();
+							},
+						});
+				} else {
+					this.loadMapData();
+				}
+			} else {
+				this.loadMapData();
+			}
 		}
 	}
 
@@ -186,8 +209,9 @@ export class EnumerationAreaMapComponent
 		if (!this.enumerationAreaId) return;
 
 		this.loading = true;
+		// Include sub-administrative zones to enable hierarchy loading
 		this.enumerationAreaService
-			.findEnumerationAreaById(this.enumerationAreaId)
+			.findEnumerationAreaById(this.enumerationAreaId, false, true)
 			.pipe(takeUntil(this.destroy$))
 			.subscribe({
 				next: (ea) => {
@@ -215,11 +239,43 @@ export class EnumerationAreaMapComponent
 
 		this.loading = true;
 
-		// Load hierarchy first
+		// Load hierarchy first - use first SAZ if multiple exist
+		const firstSazId = this.enumerationArea.subAdministrativeZones && this.enumerationArea.subAdministrativeZones.length > 0
+			? this.enumerationArea.subAdministrativeZones[0].id
+			: null;
+		
+		if (!firstSazId) {
+			console.error('Enumeration area has no sub-administrative zones. Reloading with includeSubAdminZone...');
+			// If subAdministrativeZones is not loaded, reload the EA with includeSubAdminZone
+			const eaId = this.enumerationArea.id || this.enumerationAreaId;
+			if (eaId) {
+				this.enumerationAreaService
+					.findEnumerationAreaById(eaId, false, true)
+					.pipe(takeUntil(this.destroy$))
+					.subscribe({
+						next: (ea) => {
+							this.enumerationArea = ea;
+							this.loadMapData(); // Retry loading map data
+						},
+						error: (error) => {
+							console.error('Error reloading enumeration area:', error);
+							this.messageService.add({
+								severity: 'error',
+								summary: 'Error',
+								detail: 'Failed to load enumeration area hierarchy',
+								life: 3000,
+							});
+							this.loading = false;
+						},
+					});
+			} else {
+				this.loading = false;
+			}
+			return;
+		}
+
 		this.subAdministrativeZoneService
-			.findSubAdministrativeZoneById(
-				this.enumerationArea.subAdministrativeZoneId
-			)
+			.findSubAdministrativeZoneById(firstSazId)
 			.pipe(takeUntil(this.destroy$))
 			.subscribe({
 				next: (subAdminZone) => {

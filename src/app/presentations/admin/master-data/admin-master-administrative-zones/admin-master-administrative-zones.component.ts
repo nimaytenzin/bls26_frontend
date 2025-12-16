@@ -108,7 +108,6 @@ export class AdminMasterAdministrativeZonesComponent
 			areaCode: [''],
 			dzongkhagId: ['', [Validators.required]],
 			type: ['', [Validators.required]],
-			areaSqKm: ['', [Validators.min(0)]],
 		});
 		
 		// Initialize basemap categories
@@ -430,7 +429,6 @@ export class AdminMasterAdministrativeZonesComponent
 									<p class="font-semibold text-sm m-0 p-0 text-slate-900" style="line-height: 1.2; margin-bottom: 0;">${props.name || 'N/A'}</p>
 									<p class="text-xs m-0 p-0 text-slate-500" style="line-height: 1.2; margin-top: 0; margin-bottom: 0;">Code: ${props.areaCode || 'N/A'}</p>
 									<p class="text-xs m-0 p-0 text-slate-500" style="line-height: 1.2; margin-top: 2px; margin-bottom: 0;">Type: ${props.type || 'N/A'}</p>
-									<p class="text-xs m-0 p-0 text-slate-500" style="line-height: 1.2; margin-top: 2px; margin-bottom: 0;">Area: ${props.areaSqKm || 'N/A'} km²</p>
 								</div>
 								<div class="flex gap-1.5 justify-center">
 									<button 
@@ -628,7 +626,6 @@ export class AdminMasterAdministrativeZonesComponent
 			areaCode: zone.areaCode,
 			dzongkhagId: zone.dzongkhagId,
 			type: zone.type,
-			areaSqKm: zone.areaSqKm,
 		});
 		this.selectedAdministrativeZone = zone;
 		this.isEditMode = true;
@@ -740,17 +737,13 @@ export class AdminMasterAdministrativeZonesComponent
 	}
 
 	get totalArea(): number {
-		return this.administrativeZones.reduce((sum, z) => {
-			const area =
-				typeof z.areaSqKm === 'string' ? parseFloat(z.areaSqKm) : z.areaSqKm;
-			return sum + (isNaN(area) ? 0 : area);
-		}, 0);
+		// Area calculation removed - areaSqKm field no longer exists
+		return 0;
 	}
 
 	get averageArea(): number {
-		return this.administrativeZones.length
-			? this.totalArea / this.administrativeZones.length
-			: 0;
+		// Area calculation removed - areaSqKm field no longer exists
+		return 0;
 	}
 
 	get gewogCount(): number {

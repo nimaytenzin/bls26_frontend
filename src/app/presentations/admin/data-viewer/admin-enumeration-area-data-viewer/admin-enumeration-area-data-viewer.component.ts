@@ -89,7 +89,8 @@ export class AdminEnumerationAreaDataViewerComponent
 
 	loadData() {
 		// Only load the enumeration area - map component will handle the rest
-		this.enumerationAreaService.findEnumerationAreaById(this.eaId).subscribe({
+		// Include sub-administrative zones to enable hierarchy loading
+		this.enumerationAreaService.findEnumerationAreaById(this.eaId, false, true).subscribe({
 			next: (ea) => {
 				this.enumerationArea = ea;
 			},

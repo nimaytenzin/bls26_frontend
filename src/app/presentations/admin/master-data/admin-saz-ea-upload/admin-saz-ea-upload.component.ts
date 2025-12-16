@@ -43,7 +43,6 @@ export class AdminSazEaUploadComponent implements OnInit {
 			name: ['', Validators.required],
 			areaCode: ['', Validators.required],
 			type: ['chiwog', Validators.required],
-			areaSqKm: ['', [Validators.required, Validators.min(0)]],
 		});
 	}
 
@@ -179,7 +178,6 @@ export class AdminSazEaUploadComponent implements OnInit {
 		const uploadData: SazEaUploadDto = {
 			...this.uploadForm.value,
 			administrativeZoneId: parseInt(this.uploadForm.value.administrativeZoneId, 10),
-			areaSqKm: parseFloat(this.uploadForm.value.areaSqKm),
 			file: this.selectedFile,
 		};
 

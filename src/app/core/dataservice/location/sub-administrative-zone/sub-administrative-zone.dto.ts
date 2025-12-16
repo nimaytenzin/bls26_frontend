@@ -12,7 +12,6 @@ export interface SubAdministrativeZone {
 	name: string;
 	areaCode?: string;
 	type: SubAdministrativeZoneType;
-	areaSqKm?: number;
 	geom?: any; // GeoJSON geometry
 	createdAt?: Date;
 	updatedAt?: Date;
@@ -39,7 +38,6 @@ export interface SubAdministrativeZoneProperties {
 	name: string;
 	areaCode?: string;
 	type: SubAdministrativeZoneType;
-	areaSqKm?: number;
 	[key: string]: any; // Allow additional properties
 }
 
@@ -59,7 +57,6 @@ export interface CreateSubAdministrativeZoneDto {
 	name: string;
 	areaCode?: string;
 	type: SubAdministrativeZoneType;
-	areaSqKm?: number;
 }
 
 export interface UpdateSubAdministrativeZoneDto {
@@ -67,7 +64,6 @@ export interface UpdateSubAdministrativeZoneDto {
 	name?: string;
 	areaCode?: string;
 	type?: SubAdministrativeZoneType;
-	areaSqKm?: number;
 }
 
 export interface ApiResponse<T> {
@@ -104,13 +100,15 @@ export interface SazEaUploadDto {
 	name: string;
 	areaCode: string;
 	type: 'chiwog' | 'lap';
-	areaSqKm: number;
 	file: File; // GeoJSON file
 }
 
 /**
  * SAZ + EA Upload Response
  * Response from the upload-saz-ea endpoint
+ * 
+ * Note: The EA is automatically linked to the SAZ via the junction table.
+ * The EA is created with fixed values: name="EA1", areaCode="01"
  */
 export interface SazEaUploadResponse {
 	subAdministrativeZone: {
@@ -119,18 +117,11 @@ export interface SazEaUploadResponse {
 		name: string;
 		areaCode: string;
 		type: 'chiwog' | 'lap';
-		areaSqKm: number;
-		createdAt: string;
-		updatedAt: string;
 	};
 	enumerationArea: {
 		id: number;
-		subAdministrativeZoneId: number;
 		name: string; // Always "EA1"
 		areaCode: string; // Always "01"
-		description: string;
-		areaSqKm: number; // Always 22.22
-		createdAt: string;
-		updatedAt: string;
+		description: string | null;
 	};
 }

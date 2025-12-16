@@ -212,10 +212,7 @@
 					[rowsPerPageOptions]="[10, 25, 50, 100]"
 					[globalFilterFields]="[
 						'enumerationArea.name',
-						'enumerationArea.areaCode',
-						'enumerationArea.subAdministrativeZone.name',
-						'enumerationArea.subAdministrativeZone.administrativeZone.name',
-						'enumerationArea.subAdministrativeZone.administrativeZone.dzongkhag.name'
+						'enumerationArea.areaCode'
 					]"
 					styleClass="p-datatable-sm"
 				>
@@ -245,27 +242,14 @@
 					<ng-template pTemplate="header">
 						<tr>
 							<th class="w-10">Select</th>
-							<th
-								pSortableColumn="enumerationArea.subAdministrativeZone.administrativeZone.dzongkhag.name"
-							>
+							<th>
 								Dzongkhag
-								<p-sortIcon
-									field="enumerationArea.subAdministrativeZone.administrativeZone.dzongkhag.name"
-								></p-sortIcon>
 							</th>
-							<th
-								pSortableColumn="enumerationArea.subAdministrativeZone.administrativeZone.name"
-							>
-							Gewog/Thromde	
-								<p-sortIcon
-									field="enumerationArea.subAdministrativeZone.administrativeZone.name"
-								></p-sortIcon>
+							<th>
+								Gewog/Thromde	
 							</th>
-							<th pSortableColumn="enumerationArea.subAdministrativeZone.name">
+							<th>
 								Chiwog/Lap	
-								<p-sortIcon
-									field="enumerationArea.subAdministrativeZone.name"
-								></p-sortIcon>
 							</th>
 							<th pSortableColumn="enumerationArea.name">
 								EA  <p-sortIcon field="enumerationArea.name"></p-sortIcon>
@@ -295,19 +279,23 @@
 							</td>
 							<td>
 								<span class="text-sm">{{
-									ea.enumerationArea?.subAdministrativeZone?.administrativeZone
-										?.dzongkhag?.name
+									ea.enumerationArea?.subAdministrativeZones && ea.enumerationArea.subAdministrativeZones.length > 0
+										? ea.enumerationArea.subAdministrativeZones[0].administrativeZone?.dzongkhag?.name
+										: 'N/A'
 								}}</span>
 							</td>
 							<td>
 								<span class="text-sm">{{
-									ea.enumerationArea?.subAdministrativeZone?.administrativeZone
-										?.name
+									ea.enumerationArea?.subAdministrativeZones && ea.enumerationArea.subAdministrativeZones.length > 0
+										? ea.enumerationArea.subAdministrativeZones[0].administrativeZone?.name
+										: 'N/A'
 								}}</span>
 							</td>
 							<td>
 								<span class="text-sm">{{
-									ea.enumerationArea?.subAdministrativeZone?.name
+									ea.enumerationArea?.subAdministrativeZones && ea.enumerationArea.subAdministrativeZones.length > 0
+										? ea.enumerationArea.subAdministrativeZones[0].name
+										: 'N/A'
 								}}</span>
 							</td>
 							<td>

@@ -136,11 +136,21 @@ export class AdminMasterEnumerationAreasComponent
 			name: ['', [Validators.required, Validators.minLength(2)]],
 			description: ['', [Validators.required]],
 			areaCode: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]+$/)]],
-			subAdministrativeZoneId: ['', [Validators.required]],
+			subAdministrativeZoneIds: [[], [Validators.required, this.arrayMinLengthValidator(1)]],
 		});
 		
 		// Initialize basemap categories
 		this.basemapCategories = this.basemapService.getBasemapCategories();
+	}
+
+	// Custom validator for array minimum length
+	private arrayMinLengthValidator(minLength: number) {
+		return (control: any) => {
+			if (!control.value || !Array.isArray(control.value) || control.value.length < minLength) {
+				return { arrayMinLength: { requiredLength: minLength, actualLength: control.value?.length || 0 } };
+			}
+			return null;
+		};
 	}
 
 	ngOnInit() {
@@ -630,7 +640,9 @@ export class AdminMasterEnumerationAreasComponent
 		this.loadingEAs = true;
 		this.enumerationAreaService
 			.findEnumerationAreasBySubAdministrativeZone(
-				this.selectedSubAdministrativeZone.id
+				this.selectedSubAdministrativeZone.id,
+				true, // withGeom
+				true // includeSubAdminZone
 			)
 			.subscribe({
 				next: (data) => {
@@ -719,13 +731,21 @@ export class AdminMasterEnumerationAreasComponent
 		if (!this.selectedAdministrativeZone) return;
 
 		// Group enumeration areas by sub-administrative zone
+		// Since EAs can have multiple SAZs, we need to handle this differently
 		const groupedBySAZ = new Map<number, EnumerationArea[]>();
 		enumerationAreas.forEach((ea) => {
-			const sazId = ea.subAdministrativeZoneId;
-			if (!groupedBySAZ.has(sazId)) {
-				groupedBySAZ.set(sazId, []);
+			// If EA has subAdministrativeZones array, add it to each SAZ group
+			if (ea.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
+				ea.subAdministrativeZones.forEach((saz) => {
+					if (!groupedBySAZ.has(saz.id)) {
+						groupedBySAZ.set(saz.id, []);
+					}
+					// Only add if not already in the group (avoid duplicates)
+					if (!groupedBySAZ.get(saz.id)!.find(e => e.id === ea.id)) {
+						groupedBySAZ.get(saz.id)!.push(ea);
+					}
+				});
 			}
-			groupedBySAZ.get(sazId)!.push(ea);
 		});
 
 		// Sort enumeration areas within each group by area code
@@ -959,11 +979,15 @@ export class AdminMasterEnumerationAreasComponent
 				// Fallback to enumerationAreas array if hierarchical lookup fails
 				if (sazName === 'N/A' || azName === 'N/A') {
 					const ea = this.enumerationAreas.find((area) => area.id === props.id);
-					if (ea?.subAdministrativeZone?.name) {
-						sazName = ea.subAdministrativeZone.name;
-					}
-					if (ea?.subAdministrativeZone?.administrativeZone?.name) {
-						azName = ea.subAdministrativeZone.administrativeZone.name;
+					if (ea?.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
+						// Use first SAZ for display, or show multiple
+						const sazNames = ea.subAdministrativeZones.map(saz => saz.name).join(', ');
+						sazName = sazNames;
+						
+						// Get AZ from first SAZ
+						if (ea.subAdministrativeZones[0]?.administrativeZone?.name) {
+							azName = ea.subAdministrativeZones[0].administrativeZone.name;
+						}
 					}
 				}
 
@@ -987,7 +1011,7 @@ export class AdminMasterEnumerationAreasComponent
     <div><span style="font-weight: 600; color: #6b7280;">Administrative Zone:</span> <span style="color: #374151;">${
 			azName
 		}</span></div>
-    <div><span style="font-weight: 600; color: #6b7280;">Sub-Administrative Zone:</span> <span style="color: #374151;">${
+    <div><span style="font-weight: 600; color: #6b7280;">Sub-Administrative Zone(s):</span> <span style="color: #374151;">${
 			sazName
 		}</span></div>
     <div><span style="font-weight: 600; color: #6b7280;">Description:</span> <span style="color: #374151;">${
@@ -1076,11 +1100,34 @@ export class AdminMasterEnumerationAreasComponent
 	}
 
 	editEnumerationArea(area: EnumerationArea) {
+		// Load full EA data with SAZs if not already loaded
+		if (!area.subAdministrativeZones || area.subAdministrativeZones.length === 0) {
+			this.enumerationAreaService
+				.findEnumerationAreaById(area.id, false, true)
+				.subscribe({
+					next: (fullArea) => {
+						this.populateEditForm(fullArea);
+					},
+					error: (error) => {
+						console.error('Error loading enumeration area details:', error);
+						// Fallback to basic data
+						this.populateEditForm(area);
+					},
+				});
+		} else {
+			this.populateEditForm(area);
+		}
+	}
+
+	private populateEditForm(area: EnumerationArea) {
+		const sazIds = area.subAdministrativeZones
+			? area.subAdministrativeZones.map((saz) => saz.id)
+			: [];
 		this.enumerationAreaForm.patchValue({
 			name: area.name,
 			description: area.description,
 			areaCode: area.areaCode,
-			subAdministrativeZoneId: area.subAdministrativeZoneId,
+			subAdministrativeZoneIds: sazIds,
 		});
 		this.selectedEnumerationArea = area;
 		this.isEditMode = true;
@@ -1091,9 +1138,21 @@ export class AdminMasterEnumerationAreasComponent
 		if (this.enumerationAreaForm.invalid) return;
 
 		const formData = this.enumerationAreaForm.value;
+		
+		// Ensure subAdministrativeZoneIds is an array
+		if (!Array.isArray(formData.subAdministrativeZoneIds)) {
+			formData.subAdministrativeZoneIds = formData.subAdministrativeZoneIds 
+				? [formData.subAdministrativeZoneIds] 
+				: [];
+		}
 
 		if (this.isEditMode && this.selectedEnumerationArea) {
-			const updateData: UpdateEnumerationAreaDto = formData;
+			const updateData: UpdateEnumerationAreaDto = {
+				name: formData.name,
+				description: formData.description,
+				areaCode: formData.areaCode,
+				subAdministrativeZoneIds: formData.subAdministrativeZoneIds,
+			};
 			this.enumerationAreaService
 				.updateEnumerationArea(this.selectedEnumerationArea.id, updateData)
 				.subscribe({
@@ -1118,7 +1177,12 @@ export class AdminMasterEnumerationAreasComponent
 					},
 				});
 		} else {
-			const createData: CreateEnumerationAreaDto = formData;
+			const createData: CreateEnumerationAreaDto = {
+				name: formData.name,
+				description: formData.description,
+				areaCode: formData.areaCode,
+				subAdministrativeZoneIds: formData.subAdministrativeZoneIds,
+			};
 			this.enumerationAreaService.createEnumerationArea(createData).subscribe({
 				next: () => {
 					this.loadEnumerationAreas();
@@ -1214,6 +1278,19 @@ export class AdminMasterEnumerationAreasComponent
 		return zone?.name || 'N/A';
 	}
 
+	getSubAdministrativeZoneNames(subAdministrativeZoneIds: number[]): string {
+		if (!subAdministrativeZoneIds || subAdministrativeZoneIds.length === 0) {
+			return 'N/A';
+		}
+		const names = subAdministrativeZoneIds
+			.map((id) => {
+				const zone = this.subAdministrativeZones.find((z) => z.id === id);
+				return zone?.name || `ID: ${id}`;
+			})
+			.filter((name) => name !== 'N/A');
+		return names.length > 0 ? names.join(', ') : 'N/A';
+	}
+
 	hasFormError(field: string): boolean {
 		const control = this.enumerationAreaForm.get(field);
 		return !!(control && control.invalid && (control.dirty || control.touched));
@@ -1226,6 +1303,9 @@ export class AdminMasterEnumerationAreasComponent
 			if (control.errors['minlength']) return `${field} is too short`;
 			if (control.errors['pattern']) return `${field} format is invalid`;
 			if (control.errors['min']) return `${field} must be positive`;
+			if (control.errors['arrayMinLength']) {
+				return `At least one Sub-Administrative Zone is required`;
+			}
 		}
 		return '';
 	}
@@ -1410,28 +1490,31 @@ export class AdminMasterEnumerationAreasComponent
 		const parts: string[] = [];
 		
 		// Try to get from EA's relationship data first
-		if (ea.subAdministrativeZone?.administrativeZone?.dzongkhag?.areaCode) {
-			parts.push(ea.subAdministrativeZone.administrativeZone.dzongkhag.areaCode);
-		} else if (this.selectedDzongkhag?.areaCode) {
-			parts.push(this.selectedDzongkhag.areaCode);
-		}
-		
-		// Get administrative zone code
-		if (ea.subAdministrativeZone?.administrativeZone?.areaCode) {
-			parts.push(ea.subAdministrativeZone.administrativeZone.areaCode);
-		} else if (adminZone?.areaCode) {
-			parts.push(adminZone.areaCode);
-		} else if (this.selectedAdministrativeZone?.areaCode) {
-			parts.push(this.selectedAdministrativeZone.areaCode);
-		}
-		
-		// Get sub-administrative zone code
-		if (ea.subAdministrativeZone?.areaCode) {
-			parts.push(ea.subAdministrativeZone.areaCode);
+		if (ea.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
+			const firstSaz = ea.subAdministrativeZones[0];
+			if (firstSaz.administrativeZone?.dzongkhag?.areaCode) {
+				parts.push(firstSaz.administrativeZone.dzongkhag.areaCode);
+			} else if (this.selectedDzongkhag?.areaCode) {
+				parts.push(this.selectedDzongkhag.areaCode);
+			}
+			
+			// Get administrative zone code
+			if (firstSaz.administrativeZone?.areaCode) {
+				parts.push(firstSaz.administrativeZone.areaCode);
+			} else if (adminZone?.areaCode) {
+				parts.push(adminZone.areaCode);
+			} else if (this.selectedAdministrativeZone?.areaCode) {
+				parts.push(this.selectedAdministrativeZone.areaCode);
+			}
+			
+			// Get sub-administrative zone code (use first SAZ if multiple)
+			parts.push(firstSaz.areaCode || '');
 		} else if (subAdminZone?.areaCode) {
 			parts.push(subAdminZone.areaCode);
 		} else if (this.selectedSubAdministrativeZone?.areaCode) {
 			parts.push(this.selectedSubAdministrativeZone.areaCode);
+		} else if (this.selectedDzongkhag?.areaCode) {
+			parts.push(this.selectedDzongkhag.areaCode);
 		}
 		
 		// Get EA code

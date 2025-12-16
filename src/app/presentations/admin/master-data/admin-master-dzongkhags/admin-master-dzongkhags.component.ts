@@ -87,7 +87,6 @@ export class AdminMasterDzongkhagsComponent
 		this.dzongkhagForm = this.fb.group({
 			name: ['', [Validators.required, Validators.minLength(2)]],
 			areaCode: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]+$/)]],
-			areaSqKm: ['', [Validators.required, Validators.min(0)]],
 		});
 		
 		// Initialize basemap categories
@@ -363,7 +362,6 @@ export class AdminMasterDzongkhagsComponent
 		this.dzongkhagForm.patchValue({
 			name: dzongkhag.name,
 			areaCode: dzongkhag.areaCode,
-			areaSqKm: dzongkhag.areaSqKm,
 		});
 		this.selectedDzongkhag = dzongkhag;
 		this.isEditMode = true;

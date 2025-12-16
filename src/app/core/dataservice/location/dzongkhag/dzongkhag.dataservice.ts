@@ -47,15 +47,6 @@ export class DzongkhagDataService {
 		if (includeEAs) params = params.set('includeEAs', 'true');
 
 		return this.http.get<Dzongkhag[]>(this.apiUrl, { params }).pipe(
-			map((dzongkhags: any[]) =>
-				dzongkhags.map((d) => ({
-					...d,
-					areaSqKm:
-						typeof d.areaSqKm === 'string'
-							? parseFloat(d.areaSqKm)
-							: d.areaSqKm,
-				}))
-			),
 			catchError((error) => {
 				console.error('Error fetching dzongkhags:', error);
 				return throwError(() => error);
@@ -105,13 +96,6 @@ export class DzongkhagDataService {
 		if (includeEAs) params = params.set('includeEAs', 'true');
 
 		return this.http.get<any>(`${this.apiUrl}/${dzongkhagId}`, { params }).pipe(
-			map((dzongkhag: any) => ({
-				...dzongkhag,
-				areaSqKm:
-					typeof dzongkhag.areaSqKm === 'string'
-						? parseFloat(dzongkhag.areaSqKm)
-						: dzongkhag.areaSqKm,
-			})),
 			catchError((error) => {
 				console.error('Error fetching dzongkhag:', error);
 				return throwError(() => error);
@@ -238,20 +222,23 @@ export class DzongkhagDataService {
 	 * @param withGeom - Include geometry for enumeration areas (default: false)
 	 * @param includeHierarchy - Include full administrative hierarchy (default: true)
 	 * @returns Observable<any> - Hierarchical or flat response based on includeHierarchy
+	 * 
+	 * Note: When includeHierarchy=true (default), enumeration areas are included in the hierarchy
+	 * under each sub-administrative zone. Empty arrays are returned for SAZs with no linked EAs.
 	 *
 	 * @example
-	 * // Get complete hierarchy (default)
+	 * // Get complete hierarchy with EAs (default)
 	 * getEnumerationAreasByDzongkhag(1)
 	 *
-	 * // Get flat list with geometry
-	 * getEnumerationAreasByDzongkhag(1, true, false)
+	 * // Get flat list without hierarchy
+	 * getEnumerationAreasByDzongkhag(1, false, false)
 	 *
 	 * // Get hierarchy with geometry
 	 * getEnumerationAreasByDzongkhag(1, true, true)
 	 */
 	getEnumerationAreasByDzongkhag(
 		dzongkhagId: number,
-		withGeom: boolean = true,
+		withGeom: boolean = false,
 		includeHierarchy: boolean = true
 	): Observable<any> {
 		let params = new HttpParams();

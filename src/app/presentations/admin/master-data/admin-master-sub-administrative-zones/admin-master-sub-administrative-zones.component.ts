@@ -128,7 +128,6 @@ export class AdminMasterSubAdministrativeZonesComponent
 			areaCode: [''],
 			administrativeZoneId: ['', [Validators.required]],
 			type: ['', [Validators.required]],
-			areaSqKm: ['', [Validators.min(0)]],
 		});
 		
 		// Initialize basemap categories
@@ -658,9 +657,6 @@ export class AdminMasterSubAdministrativeZonesComponent
     <div><span style="font-weight: 600; color: #6b7280;">Code:</span> <span style="color: #374151;">${
 			props.areaCode || 'N/A'
 		}</span></div>
-    <div><span style="font-weight: 600; color: #6b7280;">Area:</span> <span style="color: #374151;">${
-			props.areaSqKm || 'N/A'
-		} km²</span></div>
   </div>
 </div>
 `);
@@ -866,7 +862,6 @@ export class AdminMasterSubAdministrativeZonesComponent
 			areaCode: zone.areaCode,
 			administrativeZoneId: zone.administrativeZoneId,
 			type: zone.type,
-			areaSqKm: zone.areaSqKm,
 		});
 		this.selectedSubAdministrativeZone = zone;
 		this.isEditMode = true;
@@ -978,17 +973,13 @@ export class AdminMasterSubAdministrativeZonesComponent
 	}
 
 	get totalArea(): number {
-		return this.subAdministrativeZones.reduce((sum, z) => {
-			const area =
-				typeof z.areaSqKm === 'string' ? parseFloat(z.areaSqKm) : z.areaSqKm;
-			return sum + (area && !isNaN(area) ? area : 0);
-		}, 0);
+		// Area calculation removed - areaSqKm field no longer exists
+		return 0;
 	}
 
 	get averageArea(): number {
-		return this.subAdministrativeZones.length
-			? this.totalArea / this.subAdministrativeZones.length
-			: 0;
+		// Area calculation removed - areaSqKm field no longer exists
+		return 0;
 	}
 
 	get chiwogCount(): number {

@@ -589,10 +589,8 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 	}
 
 	get totalArea(): number {
-		return this.enumerationAreas.reduce(
-			(sum, ea) => sum + (ea.areaSqKm || 0),
-			0
-		);
+		// Area calculation removed - areaSqKm field no longer exists
+		return 0;
 	}
 
 	// Dialog management methods for new components
@@ -758,7 +756,7 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 		}
 
 		// Create CSV header
-		const headers = ['Name', 'Area Code', 'Description', 'Area (sq km)'];
+		const headers = ['Name', 'Area Code', 'Description'];
 		const csvRows = [headers.join(',')];
 
 		// Add data rows
@@ -767,7 +765,6 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 				`"${ea.name || ''}"`,
 				`"${ea.areaCode || ''}"`,
 				`"${ea.description || ''}"`,
-				ea.areaSqKm || '',
 			];
 			csvRows.push(row.join(','));
 		});

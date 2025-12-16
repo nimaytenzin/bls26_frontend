@@ -161,8 +161,11 @@ export class SurveyDetailComponent implements OnInit {
 
 		this.survey.surveyEnumerationAreas.forEach((surveyEa) => {
 			const ea = surveyEa.enumerationArea;
-			const dzongkhag =
-				ea?.subAdministrativeZone?.administrativeZone?.dzongkhag;
+			// Use first SAZ if multiple exist
+			const firstSaz = ea?.subAdministrativeZones && ea.subAdministrativeZones.length > 0
+				? ea.subAdministrativeZones[0]
+				: null;
+			const dzongkhag = firstSaz?.administrativeZone?.dzongkhag;
 			if (dzongkhag) {
 				if (!dzongkhagMap.has(dzongkhag.id)) {
 					dzongkhagMap.set(dzongkhag.id, {
@@ -198,9 +201,12 @@ export class SurveyDetailComponent implements OnInit {
 
 		this.survey.surveyEnumerationAreas.forEach((surveyEa) => {
 			const ea = surveyEa.enumerationArea;
-			const dzongkhag =
-				ea?.subAdministrativeZone?.administrativeZone?.dzongkhag;
-			const adminZone = ea?.subAdministrativeZone?.administrativeZone;
+			// Use first SAZ if multiple exist
+			const firstSaz = ea?.subAdministrativeZones && ea.subAdministrativeZones.length > 0
+				? ea.subAdministrativeZones[0]
+				: null;
+			const dzongkhag = firstSaz?.administrativeZone?.dzongkhag;
+			const adminZone = firstSaz?.administrativeZone;
 
 			if (dzongkhag?.id === this.selectedDzongkhag?.id && adminZone) {
 				if (!adminZoneMap.has(adminZone.id)) {
@@ -240,8 +246,12 @@ export class SurveyDetailComponent implements OnInit {
 
 		this.survey.surveyEnumerationAreas.forEach((surveyEa) => {
 			const ea = surveyEa.enumerationArea;
-			const adminZone = ea?.subAdministrativeZone?.administrativeZone;
-			const subAdminZone = ea?.subAdministrativeZone;
+			// Use first SAZ if multiple exist
+			const firstSaz = ea?.subAdministrativeZones && ea.subAdministrativeZones.length > 0
+				? ea.subAdministrativeZones[0]
+				: null;
+			const adminZone = firstSaz?.administrativeZone;
+			const subAdminZone = firstSaz;
 
 			if (adminZone?.id === this.selectedAdminZone?.id && subAdminZone) {
 				if (!subAdminZoneMap.has(subAdminZone.id)) {
@@ -280,8 +290,8 @@ export class SurveyDetailComponent implements OnInit {
 		this.filteredEnumerationAreas = this.survey.surveyEnumerationAreas.filter(
 			(surveyEa) => {
 				const ea = surveyEa.enumerationArea;
-				const subAdminZone = ea?.subAdministrativeZone;
-				return subAdminZone?.id === this.selectedSubAdminZone?.id;
+				// Check if EA has the selected SAZ in its array
+				return ea?.subAdministrativeZones?.some(saz => saz.id === this.selectedSubAdminZone?.id) || false;
 			}
 		);
 		this.saveSelection();
@@ -299,8 +309,8 @@ export class SurveyDetailComponent implements OnInit {
 		// Get all EAs for selected SAZ
 		let filtered = this.survey.surveyEnumerationAreas.filter((surveyEa) => {
 			const ea = surveyEa.enumerationArea;
-			const subAdminZone = ea?.subAdministrativeZone;
-			return subAdminZone?.id === this.selectedSubAdminZone?.id;
+			// Check if EA has the selected SAZ in its array
+			return ea?.subAdministrativeZones?.some(saz => saz.id === this.selectedSubAdminZone?.id) || false;
 		});
 
 		// Apply search filter if query exists
@@ -328,17 +338,19 @@ export class SurveyDetailComponent implements OnInit {
 	 */
 	getLocationHierarchy(ea: EnumerationArea | undefined): string {
 		if (!ea) return '';
+		// Use first SAZ if multiple exist
+		const firstSaz = ea.subAdministrativeZones && ea.subAdministrativeZones.length > 0
+			? ea.subAdministrativeZones[0]
+			: null;
 		const parts: string[] = [];
-		if (ea.subAdministrativeZone?.administrativeZone?.dzongkhag?.name) {
-			parts.push(
-				ea.subAdministrativeZone.administrativeZone.dzongkhag.name
-			);
+		if (firstSaz?.administrativeZone?.dzongkhag?.name) {
+			parts.push(firstSaz.administrativeZone.dzongkhag.name);
 		}
-		if (ea.subAdministrativeZone?.administrativeZone?.name) {
-			parts.push(ea.subAdministrativeZone.administrativeZone.name);
+		if (firstSaz?.administrativeZone?.name) {
+			parts.push(firstSaz.administrativeZone.name);
 		}
-		if (ea.subAdministrativeZone?.name) {
-			parts.push(ea.subAdministrativeZone.name);
+		if (firstSaz?.name) {
+			parts.push(firstSaz.name);
 		}
 		return parts.join(' → ');
 	}

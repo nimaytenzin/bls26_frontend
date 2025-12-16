@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -160,9 +160,34 @@ export class SubAdministrativeZoneDataService {
 
 	/**
 	 * Get sub-administrative zone by ID
+	 * @param id - Sub-Administrative Zone ID
+	 * @param withoutGeom - Exclude geometry (default: false)
+	 * @param includeEnumerationAreas - Include linked enumeration areas (default: false)
+	 * @returns Observable<SubAdministrativeZone>
+	 * 
+	 * Note: When includeEnumerationAreas=true, the response includes enumeration areas
+	 * linked via the junction table. An EA may appear in multiple SAZs if linked to multiple SAZs.
+	 * 
+	 * @example
+	 * // Basic SAZ info
+	 * findSubAdministrativeZoneById(1)
+	 * 
+	 * // With enumeration areas
+	 * findSubAdministrativeZoneById(1, false, true)
+	 * 
+	 * // Without geometry but with EAs
+	 * findSubAdministrativeZoneById(1, true, true)
 	 */
-	findSubAdministrativeZoneById(id: number): Observable<SubAdministrativeZone> {
-		return this.http.get<SubAdministrativeZone>(`${this.apiUrl}/${id}`).pipe(
+	findSubAdministrativeZoneById(
+		id: number,
+		withoutGeom: boolean = false,
+		includeEnumerationAreas: boolean = false
+	): Observable<SubAdministrativeZone> {
+		let params = new HttpParams();
+		if (withoutGeom) params = params.set('withoutGeom', 'true');
+		if (includeEnumerationAreas) params = params.set('includeEnumerationAreas', 'true');
+
+		return this.http.get<SubAdministrativeZone>(`${this.apiUrl}/${id}`, { params }).pipe(
 			catchError((error) => {
 				console.error('Error fetching sub-administrative zone:', error);
 				return throwError(() => error);
@@ -304,7 +329,6 @@ export class SubAdministrativeZoneDataService {
 	 * EA is automatically created with:
 	 * - name: "EA1"
 	 * - areaCode: "01"
-	 * - areaSqKm: 22.22
 	 * - Same geometry as SAZ
 	 * 
 	 * @param data - Upload data including form fields and GeoJSON file
@@ -317,7 +341,6 @@ export class SubAdministrativeZoneDataService {
 		formData.append('name', data.name);
 		formData.append('areaCode', data.areaCode);
 		formData.append('type', data.type);
-		formData.append('areaSqKm', data.areaSqKm.toString());
 		formData.append('file', data.file, data.file.name);
 
 		return this.http

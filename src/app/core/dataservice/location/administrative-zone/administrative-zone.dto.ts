@@ -10,7 +10,6 @@ export interface AdministrativeZone {
 	name: string;
 	areaCode: string;
 	type: AdministrativeZoneType;
-	areaSqKm: number;
 	geom: any; // GeoJSON geometry
 	dzongkhag?: Dzongkhag;
 	subAdministrativeZones: SubAdministrativeZone[];
@@ -34,7 +33,6 @@ export interface AdministrativeZoneProperties {
 	name: string;
 	areaCode?: string;
 	type: AdministrativeZoneType;
-	areaSqKm?: number;
 	[key: string]: any; // Allow additional properties
 }
 
@@ -54,7 +52,6 @@ export interface CreateAdministrativeZoneDto {
 	name: string;
 	areaCode?: string;
 	type: AdministrativeZoneType;
-	areaSqKm?: number;
 }
 
 export interface UpdateAdministrativeZoneDto {
@@ -62,7 +59,6 @@ export interface UpdateAdministrativeZoneDto {
 	name?: string;
 	areaCode?: string;
 	type?: AdministrativeZoneType;
-	areaSqKm?: number;
 }
 
 export interface ApiResponse<T> {

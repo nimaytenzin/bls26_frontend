@@ -64,7 +64,7 @@ export class AddEnumerationAreaComponent implements OnInit {
 			name: ['', [Validators.required, Validators.minLength(2)]],
 			description: ['', [Validators.required, Validators.minLength(5)]],
 			areaCode: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]+$/)]],
-			subAdministrativeZoneId: ['', [Validators.required]],
+			subAdministrativeZoneIds: [[], [Validators.required, this.arrayMinLengthValidator(1)]],
 		});
 	}
 
@@ -74,9 +74,19 @@ export class AddEnumerationAreaComponent implements OnInit {
 		// Pre-select sub-admin zone if provided
 		if (this.subAdminZoneId) {
 			this.enumerationAreaForm.patchValue({
-				subAdministrativeZoneId: this.subAdminZoneId,
+				subAdministrativeZoneIds: [this.subAdminZoneId],
 			});
 		}
+	}
+
+	// Custom validator for array minimum length
+	private arrayMinLengthValidator(minLength: number) {
+		return (control: any) => {
+			if (!control.value || !Array.isArray(control.value) || control.value.length < minLength) {
+				return { arrayMinLength: { requiredLength: minLength, actualLength: control.value?.length || 0 } };
+			}
+			return null;
+		};
 	}
 
 	loadSubAdministrativeZones() {
@@ -108,7 +118,21 @@ export class AddEnumerationAreaComponent implements OnInit {
 		}
 
 		this.saving = true;
-		const formData: CreateEnumerationAreaDto = this.enumerationAreaForm.value;
+		const formValue = this.enumerationAreaForm.value;
+		
+		// Ensure subAdministrativeZoneIds is an array
+		if (!Array.isArray(formValue.subAdministrativeZoneIds)) {
+			formValue.subAdministrativeZoneIds = formValue.subAdministrativeZoneIds 
+				? [formValue.subAdministrativeZoneIds] 
+				: [];
+		}
+		
+		const formData: CreateEnumerationAreaDto = {
+			name: formValue.name,
+			description: formValue.description,
+			areaCode: formValue.areaCode,
+			subAdministrativeZoneIds: formValue.subAdministrativeZoneIds,
+		};
 
 		this.enumerationAreaService.createEnumerationArea(formData).subscribe({
 			next: (result) => {
@@ -160,7 +184,7 @@ export class AddEnumerationAreaComponent implements OnInit {
 		// Re-apply sub-admin zone selection if provided
 		if (this.subAdminZoneId) {
 			this.enumerationAreaForm.patchValue({
-				subAdministrativeZoneId: this.subAdminZoneId,
+				subAdministrativeZoneIds: [this.subAdminZoneId],
 			});
 		}
 	}
@@ -189,6 +213,9 @@ export class AddEnumerationAreaComponent implements OnInit {
 				return `${this.getFieldDisplayName(
 					field
 				)} format is invalid (use uppercase letters and numbers only)`;
+			if (control.errors['arrayMinLength']) {
+				return `At least one Sub-Administrative Zone is required`;
+			}
 		}
 		return '';
 	}
@@ -198,7 +225,7 @@ export class AddEnumerationAreaComponent implements OnInit {
 			name: 'Area Name',
 			description: 'Description',
 			areaCode: 'Area Code',
-			subAdministrativeZoneId: 'Sub-Administrative Zone',
+			subAdministrativeZoneIds: 'Sub-Administrative Zone(s)',
 		};
 		return displayNames[field] || field;
 	}
@@ -209,7 +236,8 @@ export class AddEnumerationAreaComponent implements OnInit {
 	}
 
 	get hasSelectedZone(): boolean {
-		return !!this.enumerationAreaForm.get('subAdministrativeZoneId')?.value;
+		const value = this.enumerationAreaForm.get('subAdministrativeZoneIds')?.value;
+		return Array.isArray(value) && value.length > 0;
 	}
 
 	getSubAdministrativeZoneName(id: number): string {

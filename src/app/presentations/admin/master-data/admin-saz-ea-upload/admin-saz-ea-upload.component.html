@@ -149,37 +149,6 @@
 								></p-dropdown>
 							</div>
 
-							<!-- Area (sq km) -->
-							<div>
-								<label
-									for="areaSqKm"
-									class="block text-sm font-medium text-slate-700 mb-2"
-								>
-									Area (sq km) *
-								</label>
-								<p-inputNumber
-									id="areaSqKm"
-									formControlName="areaSqKm"
-									[useGrouping]="false"
-									[minFractionDigits]="2"
-									[maxFractionDigits]="2"
-									placeholder="0.00"
-									styleClass="w-full"
-									[showButtons]="false"
-								></p-inputNumber>
-								<div
-									*ngIf="uploadForm.get('areaSqKm')?.hasError('required') && uploadForm.get('areaSqKm')?.touched"
-									class="text-red-600 text-xs mt-1"
-								>
-									Area is required
-								</div>
-								<div
-									*ngIf="uploadForm.get('areaSqKm')?.hasError('min') && uploadForm.get('areaSqKm')?.touched"
-									class="text-red-600 text-xs mt-1"
-								>
-									Area must be greater than or equal to 0
-								</div>
-							</div>
 						</div>
 
 						<!-- GeoJSON File Upload -->
@@ -273,10 +242,6 @@
 										<span class="text-slate-600">Type:</span>
 										<span class="font-semibold text-slate-900">{{ uploadResponse.subAdministrativeZone.type }}</span>
 									</div>
-									<div class="flex justify-between">
-										<span class="text-slate-600">Area (sq km):</span>
-										<span class="font-semibold text-slate-900">{{ uploadResponse.subAdministrativeZone.areaSqKm }}</span>
-									</div>
 								</div>
 							</div>
 
@@ -296,10 +261,6 @@
 										<span class="text-slate-600">Area Code:</span>
 										<span class="font-semibold text-slate-900">{{ uploadResponse.enumerationArea.areaCode }}</span>
 									</div>
-									<div class="flex justify-between">
-										<span class="text-slate-600">Area (sq km):</span>
-										<span class="font-semibold text-slate-900">{{ uploadResponse.enumerationArea.areaSqKm }}</span>
-									</div>
 									<div *ngIf="uploadResponse.enumerationArea.description" class="flex justify-between">
 										<span class="text-slate-600">Description:</span>
 										<span class="font-semibold text-slate-900">{{ uploadResponse.enumerationArea.description }}</span>
@@ -310,7 +271,7 @@
 							<!-- Info Note -->
 							<div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-blue-800">
 								<i class="pi pi-info-circle mr-2"></i>
-								<strong>Note:</strong> The EA was automatically created with name "EA1", area code "01", and area 22.22 sq km, using the same geometry as the SAZ.
+								<strong>Note:</strong> The EA was automatically created with name "EA1" and area code "01", using the same geometry as the SAZ.
 							</div>
 						</div>
 					</div>

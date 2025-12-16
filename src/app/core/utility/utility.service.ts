@@ -3,25 +3,30 @@ import { EnumerationArea } from '../dataservice/location/enumeration-area/enumer
 export function GenerateFullEACode(enumArea: EnumerationArea): string {
 	const parts: string[] = [];
 
+	// Use first SAZ if multiple exist (for backward compatibility)
+	const firstSaz = enumArea.subAdministrativeZones && enumArea.subAdministrativeZones.length > 0
+		? enumArea.subAdministrativeZones[0]
+		: null;
+
 	// Check and add Dzongkhag code
-	if (enumArea.subAdministrativeZone?.administrativeZone?.dzongkhag) {
+	if (firstSaz?.administrativeZone?.dzongkhag) {
 		parts.push(
-			enumArea.subAdministrativeZone.administrativeZone.dzongkhag.areaCode
+			firstSaz.administrativeZone.dzongkhag.areaCode
 		);
 	} else {
 		return 'Missing Dzongkhag';
 	}
 
 	// Check and add Administrative Zone code (Gewog or Thromde)
-	if (enumArea.subAdministrativeZone?.administrativeZone) {
-		parts.push(enumArea.subAdministrativeZone.administrativeZone.areaCode);
+	if (firstSaz?.administrativeZone) {
+		parts.push(firstSaz.administrativeZone.areaCode);
 	} else {
 		return 'Missing Gewog/Thromde';
 	}
 
 	// Check and add Sub-Administrative Zone code (Lap or Chiwog)
-	if (enumArea.subAdministrativeZone?.areaCode) {
-		parts.push(enumArea.subAdministrativeZone?.areaCode);
+	if (firstSaz?.areaCode) {
+		parts.push(firstSaz.areaCode);
 	} else {
 		return 'Missing Lap/Chiwog';
 	}

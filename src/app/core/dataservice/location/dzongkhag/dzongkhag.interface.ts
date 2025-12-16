@@ -5,7 +5,6 @@ export interface Dzongkhag {
 	id: number;
 	name: string;
 	areaCode: string;
-	areaSqKm: number;
 	geom: any; // GeoJSON geometry
 	createdAt: Date;
 	updatedAt: Date;
@@ -38,7 +37,6 @@ export interface DzongkhagProperties {
 	id: number;
 	name: string;
 	areaCode?: string;
-	areaSqKm?: number;
 	[key: string]: any; // Allow additional properties
 }
 
@@ -56,13 +54,11 @@ export interface DzongkhagGeometry {
 export interface CreateDzongkhagDto {
 	name: string;
 	areaCode?: string;
-	areaSqKm?: number;
 }
 
 export interface UpdateDzongkhagDto {
 	name?: string;
 	areaCode?: string;
-	areaSqKm?: number;
 }
 
 export interface ApiResponse<T> {

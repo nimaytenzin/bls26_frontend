@@ -468,32 +468,38 @@
 					</small>
 				</div>
 
-				<!-- Sub-Administrative Zone Field -->
+				<!-- Sub-Administrative Zone Field (Multi-Select) -->
 				<div>
 					<label
-						for="subAdministrativeZoneId"
+						for="subAdministrativeZoneIds"
 						class="block text-sm font-medium text-gray-700 mb-2"
 					>
-						Sub-Administrative Zone *
+						Sub-Administrative Zone(s) *
+						<span class="text-xs text-gray-500 ml-1">(Select at least one)</span>
 					</label>
-					<p-dropdown
-						id="subAdministrativeZoneId"
+					<p-multiSelect
+						id="subAdministrativeZoneIds"
 						[options]="subAdministrativeZones"
-						formControlName="subAdministrativeZoneId"
+						formControlName="subAdministrativeZoneIds"
 						optionLabel="name"
 						optionValue="id"
-						placeholder="Select sub-administrative zone"
-						[class.ng-invalid]="hasFormError('subAdministrativeZoneId')"
+						placeholder="Select sub-administrative zone(s)"
+						[class.ng-invalid]="hasFormError('subAdministrativeZoneIds')"
 						styleClass="w-full"
 						[filter]="true"
 						filterBy="name"
+						[showClear]="true"
+						display="chip"
 						appendTo="body"
-					></p-dropdown>
+					></p-multiSelect>
 					<small
-						*ngIf="hasFormError('subAdministrativeZoneId')"
+						*ngIf="hasFormError('subAdministrativeZoneIds')"
 						class="p-error"
 					>
-						{{ getFormError("subAdministrativeZoneId") }}
+						{{ getFormError("subAdministrativeZoneIds") }}
+					</small>
+					<small class="text-gray-500 mt-1 block">
+						You can select multiple Sub-Administrative Zones to combine them into a single Enumeration Area.
 					</small>
 				</div>
 			</form>
@@ -723,14 +729,14 @@
 								<li>
 									Each feature must have properties:
 									<strong
-										>subAdministrativeZoneId, name, areaCode,
+										>subAdministrativeZoneIds (array), name, areaCode,
 										description</strong
 									>
 								</li>
 								<li>Projection: <strong>WGS84 (EPSG:4326)</strong></li>
 								<li>Supported geometry types: Polygon, MultiPolygon</li>
 								<li>
-									Existing areas (same areaCode + subAdministrativeZoneId) will
+									Existing areas (same areaCode + subAdministrativeZoneIds combination) will
 									be skipped
 								</li>
 							</ul>
@@ -752,7 +758,7 @@
     &#123;
       "type": "Feature",
       "properties": &#123;
-        "subAdministrativeZoneId": 1,
+        "subAdministrativeZoneIds": [1, 2],
         "name": "EA Zone 1",
         "areaCode": "EA001",
         "description": "Enumeration Area 1"

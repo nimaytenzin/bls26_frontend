@@ -23,9 +23,23 @@ export class EnumerationAreaDataService {
 
 	/**
 	 * Get all enumeration areas
+	 * @param withGeom - Include geometry (default: false)
+	 * @param subAdministrativeZoneId - Filter by SAZ ID
+	 * @param includeSubAdminZone - Include linked SAZs (default: false)
 	 */
-	findAllEnumerationAreas(): Observable<EnumerationArea[]> {
-		return this.http.get<EnumerationArea[]>(this.apiUrl).pipe(
+	findAllEnumerationAreas(
+		withGeom: boolean = false,
+		subAdministrativeZoneId?: number,
+		includeSubAdminZone: boolean = false
+	): Observable<EnumerationArea[]> {
+		let params = new HttpParams();
+		if (withGeom) params = params.set('withGeom', 'true');
+		if (subAdministrativeZoneId !== undefined)
+			params = params.set('subAdministrativeZoneId', subAdministrativeZoneId.toString());
+		if (includeSubAdminZone)
+			params = params.set('includeSubAdminZone', 'true');
+
+		return this.http.get<EnumerationArea[]>(this.apiUrl, { params }).pipe(
 			catchError((error) => {
 				console.error('Error fetching enumeration areas:', error);
 				return throwError(() => error);
@@ -35,14 +49,21 @@ export class EnumerationAreaDataService {
 
 	/**
 	 * Get all enumeration areas by sub-administrative zone ID
+	 * Uses query parameter instead of path parameter per new API
 	 */
 	findEnumerationAreasBySubAdministrativeZone(
-		subAdministrativeZoneId: number
+		subAdministrativeZoneId: number,
+		withGeom: boolean = false,
+		includeSubAdminZone: boolean = false
 	): Observable<EnumerationArea[]> {
+		let params = new HttpParams();
+		params = params.set('subAdministrativeZoneId', subAdministrativeZoneId.toString());
+		if (withGeom) params = params.set('withGeom', 'true');
+		if (includeSubAdminZone)
+			params = params.set('includeSubAdminZone', 'true');
+
 		return this.http
-			.get<EnumerationArea[]>(
-				`${this.apiUrl}/by-sub-administrative-zone/${subAdministrativeZoneId}`
-			)
+			.get<EnumerationArea[]>(this.apiUrl, { params })
 			.pipe(
 				catchError((error) => {
 					console.error(
@@ -161,9 +182,21 @@ export class EnumerationAreaDataService {
 
 	/**
 	 * Get enumeration area by ID
+	 * @param id - Enumeration Area ID
+	 * @param withGeom - Include geometry (default: false)
+	 * @param includeSubAdminZone - Include linked SAZs (default: false)
 	 */
-	findEnumerationAreaById(id: number): Observable<EnumerationArea> {
-		return this.http.get<EnumerationArea>(`${this.apiUrl}/${id}`).pipe(
+	findEnumerationAreaById(
+		id: number,
+		withGeom: boolean = false,
+		includeSubAdminZone: boolean = false
+	): Observable<EnumerationArea> {
+		let params = new HttpParams();
+		if (withGeom) params = params.set('withGeom', 'true');
+		if (includeSubAdminZone)
+			params = params.set('includeSubAdminZone', 'true');
+
+		return this.http.get<EnumerationArea>(`${this.apiUrl}/${id}`, { params }).pipe(
 			catchError((error) => {
 				console.error('Error fetching enumeration area:', error);
 				return throwError(() => error);
