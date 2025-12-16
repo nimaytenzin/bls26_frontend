@@ -43,23 +43,13 @@
 
 		<!-- Summary Stats -->
 		<div *ngIf="!loading" class="space-y-4">
-			<div class="grid grid-cols-2 gap-3">
-				<div
-					class="bg-blue-50 rounded-lg p-3 text-center border border-blue-200"
-				>
-					<div class="text-xl font-bold text-blue-600">
-						{{ totalAreas }}
-					</div>
-					<div class="text-xs text-blue-800">Total EA Areas</div>
+			<div
+				class="bg-blue-50 rounded-lg p-3 text-center border border-blue-200"
+			>
+				<div class="text-xl font-bold text-blue-600">
+					{{ totalAreas }}
 				</div>
-				<div
-					class="bg-green-50 rounded-lg p-3 text-center border border-green-200"
-				>
-					<div class="text-xl font-bold text-green-600">
-						{{ subAdministrativeZone.areaSqKm }}
-					</div>
-					<div class="text-xs text-green-800">Area (SqKm)</div>
-				</div>
+				<div class="text-xs text-blue-800">Total EA Areas</div>
 			</div>
 
 			<div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
