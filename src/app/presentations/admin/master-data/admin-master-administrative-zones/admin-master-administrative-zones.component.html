@@ -63,23 +63,7 @@
 						[showClear]="true"
 					></p-dropdown>
 				</div>
-				<!-- Dzongkhag Title and Area Code Display -->
-				<div *ngIf="selectedDzongkhag" class="flex flex-col">
-					<p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
-						Selected Dzongkhag
-					</p>
-					<div class="flex items-center gap-2">
-						<p class="text-lg font-bold text-slate-900">
-							{{ selectedDzongkhag.name }}
-						</p>
-						<span
-							*ngIf="selectedDzongkhag.areaCode"
-							class="text-sm font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded"
-						>
-							{{ selectedDzongkhag.areaCode }}
-						</span>
-					</div>
-				</div>
+			
 			</div>
 
 			<!-- Statistics Cards -->
@@ -125,13 +109,24 @@
 			<!-- Table Header -->
 			<div class="p-4 border-b border-slate-200 flex-shrink-0">
 				<div class="flex justify-between items-center">
-					<h2 class="text-lg font-semibold text-slate-900">
-						Gewogs/Thromdes List
-						<span class="text-sm font-normal text-slate-500 ml-2"
-							>({{ selectedDzongkhag.name }})</span
+						<!-- Dzongkhag Title and Area Code Display -->
+				<div *ngIf="selectedDzongkhag" class="flex flex-col">
+					<p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
+						Selected Dzongkhag
+					</p>
+					<div class="flex items-center gap-2">
+						<p class="text-lg font-bold text-slate-900">
+							{{ selectedDzongkhag.name }}
+						</p>
+						<span
+							*ngIf="selectedDzongkhag.areaCode"
+							class="text-sm font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded"
 						>
-					</h2>
-					<div class="flex items-center gap-3">
+							Dzongkhag Code:{{ selectedDzongkhag.areaCode }}
+						</span>
+					</div>
+				</div>
+					<div class="flex items-center gap-3 flex-1">
 						<p-inputGroup class="w-auto">
 							<p-inputGroupAddon>
 								<i class="pi pi-search"></i>
@@ -177,6 +172,7 @@
 				>
 				<ng-template pTemplate="header">
 					<tr>
+						<th>ID</th>
 						<th pSortableColumn="name">
 							Name <p-sortIcon field="name"></p-sortIcon>
 						</th>
@@ -190,14 +186,18 @@
 
 				<ng-template pTemplate="body" let-zone>
 					<tr [class.bg-primary-50]="selectedAdministrativeZone?.id === zone.id">
+						<td>{{ zone.id }}</td>
 						<td>
 							<div class="font-semibold text-slate-900">
 								{{ zone.name }}
 							</div>
 						</td>
 						<td>
-							<span class="text-sm font-mono text-slate-600">
-								{{ zone.areaCode || 'N/A' }}
+							<span *ngIf="zone.areaCode" class="font-mono text-sm text-slate-700">
+								{{ zone.areaCode }}
+							</span>
+							<span *ngIf="!zone.areaCode" class="text-slate-400 text-xs italic">
+								—
 							</span>
 						</td>
 						<td>
@@ -214,29 +214,37 @@
 						<td>
 							<div class="flex items-center gap-2">
 								<button
+									pButton
 									type="button"
+									icon="pi pi-eye"
+									class="p-button-outlined p-button-sm p-button-secondary"
+									(click)="viewAdministrativeZoneData(zone)"
+									pTooltip="View Details"
+								></button>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-pencil"
+									class="p-button-outlined p-button-sm p-button-info"
 									(click)="editAdministrativeZone(zone)"
-									class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 transition-colors"
 									pTooltip="Edit"
-								>
-									<i class="pi pi-pencil text-sm"></i>
-								</button>
+								></button>
 								<button
+									pButton
 									type="button"
+									icon="pi pi-file-arrow-up"
+									class="p-button-outlined p-button-sm"
 									(click)="openUploadGeojsonDialog(zone)"
-									class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 transition-colors"
 									pTooltip="Upload GeoJSON"
-								>
-									<i class="pi pi-upload text-sm"></i>
-								</button>
+								></button>
 								<button
+									pButton
 									type="button"
+									icon="pi pi-trash"
+									class="p-button-outlined p-button-sm p-button-danger"
 									(click)="confirmDelete(zone)"
-									class="p-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
 									pTooltip="Delete"
-								>
-									<i class="pi pi-trash text-sm"></i>
-								</button>
+								></button>
 							</div>
 						</td>
 					</tr>
@@ -244,7 +252,7 @@
 
 				<ng-template pTemplate="emptymessage">
 					<tr>
-						<td colspan="4" class="text-center py-8">
+						<td colspan="5" class="text-center py-8">
 							<div class="text-slate-500">
 								<i class="pi pi-inbox text-3xl mb-2 block"></i>
 								<p class="text-sm">No gewogs/thromdes found</p>
@@ -273,6 +281,8 @@
 						<p class="text-xs text-slate-600 mt-1">Click on zones to view details</p>
 					</div>
 					<div class="flex items-center gap-2">
+						
+						
 						<!-- Basemap Selector -->
 						<select
 							[(ngModel)]="selectedBasemapId"
@@ -301,6 +311,46 @@
 						>
 							<i class="pi pi-refresh text-sm"></i>
 						</button>
+					</div>
+				</div>
+
+				<!-- Layer Toggles -->
+				<div class="flex items-center gap-2 border-r mt-3 border-slate-200 pr-2 mr-2" *ngIf="selectedDzongkhag">
+					<div class="flex items-center gap-2">
+						<label class="text-xs text-slate-600 whitespace-nowrap">Dzongkhag:</label>
+						<p-inputSwitch
+							[(ngModel)]="showDzongkhagLayer"
+							(onChange)="toggleDzongkhagLayer()"
+							[disabled]="!selectedDzongkhag"
+							[ngModelOptions]="{ standalone: true }"
+						></p-inputSwitch>
+					</div>
+					<div class="flex items-center gap-2">
+						<label class="text-xs text-slate-600 whitespace-nowrap">Gewog/Thromdes:</label>
+						<p-inputSwitch
+							[(ngModel)]="showAdministrativeZoneLayer"
+							(onChange)="toggleAdministrativeZoneLayer()"
+							[disabled]="!selectedDzongkhag"
+							[ngModelOptions]="{ standalone: true }"
+						></p-inputSwitch>
+					</div>
+					<div class="flex items-center gap-2">
+						<label class="text-xs text-slate-600 whitespace-nowrap">Chiwogs/Laps:</label>
+						<p-inputSwitch
+							[(ngModel)]="showSAZLayer"
+							(onChange)="toggleSAZLayer()"
+							[disabled]="!selectedDzongkhag"
+							[ngModelOptions]="{ standalone: true }"
+						></p-inputSwitch>
+					</div>
+					<div class="flex items-center gap-2">
+						<label class="text-xs text-slate-600 whitespace-nowrap">EAs:</label>
+						<p-inputSwitch
+							[(ngModel)]="showEALayer"
+							(onChange)="toggleEALayer()"
+							[disabled]="!selectedDzongkhag"
+							[ngModelOptions]="{ standalone: true }"
+						></p-inputSwitch>
 					</div>
 				</div>
 			</div>

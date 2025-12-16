@@ -9,6 +9,14 @@
 			<div>
 				<h1 class="text-3xl font-semibold text-slate-900">
 					Chiwogs/LAPs Management
+					<span *ngIf="selectedDzongkhag" class="text-xl font-normal text-slate-600">
+						- {{ selectedDzongkhag.name }}
+						<span *ngIf="selectedDzongkhag.areaCode" class="text-base">({{ selectedDzongkhag.areaCode }})</span>
+						<span *ngIf="selectedAdministrativeZone">
+							- {{ selectedAdministrativeZone.name }}
+							<span *ngIf="selectedAdministrativeZone.areaCode" class="text-base">({{ selectedAdministrativeZone.areaCode }})</span>
+						</span>
+					</span>
 				</h1>
 				<p class="text-sm text-slate-600 mt-1">
 					Manage chiwogs and laps by dzongkhag or administrative zone
@@ -192,6 +200,9 @@
 						<th pSortableColumn="name">
 							Name <p-sortIcon field="name"></p-sortIcon>
 						</th>
+						<th pSortableColumn="areaCode" *ngIf="selectedDzongkhag">
+							Area Code <p-sortIcon field="areaCode"></p-sortIcon>
+						</th>
 						<th pSortableColumn="type">Type</th>
 						<th>Actions</th>
 					</tr>
@@ -207,6 +218,14 @@
 							<div class="text-xs text-slate-500 mt-0.5">
 								{{ getAdministrativeZoneName(zone.administrativeZoneId) }}
 							</div>
+						</td>
+						<td *ngIf="selectedDzongkhag">
+							<span *ngIf="zone.areaCode" class="font-mono text-sm text-slate-700">
+								{{ zone.areaCode }}
+							</span>
+							<span *ngIf="!zone.areaCode" class="text-slate-400 text-xs italic">
+								—
+							</span>
 						</td>
 						<td>
 							<span
@@ -245,15 +264,7 @@
 									(click)="openUploadGeojson(zone)"
 									pTooltip="Upload GeoJSON"
 								></button>
-								<button
-									pButton
-									type="button"
-									icon="pi pi-file-arrow-up"
-									label="Bulk EA"
-									class="p-button-outlined p-button-sm"
-									pTooltip="Bulk EA GeoJSON Upload"
-									(click)="openBulkUploadEA(zone)"
-								></button>
+								
 								<button
 									pButton
 									type="button"
@@ -269,7 +280,7 @@
 
 				<ng-template pTemplate="emptymessage">
 					<tr>
-						<td colspan="3" class="text-center py-8">
+						<td [attr.colspan]="selectedDzongkhag ? '5' : '4'" class="text-center py-8">
 							<div class="text-slate-500" *ngIf="!noSubAdministrativeZones">
 								<i class="pi pi-inbox text-3xl mb-2 block"></i>
 								<p class="text-sm">No chiwogs/LAPs found</p>
@@ -310,6 +321,28 @@
 						<p class="text-xs text-slate-600 mt-1">Click on zones to view details</p>
 					</div>
 					<div class="flex items-center gap-2">
+						<!-- Layer Toggles -->
+						<div class="flex items-center gap-2 border-r border-slate-200 pr-2 mr-2" *ngIf="selectedDzongkhag">
+							<div class="flex items-center gap-2">
+								<label class="text-xs text-slate-600 whitespace-nowrap">Dzongkhag:</label>
+								<p-inputSwitch
+									[ngModel]="showDzongkhagLayer"
+									(onChange)="toggleDzongkhagLayer($event)"
+									[disabled]="!selectedDzongkhag"
+									[ngModelOptions]="{ standalone: true }"
+								></p-inputSwitch>
+							</div>
+							<div class="flex items-center gap-2">
+								<label class="text-xs text-slate-600 whitespace-nowrap">Gewog/Thromdes:</label>
+								<p-inputSwitch
+									[ngModel]="showAdministrativeZoneLayer"
+									(onChange)="toggleAdministrativeZoneLayer($event)"
+									[disabled]="!selectedDzongkhag"
+									[ngModelOptions]="{ standalone: true }"
+								></p-inputSwitch>
+							</div>
+						</div>
+						
 						<!-- Basemap Selector -->
 						<select
 							[(ngModel)]="selectedBasemapId"

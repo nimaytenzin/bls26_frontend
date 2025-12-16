@@ -35,6 +35,7 @@ import { BasemapService } from '../../../../core/utility/basemap.service';
 import { BulkUploadEaComponent } from '../admin-master-enumeration-areas/bulk-upload-ea/bulk-upload-ea.component';
 import { BulkUploadResponse as EABulkUploadResponse } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 import { LocationSelectionService } from '../../../../core/services/location-selection.service';
+import { DownloadService } from '../../../../core/utility/download.service';
 
 @Component({
 	selector: 'app-admin-master-sub-administrative-zones',
@@ -68,10 +69,17 @@ export class AdminMasterSubAdministrativeZonesComponent
 	private map?: L.Map;
 	subAdministrativeZoneGeoJSON: any;
 	administrativeZoneGeoJSON: any;
+	dzongkhagGeoJSON: any = null;
 	private allSubAdministrativeZonesLayer?: L.GeoJSON;
 	private administrativeZonesLayer?: L.GeoJSON;
+	private dzongkhagLayer?: L.GeoJSON;
 	private baseLayer?: L.TileLayer;
 	showAdministrativeZoneLayer = false;
+	showDzongkhagLayer = false;
+	
+	// Performance optimization: debounce and render queue
+	private renderTimeout?: any;
+	private isRendering = false;
 
 	// Basemap properties
 	selectedBasemapId = 'positron'; // Default basemap
@@ -121,7 +129,8 @@ export class AdminMasterSubAdministrativeZonesComponent
 		private messageService: MessageService,
 		private router: Router,
 		private basemapService: BasemapService,
-		private locationSelectionService: LocationSelectionService
+		private locationSelectionService: LocationSelectionService,
+		private downloadService: DownloadService
 	) {
 		this.subAdministrativeZoneForm = this.fb.group({
 			name: ['', [Validators.required, Validators.minLength(2)]],
@@ -187,7 +196,19 @@ export class AdminMasterSubAdministrativeZonesComponent
 	}
 
 	ngOnDestroy() {
+		// Clear any pending timeouts
+		if (this.renderTimeout) {
+			clearTimeout(this.renderTimeout);
+		}
+		
 		if (this.map) {
+			this.removeDzongkhagLayer();
+			if (this.administrativeZonesLayer) {
+				this.map.removeLayer(this.administrativeZonesLayer);
+			}
+			if (this.allSubAdministrativeZonesLayer) {
+				this.map.removeLayer(this.allSubAdministrativeZonesLayer);
+			}
 			this.map.remove();
 		}
 	}
@@ -354,7 +375,10 @@ export class AdminMasterSubAdministrativeZonesComponent
 					this.subAdministrativeZoneGeoJSON = data;
 					this.noGeoJSON = false;
 					if (this.map) {
-						setTimeout(() => this.renderAllSubAdministrativeZones(), 150);
+						// Use requestAnimationFrame for smoother rendering
+						requestAnimationFrame(() => {
+							this.renderAllSubAdministrativeZones();
+						});
 					}
 				}
 			},
@@ -407,7 +431,10 @@ export class AdminMasterSubAdministrativeZonesComponent
 				next: (data) => {
 					this.administrativeZoneGeoJSON = data;
 					if (this.map && this.showAdministrativeZoneLayer) {
-						this.renderAdministrativeZoneLayer();
+						// Use requestAnimationFrame for smoother rendering
+						requestAnimationFrame(() => {
+							this.renderAdministrativeZoneLayer();
+						});
 					}
 				},
 				error: (error) => {
@@ -425,6 +452,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 		this.subAdministrativeZones = [];
 		this.subAdministrativeZoneGeoJSON = null;
 		this.administrativeZoneGeoJSON = null;
+		this.dzongkhagGeoJSON = null;
 		
 		// Reset data availability flags
 		this.noAdministrativeZones = false;
@@ -441,6 +469,10 @@ export class AdminMasterSubAdministrativeZonesComponent
 				this.map.removeLayer(this.administrativeZonesLayer);
 				this.administrativeZonesLayer = undefined;
 			}
+			if (this.dzongkhagLayer) {
+				this.map.removeLayer(this.dzongkhagLayer);
+				this.dzongkhagLayer = undefined;
+			}
 			this.map.remove();
 			this.map = undefined;
 		}
@@ -451,6 +483,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 			this.loadSubAdministrativeZones();
 			this.loadSubAdministrativeZoneGeoJSON();
 			this.loadAdministrativeZoneGeoJSON();
+			this.loadDzongkhagGeoJSON();
 			// Initialize map after a short delay to ensure container is ready
 			setTimeout(() => {
 				this.initializeMap();
@@ -581,20 +614,15 @@ export class AdminMasterSubAdministrativeZonesComponent
 			if (!this.subAdministrativeZoneGeoJSON) {
 				this.loadSubAdministrativeZoneGeoJSON();
 			} else {
-				// Small delay to ensure map is fully initialized
-				setTimeout(() => {
+				// Use requestAnimationFrame for smoother rendering
+				requestAnimationFrame(() => {
 					this.renderAllSubAdministrativeZones();
-				}, 150);
+				});
 			}
 
 			if (this.selectedDzongkhag) {
-				if (this.showAdministrativeZoneLayer && !this.administrativeZoneGeoJSON) {
-					this.loadAdministrativeZoneGeoJSON();
-				} else if (this.showAdministrativeZoneLayer && this.administrativeZoneGeoJSON) {
-					setTimeout(() => {
-						this.renderAdministrativeZoneLayer();
-					}, 150);
-				}
+				// Batch load/render layers for better performance
+				this.batchLoadLayers();
 			}
 		}
 	}
@@ -644,22 +672,65 @@ export class AdminMasterSubAdministrativeZonesComponent
 					}),
 					onEachFeature: (feature, layer) => {
 						const props = feature.properties;
-
-						layer.bindPopup(`
-<div style="padding: 12px; min-width: 200px;">
-  <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #111827;">${
-		props.name
-	}</div>
-  <div style="display: grid; gap: 4px; font-size: 13px;">
-    <div><span style="font-weight: 600; color: #6b7280;">Type:</span> <span style="color: #374151;">${
-			props.type
-		}</span></div>
-    <div><span style="font-weight: 600; color: #6b7280;">Code:</span> <span style="color: #374151;">${
-			props.areaCode || 'N/A'
-		}</span></div>
-  </div>
-</div>
-`);
+						const featureId = `saz-${props.id || props.areaCode || Math.random()}`;
+						const featureName = props.name || 'Sub-Administrative Zone';
+						const popup = `
+							<div class="p-2 min-w-[200px]">
+								<h3 class="font-bold text-base mb-2 text-slate-900">${
+									props.name || 'N/A'
+								}</h3>
+								<div class="space-y-1 text-sm mb-3">
+									<div><strong>Type:</strong> ${props.type || 'N/A'}</div>
+									${props.areaCode ? `<div><strong>Code:</strong> ${props.areaCode}</div>` : ''}
+								</div>
+								<div class="flex gap-2 justify-center border-t pt-2">
+									<button 
+										id="download-geojson-${featureId}" 
+										class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-all shadow-sm"
+										title="Download GeoJSON"
+									>	
+										<i class="pi pi-download mr-1"></i>GeoJSON
+									</button>
+									<button 
+										id="download-kml-${featureId}" 
+										class="px-3 py-1 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded transition-all shadow-sm"
+										title="Download KML"
+									>	
+										<i class="pi pi-file mr-1"></i>KML
+									</button>
+								</div>
+							</div>
+						`;
+						layer.bindPopup(popup);
+						
+						// Optimized: Use single event listener with event delegation
+						layer.on('popupopen', () => {
+							// Use setTimeout to ensure DOM is ready
+							setTimeout(() => {
+								const downloadGeoJSONButton = document.getElementById(`download-geojson-${featureId}`);
+								const downloadKMLButton = document.getElementById(`download-kml-${featureId}`);
+								
+								if (downloadGeoJSONButton) {
+									// Remove existing listener if any
+									const newButton = downloadGeoJSONButton.cloneNode(true);
+									downloadGeoJSONButton.parentNode?.replaceChild(newButton, downloadGeoJSONButton);
+									newButton.addEventListener('click', (e) => {
+										e.stopPropagation();
+										this.downloadFeatureGeoJSON(feature, featureName);
+									});
+								}
+								
+								if (downloadKMLButton) {
+									// Remove existing listener if any
+									const newButton = downloadKMLButton.cloneNode(true);
+									downloadKMLButton.parentNode?.replaceChild(newButton, downloadKMLButton);
+									newButton.addEventListener('click', (e) => {
+										e.stopPropagation();
+										this.downloadFeatureKML(feature, featureName);
+									});
+								}
+							}, 0);
+						});
 
 						layer.bindTooltip(props.name, {
 							permanent: false,
@@ -687,6 +758,9 @@ export class AdminMasterSubAdministrativeZonesComponent
 			);
 
 			this.allSubAdministrativeZonesLayer.addTo(this.map);
+
+			// Batch render other layers using requestAnimationFrame for better performance
+			this.batchRenderLayers();
 
 			// Safely fit bounds
 			try {
@@ -735,7 +809,67 @@ export class AdminMasterSubAdministrativeZonesComponent
 						opacity: 0.8,
 					}),
 					onEachFeature: (feature, layer) => {
-						const props = feature.properties;
+						const props = feature.properties || {};
+						const featureId = `az-${props.id || props.areaCode || Math.random()}`;
+						const featureName = props.name || 'Administrative Zone';
+						const popup = `
+							<div class="p-2 min-w-[200px]">
+								<h3 class="font-bold text-base mb-2 text-slate-900">${
+									props.name || 'N/A'
+								}</h3>
+								<div class="space-y-1 text-sm mb-3">
+									<div><strong>Type:</strong> ${props.type || 'N/A'}</div>
+									${props.areaCode ? `<div><strong>Code:</strong> ${props.areaCode}</div>` : ''}
+								</div>
+								<div class="flex gap-2 justify-center border-t pt-2">
+									<button 
+										id="download-geojson-${featureId}" 
+										class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-all shadow-sm"
+										title="Download GeoJSON"
+									>	
+										<i class="pi pi-download mr-1"></i>GeoJSON
+									</button>
+									<button 
+										id="download-kml-${featureId}" 
+										class="px-3 py-1 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded transition-all shadow-sm"
+										title="Download KML"
+									>	
+										<i class="pi pi-file mr-1"></i>KML
+									</button>
+								</div>
+							</div>
+						`;
+						layer.bindPopup(popup);
+						
+						// Optimized: Use single event listener with event delegation
+						layer.on('popupopen', () => {
+							// Use setTimeout to ensure DOM is ready
+							setTimeout(() => {
+								const downloadGeoJSONButton = document.getElementById(`download-geojson-${featureId}`);
+								const downloadKMLButton = document.getElementById(`download-kml-${featureId}`);
+								
+								if (downloadGeoJSONButton) {
+									// Remove existing listener if any
+									const newButton = downloadGeoJSONButton.cloneNode(true);
+									downloadGeoJSONButton.parentNode?.replaceChild(newButton, downloadGeoJSONButton);
+									newButton.addEventListener('click', (e) => {
+										e.stopPropagation();
+										this.downloadFeatureGeoJSON(feature, featureName);
+									});
+								}
+								
+								if (downloadKMLButton) {
+									// Remove existing listener if any
+									const newButton = downloadKMLButton.cloneNode(true);
+									downloadKMLButton.parentNode?.replaceChild(newButton, downloadKMLButton);
+									newButton.addEventListener('click', (e) => {
+										e.stopPropagation();
+										this.downloadFeatureKML(feature, featureName);
+									});
+								}
+							}, 0);
+						});
+						
 						layer.bindTooltip(props.name || 'N/A', {
 							permanent: false,
 							direction: 'top',
@@ -754,21 +888,339 @@ export class AdminMasterSubAdministrativeZonesComponent
 		}
 	}
 
-	toggleAdministrativeZoneLayer() {
-		this.showAdministrativeZoneLayer = !this.showAdministrativeZoneLayer;
+	/**
+	 * Batch render layers for better performance
+	 */
+	private batchRenderLayers() {
+		if (this.isRendering) return;
+		
+		this.isRendering = true;
+		requestAnimationFrame(() => {
+			if (this.showDzongkhagLayer && this.dzongkhagGeoJSON && this.map) {
+				this.renderDzongkhag();
+			}
+			if (this.showAdministrativeZoneLayer && this.administrativeZoneGeoJSON && this.map) {
+				this.renderAdministrativeZoneLayer();
+			}
+			this.isRendering = false;
+		});
+	}
 
-		if (this.showAdministrativeZoneLayer) {
+	/**
+	 * Batch load layers for better performance
+	 */
+	private batchLoadLayers() {
+		// Load/render dzongkhag layer if toggle is enabled
+		if (this.showDzongkhagLayer && !this.dzongkhagGeoJSON) {
+			this.loadDzongkhagGeoJSON();
+		} else if (this.showDzongkhagLayer && this.dzongkhagGeoJSON && this.map) {
+			requestAnimationFrame(() => {
+				this.renderDzongkhag();
+			});
+		}
+		
+		// Load/render administrative zone layer if toggle is enabled
+		if (this.showAdministrativeZoneLayer && !this.administrativeZoneGeoJSON) {
+			this.loadAdministrativeZoneGeoJSON();
+		} else if (this.showAdministrativeZoneLayer && this.administrativeZoneGeoJSON && this.map) {
+			requestAnimationFrame(() => {
+				this.renderAdministrativeZoneLayer();
+			});
+		}
+	}
+
+	toggleAdministrativeZoneLayer(event: any) {
+		if (!this.selectedDzongkhag) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Warning',
+				detail: 'Please select a dzongkhag first',
+				life: 3000,
+			});
+			// Reset the switch if dzongkhag is not selected
+			this.showAdministrativeZoneLayer = false;
+			return;
+		}
+
+		// Clear any pending renders
+		if (this.renderTimeout) {
+			clearTimeout(this.renderTimeout);
+		}
+
+		// Get the new value from the event
+		const newValue = event.checked;
+		this.showAdministrativeZoneLayer = newValue;
+
+		// Use visibility instead of remove/add for better performance
+		if (this.administrativeZonesLayer && this.map) {
+			if (newValue) {
+				// Check if layer is already on the map
+				if (!this.map.hasLayer(this.administrativeZonesLayer)) {
+					this.map.addLayer(this.administrativeZonesLayer);
+				}
+			} else {
+				// Remove layer if it exists on the map
+				if (this.map.hasLayer(this.administrativeZonesLayer)) {
+					this.map.removeLayer(this.administrativeZonesLayer);
+				}
+			}
+		} else if (newValue) {
+			// Only load/render if layer doesn't exist and we're turning it on
 			if (!this.administrativeZoneGeoJSON) {
 				this.loadAdministrativeZoneGeoJSON();
 			} else {
-				this.renderAdministrativeZoneLayer();
-			}
-		} else {
-			if (this.administrativeZonesLayer && this.map) {
-				this.map.removeLayer(this.administrativeZonesLayer);
-				this.administrativeZonesLayer = undefined;
+				// Debounce render
+				this.renderTimeout = setTimeout(() => {
+					this.renderAdministrativeZoneLayer();
+				}, 100);
 			}
 		}
+	}
+
+	/**
+	 * Load Dzongkhag GeoJSON
+	 */
+	loadDzongkhagGeoJSON() {
+		if (!this.selectedDzongkhag) {
+			this.dzongkhagGeoJSON = null;
+			this.removeDzongkhagLayer();
+			return;
+		}
+
+		this.dzongkhagService
+			.getDzongkhagGeojson(this.selectedDzongkhag.id)
+			.subscribe({
+				next: (data) => {
+					this.dzongkhagGeoJSON = data;
+					if (this.map && this.showDzongkhagLayer) {
+						// Use requestAnimationFrame for smoother rendering
+						requestAnimationFrame(() => {
+							this.renderDzongkhag();
+						});
+					}
+				},
+				error: (error) => {
+					console.error('Error loading dzongkhag GeoJSON:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load dzongkhag map data',
+						life: 3000,
+					});
+				},
+			});
+	}
+
+	/**
+	 * Render Dzongkhag layer on map
+	 */
+	private renderDzongkhag() {
+		if (!this.map || !this.dzongkhagGeoJSON || !this.showDzongkhagLayer) return;
+
+		// Remove existing layer
+		this.removeDzongkhagLayer();
+
+		// Validate GeoJSON
+		if (!this.isValidGeoJSON(this.dzongkhagGeoJSON)) {
+			console.error('Invalid Dzongkhag GeoJSON data structure');
+			return;
+		}
+
+		try {
+			// Wrap single feature in FeatureCollection if needed
+			let geoJsonData = this.dzongkhagGeoJSON;
+			if (geoJsonData.type === 'Feature') {
+				geoJsonData = {
+					type: 'FeatureCollection',
+					features: [geoJsonData]
+				};
+			}
+
+			this.dzongkhagLayer = L.geoJSON(geoJsonData, {
+				style: {
+					color: '#dc2626', // Red color for dzongkhag
+					weight: 3,
+					fillColor: '#fee2e2',
+					fillOpacity: 0, // Transparent fill
+				},
+				onEachFeature: (feature, layer) => {
+					const props = feature.properties || {};
+					const featureId = `dz-${props.id || props.areaCode || Math.random()}`;
+					const featureName = props.name || 'Dzongkhag';
+					const popup = `
+						<div class="p-2 min-w-[200px]">
+							<h3 class="font-bold text-base mb-2 text-slate-900">${
+								props.name || 'N/A'
+							}</h3>
+							<div class="space-y-1 text-sm mb-3">
+								${props.areaCode ? `<div><strong>Code:</strong> ${props.areaCode}</div>` : ''}
+							</div>
+							<div class="flex gap-2 justify-center border-t pt-2">
+								<button 
+									id="download-geojson-${featureId}" 
+									class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-all shadow-sm"
+									title="Download GeoJSON"
+								>	
+									<i class="pi pi-download mr-1"></i>GeoJSON
+								</button>
+								<button 
+									id="download-kml-${featureId}" 
+									class="px-3 py-1 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded transition-all shadow-sm"
+									title="Download KML"
+								>	
+									<i class="pi pi-file mr-1"></i>KML
+								</button>
+							</div>
+						</div>
+					`;
+					layer.bindPopup(popup);
+					
+					// Optimized: Use single event listener with event delegation
+					layer.on('popupopen', () => {
+						// Use setTimeout to ensure DOM is ready
+						setTimeout(() => {
+							const downloadGeoJSONButton = document.getElementById(`download-geojson-${featureId}`);
+							const downloadKMLButton = document.getElementById(`download-kml-${featureId}`);
+							
+							if (downloadGeoJSONButton) {
+								// Remove existing listener if any
+								const newButton = downloadGeoJSONButton.cloneNode(true);
+								downloadGeoJSONButton.parentNode?.replaceChild(newButton, downloadGeoJSONButton);
+								newButton.addEventListener('click', (e) => {
+									e.stopPropagation();
+									this.downloadFeatureGeoJSON(feature, featureName);
+								});
+							}
+							
+							if (downloadKMLButton) {
+								// Remove existing listener if any
+								const newButton = downloadKMLButton.cloneNode(true);
+								downloadKMLButton.parentNode?.replaceChild(newButton, downloadKMLButton);
+								newButton.addEventListener('click', (e) => {
+									e.stopPropagation();
+									this.downloadFeatureKML(feature, featureName);
+								});
+							}
+						}, 0);
+					});
+				},
+			});
+
+			this.dzongkhagLayer.addTo(this.map);
+			this.dzongkhagLayer.bringToBack();
+		} catch (error) {
+			console.error('Error rendering dzongkhag layer:', error);
+		}
+	}
+
+	/**
+	 * Remove Dzongkhag layer
+	 */
+	private removeDzongkhagLayer(): void {
+		if (this.dzongkhagLayer) {
+			this.map?.removeLayer(this.dzongkhagLayer);
+			this.dzongkhagLayer = undefined;
+		}
+	}
+
+	/**
+	 * Toggle Dzongkhag layer visibility
+	 */
+	toggleDzongkhagLayer(event: any) {
+		if (!this.selectedDzongkhag) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Warning',
+				detail: 'Please select a dzongkhag first',
+				life: 3000,
+			});
+			// Reset the switch if dzongkhag is not selected
+			this.showDzongkhagLayer = false;
+			return;
+		}
+
+		// Clear any pending renders
+		if (this.renderTimeout) {
+			clearTimeout(this.renderTimeout);
+		}
+
+		// Get the new value from the event
+		const newValue = event.checked;
+		this.showDzongkhagLayer = newValue;
+
+		// Use visibility instead of remove/add for better performance
+		if (this.dzongkhagLayer && this.map) {
+			if (newValue) {
+				// Check if layer is already on the map
+				if (!this.map.hasLayer(this.dzongkhagLayer)) {
+					this.map.addLayer(this.dzongkhagLayer);
+				}
+			} else {
+				// Remove layer if it exists on the map
+				if (this.map.hasLayer(this.dzongkhagLayer)) {
+					this.map.removeLayer(this.dzongkhagLayer);
+				}
+			}
+		} else if (newValue) {
+			// Only load/render if layer doesn't exist and we're turning it on
+			if (!this.dzongkhagGeoJSON) {
+				this.loadDzongkhagGeoJSON();
+			} else {
+				// Debounce render
+				this.renderTimeout = setTimeout(() => {
+					this.renderDzongkhag();
+				}, 100);
+			}
+		}
+	}
+
+	/**
+	 * Download a single feature as GeoJSON
+	 */
+	downloadFeatureGeoJSON(feature: any, featureName: string): void {
+		// Wrap single feature in FeatureCollection
+		const featureCollection = {
+			type: 'FeatureCollection',
+			features: [feature]
+		};
+		
+		const filename = `${featureName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.geojson`;
+		this.downloadService.downloadGeoJSON({
+			data: featureCollection,
+			filename: filename
+		});
+		
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail: 'GeoJSON file downloaded successfully',
+			life: 2000,
+		});
+	}
+
+	/**
+	 * Download a single feature as KML
+	 */
+	downloadFeatureKML(feature: any, featureName: string): void {
+		// Wrap single feature in FeatureCollection
+		const featureCollection = {
+			type: 'FeatureCollection',
+			features: [feature]
+		};
+		
+		const filename = `${featureName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.kml`;
+		this.downloadService.downloadKML({
+			data: featureCollection,
+			filename: filename,
+			layerName: featureName
+		});
+		
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail: 'KML file downloaded successfully',
+			life: 2000,
+		});
 	}
 
 	/**

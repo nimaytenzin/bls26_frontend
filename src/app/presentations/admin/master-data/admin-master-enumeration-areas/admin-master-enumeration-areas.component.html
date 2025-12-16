@@ -334,6 +334,19 @@
 						<p class="text-xs text-slate-600 mt-1">Click on enumeration areas to view details</p>
 					</div>
 					<div class="flex items-center gap-2">
+						<!-- Layer Toggles -->
+						<div class="flex items-center gap-2 border-r border-slate-200 pr-2 mr-2" *ngIf="selectedDzongkhag">
+							<div class="flex items-center gap-2">
+								<label class="text-xs text-slate-600 whitespace-nowrap">Chiwogs/Laps:</label>
+								<p-inputSwitch
+									[ngModel]="showSAZLayer"
+									(onChange)="toggleSAZLayer($event)"
+									[disabled]="!selectedDzongkhag"
+									[ngModelOptions]="{ standalone: true }"
+								></p-inputSwitch>
+							</div>
+						</div>
+						
 						<!-- Basemap Selector -->
 						<select
 							[(ngModel)]="selectedBasemapId"

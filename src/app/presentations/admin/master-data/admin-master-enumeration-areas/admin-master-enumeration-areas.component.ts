@@ -56,6 +56,7 @@ import * as L from 'leaflet';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { BasemapService } from '../../../../core/utility/basemap.service';
 import { LocationSelectionService } from '../../../../core/services/location-selection.service';
+import { DownloadService } from '../../../../core/utility/download.service';
 
 @Component({
 	selector: 'app-admin-master-enumeration-areas',
@@ -89,8 +90,11 @@ export class AdminMasterEnumerationAreasComponent
 	// Map properties
 	private map?: L.Map;
 	enumerationAreaGeoJSON: any;
+	subAdministrativeZoneGeoJSON: any = null;
 	private allEnumerationAreasLayer?: L.GeoJSON;
+	private subAdministrativeZonesLayer?: L.GeoJSON;
 	private baseLayer?: L.TileLayer;
+	showSAZLayer = false;
 
 	// Basemap properties
 	selectedBasemapId = 'positron'; // Default basemap
@@ -130,7 +134,8 @@ export class AdminMasterEnumerationAreasComponent
 		private messageService: MessageService,
 		private router: Router,
 		private basemapService: BasemapService,
-		private locationSelectionService: LocationSelectionService
+		private locationSelectionService: LocationSelectionService,
+		private downloadService: DownloadService
 	) {
 		this.enumerationAreaForm = this.fb.group({
 			name: ['', [Validators.required, Validators.minLength(2)]],
@@ -175,6 +180,10 @@ export class AdminMasterEnumerationAreasComponent
 
 	ngOnDestroy() {
 		if (this.map) {
+			this.removeSubAdministrativeZonesLayer();
+			if (this.allEnumerationAreasLayer) {
+				this.map.removeLayer(this.allEnumerationAreasLayer);
+			}
 			this.map.remove();
 		}
 
@@ -562,6 +571,10 @@ export class AdminMasterEnumerationAreasComponent
 		this.locationSelectionService.setSelectedAdministrativeZone(null);
 		this.selectedSubAdministrativeZone = null;
 		this.locationSelectionService.setSelectedSubAdministrativeZone(null);
+		
+		// Reset SAZ layer data
+		this.subAdministrativeZoneGeoJSON = null;
+		this.removeSubAdministrativeZonesLayer();
 		this.administrativeZones = [];
 		this.subAdministrativeZones = [];
 
@@ -570,6 +583,8 @@ export class AdminMasterEnumerationAreasComponent
 			this.loadAdministrativeZones();
 			// Load enumeration areas (which also loads hierarchical data)
 			this.loadEnumerationAreas();
+			// Load SAZ GeoJSON for layer toggle
+			this.loadSubAdministrativeZoneGeoJSON();
 		} else {
 			this.enumerationAreas = [];
 			this.subAdministrativeZones = [];
@@ -577,6 +592,8 @@ export class AdminMasterEnumerationAreasComponent
 			this.hierarchicalData = null;
 			this.hierarchicalTableData = [];
 			this.enumerationAreaGeoJSON = null;
+			this.subAdministrativeZoneGeoJSON = null;
+			this.removeSubAdministrativeZonesLayer();
 		}
 	}
 
@@ -1120,53 +1137,67 @@ export class AdminMasterEnumerationAreasComponent
 					azName = props.administrativeZoneName || props.azName || 'N/A';
 				}
 
-				const popupContent = `
-<div style="padding: 4px; ">
-  <div style="font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #111827;">${
-		props.name
-	}</div>
-  <div style="display: grid; gap: 4px; font-size: 13px; margin-bottom: 12px;">
-    <div><span style="font-weight: 600; color: #6b7280;">Code:</span> <span style="color: #374151;">${
-			props.areaCode || 'N/A'
-		}</span></div>
-    <div><span style="font-weight: 600; color: #6b7280;">Administrative Zone:</span> <span style="color: #374151;">${
-			azName
-		}</span></div>
-    <div><span style="font-weight: 600; color: #6b7280;">Sub-Administrative Zone(s):</span> <span style="color: #374151;">${
-			sazName
-		}</span></div>
-    <div><span style="font-weight: 600; color: #6b7280;">Description:</span> <span style="color: #374151;">${
-			props.description || 'N/A'
-		}</span></div>
-  </div>
-  <button 
-    onclick="window.navigateToEADetails(${props.id})"
-    style="
-      width: 100%;
-      padding: 4px 12px;
-      background-color: #3b82f6;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: background-color 0.2s;
-    "
-    onmouseover="this.style.backgroundColor='#2563eb'"
-    onmouseout="this.style.backgroundColor='#3b82f6'"
-  >
-    <i class="pi pi-eye" style="font-size: 12px;"></i>
-    View Details
-  </button>
-</div>
-`;
-
-				layer.bindPopup(popupContent);
+				const featureId = `ea-${props.id || props.areaCode || Math.random()}`;
+				const featureName = props.name || 'Enumeration Area';
+				const popup = `
+					<div class="p-2 min-w-[200px]">
+						<h3 class="font-bold text-base mb-2 text-slate-900">${
+							props.name || 'N/A'
+						}</h3>
+						<div class="space-y-1 text-sm mb-3">
+							${props.areaCode ? `<div><strong>Code:</strong> ${props.areaCode}</div>` : ''}
+							<div><strong>Administrative Zone:</strong> ${azName}</div>
+							<div><strong>Sub-Administrative Zone(s):</strong> ${sazName}</div>
+							${props.description ? `<div><strong>Description:</strong> ${props.description}</div>` : ''}
+						</div>
+						<div class="flex gap-2 justify-center border-t pt-2">
+							<button 
+								id="download-geojson-${featureId}" 
+								class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-all shadow-sm"
+								title="Download GeoJSON"
+							>	
+								<i class="pi pi-download mr-1"></i>GeoJSON
+							</button>
+							<button 
+								id="download-kml-${featureId}" 
+								class="px-3 py-1 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded transition-all shadow-sm"
+								title="Download KML"
+							>	
+								<i class="pi pi-file mr-1"></i>KML
+							</button>
+						</div>
+					</div>
+				`;
+				layer.bindPopup(popup);
+				
+				// Optimized: Use single event listener with event delegation
+				layer.on('popupopen', () => {
+					// Use setTimeout to ensure DOM is ready
+					setTimeout(() => {
+						const downloadGeoJSONButton = document.getElementById(`download-geojson-${featureId}`);
+						const downloadKMLButton = document.getElementById(`download-kml-${featureId}`);
+						
+						if (downloadGeoJSONButton) {
+							// Remove existing listener if any
+							const newButton = downloadGeoJSONButton.cloneNode(true);
+							downloadGeoJSONButton.parentNode?.replaceChild(newButton, downloadGeoJSONButton);
+							newButton.addEventListener('click', (e) => {
+								e.stopPropagation();
+								this.downloadFeatureGeoJSON(feature, featureName);
+							});
+						}
+						
+						if (downloadKMLButton) {
+							// Remove existing listener if any
+							const newButton = downloadKMLButton.cloneNode(true);
+							downloadKMLButton.parentNode?.replaceChild(newButton, downloadKMLButton);
+							newButton.addEventListener('click', (e) => {
+								e.stopPropagation();
+								this.downloadFeatureKML(feature, featureName);
+							});
+						}
+					}, 0);
+				});
 
 				layer.bindTooltip(props.name, {
 					permanent: false,
@@ -1194,6 +1225,285 @@ export class AdminMasterEnumerationAreasComponent
 
 		this.allEnumerationAreasLayer.addTo(this.map);
 		this.map.fitBounds(this.allEnumerationAreasLayer.getBounds());
+		
+		// Render SAZ layer if toggle is enabled
+		if (this.showSAZLayer && this.subAdministrativeZoneGeoJSON) {
+			requestAnimationFrame(() => {
+				this.renderSubAdministrativeZones();
+			});
+		}
+	}
+
+	/**
+	 * Load Sub-Administrative Zone GeoJSON
+	 */
+	loadSubAdministrativeZoneGeoJSON() {
+		if (!this.selectedDzongkhag) {
+			this.subAdministrativeZoneGeoJSON = null;
+			this.removeSubAdministrativeZonesLayer();
+			return;
+		}
+
+		this.subAdministrativeZoneService
+			.getSubAdministrativeZoneGeojsonByDzongkhag(this.selectedDzongkhag.id)
+			.subscribe({
+				next: (data) => {
+					this.subAdministrativeZoneGeoJSON = data;
+					if (this.map && this.showSAZLayer) {
+						requestAnimationFrame(() => {
+							this.renderSubAdministrativeZones();
+						});
+					}
+				},
+				error: (error) => {
+					console.error('Error loading SAZ GeoJSON:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load SAZ map data',
+						life: 3000,
+					});
+				},
+			});
+	}
+
+	/**
+	 * Render Sub-Administrative Zones layer on map
+	 */
+	private renderSubAdministrativeZones() {
+		if (!this.map || !this.subAdministrativeZoneGeoJSON || !this.showSAZLayer) return;
+
+		// Remove existing layer
+		this.removeSubAdministrativeZonesLayer();
+
+		// Validate GeoJSON
+		if (!this.isValidGeoJSON(this.subAdministrativeZoneGeoJSON)) {
+			console.error('Invalid SAZ GeoJSON data structure');
+			return;
+		}
+
+		try {
+			this.subAdministrativeZonesLayer = L.geoJSON(
+				this.subAdministrativeZoneGeoJSON,
+				{
+					style: (feature) => ({
+						fillColor:
+							feature?.properties?.type === 'lap' ? '#F59E0B' : '#8B5CF6',
+						fillOpacity: 0.2,
+						color: feature?.properties?.type === 'lap' ? '#D97706' : '#7C3AED',
+						weight: 2,
+						opacity: 0.8,
+					}),
+					onEachFeature: (feature, layer) => {
+						const props = feature.properties || {};
+						const featureId = `saz-${props.id || props.areaCode || Math.random()}`;
+						const featureName = props.name || 'Sub-Administrative Zone';
+						const popup = `
+							<div class="p-2 min-w-[200px]">
+								<h3 class="font-bold text-base mb-2 text-slate-900">${
+									props.name || 'N/A'
+								}</h3>
+								<div class="space-y-1 text-sm mb-3">
+									<div><strong>Type:</strong> ${props.type || 'N/A'}</div>
+									${props.areaCode ? `<div><strong>Code:</strong> ${props.areaCode}</div>` : ''}
+								</div>
+								<div class="flex gap-2 justify-center border-t pt-2">
+									<button 
+										id="download-geojson-${featureId}" 
+										class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-all shadow-sm"
+										title="Download GeoJSON"
+									>	
+										<i class="pi pi-download mr-1"></i>GeoJSON
+									</button>
+									<button 
+										id="download-kml-${featureId}" 
+										class="px-3 py-1 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded transition-all shadow-sm"
+										title="Download KML"
+									>	
+										<i class="pi pi-file mr-1"></i>KML
+									</button>
+								</div>
+							</div>
+						`;
+						layer.bindPopup(popup);
+						
+						// Optimized: Use single event listener with event delegation
+						layer.on('popupopen', () => {
+							setTimeout(() => {
+								const downloadGeoJSONButton = document.getElementById(`download-geojson-${featureId}`);
+								const downloadKMLButton = document.getElementById(`download-kml-${featureId}`);
+								
+								if (downloadGeoJSONButton) {
+									const newButton = downloadGeoJSONButton.cloneNode(true);
+									downloadGeoJSONButton.parentNode?.replaceChild(newButton, downloadGeoJSONButton);
+									newButton.addEventListener('click', (e) => {
+										e.stopPropagation();
+										this.downloadFeatureGeoJSON(feature, featureName);
+									});
+								}
+								
+								if (downloadKMLButton) {
+									const newButton = downloadKMLButton.cloneNode(true);
+									downloadKMLButton.parentNode?.replaceChild(newButton, downloadKMLButton);
+									newButton.addEventListener('click', (e) => {
+										e.stopPropagation();
+										this.downloadFeatureKML(feature, featureName);
+									});
+								}
+							}, 0);
+						});
+						
+						layer.bindTooltip(props.name || 'N/A', {
+							permanent: false,
+							direction: 'top',
+						});
+					},
+				}
+			);
+
+			this.subAdministrativeZonesLayer.addTo(this.map);
+			this.subAdministrativeZonesLayer.bringToBack();
+		} catch (error) {
+			console.error('Error rendering SAZ layer:', error);
+		}
+	}
+
+	/**
+	 * Remove Sub-Administrative Zones layer
+	 */
+	private removeSubAdministrativeZonesLayer(): void {
+		if (this.subAdministrativeZonesLayer) {
+			this.map?.removeLayer(this.subAdministrativeZonesLayer);
+			this.subAdministrativeZonesLayer = undefined;
+		}
+	}
+
+	/**
+	 * Toggle Sub-Administrative Zone layer visibility
+	 */
+	toggleSAZLayer(event: any) {
+		if (!this.selectedDzongkhag) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Warning',
+				detail: 'Please select a dzongkhag first',
+				life: 3000,
+			});
+			// Reset the switch if dzongkhag is not selected
+			this.showSAZLayer = false;
+			return;
+		}
+
+		// Get the new value from the event
+		const newValue = event.checked;
+		this.showSAZLayer = newValue;
+
+		// Use visibility instead of remove/add for better performance
+		if (this.subAdministrativeZonesLayer && this.map) {
+			if (newValue) {
+				// Check if layer is already on the map
+				if (!this.map.hasLayer(this.subAdministrativeZonesLayer)) {
+					this.map.addLayer(this.subAdministrativeZonesLayer);
+				}
+			} else {
+				// Remove layer if it exists on the map
+				if (this.map.hasLayer(this.subAdministrativeZonesLayer)) {
+					this.map.removeLayer(this.subAdministrativeZonesLayer);
+				}
+			}
+		} else if (newValue) {
+			// Only load/render if layer doesn't exist and we're turning it on
+			if (!this.subAdministrativeZoneGeoJSON) {
+				this.loadSubAdministrativeZoneGeoJSON();
+			} else {
+				requestAnimationFrame(() => {
+					this.renderSubAdministrativeZones();
+				});
+			}
+		}
+	}
+
+	/**
+	 * Download a single feature as GeoJSON
+	 */
+	downloadFeatureGeoJSON(feature: any, featureName: string): void {
+		// Wrap single feature in FeatureCollection
+		const featureCollection = {
+			type: 'FeatureCollection',
+			features: [feature]
+		};
+		
+		const filename = `${featureName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.geojson`;
+		this.downloadService.downloadGeoJSON({
+			data: featureCollection,
+			filename: filename
+		});
+		
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail: 'GeoJSON file downloaded successfully',
+			life: 2000,
+		});
+	}
+
+	/**
+	 * Download a single feature as KML
+	 */
+	downloadFeatureKML(feature: any, featureName: string): void {
+		// Wrap single feature in FeatureCollection
+		const featureCollection = {
+			type: 'FeatureCollection',
+			features: [feature]
+		};
+		
+		const filename = `${featureName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.kml`;
+		this.downloadService.downloadKML({
+			data: featureCollection,
+			filename: filename,
+			layerName: featureName
+		});
+		
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail: 'KML file downloaded successfully',
+			life: 2000,
+		});
+	}
+
+	/**
+	 * Validate GeoJSON structure
+	 */
+	private isValidGeoJSON(geojson: any): boolean {
+		if (!geojson) return false;
+
+		// Check if it's a FeatureCollection
+		if (geojson.type === 'FeatureCollection') {
+			if (!Array.isArray(geojson.features)) return false;
+			return geojson.features.every((feature: any) => {
+				return (
+					feature &&
+					feature.type === 'Feature' &&
+					feature.geometry &&
+					feature.geometry.type &&
+					feature.geometry.coordinates &&
+					Array.isArray(feature.geometry.coordinates)
+				);
+			});
+		}
+
+		// Check if it's a single Feature
+		if (geojson.type === 'Feature') {
+			return (
+				geojson.geometry &&
+				geojson.geometry.type &&
+				geojson.geometry.coordinates &&
+				Array.isArray(geojson.geometry.coordinates)
+			);
+		}
+
+		return false;
 	}
 
 	selectEnumerationAreaFromMap(properties: any) {

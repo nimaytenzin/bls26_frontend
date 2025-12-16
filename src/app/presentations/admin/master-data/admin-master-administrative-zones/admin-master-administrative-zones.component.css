@@ -20,6 +20,10 @@
 	border: none !important;
 	box-shadow: none !important;
 	pointer-events: none;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	text-align: center !important;
 }
 
 ::ng-deep .administrative-zone-label::before {

@@ -81,70 +81,67 @@
 				>
 					<ng-template pTemplate="header">
 						<tr>
-							<th pSortableColumn="id">
-								ID <p-sortIcon field="id"></p-sortIcon>
-							</th>
+							<th>ID</th>
 							<th pSortableColumn="name">
 								Name <p-sortIcon field="name"></p-sortIcon>
 							</th>
-							<th pSortableColumn="areaCode">Code</th>
+							<th pSortableColumn="areaCode">
+								Area Code <p-sortIcon field="areaCode"></p-sortIcon>
+							</th>
 							<th>Actions</th>
 						</tr>
 					</ng-template>
 
 					<ng-template pTemplate="body" let-dzongkhag>
 						<tr [class.bg-primary-50]="selectedDzongkhag?.id === dzongkhag.id">
-							<td>
-								<span class="text-sm font-semibold text-slate-900">
-									{{ dzongkhag.id }}
-								</span>
-							</td>
+							<td>{{ dzongkhag.id }}</td>
 							<td>
 								<div class="font-semibold text-slate-900">
 									{{ dzongkhag.name }}
 								</div>
 							</td>
 							<td>
-								<span
-									class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700"
-								>
+								<span *ngIf="dzongkhag.areaCode" class="font-mono text-sm text-slate-700">
 									{{ dzongkhag.areaCode }}
+								</span>
+								<span *ngIf="!dzongkhag.areaCode" class="text-slate-400 text-xs italic">
+									—
 								</span>
 							</td>
 							<td>
 								<div class="flex items-center gap-2">
 									<button
+										pButton
 										type="button"
+										icon="pi pi-eye"
+										class="p-button-outlined p-button-sm p-button-secondary"
 										(click)="viewDzongkhagData(dzongkhag)"
-										class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 transition-colors"
-										pTooltip="View Data"
-									>
-										<i class="pi pi-eye text-sm"></i>
-									</button>
+										pTooltip="View Details"
+									></button>
 									<button
+										pButton
 										type="button"
+										icon="pi pi-pencil"
+										class="p-button-outlined p-button-sm p-button-info"
 										(click)="editDzongkhag(dzongkhag)"
-										class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 transition-colors"
 										pTooltip="Edit"
-									>
-										<i class="pi pi-pencil text-sm"></i>
-									</button>
+									></button>
 									<button
+										pButton
 										type="button"
+										icon="pi pi-file-arrow-up"
+										class="p-button-outlined p-button-sm"
 										(click)="openUploadGeojson(dzongkhag)"
-										class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 transition-colors"
 										pTooltip="Upload GeoJSON"
-									>
-										<i class="pi pi-upload text-sm"></i>
-									</button>
+									></button>
 									<button
+										pButton
 										type="button"
+										icon="pi pi-trash"
+										class="p-button-outlined p-button-sm p-button-danger"
 										(click)="confirmDelete(dzongkhag)"
-										class="p-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
 										pTooltip="Delete"
-									>
-										<i class="pi pi-trash text-sm"></i>
-									</button>
+									></button>
 								</div>
 							</td>
 						</tr>

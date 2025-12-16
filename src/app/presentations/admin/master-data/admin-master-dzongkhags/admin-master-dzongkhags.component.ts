@@ -26,6 +26,7 @@ import * as L from 'leaflet';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';
 import { BasemapService } from '../../../../core/utility/basemap.service';
+import { DownloadService } from '../../../../core/utility/download.service';
 
 @Component({
 	selector: 'app-admin-master-dzongkhags',
@@ -82,7 +83,8 @@ export class AdminMasterDzongkhagsComponent
 		private messageService: MessageService,
 		private router: Router,
 		private mapFeatureColorService: MapFeatureColorService,
-		private basemapService: BasemapService
+		private basemapService: BasemapService,
+		private downloadService: DownloadService
 	) {
 		this.dzongkhagForm = this.fb.group({
 			name: ['', [Validators.required, Validators.minLength(2)]],
@@ -210,34 +212,31 @@ export class AdminMasterDzongkhagsComponent
 					(d) => d.id === props.id || d.areaCode === props.areaCode
 				);
 
-				// Create popup content with icon buttons
+				// Create popup content with all action buttons
+				const featureId = `dz-${props.id || props.areaCode}`;
+				const featureName = props.name || 'Dzongkhag';
 				const popupContent = `
-					<div class="p-1">
-						<div class="mb-2">
-							<p class="font-semibold text-sm m-0 p-0 text-slate-900" style="line-height: 1.2; margin-bottom: 0;">${props.name}</p>
-							<p class="text-xs m-0 p-0 text-slate-500" style="line-height: 1.2; margin-top: 0; margin-bottom: 0;">Code: ${props.areaCode}</p>
+					<div class="p-2 min-w-[200px]">
+						<h3 class="font-bold text-base mb-2 text-slate-900">${
+							props.name || 'N/A'
+						}</h3>
+						<div class="space-y-1 text-sm mb-3">
+							${props.areaCode ? `<div><strong>Code:</strong> ${props.areaCode}</div>` : ''}
 						</div>
-						<div class="flex gap-1.5 justify-center">
+						<div class="flex flex-wrap gap-2 justify-center border-t pt-2">
 							<button 
-								id="view-dzongkhag-${props.id}" 
-								class="w-8 h-8 flex items-center justify-center bg-primary-600 hover:bg-primary-700 text-white rounded transition-all shadow-sm hover:shadow"
-								title="View Details"
+								id="download-geojson-${featureId}" 
+								class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-all shadow-sm"
+								title="Download GeoJSON"
 							>	
-								<i class="pi pi-eye text-xs"></i>
+								<i class="pi pi-download mr-1"></i>GeoJSON
 							</button>
 							<button 
-								id="edit-dzongkhag-${props.id}" 
-								class="w-8 h-8 flex items-center justify-center border border-slate-300 hover:border-primary-300 hover:bg-primary-50 text-slate-700 hover:text-primary-700 rounded transition-all"
-								title="Edit"
-							>
-								<i class="pi pi-pencil text-xs"></i>
-							</button>
-							<button 
-								id="upload-geojson-${props.id}" 
-								class="w-8 h-8 flex items-center justify-center border border-slate-300 hover:border-primary-300 hover:bg-primary-50 text-slate-700 hover:text-primary-700 rounded transition-all"
-								title="Reupload GeoJSON"
-							>
-								<i class="pi pi-upload text-xs"></i>
+								id="download-kml-${featureId}" 
+								class="px-3 py-1 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded transition-all shadow-sm"
+								title="Download KML"
+							>	
+								<i class="pi pi-file mr-1"></i>KML
 							</button>
 						</div>
 					</div>
@@ -248,32 +247,29 @@ export class AdminMasterDzongkhagsComponent
 
 				// Add click listeners for buttons after popup opens
 				layer.on('popupopen', () => {
-					// View Details button
-					const viewButton = document.getElementById(`view-dzongkhag-${props.id}`);
-					if (viewButton && dzongkhag) {
-						viewButton.addEventListener('click', () => {
-							this.viewDzongkhagData(dzongkhag);
-							this.map?.closePopup();
-						});
-					}
+					setTimeout(() => {
+						// Download GeoJSON button
+						const downloadGeoJSONButton = document.getElementById(`download-geojson-${featureId}`);
+						if (downloadGeoJSONButton) {
+							const newDownloadGeoJSONButton = downloadGeoJSONButton.cloneNode(true);
+							downloadGeoJSONButton.parentNode?.replaceChild(newDownloadGeoJSONButton, downloadGeoJSONButton);
+							newDownloadGeoJSONButton.addEventListener('click', (e) => {
+								e.stopPropagation();
+								this.downloadFeatureGeoJSON(feature, featureName);
+							});
+						}
 
-					// Edit button
-					const editButton = document.getElementById(`edit-dzongkhag-${props.id}`);
-					if (editButton && dzongkhag) {
-						editButton.addEventListener('click', () => {
-							this.editDzongkhag(dzongkhag);
-							this.map?.closePopup();
-						});
-					}
-
-					// Reupload GeoJSON button
-					const uploadButton = document.getElementById(`upload-geojson-${props.id}`);
-					if (uploadButton && dzongkhag) {
-						uploadButton.addEventListener('click', () => {
-							this.openUploadGeojson(dzongkhag);
-							this.map?.closePopup();
-						});
-					}
+						// Download KML button
+						const downloadKMLButton = document.getElementById(`download-kml-${featureId}`);
+						if (downloadKMLButton) {
+							const newDownloadKMLButton = downloadKMLButton.cloneNode(true);
+							downloadKMLButton.parentNode?.replaceChild(newDownloadKMLButton, downloadKMLButton);
+							newDownloadKMLButton.addEventListener('click', (e) => {
+								e.stopPropagation();
+								this.downloadFeatureKML(feature, featureName);
+							});
+						}
+					}, 0);
 				});
 
 				// Bind tooltip
@@ -604,5 +600,54 @@ export class AdminMasterDzongkhagsComponent
 			this.baseLayer.addTo(this.map);
 			this.baseLayer.bringToBack();
 		}
+	}
+
+	/**
+	 * Download a single feature as GeoJSON
+	 */
+	downloadFeatureGeoJSON(feature: any, featureName: string): void {
+		// Wrap single feature in FeatureCollection
+		const featureCollection = {
+			type: 'FeatureCollection',
+			features: [feature]
+		};
+		
+		const filename = `${featureName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.geojson`;
+		this.downloadService.downloadGeoJSON({
+			data: featureCollection,
+			filename: filename
+		});
+		
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail: 'GeoJSON file downloaded successfully',
+			life: 2000,
+		});
+	}
+
+	/**
+	 * Download a single feature as KML
+	 */
+	downloadFeatureKML(feature: any, featureName: string): void {
+		// Wrap single feature in FeatureCollection
+		const featureCollection = {
+			type: 'FeatureCollection',
+			features: [feature]
+		};
+		
+		const filename = `${featureName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.kml`;
+		this.downloadService.downloadKML({
+			data: featureCollection,
+			filename: filename,
+			layerName: featureName
+		});
+		
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail: 'KML file downloaded successfully',
+			life: 2000,
+		});
 	}
 }
