@@ -81,3 +81,62 @@ export interface BulkUploadResponse {
 		error: string;
 	}>;
 }
+
+/**
+ * Create Two SAZs with EA Request DTO
+ * Data structure for creating two SAZs and a single EA that links to both
+ */
+export interface CreateTwoSazsWithEaRequest {
+	saz1Data: {
+		name: string;
+		areaCode: string;
+		type: 'chiwog' | 'lap';
+		administrativeZoneId: number;
+	};
+	saz2Data: {
+		name: string;
+		areaCode: string;
+		type: 'chiwog' | 'lap';
+		administrativeZoneId: number;
+	};
+}
+
+/**
+ * Create Two SAZs with EA Response
+ * Response from the create-two-sazs-with-ea endpoint
+ */
+export interface CreateTwoSazsWithEaResponse {
+	subAdministrativeZone1: {
+		id: number;
+		administrativeZoneId: number;
+		name: string;
+		areaCode: string;
+		type: 'chiwog' | 'lap';
+		geom?: string;
+	};
+	subAdministrativeZone2: {
+		id: number;
+		administrativeZoneId: number;
+		name: string;
+		areaCode: string;
+		type: 'chiwog' | 'lap';
+		geom?: string;
+	};
+	enumerationArea: {
+		id: number;
+		name: string; // Always "EA1"
+		areaCode: string; // Always "01"
+		description: string; // "EA for [SAZ1 name] and [SAZ2 name]"
+		geom?: string; // Combined geometry (ST_Union of both SAZs)
+		subAdministrativeZones?: Array<{
+			id: number;
+			name: string;
+			areaCode: string;
+			type: 'chiwog' | 'lap';
+			administrativeZone?: {
+				id: number;
+				name: string;
+			};
+		}>;
+	};
+}

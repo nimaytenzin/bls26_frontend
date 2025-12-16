@@ -157,24 +157,37 @@
 							
 							<div>
 								<label
-									for="file"
 									class="block text-sm font-medium text-slate-700 mb-2"
 								>
 									GeoJSON File *
 								</label>
-								<input
-									type="file"
-									id="file"
-									accept=".json,.geojson,application/json,application/geo+json"
-									(change)="onFileSelected($event)"
-									class="w-full"
-								/>
+								<p-fileUpload
+									mode="basic"
+									[accept]="'.json,.geojson,application/json,application/geo+json'"
+									[maxFileSize]="52428800"
+									[auto]="false"
+									chooseLabel="Choose File"
+									(onSelect)="onFileSelected($event)"
+									(onClear)="selectedFile = null; error = undefined"
+									styleClass="w-full"
+									[showUploadButton]="false"
+									[showCancelButton]="false"
+								>
+								</p-fileUpload>
 								<small class="text-slate-500 text-xs mt-1 block">
 									Select a GeoJSON file (Feature, FeatureCollection, or Geometry object). Max size: 50MB
 								</small>
-								<div *ngIf="selectedFile" class="mt-2 text-sm text-slate-600">
-									<i class="pi pi-file mr-2"></i>
-									{{ selectedFile.name }} ({{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB)
+								<div *ngIf="selectedFile" class="mt-2 text-sm text-slate-600 flex items-center gap-2">
+									<i class="pi pi-file"></i>
+									<span>{{ selectedFile.name }} ({{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB)</span>
+									<button
+										type="button"
+										pButton
+										icon="pi pi-times"
+										class="p-button-text p-button-sm"
+										(click)="selectedFile = null; error = undefined"
+										title="Remove file"
+									></button>
 								</div>
 							</div>
 						</div>

@@ -162,8 +162,15 @@ export class AdminMasterEnumerationAreasComponent
 		};
 	}
 	ngAfterViewInit() {
-		// Initialize map for split view
-		setTimeout(() => this.initializeMap(), 100);
+		// Initialize map if dzongkhag or administrative zone is already selected
+		if (this.selectedDzongkhag || this.selectedAdministrativeZone) {
+			setTimeout(() => {
+				this.initializeMap();
+			}, 300);
+		} else {
+			// Otherwise, initialize after a short delay
+			setTimeout(() => this.initializeMap(), 100);
+		}
 	}
 
 	ngOnDestroy() {
@@ -302,6 +309,20 @@ export class AdminMasterEnumerationAreasComponent
 
 					// Load sub-administrative zones for form dropdown
 					this.loadSubAdministrativeZonesForDzongkhag();
+					
+					// Restore saved administrative zone after hierarchical data is loaded
+					const savedAdminZone = this.locationSelectionService.getSelectedAdministrativeZone();
+					if (savedAdminZone && this.administrativeZones.find(az => az.id === savedAdminZone.id)) {
+						this.selectedAdministrativeZone = savedAdminZone;
+						// Also restore sub-administrative zone if available
+						this.loadSubAdministrativeZonesByAdministrativeZone();
+						// Load enumeration areas for the restored administrative zone
+						// Use setTimeout to avoid race conditions
+						setTimeout(() => {
+							this.loadEnumerationAreas();
+						}, 100);
+					}
+					
 					// Load GeoJSON for map
 					this.loadEnumerationAreaGeoJSON();
 				},
@@ -348,6 +369,12 @@ export class AdminMasterEnumerationAreasComponent
 					}
 				}
 			);
+			
+			// Restore saved sub-administrative zone if available
+			const savedSubAdminZone = this.locationSelectionService.getSelectedSubAdministrativeZone();
+			if (savedSubAdminZone && this.subAdministrativeZones.find(saz => saz.id === savedSubAdminZone.id)) {
+				this.selectedSubAdministrativeZone = savedSubAdminZone;
+			}
 		}
 	}
 
@@ -355,13 +382,20 @@ export class AdminMasterEnumerationAreasComponent
 		hierarchicalData: HierarchicalDzongkhagResponse
 	): EnumerationArea[] {
 		const flatAreas: EnumerationArea[] = [];
+		const seenEAIds = new Set<number>();
 
 		hierarchicalData.administrativeZones?.forEach(
 			(adminZone: HierarchicalAdministrativeZone) => {
 				adminZone.subAdministrativeZones?.forEach(
 					(subAdminZone: HierarchicalSubAdministrativeZone) => {
 						if (subAdminZone.enumerationAreas) {
-							flatAreas.push(...subAdminZone.enumerationAreas);
+							subAdminZone.enumerationAreas.forEach((ea: EnumerationArea) => {
+								// Only add EA if we haven't seen it before (avoid duplicates for shared EAs)
+								if (!seenEAIds.has(ea.id)) {
+									flatAreas.push(ea);
+									seenEAIds.add(ea.id);
+								}
+							});
 						}
 					}
 				);
@@ -380,6 +414,37 @@ export class AdminMasterEnumerationAreasComponent
 		this.hierarchicalTableData = [];
 
 		if (!this.hierarchicalData?.administrativeZones) return;
+
+		// Track which EAs have already been added to avoid duplicates
+		const addedEAIds = new Set<number>();
+		
+		// Map to store EA with all its SAZs for grouping
+		const eaToSAZsMap = new Map<number, {
+			ea: EnumerationArea;
+			sazs: Array<{ saz: HierarchicalSubAdministrativeZone; adminZone: HierarchicalAdministrativeZone }>;
+		}>();
+
+		// First pass: collect all EAs and their associated SAZs
+		this.hierarchicalData.administrativeZones.forEach(
+			(adminZone: HierarchicalAdministrativeZone) => {
+				adminZone.subAdministrativeZones?.forEach(
+					(subAdminZone: HierarchicalSubAdministrativeZone) => {
+						subAdminZone.enumerationAreas?.forEach((ea: EnumerationArea) => {
+							if (!eaToSAZsMap.has(ea.id)) {
+								eaToSAZsMap.set(ea.id, {
+									ea: ea,
+									sazs: []
+								});
+							}
+							eaToSAZsMap.get(ea.id)!.sazs.push({
+								saz: subAdminZone,
+								adminZone: adminZone
+							});
+						});
+					}
+				);
+			}
+		);
 
 		// Sort Administrative Zones by area code
 		const sortedAdminZones = [...this.hierarchicalData.administrativeZones].sort((a, b) => {
@@ -434,21 +499,39 @@ export class AdminMasterEnumerationAreasComponent
 						});
 						
 						sortedEAs.forEach((ea: EnumerationArea) => {
-							this.hierarchicalTableData.push({
-								type: 'enumeration-area',
-								id: `ea-${ea.id}`,
-								eaId: ea.id,
-								name: ea.name,
-								areaCode: ea.areaCode,
-								fullEACode: this.getFullEACode(ea, subAdminZone, adminZone),
-								description: ea.description,
-								level: 2,
-								isHeader: false,
-								hasGeom: !!ea.geom,
-								data: ea,
-								parentSubAdminZone: subAdminZone,
-								parentAdminZone: adminZone,
-							});
+							// Only add EA if it hasn't been added yet
+							if (!addedEAIds.has(ea.id)) {
+								const eaData = eaToSAZsMap.get(ea.id);
+								if (eaData) {
+									// Use the first SAZ for the primary parent reference
+									const primarySAZ = eaData.sazs[0].saz;
+									const primaryAdminZone = eaData.sazs[0].adminZone;
+									
+									this.hierarchicalTableData.push({
+										type: 'enumeration-area',
+										id: `ea-${ea.id}`,
+										eaId: ea.id,
+										name: ea.name,
+										areaCode: ea.areaCode,
+										fullEACode: this.getFullEACode(ea, primarySAZ, primaryAdminZone),
+										description: ea.description,
+										level: 2,
+										isHeader: false,
+										hasGeom: !!ea.geom,
+										data: ea,
+										parentSubAdminZone: primarySAZ,
+										parentAdminZone: primaryAdminZone,
+										// Store all SAZs this EA belongs to
+										allSAZs: eaData.sazs.map(s => ({
+											saz: s.saz,
+											adminZone: s.adminZone
+										})),
+										isShared: eaData.sazs.length > 1, // Mark if EA belongs to multiple SAZs
+									});
+									
+									addedEAIds.add(ea.id);
+								}
+							}
 						});
 					}
 				);
@@ -513,6 +596,8 @@ export class AdminMasterEnumerationAreasComponent
 					const savedAdminZone = this.locationSelectionService.getSelectedAdministrativeZone();
 					if (savedAdminZone && data && data.find(az => az.id === savedAdminZone.id)) {
 						this.selectedAdministrativeZone = savedAdminZone;
+						// Load sub-administrative zones for the restored administrative zone
+						this.loadSubAdministrativeZonesByAdministrativeZone();
 					}
 				},
 				error: (error) => {
@@ -730,8 +815,29 @@ export class AdminMasterEnumerationAreasComponent
 
 		if (!this.selectedAdministrativeZone) return;
 
-		// Group enumeration areas by sub-administrative zone
-		// Since EAs can have multiple SAZs, we need to handle this differently
+		// Track which EAs have already been added to avoid duplicates
+		const addedEAIds = new Set<number>();
+		
+		// Map to store EA with all its SAZs for grouping
+		const eaToSAZsMap = new Map<number, {
+			ea: EnumerationArea;
+			sazs: SubAdministrativeZone[];
+		}>();
+
+		// First pass: collect all EAs and their associated SAZs
+		enumerationAreas.forEach((ea) => {
+			if (ea.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
+				if (!eaToSAZsMap.has(ea.id)) {
+					eaToSAZsMap.set(ea.id, {
+						ea: ea,
+						sazs: []
+					});
+				}
+				eaToSAZsMap.get(ea.id)!.sazs.push(...ea.subAdministrativeZones);
+			}
+		});
+
+		// Group enumeration areas by sub-administrative zone for display structure
 		const groupedBySAZ = new Map<number, EnumerationArea[]>();
 		enumerationAreas.forEach((ea) => {
 			// If EA has subAdministrativeZones array, add it to each SAZ group
@@ -791,20 +897,35 @@ export class AdminMasterEnumerationAreasComponent
 					data: saz,
 				});
 
-				// Add Enumeration Area rows (already sorted by area code)
+				// Add Enumeration Area rows (only if not already added)
 				eas.forEach((ea) => {
-					this.hierarchicalTableData.push({
-						type: 'enumeration-area',
-						id: `ea-${ea.id}`,
-						eaId: ea.id,
-						name: ea.name,
-						areaCode: ea.areaCode,
-						fullEACode: this.getFullEACode(ea, saz),
-						description: ea.description,
-						level: 2,
-						data: ea,
-						hasGeom: !!ea.geom,
-					});
+					if (!addedEAIds.has(ea.id)) {
+						const eaData = eaToSAZsMap.get(ea.id);
+						const allSAZs = eaData?.sazs || [];
+						
+						this.hierarchicalTableData.push({
+							type: 'enumeration-area',
+							id: `ea-${ea.id}`,
+							eaId: ea.id,
+							name: ea.name,
+							areaCode: ea.areaCode,
+							fullEACode: this.getFullEACode(ea, saz),
+							description: ea.description,
+							level: 2,
+							data: ea,
+							hasGeom: !!ea.geom,
+							parentSubAdminZone: saz,
+							parentAdminZone: this.selectedAdministrativeZone,
+							// Store all SAZs this EA belongs to
+							allSAZs: allSAZs.map(s => ({
+								saz: s,
+								adminZone: this.selectedAdministrativeZone
+							})),
+							isShared: allSAZs.length > 1, // Mark if EA belongs to multiple SAZs
+						});
+						
+						addedEAIds.add(ea.id);
+					}
 				});
 			}
 		});
@@ -1289,6 +1410,18 @@ export class AdminMasterEnumerationAreasComponent
 			})
 			.filter((name) => name !== 'N/A');
 		return names.length > 0 ? names.join(', ') : 'N/A';
+	}
+
+	/**
+	 * Get all SAZ names for a shared EA from the table item
+	 */
+	getAllSAZNamesForEA(item: any): string {
+		if (item.allSAZs && item.allSAZs.length > 0) {
+			const names = item.allSAZs.map((s: any) => s.saz.name);
+			return names.join(', ');
+		}
+		// Fallback to parent SAZ if allSAZs not available
+		return item.parentSubAdminZone?.name || 'N/A';
 	}
 
 	hasFormError(field: string): boolean {

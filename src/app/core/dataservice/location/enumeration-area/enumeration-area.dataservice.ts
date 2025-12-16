@@ -8,6 +8,8 @@ import {
 	ApiResponse,
 	BulkUploadResponse,
 	CreateEnumerationAreaDto,
+	CreateTwoSazsWithEaRequest,
+	CreateTwoSazsWithEaResponse,
 	EnumerationArea,
 	EnumerationAreaGeoJSON,
 	UpdateEnumerationAreaDto,
@@ -284,6 +286,43 @@ export class EnumerationAreaDataService {
 			.pipe(
 				catchError((error) => {
 					console.error('Error bulk uploading geojson:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Create two SAZs from GeoJSON files and a single EA that links to both
+	 * @param saz1File - GeoJSON file for SAZ1
+	 * @param saz2File - GeoJSON file for SAZ2
+	 * @param saz1Data - SAZ1 metadata
+	 * @param saz2Data - SAZ2 metadata
+	 * @returns Observable with created SAZs and EA
+	 */
+	createTwoSazsWithEa(
+		saz1File: File,
+		saz2File: File,
+		saz1Data: CreateTwoSazsWithEaRequest['saz1Data'],
+		saz2Data: CreateTwoSazsWithEaRequest['saz2Data']
+	): Observable<CreateTwoSazsWithEaResponse> {
+		const formData = new FormData();
+
+		// Add files (order matters - first file is SAZ1, second is SAZ2)
+		formData.append('files', saz1File);
+		formData.append('files', saz2File);
+
+		// Add JSON data as strings
+		formData.append('saz1Data', JSON.stringify(saz1Data));
+		formData.append('saz2Data', JSON.stringify(saz2Data));
+
+		return this.http
+			.post<CreateTwoSazsWithEaResponse>(
+				`${this.apiUrl}/create-two-sazs-with-ea`,
+				formData
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error creating two SAZs with EA:', error);
 					return throwError(() => error);
 				})
 			);

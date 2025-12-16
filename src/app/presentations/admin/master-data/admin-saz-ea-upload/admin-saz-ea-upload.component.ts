@@ -114,20 +114,20 @@ export class AdminSazEaUploadComponent implements OnInit {
 		}
 	}
 
-	onFileSelected(event: Event): void {
-		const input = event.target as HTMLInputElement;
-		if (input.files && input.files.length > 0) {
-			this.selectedFile = input.files[0];
+	onFileSelected(event: any): void {
+		if (event.files && event.files.length > 0) {
+			const file = event.files[0];
+			this.selectedFile = file;
 
 			// Validate file type
 			const validTypes = ['application/json', 'application/geo+json'];
 			const validExtensions = ['.json', '.geojson'];
-			const fileExtension = this.selectedFile.name
+			const fileExtension = file.name
 				.toLowerCase()
-				.substring(this.selectedFile.name.lastIndexOf('.'));
+				.substring(file.name.lastIndexOf('.'));
 
 			if (
-				!validTypes.includes(this.selectedFile.type) &&
+				!validTypes.includes(file.type) &&
 				!validExtensions.includes(fileExtension)
 			) {
 				this.error = 'Invalid file type. Only JSON or GeoJSON files are allowed.';
@@ -143,7 +143,7 @@ export class AdminSazEaUploadComponent implements OnInit {
 
 			// Check file size (50MB limit)
 			const maxSize = 50 * 1024 * 1024; // 50MB in bytes
-			if (this.selectedFile.size > maxSize) {
+			if (file.size > maxSize) {
 				this.error = 'File size exceeds 50MB limit.';
 				this.selectedFile = null;
 				this.messageService.add({

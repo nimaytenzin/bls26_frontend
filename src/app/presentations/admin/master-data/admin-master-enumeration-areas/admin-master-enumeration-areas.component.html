@@ -225,22 +225,40 @@
 							*ngIf="item.type === 'enumeration-area'"
 							class="hover:bg-gray-50 cursor-pointer transition-colors"
 							[class.bg-blue-50]="selectedEnumerationArea?.id === item.data.id"
+							[class.bg-purple-50]="item.isShared"
 							(click)="onRowSelectHierarchical(item)"
 						>
 						<td>
-							<p>
-								{{ item.areaCode }}
-							</p>
+							<div class="flex items-center gap-2">
+								<p>
+									{{ item.areaCode }}
+								</p>
+								<i *ngIf="item.isShared" 
+									class="pi pi-link text-purple-600" 
+									pTooltip="Shared across multiple SAZs"
+									tooltipPosition="top">
+								</i>
+							</div>
 						</td>
 							<td>
-								<p>
-									{{ item.name }}
-								</p>
+								<div class="flex items-center gap-2">
+									<p>
+										{{ item.name }}
+									</p>
+									<span *ngIf="item.isShared" 
+										class="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">
+										Shared
+									</span>
+								</div>
 							</td>
 							
 							<td>
 								<p class="text-nowrap">
 									 {{ item.fullEACode }}
+								</p>
+								<p *ngIf="item.isShared && item.allSAZs && item.allSAZs.length > 1" 
+									class="text-xs text-purple-600 mt-1">
+									SAZs: {{ getAllSAZNamesForEA(item) }}
 								</p>
 							</td>
 							<td>
