@@ -1,0 +1,11 @@
+/* EA History Viewer Styles */
+
+/* ngx-graph styles */
+.graph-container {
+	position: relative;
+}
+
+/* Selected node styling - subtle shadow */
+.graph-container ::ng-deep .node-selected {
+	filter: drop-shadow(0 0 4px rgba(71, 85, 105, 0.4));
+}

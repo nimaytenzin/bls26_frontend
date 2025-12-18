@@ -1,0 +1,265 @@
+<div class="h-full flex flex-col">
+	<!-- Header Section -->
+	<div
+		class="report-sticky-header bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0 sticky top-0 z-[1000] shadow-sm"
+	>
+		<div class="flex justify-between items-center">
+			<div class="flex-1">
+				<h1 class="text-2xl font-semibold text-gray-900">
+					Dzongkhag EA Summary
+				</h1>
+				<p class="text-sm text-gray-600 mt-1">
+					Comprehensive enumeration areas report with map visualization
+					organized by Gewog and Chiwog
+				</p>
+			</div>
+			<div class="flex items-center gap-4">
+				<div class="w-64">
+					<p-dropdown
+						[options]="dzongkhagOptions"
+						[(ngModel)]="selectedDzongkhag"
+						placeholder="Select Dzongkhag"
+						optionLabel="label"
+						optionValue="value"
+						[showClear]="true"
+						[filter]="true"
+						filterBy="label"
+						(onChange)="onDzongkhagChange()"
+						[disabled]="loading"
+						styleClass="w-full"
+					></p-dropdown>
+				</div>
+				<div class="flex gap-3">
+					<button
+						pButton
+						type="button"
+						label="Download PDF"
+						icon="pi pi-file-pdf"
+						class="p-button-outlined"
+						[disabled]="!selectedDzongkhag || loading || exportingPDF || exportingExcel"
+						[loading]="exportingPDF"
+						(click)="downloadPDF()"
+					></button>
+					<button
+						pButton
+						type="button"
+						label="Download Excel"
+						icon="pi pi-file-excel"
+						class="p-button-outlined"
+						[disabled]="!selectedDzongkhag || loading || exportingPDF || exportingExcel"
+						[loading]="exportingExcel"
+						(click)="downloadExcel()"
+					></button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Loading State -->
+	<div *ngIf="loading" class="pdf-viewer-container">
+		<div class="flex items-center justify-center w-full">
+			<div class="text-center bg-white p-8 rounded-lg shadow-lg">
+				<p-progressSpinner></p-progressSpinner>
+				<p class="mt-4 text-gray-600">Loading report data...</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Error State -->
+	<div *ngIf="error && !loading" class="pdf-viewer-container">
+		<div class="flex items-center justify-center w-full p-6">
+			<div class="text-center max-w-md bg-white p-8 rounded-lg shadow-lg">
+				<i class="pi pi-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+				<p class="text-lg font-semibold text-gray-900 mb-2">
+					Error Loading Report
+				</p>
+				<p class="text-gray-600 mb-4">{{ error }}</p>
+				<button
+					pButton
+					type="button"
+					label="Retry"
+					icon="pi pi-refresh"
+					(click)="retry()"
+				></button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Report Content - PDF Reader Style -->
+	<div *ngIf="reportData && !loading" class="pdf-viewer-container">
+		<div class="pdf-content-wrapper">
+			<!-- Dzongkhag Header -->
+			<div class="pdf-page-section p-6">
+				<div class="border-b border-gray-200 pb-4 mb-6">
+					<h2 class="text-2xl font-semibold text-gray-900">
+						{{ reportData.dzongkhag.name }} ({{ reportData.dzongkhag.code }})
+					</h2>
+					<p class="text-xs text-gray-500 mt-2">
+						Generated at: {{ reportData.generatedAt | date: 'medium' }}
+					</p>
+				</div>
+
+				<!-- Summary Statistics Table -->
+				<div>
+					<p-table
+						[value]="[reportData.summary]"
+						styleClass="p-datatable-sm"
+						[tableStyle]="{ 'min-width': '50rem' }"
+					>
+						<ng-template pTemplate="header">
+							<tr>
+								<th>Gewogs</th>
+								<th>Chiwogs</th>
+								<th>Total EAs</th>
+								<th *ngIf="reportData.summary.totalHouseholds">
+									Households
+								</th>
+								<th *ngIf="reportData.summary.totalPopulation">
+									Population
+								</th>
+							</tr>
+						</ng-template>
+						<ng-template pTemplate="body" let-summary>
+							<tr>
+								<td>{{ summary.totalGewogs }}</td>
+								<td>{{ summary.totalChiwogs }}</td>
+								<td>{{ summary.totalEAs }}</td>
+								<td *ngIf="summary.totalHouseholds">
+									{{ summary.totalHouseholds | number }}
+								</td>
+								<td *ngIf="summary.totalPopulation">
+									{{ summary.totalPopulation | number }}
+								</td>
+							</tr>
+						</ng-template>
+					</p-table>
+				</div>
+
+				<!-- Map Section -->
+				<div class="mb-6">
+					<h3 class="text-lg font-semibold text-gray-800 mb-3">Map View</h3>
+					<div class="relative">
+						<div
+							#mapContainer
+							id="dzongkhag-ea-map"
+							class="map-container"
+						></div>
+						<div
+							*ngIf="loadingMap"
+							class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10"
+						>
+							<div class="text-center">
+								<p-progressSpinner></p-progressSpinner>
+								<p class="mt-2 text-sm text-gray-600">Loading map...</p>
+							</div>
+						</div>
+					</div>
+					<div class="mt-2 text-xs text-gray-500">
+						<strong>Legend:</strong>
+						<span class="ml-4"
+							><span class="inline-block w-4 h-4 bg-blue-500 mr-1"></span>Dzongkhag
+							Boundary</span
+						>
+						<span class="ml-4"
+							><span class="inline-block w-4 h-4 bg-green-500 mr-1"></span>Gewog
+							Boundary</span
+						>
+						<span class="ml-4"
+							><span class="inline-block w-4 h-4 bg-red-500 mr-1"></span>EA
+							Boundary</span
+						>
+					</div>
+				</div>
+			</div>
+
+			<!-- Hierarchical Summary by Gewog -->
+			<div
+				*ngFor="let gewog of reportData.gewogs"
+				class="pdf-page-section p-6 space-y-4"
+			>
+				<!-- Gewog Header -->
+				<div class="border-b border-gray-200 pb-3">
+					<h3 class="text-xl font-semibold text-gray-900">
+						{{ gewog.name }} ({{ gewog.code }})
+					</h3>
+					<p class="text-sm text-gray-600 mt-1">
+						{{ gewog.summary.totalChiwogs }} Chiwogs,
+						{{ gewog.summary.totalEAs }} Enumeration Areas
+					</p>
+				</div>
+
+				<!-- Chiwogs and EAs -->
+				<div *ngFor="let chiwog of gewog.chiwogs" class="ml-4 mb-4">
+					<!-- Chiwog Header -->
+					<div class="border-l-2 border-gray-300 pl-4 mb-2">
+						<h4 class="text-lg font-medium text-gray-800">
+							{{ chiwog.name }} ({{ chiwog.code }})
+						</h4>
+						<p class="text-xs text-gray-600">
+							{{ chiwog.summary.totalEAs }} Enumeration Areas
+						</p>
+					</div>
+
+					<!-- EAs Table -->
+					<div *ngIf="chiwog.enumerationAreas.length > 0" class="ml-6">
+						<p-table
+							[value]="chiwog.enumerationAreas"
+							styleClass="p-datatable-sm"
+							[tableStyle]="{ 'min-width': '40rem' }"
+							[paginator]="false"
+						>
+							<ng-template pTemplate="header">
+								<tr>
+									<th>EA Name</th>
+									<th>EA Code</th>
+									<th *ngIf="chiwog.enumerationAreas[0]?.totalHouseholds">
+										Households
+									</th>
+									<th *ngIf="chiwog.enumerationAreas[0]?.totalPopulation">
+										Population
+									</th>
+								</tr>
+							</ng-template>
+							<ng-template pTemplate="body" let-ea>
+								<tr>
+									<td>{{ ea.name }}</td>
+									<td>{{ ea.code }}</td>
+									<td *ngIf="ea.totalHouseholds">
+										{{ ea.totalHouseholds | number }}
+									</td>
+									<td *ngIf="ea.totalPopulation">
+										{{ ea.totalPopulation | number }}
+									</td>
+								</tr>
+							</ng-template>
+							<ng-template pTemplate="emptymessage">
+								<tr>
+									<td
+										[attr.colspan]="
+											chiwog.enumerationAreas[0]?.totalHouseholds ? 4 : 2
+										"
+										class="text-center text-gray-500 py-4"
+									>
+										No enumeration areas found
+									</td>
+								</tr>
+							</ng-template>
+						</p-table>
+					</div>
+				</div>
+			</div>
+
+			<!-- No Data Message -->
+			<div
+				*ngIf="reportData.gewogs.length === 0"
+				class="pdf-page-section p-6 text-center text-gray-500 py-8"
+			>
+				<p>No gewogs found for this dzongkhag</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Toast Messages -->
+	<p-toast></p-toast>
+</div>
+

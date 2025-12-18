@@ -13,6 +13,9 @@ import {
 	EnumerationArea,
 	EnumerationAreaGeoJSON,
 	UpdateEnumerationAreaDto,
+	EaLineageResponse,
+	EaHistoryResponse,
+	PaginatedResponse,
 } from './enumeration-area.dto';
 
 @Injectable({
@@ -323,6 +326,195 @@ export class EnumerationAreaDataService {
 			.pipe(
 				catchError((error) => {
 					console.error('Error creating two SAZs with EA:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Split an enumeration area into multiple new areas
+	 * @param id - Source enumeration area ID
+	 * @param formData - FormData containing eaData (JSON string), files (GeoJSON files), and reason
+	 * @returns Observable with array of created enumeration areas
+	 */
+	splitEnumerationArea(id: number, formData: FormData): Observable<EnumerationArea[]> {
+		return this.http
+			.post<EnumerationArea[]>(`${this.apiUrl}/${id}/split`, formData)
+			.pipe(
+				catchError((error) => {
+					console.error('Error splitting enumeration area:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Merge multiple enumeration areas into a single new area
+	 * @param formData - FormData containing mergeData (JSON string), file (GeoJSON file), and reason
+	 * @returns Observable with created merged enumeration area
+	 */
+	mergeEnumerationAreas(formData: FormData): Observable<EnumerationArea> {
+		return this.http
+			.post<EnumerationArea>(`${this.apiUrl}/merge`, formData)
+			.pipe(
+				catchError((error) => {
+					console.error('Error merging enumeration areas:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get EA lineage (ancestors and/or descendants)
+	 * @param id - Enumeration area ID
+	 * @param direction - Direction to fetch ('ancestors', 'descendants', or 'both')
+	 * @returns Observable with lineage response
+	 */
+	getEaLineage(
+		id: number,
+		direction: 'ancestors' | 'descendants' | 'both' = 'both'
+	): Observable<EaLineageResponse> {
+		let params = new HttpParams();
+		params = params.set('direction', direction);
+
+		return this.http
+			.get<EaLineageResponse>(`${this.apiUrl}/${id}/lineage`, { params })
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching EA lineage:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get complete EA history tree
+	 * @param id - Enumeration area ID
+	 * @returns Observable with history response
+	 */
+	getEaHistory(id: number): Observable<EaHistoryResponse> {
+		return this.http.get<EaHistoryResponse>(`${this.apiUrl}/${id}/history`).pipe(
+			catchError((error) => {
+				console.error('Error fetching EA history:', error);
+				return throwError(() => error);
+			})
+		);
+	}
+
+	/**
+	 * Get all active enumeration areas
+	 * @param withGeom - Include geometry (default: false)
+	 * @param includeSubAdminZone - Include sub-administrative zones (default: false)
+	 * @returns Observable with array of active enumeration areas
+	 */
+	getActiveEas(
+		withGeom: boolean = false,
+		includeSubAdminZone: boolean = false
+	): Observable<EnumerationArea[]> {
+		let params = new HttpParams();
+		if (withGeom) params = params.set('withGeom', 'true');
+		if (includeSubAdminZone)
+			params = params.set('includeSubAdminZone', 'true');
+
+		return this.http
+			.get<EnumerationArea[]>(`${this.apiUrl}/active`, { params })
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching active enumeration areas:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get all inactive enumeration areas
+	 * @param withGeom - Include geometry (default: false)
+	 * @param includeSubAdminZone - Include sub-administrative zones (default: false)
+	 * @returns Observable with array of inactive enumeration areas
+	 */
+	getInactiveEas(
+		withGeom: boolean = false,
+		includeSubAdminZone: boolean = false
+	): Observable<EnumerationArea[]> {
+		let params = new HttpParams();
+		if (withGeom) params = params.set('withGeom', 'true');
+		if (includeSubAdminZone)
+			params = params.set('includeSubAdminZone', 'true');
+
+		return this.http
+			.get<EnumerationArea[]>(`${this.apiUrl}/inactive`, { params })
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching inactive enumeration areas:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get all split enumeration areas (paginated)
+	 * Returns a paginated list of all enumeration areas that were split (parent EAs in SPLIT operations)
+	 * @param page - Page number (default: 1)
+	 * @param limit - Items per page (default: 10, max: 100)
+	 * @param sortBy - Field to sort by (default: 'operationDate')
+	 * @param sortOrder - Sort order 'ASC' or 'DESC' (default: 'DESC')
+	 * @param withGeom - Include geometry (default: false)
+	 * @param includeSubAdminZone - Include sub-administrative zones (default: false)
+	 * @returns Observable with paginated response of split enumeration areas
+	 */
+	getSplitEAs(
+		page: number = 1,
+		limit: number = 10,
+		sortBy: string = 'operationDate',
+		sortOrder: 'ASC' | 'DESC' = 'DESC',
+		
+	): Observable<PaginatedResponse<EnumerationArea>> {
+		let params = new HttpParams();
+		params = params.set('page', page.toString());
+		params = params.set('limit', Math.min(limit, 100).toString());
+		params = params.set('sortBy', sortBy);
+		params = params.set('sortOrder', sortOrder);
+		
+		return this.http
+			.get<PaginatedResponse<EnumerationArea>>(`${this.apiUrl}/split/paginated/all`, { params })
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching split enumeration areas:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get all merged enumeration areas (paginated)
+	 * Returns a paginated list of all enumeration areas that were created through merge operations (child EAs in MERGE operations)
+	 * @param page - Page number (default: 1)
+	 * @param limit - Items per page (default: 10, max: 100)
+	 * @param sortBy - Field to sort by (default: 'operationDate')
+	 * @param sortOrder - Sort order 'ASC' or 'DESC' (default: 'DESC')
+	 * @param withGeom - Include geometry (default: false)
+	 * @param includeSubAdminZone - Include sub-administrative zones (default: false)
+	 * @returns Observable with paginated response of merged enumeration areas
+	 */
+	getMergedEAs(
+		page: number = 1,
+		limit: number = 10,
+		sortBy: string = 'operationDate',
+		sortOrder: 'ASC' | 'DESC' = 'DESC',
+		 
+	): Observable<PaginatedResponse<EnumerationArea>> {
+		let params = new HttpParams();
+		params = params.set('page', page.toString());
+		params = params.set('limit', Math.min(limit, 100).toString());
+		params = params.set('sortBy', sortBy);
+		params = params.set('sortOrder', sortOrder);
+		 
+
+		return this.http
+			.get<PaginatedResponse<EnumerationArea>>(`${this.apiUrl}/merge/paginated/all`, { params })
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching merged enumeration areas:', error);
 					return throwError(() => error);
 				})
 			);

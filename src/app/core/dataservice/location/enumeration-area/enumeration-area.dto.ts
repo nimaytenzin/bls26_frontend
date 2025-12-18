@@ -9,6 +9,9 @@ export interface EnumerationArea {
 	geom?: any; // GeoJSON geometry
 	createdAt?: Date;
 	updatedAt?: Date;
+	isActive?: boolean; // Default: true
+	deactivatedAt?: Date; // When EA was deactivated
+	deactivatedReason?: string; // Reason for deactivation
 
 	subAdministrativeZones?: SubAdministrativeZone[]; // Array via junction table
 	surveyEnumerationAreas: SurveyEnumerationArea[];
@@ -139,4 +142,123 @@ export interface CreateTwoSazsWithEaResponse {
 			};
 		}>;
 	};
+}
+
+/**
+ * Operation Type Enum
+ * Types of operations that can be performed on enumeration areas
+ */
+export enum OperationType {
+	SPLIT = 'SPLIT',
+	MERGE = 'MERGE',
+}
+
+/**
+ * Enumeration Area Lineage
+ * Represents a lineage record linking parent and child EAs
+ */
+export interface EnumerationAreaLineage {
+	id: number;
+	parentEaId: number;
+	childEaId: number;
+	operationType: OperationType;
+	operationDate: Date;
+	reason?: string;
+}
+
+/**
+ * Split EA Request DTO
+ * Data structure for splitting an enumeration area
+ */
+export interface SplitEaRequest {
+	newEas: Array<{
+		name: string;
+		areaCode: string;
+		description: string;
+		subAdministrativeZoneIds: number[];
+	}>;
+	reason?: string;
+}
+
+/**
+ * Merge EA Request DTO
+ * Data structure for merging enumeration areas
+ */
+export interface MergeEaRequest {
+	sourceEaIds: number[];
+	mergedEa: {
+		name: string;
+		areaCode: string;
+		description: string;
+		subAdministrativeZoneIds: number[];
+	};
+	reason?: string;
+}
+
+/**
+ * EA Lineage Node
+ * Represents a node in the lineage tree
+ */
+export interface EaLineageNode {
+	ea: EnumerationArea;
+	operation?: {
+		type: OperationType;
+		date: Date;
+		reason?: string;
+		parentEaId: number;
+		childEaId: number;
+	};
+	parents: EaLineageNode[];
+	children: EaLineageNode[];
+}
+
+/**
+ * EA Lineage Response
+ * Response from the lineage endpoint
+ */
+export interface EaLineageResponse {
+	ea: EnumerationArea;
+	ancestors: EaLineageNode[];
+	descendants: EaLineageNode[];
+	operations: Array<{
+		type: OperationType;
+		date: Date;
+		reason?: string;
+		parentEaId: number;
+		childEaId: number;
+	}>;
+}
+
+/**
+ * EA History Response
+ * Response from the history endpoint
+ */
+export interface EaHistoryResponse {
+	currentEa: EnumerationArea;
+	history: {
+		ancestors: EaLineageNode[];
+		descendants: EaLineageNode[];
+	};
+}
+
+/**
+ * Pagination Meta Information
+ * Metadata for paginated responses
+ */
+export interface PaginationMeta {
+	currentPage: number;
+	itemsPerPage: number;
+	totalItems: number;
+	totalPages: number;
+	hasNextPage: boolean;
+	hasPreviousPage: boolean;
+}
+
+/**
+ * Paginated Response
+ * Generic paginated response structure
+ */
+export interface PaginatedResponse<T> {
+	data: T[];
+	meta: PaginationMeta;
 }

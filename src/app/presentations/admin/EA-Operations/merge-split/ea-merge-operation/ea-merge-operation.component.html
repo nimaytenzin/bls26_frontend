@@ -1,0 +1,436 @@
+<div class="bg-white flex flex-col" [class.h-[calc(100vh-5rem)]]="!asDialog">
+	<!-- Header Section -->
+	<div *ngIf="!asDialog" class="p-6 border-b border-slate-200 flex-shrink-0">
+		<div class="flex justify-between items-center mb-4">
+			<div>
+				<h1 class="text-3xl font-semibold text-slate-900">
+					Merge Enumeration Areas
+				</h1>
+				<p class="text-sm text-slate-600 mt-1">
+					Merge multiple enumeration areas into a single new area
+				</p>
+			</div>
+			<button
+				pButton
+				type="button"
+				label="Back"
+				icon="pi pi-arrow-left"
+				severity="secondary"
+				[text]="true"
+				(click)="router.navigate(['/admin/master/enumeration-areas'])"
+			></button>
+		</div>
+	</div>
+
+	<!-- Content Section -->
+	<div class="flex-1 overflow-auto p-6">
+		<form [formGroup]="mergeForm" (ngSubmit)="onSubmit()" class="space-y-6">
+			<!-- Location Filters -->
+			<p-card>
+				<ng-template pTemplate="header">
+					<div class="p-4 bg-primary-50 border-b border-primary-200">
+						<h3 class="text-lg font-semibold text-primary-900">
+							Filter Enumeration Areas by Location
+						</h3>
+					</div>
+				</ng-template>
+				<div class="p-4">
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<!-- Dzongkhag Dropdown -->
+						<div class="flex flex-col">
+							<label for="dzongkhag" class="text-sm font-medium text-gray-700 mb-2">
+								1. Select Dzongkhag <span class="text-red-500">*</span>
+							</label>
+							<p-dropdown
+								id="dzongkhag"
+								[(ngModel)]="selectedDzongkhag"
+								[options]="dzongkhags"
+								optionLabel="name"
+								placeholder="Select Dzongkhag"
+								[filter]="true"
+								filterBy="name"
+								[showClear]="true"
+								(onChange)="onDzongkhagChange()"
+								[loading]="loadingDzongkhags"
+								styleClass="w-full"
+								[ngModelOptions]="{standalone: true}"
+							>
+								<ng-template pTemplate="selectedItem" let-item>
+									<div *ngIf="item" class="flex items-center gap-2">
+										<i class="pi pi-map-marker text-blue-500"></i>
+										<span>{{ item.name }}</span>
+									</div>
+								</ng-template>
+								<ng-template pTemplate="item" let-item>
+									<div class="flex items-center gap-2">
+										<i class="pi pi-map-marker text-blue-500"></i>
+										<span>{{ item.name }}</span>
+									</div>
+								</ng-template>
+							</p-dropdown>
+						</div>
+
+						<!-- Administrative Zone Dropdown -->
+						<div class="flex flex-col">
+							<label for="adminZone" class="text-sm font-medium text-gray-700 mb-2">
+								2. Select Administrative Zone <span class="text-red-500">*</span>
+							</label>
+							<p-dropdown
+								id="adminZone"
+								[(ngModel)]="selectedAdminZone"
+								[options]="administrativeZones"
+								optionLabel="name"
+								placeholder="Select Admin Zone"
+								[filter]="true"
+								filterBy="name"
+								[showClear]="true"
+								[disabled]="!selectedDzongkhag"
+								(onChange)="onAdminZoneChange()"
+								[loading]="loadingAdminZones"
+								styleClass="w-full"
+								[ngModelOptions]="{standalone: true}"
+							>
+								<ng-template pTemplate="selectedItem" let-item>
+									<div *ngIf="item" class="flex items-center gap-2">
+										<i class="pi pi-building text-green-500"></i>
+										<span>{{ item.name }}</span>
+									</div>
+								</ng-template>
+								<ng-template pTemplate="item" let-item>
+									<div class="flex items-center gap-2">
+										<i class="pi pi-building text-green-500"></i>
+										<span>{{ item.name }}</span>
+									</div>
+								</ng-template>
+							</p-dropdown>
+						</div>
+
+						<!-- Sub-Administrative Zone Dropdown -->
+						<div class="flex flex-col">
+							<label
+								for="subAdminZone"
+								class="text-sm font-medium text-gray-700 mb-2"
+							>
+								3. Select Sub-Administrative Zone <span class="text-red-500">*</span>
+							</label>
+							<p-dropdown
+								id="subAdminZone"
+								[(ngModel)]="selectedSubAdminZone"
+								[options]="filteredSubAdministrativeZones"
+								optionLabel="name"
+								placeholder="Select Sub-Admin Zone"
+								[filter]="true"
+								filterBy="name"
+								[showClear]="true"
+								[disabled]="!selectedAdminZone"
+								(onChange)="onSubAdminZoneChange()"
+								[loading]="loadingSubAdminZones"
+								styleClass="w-full"
+								[ngModelOptions]="{standalone: true}"
+							>
+								<ng-template pTemplate="selectedItem" let-item>
+									<div *ngIf="item" class="flex items-center gap-2">
+										<i class="pi pi-sitemap text-purple-500"></i>
+										<span>{{ item.name }}</span>
+									</div>
+								</ng-template>
+								<ng-template pTemplate="item" let-item>
+									<div class="flex items-center gap-2">
+										<i class="pi pi-sitemap text-purple-500"></i>
+										<span>{{ item.name }}</span>
+									</div>
+								</ng-template>
+							</p-dropdown>
+						</div>
+					</div>
+
+					<!-- Info Message -->
+					<div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+						<div class="flex items-start gap-3">
+							<i class="pi pi-info-circle text-blue-500 text-lg mt-0.5"></i>
+							<p class="text-sm text-blue-800">
+								Select a Dzongkhag, then Administrative Zone, then Sub-Administrative
+								Zone to load the enumeration areas available in that location.
+							</p>
+						</div>
+					</div>
+				</div>
+			</p-card>
+
+			<!-- Source EAs Selection -->
+			<p-card *ngIf="selectedSubAdminZone">
+				<ng-template pTemplate="header">
+					<div class="p-4 bg-primary-50 border-b border-primary-200">
+						<h3 class="text-lg font-semibold text-primary-900">
+							Source Enumeration Areas
+						</h3>
+					</div>
+				</ng-template>
+				<div class="p-4">
+					<div>
+						<label
+							for="sourceEaIds"
+							class="block text-sm font-medium text-gray-700 mb-2"
+						>
+							Select Enumeration Areas to Merge * (Minimum 2)
+						</label>
+						<p-multiSelect
+							id="sourceEaIds"
+							formControlName="sourceEaIds"
+							[options]="activeEas"
+							optionLabel="name"
+							optionValue="id"
+							placeholder="Select enumeration areas to merge"
+							[class.ng-invalid]="hasFormError('sourceEaIds')"
+							styleClass="w-full"
+							[loading]="loadingEas"
+							[filter]="true"
+							filterBy="name,areaCode"
+							[showClear]="true"
+							display="chip"
+							appendTo="body"
+							[disabled]="!selectedSubAdminZone || activeEas.length === 0"
+						>
+							<ng-template let-ea pTemplate="item">
+								<div class="flex items-center justify-between">
+									<div>
+										<div class="font-medium">{{ ea.name }}</div>
+										<div class="text-sm text-gray-500">{{ ea.areaCode }}</div>
+									</div>
+								</div>
+							</ng-template>
+						</p-multiSelect>
+						<small *ngIf="hasFormError('sourceEaIds')" class="p-error block mt-1">
+							{{ getFormError("sourceEaIds") }}
+						</small>
+						<small class="text-gray-500 block mt-1">
+							Select at least 2 active enumeration areas to merge.
+						</small>
+						<div *ngIf="selectedSubAdminZone && activeEas.length === 0 && !loadingEas" class="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+							<p class="text-sm text-yellow-800">
+								<i class="pi pi-exclamation-triangle"></i>
+								No enumeration areas found in the selected location.
+							</p>
+						</div>
+					</div>
+				</div>
+			</p-card>
+
+			<!-- Merged EA Form -->
+			<p-card>
+				<ng-template pTemplate="header">
+					<div class="p-4 bg-primary-50 border-b border-primary-200">
+						<h3 class="text-lg font-semibold text-primary-900">
+							Merged Enumeration Area Details
+						</h3>
+					</div>
+				</ng-template>
+				<div class="p-4" [formGroup]="mergedEaFormGroup">
+					<div class="grid grid-cols-2 gap-4">
+						<!-- Name -->
+						<div>
+							<label
+								for="mergedEaName"
+								class="block text-sm font-medium text-gray-700 mb-2"
+							>
+								Area Name *
+							</label>
+							<input
+								id="mergedEaName"
+								type="text"
+								pInputText
+								formControlName="name"
+								placeholder="Enter merged area name"
+								[class.ng-invalid]="hasMergedEaFormError('name')"
+								class="w-full"
+							/>
+							<small
+								*ngIf="hasMergedEaFormError('name')"
+								class="p-error block mt-1"
+							>
+								{{ getMergedEaFormError("name") }}
+							</small>
+						</div>
+
+						<!-- Area Code -->
+						<div>
+							<label
+								for="mergedEaAreaCode"
+								class="block text-sm font-medium text-gray-700 mb-2"
+							>
+								Area Code *
+							</label>
+							<input
+								id="mergedEaAreaCode"
+								type="text"
+								pInputText
+								formControlName="areaCode"
+								placeholder="e.g., EA001"
+								[class.ng-invalid]="hasMergedEaFormError('areaCode')"
+								class="w-full"
+								style="text-transform: uppercase"
+							/>
+							<small
+								*ngIf="hasMergedEaFormError('areaCode')"
+								class="p-error block mt-1"
+							>
+								{{ getMergedEaFormError("areaCode") }}
+							</small>
+						</div>
+					</div>
+
+					<!-- Description -->
+					<div class="mt-4">
+						<label
+							for="mergedEaDescription"
+							class="block text-sm font-medium text-gray-700 mb-2"
+						>
+							Description *
+						</label>
+						<textarea
+							id="mergedEaDescription"
+							pInputTextarea
+							formControlName="description"
+							placeholder="Enter description for merged enumeration area"
+							[class.ng-invalid]="hasMergedEaFormError('description')"
+							rows="3"
+							class="w-full"
+							[autoResize]="true"
+						></textarea>
+						<small
+							*ngIf="hasMergedEaFormError('description')"
+							class="p-error block mt-1"
+						>
+							{{ getMergedEaFormError("description") }}
+						</small>
+					</div>
+
+					<!-- Sub-Administrative Zones -->
+					<div class="mt-4">
+						<label
+							for="mergedEaSubAdministrativeZoneIds"
+							class="block text-sm font-medium text-gray-700 mb-2"
+						>
+							Sub-Administrative Zone(s) *
+						</label>
+						<p-multiSelect
+							id="mergedEaSubAdministrativeZoneIds"
+							[options]="subAdministrativeZones"
+							formControlName="subAdministrativeZoneIds"
+							optionLabel="name"
+							optionValue="id"
+							placeholder="Select sub-administrative zone(s)"
+							[class.ng-invalid]="hasMergedEaFormError('subAdministrativeZoneIds')"
+							styleClass="w-full"
+							[filter]="true"
+							filterBy="name"
+							[loading]="loadingZones"
+							[showClear]="true"
+							display="chip"
+							appendTo="body"
+						>
+							<ng-template pTemplate="item" let-zone>
+								<div class="flex align-items-center justify-content-between">
+									<div>
+										<div class="font-medium">{{ zone.name }}</div>
+										<div class="text-sm text-gray-500">{{ zone.areaCode }}</div>
+									</div>
+									<p-tag
+										[value]="zone.type === 'chiwog' ? 'Chiwog' : 'Lap'"
+										[severity]="zone.type === 'chiwog' ? 'success' : 'info'"
+										[rounded]="true"
+									></p-tag>
+								</div>
+							</ng-template>
+						</p-multiSelect>
+						<small
+							*ngIf="hasMergedEaFormError('subAdministrativeZoneIds')"
+							class="p-error block mt-1"
+						>
+							{{ getMergedEaFormError("subAdministrativeZoneIds") }}
+						</small>
+					</div>
+
+					<!-- GeoJSON File Upload -->
+					<div class="mt-4">
+						<label class="block text-sm font-medium text-gray-700 mb-2">
+							GeoJSON File *
+						</label>
+						<p-fileUpload
+							mode="basic"
+							[accept]="'.geojson,.json'"
+							[maxFileSize]="52428800"
+							[auto]="false"
+							chooseLabel="Choose GeoJSON File"
+							[class.ng-invalid]="hasMergedEaFormError('geojsonFile')"
+							(onSelect)="onFileSelect($event)"
+							styleClass="w-full"
+						></p-fileUpload>
+						<small
+							*ngIf="hasMergedEaFormError('geojsonFile')"
+							class="p-error block mt-1"
+						>
+							{{ getMergedEaFormError("geojsonFile") }}
+						</small>
+						<small class="text-gray-500 block mt-1">
+							Maximum file size: 50MB. File must be valid GeoJSON format.
+						</small>
+						<div *ngIf="selectedFile" class="mt-2">
+							<p class="text-sm text-green-600">
+								<i class="pi pi-check-circle"></i>
+								{{ selectedFile.name }} ({{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB)
+							</p>
+						</div>
+					</div>
+				</div>
+			</p-card>
+
+			<!-- Reason Section -->
+			<p-card>
+				<ng-template pTemplate="header">
+					<div class="p-4 bg-primary-50 border-b border-primary-200">
+						<h3 class="text-lg font-semibold text-primary-900">
+							Merge Reason (Optional)
+						</h3>
+					</div>
+				</ng-template>
+				<div class="p-4">
+					<textarea
+						pInputTextarea
+						formControlName="reason"
+						placeholder="Enter reason for merging these enumeration areas (optional)"
+						rows="3"
+						class="w-full"
+						[autoResize]="true"
+					></textarea>
+				</div>
+			</p-card>
+
+			<!-- Submit Button -->
+			<div class="flex justify-end gap-2">
+				<button
+					pButton
+					type="button"
+					label="Cancel"
+					icon="pi pi-times"
+					severity="secondary"
+					[text]="true"
+					(click)="asDialog && ref ? ref.close() : router.navigate(['/admin/master/enumeration-areas'])"
+				></button>
+				<button
+					pButton
+					type="submit"
+					label="Merge Enumeration Areas"
+					icon="pi pi-objects-column"
+					severity="primary"
+					[disabled]="!formValid || submitting"
+					[loading]="submitting"
+				></button>
+			</div>
+		</form>
+	</div>
+</div>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>
+

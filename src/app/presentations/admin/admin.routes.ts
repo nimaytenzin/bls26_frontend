@@ -19,6 +19,12 @@ import { AdminSurveyCreatorComponent } from './survey/survey-creator/admin-surve
 import { AdminNationalDataViewerComponent } from './data-viewer/admin-national-data-viewer/admin-national-data-viewer.component';
 import { AdminUserManagementComponent } from './user-mangement/admin-user-management/admin-user-management.component';
 import { AdminPublicPageSettingsComponent } from './settings/admin-public-page-settings/admin-public-page-settings.component';
+import { EaLineageViewerComponent } from './EA-Operations/history-tracking/ea-lineage-viewer/ea-lineage-viewer.component';
+import { EaHistoryViewerComponent } from './EA-Operations/history-tracking/ea-history-viewer/ea-history-viewer.component';
+import { EaSplitOperationComponent } from './EA-Operations/merge-split/ea-split-operation/ea-split-operation.component';
+import { EaMergeOperationComponent } from './EA-Operations/merge-split/ea-merge-operation/ea-merge-operation.component';
+import { AdminListSplittedEasComponent } from './EA-Operations/merge-split/admin-list-splitted-eas/admin-list-splitted-eas.component';
+import { AdminListMergedEasComponent } from './EA-Operations/merge-split/admin-list-merged-eas/admin-list-merged-eas.component';
 
 export const adminRoutes: Routes = [
 	{
@@ -140,6 +146,46 @@ export const adminRoutes: Routes = [
 						path: 'eazone/:id',
 						component: AdminEnumerationAreaDataViewerComponent,
 					},
+				],
+			},
+			{
+				path: 'ea-operations',
+				children: [
+					{
+						path: 'tracking/lineage/:id',
+						component: EaLineageViewerComponent,
+					},
+					{
+						path: 'tracking/history/:id',
+						component: EaHistoryViewerComponent,
+					},
+					{
+						path: 'split',
+						component: AdminListSplittedEasComponent,
+					},
+					{
+						path: 'merge',
+						component: AdminListMergedEasComponent,
+					},
+				],
+			},
+			{
+				path: 'reports',
+				children: [
+					{
+						path: 'geographic-statistical-code',
+						loadComponent: () =>
+							import(
+								'./reports/geographic-statistical-code/geographic-statistical-code.component'
+							).then((m) => m.GeographicStatisticalCodeComponent),
+					},
+					// {
+					// 	path: 'dzongkhag-ea-summary',
+					// 	loadComponent: () =>
+					// 		import(
+					// 			'./reports/dzongkhag-ea-summary/dzongkhag-ea-summary.component'
+					// 		).then((m) => m.DzongkhagEASummaryComponent),
+					// },
 				],
 			},
 		],

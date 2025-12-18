@@ -36,36 +36,59 @@ export const ADMINSIDEBARITEMS = [
 		],
 	},
 
-	{
-		label: 'Master Data',
-		items: [
-			{
-				label: 'Dzongkhags',
-				icon: 'pi pi-fw pi-map',
-				routerLink: ['/admin/master/dzongkhags'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'Gewog/Thromdes',
-				icon: 'pi pi-fw pi-map-marker',
-				routerLink: ['/admin/master/administrative-zones'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'Chiwogs/LAPs',
-				icon: 'pi pi-fw pi-th-large',
-				routerLink: ['/admin/master/sub-administrative-zones'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-			{
-				label: 'Enumeration Areas',
-				icon: 'pi pi-fw pi-sitemap',
-				routerLink: ['/admin/master/enumeration-areas'],
-				roles: [USERROLESENUM.ADMIN],
-			},
+		{
+			label: 'Master Data',
+			items: [
+				{
+					label: 'Dzongkhags',
+					icon: 'pi pi-fw pi-map',
+					routerLink: ['/admin/master/dzongkhags'],
+					roles: [USERROLESENUM.ADMIN],
+				},
+				{
+					label: 'Gewog/Thromdes',
+					icon: 'pi pi-fw pi-map-marker',
+					routerLink: ['/admin/master/administrative-zones'],
+					roles: [USERROLESENUM.ADMIN],
+				},
+				{
+					label: 'Chiwogs/LAPs',
+					icon: 'pi pi-fw pi-th-large',
+					routerLink: ['/admin/master/sub-administrative-zones'],
+					roles: [USERROLESENUM.ADMIN],
+				},
+				{
+					label: 'Enumeration Areas',
+					icon: 'pi pi-fw pi-sitemap',
+					routerLink: ['/admin/master/enumeration-areas'],
+					roles: [USERROLESENUM.ADMIN],
+				},
+				{
+					label: 'Geographic Statistical Code',
+					icon: 'pi pi-fw pi-file-pdf',
+					routerLink: ['/admin/reports/geographic-statistical-code'],
+					roles: [USERROLESENUM.ADMIN],
+				},
 			
-		],
-	},
+			],
+		},
+		{
+			label: 'EA Operations',
+			items: [
+				{
+					label: 'Split Enumeration Area',
+					icon: 'pi pi-fw pi-sitemap',
+					routerLink: ['/admin/ea-operations/split'],
+					roles: [USERROLESENUM.ADMIN],
+				},
+				{
+					label: 'Merge Enumeration Areas',
+					icon: 'pi pi-fw pi-objects-column',
+					routerLink: ['/admin/ea-operations/merge'],
+					roles: [USERROLESENUM.ADMIN],
+				},
+			],
+		},
 	{
 
 		label: 'Data Management',
@@ -119,6 +142,18 @@ export const ADMINSIDEBARITEMS = [
 			},
 		],
 	},
+	// {
+	// 	label: 'Reports',
+	// 	items: [
+			
+	// 		{
+	// 			label: 'Dzongkhag EA Summary',
+	// 			icon: 'pi pi-fw pi-file-pdf',
+	// 			routerLink: ['/admin/reports/dzongkhag-ea-summary'],
+	// 			roles: [USERROLESENUM.ADMIN],
+	// 		},
+	// 	],
+	// },
 	{
 		label: 'Download',
 		items: [
