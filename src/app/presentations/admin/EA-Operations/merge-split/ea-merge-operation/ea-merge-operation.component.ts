@@ -125,6 +125,8 @@ export class EaMergeOperationComponent implements OnInit {
 		this.administrativeZones = [];
 		this.filteredSubAdministrativeZones = [];
 		this.activeEas = [];
+		// Clear merged EA form sub-admin zone selection
+		this.mergedEaFormGroup.get('subAdministrativeZoneIds')?.setValue([]);
 
 		if (this.selectedDzongkhag) {
 			this.loadAdministrativeZones(this.selectedDzongkhag.id);
@@ -157,6 +159,8 @@ export class EaMergeOperationComponent implements OnInit {
 		this.selectedSubAdminZone = null;
 		this.filteredSubAdministrativeZones = [];
 		this.activeEas = [];
+		// Clear merged EA form sub-admin zone selection
+		this.mergedEaFormGroup.get('subAdministrativeZoneIds')?.setValue([]);
 
 		if (this.selectedAdminZone) {
 			this.loadSubAdministrativeZonesByAdminZone(this.selectedAdminZone.id);
@@ -191,6 +195,11 @@ export class EaMergeOperationComponent implements OnInit {
 
 		if (this.selectedSubAdminZone) {
 			this.loadEnumerationAreas(this.selectedSubAdminZone.id);
+			// Automatically set the selected sub-admin zone in the merged EA form
+			this.mergedEaFormGroup.get('subAdministrativeZoneIds')?.setValue([this.selectedSubAdminZone.id]);
+		} else {
+			// Clear the selection if sub-admin zone is cleared
+			this.mergedEaFormGroup.get('subAdministrativeZoneIds')?.setValue([]);
 		}
 	}
 

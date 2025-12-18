@@ -326,6 +326,7 @@
 							filterBy="name"
 							[loading]="loadingZones"
 							[showClear]="true"
+							[disabled]="!selectedSubAdminZone"
 							display="chip"
 							appendTo="body"
 						>
@@ -348,6 +349,9 @@
 							class="p-error block mt-1"
 						>
 							{{ getMergedEaFormError("subAdministrativeZoneIds") }}
+						</small>
+						<small class="text-gray-500 block mt-1">
+							Pre-populated from the selected Sub-Administrative Zone above. You can add more if needed.
 						</small>
 					</div>
 
