@@ -32,6 +32,9 @@ interface DzongkhagStats {
 	totalHouseholds: number;
 }
 
+type VisualizationMode = 'households' | 'enumerationAreas';
+type MainTab = 'insights' | 'list';
+
 @Component({
 	selector: 'app-public-national-data-viewer',
 	imports: [CommonModule, FormsModule, PrimeNgModules],
@@ -46,36 +49,43 @@ export class PublicNationalDataViewerComponent
 	@ViewChild('mapContainer', { static: false })
 	private mapContainerRef?: ElementRef<HTMLDivElement>;
 
+	// Data
 	geoJsonData: DzongkhagStatsGeoJson | null = null;
 	nationalSummary: NationalSummary | null = null;
 	dzongkhagFeatures: DzongkhagStatsFeature[] = [];
 	dzongkhagStats: DzongkhagStats[] = [];
+
+	// UI State
 	loading = true;
 	errorMessage: string | null = null;
+	activeMainTab: MainTab = 'insights';
+	mapVisualizationMode: VisualizationMode = 'households';
 
-	// Summary statistics (only Households and EAs for public)
+	// Statistics
 	stats = {
 		totalDzongkhags: 0,
 		totalEnumerationAreas: 0,
 		totalHouseholds: 0,
 	};
 
-	// Active tab for viewing mode
-	activeMainTab: 'insights' | 'list' = 'insights';
-
-	// Map visualization mode (only households and EAs for public)
-	mapVisualizationMode: 'households' | 'enumerationAreas' = 'households';
+	// Mobile State
+	isMobile: boolean = false;
+	isMobileDrawerOpen: boolean = false;
+	isMobileControlsCollapsed: boolean = true;
 
 	// Map
 	private map?: L.Map;
 	private baseLayer?: L.TileLayer;
 	private currentGeoJSONLayer?: L.GeoJSON;
-	selectedBasemapId = 'positron'; // Default basemap (will be overridden by settings)
+	selectedBasemapId = 'positron';
 	showDzongkhagBoundaries = true;
 	basemapCategories: Record<
 		string,
 		{ label: string; basemaps: BasemapConfig[] }
 	> = {};
+
+	// Lifecycle
+	private resizeListener?: () => void;
 
 	constructor(
 		private dzongkhagStatsService: DzongkhagAnnualStatsDataService,
@@ -88,23 +98,15 @@ export class PublicNationalDataViewerComponent
 		private publicPageSettingsService: PublicPageSettingsService
 	) {}
 
-	ngOnInit() {
-		// Initialize basemap categories from service
-		this.basemapCategories = this.basemapService.getBasemapCategories();
-
-		// Load settings from localStorage
-		const settings = this.publicPageSettingsService.getSettings();
-		this.mapVisualizationMode = settings.mapVisualizationMode;
-		this.selectedBasemapId = settings.selectedBasemapId;
-
+	ngOnInit(): void {
+		this.initializeSettings();
+		this.initializeResponsive();
 		this.loadDzongkhagStatistics();
 	}
 
 	ngAfterViewInit(): void {
-		// Initialize map after view is ready
 		setTimeout(() => {
 			this.initializeMap();
-			// If data is already loaded, apply visualization mode from settings
 			if (this.map && this.geoJsonData) {
 				this.loadDzongkhagBoundaries();
 			}
@@ -112,27 +114,34 @@ export class PublicNationalDataViewerComponent
 	}
 
 	ngOnDestroy(): void {
-		if (this.map) {
-			this.map.remove();
-		}
+		this.cleanup();
 	}
 
-	/**
-	 * Initialize Leaflet map
-	 */
+	// ==================== Initialization ====================
+
+	private initializeSettings(): void {
+		this.basemapCategories = this.basemapService.getBasemapCategories();
+		const settings = this.publicPageSettingsService.getSettings();
+		this.mapVisualizationMode = settings.mapVisualizationMode;
+		this.selectedBasemapId = settings.selectedBasemapId;
+	}
+
+	private initializeResponsive(): void {
+		this.checkMobileViewport();
+		this.resizeListener = () => this.checkMobileViewport();
+		window.addEventListener('resize', this.resizeListener);
+	}
+
 	private initializeMap(): void {
 		if (!this.mapContainerRef?.nativeElement) {
-			console.warn('Map container not available, will retry...');
 			setTimeout(() => this.initializeMap(), 200);
 			return;
 		}
 
 		if (this.map) {
-			console.log('Map already initialized');
 			return;
 		}
 
-		console.log('Initializing map...');
 		try {
 			this.baseLayer =
 				this.basemapService.createTileLayer(this.selectedBasemapId) ||
@@ -145,8 +154,6 @@ export class PublicNationalDataViewerComponent
 				zoomControl: false,
 			});
 
-			console.log('Map initialized successfully');
-
 			if (this.map && this.geoJsonData) {
 				this.loadDzongkhagBoundaries();
 			}
@@ -155,9 +162,17 @@ export class PublicNationalDataViewerComponent
 		}
 	}
 
-	/**
-	 * Load dzongkhag statistics from API
-	 */
+	private cleanup(): void {
+		if (this.resizeListener) {
+			window.removeEventListener('resize', this.resizeListener);
+		}
+		if (this.map) {
+			this.map.remove();
+		}
+	}
+
+	// ==================== Data Loading ====================
+
 	loadDzongkhagStatistics(): void {
 		this.loading = true;
 		this.errorMessage = null;
@@ -183,28 +198,22 @@ export class PublicNationalDataViewerComponent
 		});
 	}
 
-	/**
-	 * Process statistics from features (only Households and EAs)
-	 */
 	private processStatistics(): void {
 		if (!this.dzongkhagFeatures.length) return;
 
-		this.dzongkhagStats = [];
-
-		this.dzongkhagFeatures.forEach((feature) => {
-			const props = feature.properties;
-			if (props.hasData) {
-				this.dzongkhagStats.push({
+		this.dzongkhagStats = this.dzongkhagFeatures
+			.filter((feature) => feature.properties.hasData)
+			.map((feature) => {
+				const props = feature.properties;
+				return {
 					dzongkhagId: props.id,
 					dzongkhagName: props.name,
 					dzongkhagCode: props.areaCode,
 					totalEnumerationAreas: props.eaCount,
 					totalHouseholds: props.totalHouseholds,
-				});
-			}
-		});
+				};
+			});
 
-		// Update summary stats
 		if (this.nationalSummary) {
 			this.stats = {
 				totalDzongkhags: this.geoJsonData?.metadata.totalDzongkhags || 0,
@@ -217,17 +226,14 @@ export class PublicNationalDataViewerComponent
 		}
 	}
 
-	/**
-	 * Load dzongkhag boundaries on map with statistics
-	 */
+	// ==================== Map Operations ====================
+
 	private loadDzongkhagBoundaries(): void {
 		if (!this.geoJsonData || !this.map) return;
 
 		if (this.currentGeoJSONLayer) {
 			this.map.removeLayer(this.currentGeoJSONLayer);
 		}
-
-		console.log('Loading dzongkhag GeoJSON data with statistics');
 
 		this.currentGeoJSONLayer = L.geoJSON(this.geoJsonData as any, {
 			style: (feature: any) => this.getFeatureStyle(feature),
@@ -241,9 +247,6 @@ export class PublicNationalDataViewerComponent
 		}
 	}
 
-	/**
-	 * Get feature style based on data
-	 */
 	private getFeatureStyle(feature: DzongkhagStatsFeature): L.PathOptions {
 		const props = feature.properties;
 
@@ -256,28 +259,11 @@ export class PublicNationalDataViewerComponent
 			};
 		}
 
-		// Get values based on visualization mode
-		const values = this.dzongkhagFeatures
-			.filter((f) => f.properties.hasData)
-			.map((f) => {
-				if (this.mapVisualizationMode === 'households') {
-					return f.properties.totalHouseholds;
-				} else {
-					return f.properties.eaCount;
-				}
-			});
-
+		const values = this.getFeatureValues();
 		const minValue = Math.min(...values);
 		const maxValue = Math.max(...values);
+		const currentValue = this.getFeatureValue(props);
 
-		let currentValue: number;
-		if (this.mapVisualizationMode === 'households') {
-			currentValue = props.totalHouseholds;
-		} else {
-			currentValue = props.eaCount;
-		}
-
-		// Get color based on value using color scale service
 		const color = this.colorScaleService.getInterpolatedColor(
 			currentValue,
 			minValue,
@@ -293,105 +279,25 @@ export class PublicNationalDataViewerComponent
 		};
 	}
 
-	/**
-	 * Get CSS gradient string for continuous color scale legend
-	 */
-	getLegendGradient(): string {
-		if (!this.dzongkhagFeatures || this.dzongkhagFeatures.length === 0) {
-			return '';
-		}
-
-		const { min, max } = this.getLegendMinMax();
-		return this.colorScaleService.getLegendGradient(min, max, 'vertical');
-	}
-
-	/**
-	 * Get legend break values with labels for continuous gradient
-	 */
-	getLegendBreaks(): { value: number; label: string; position: number }[] {
-		if (!this.dzongkhagFeatures || this.dzongkhagFeatures.length === 0) {
-			return [];
-		}
-
-		const { min, max } = this.getLegendMinMax();
-		return this.colorScaleService.getLegendBreaks(min, max, 5);
-	}
-
-	/**
-	 * Get min and max values for current visualization mode
-	 */
-	getLegendMinMax(): { min: number; max: number } {
-		if (!this.dzongkhagFeatures || this.dzongkhagFeatures.length === 0) {
-			return { min: 0, max: 0 };
-		}
-
-		const values = this.dzongkhagFeatures
+	private getFeatureValues(): number[] {
+		return this.dzongkhagFeatures
 			.filter((f) => f.properties.hasData)
-			.map((f) => {
-				if (this.mapVisualizationMode === 'households') {
-					return f.properties.totalHouseholds;
-				} else {
-					return f.properties.eaCount;
-				}
-			});
-
-		return {
-			min: Math.min(...values),
-			max: Math.max(...values),
-		};
+			.map((f) => this.getFeatureValue(f.properties));
 	}
 
-	/**
-	 * Get legend title based on visualization mode
-	 */
-	getLegendTitle(): string {
-		if (this.mapVisualizationMode === 'households') {
-			return 'Households';
-		} else {
-			return 'Enumeration Areas';
-		}
+	private getFeatureValue(props: DzongkhagStatsFeature['properties']): number {
+		return this.mapVisualizationMode === 'households'
+			? props.totalHouseholds
+			: props.eaCount;
 	}
 
-	/**
-	 * Switch map visualization mode and reload boundaries
-	 */
-	switchVisualizationMode(
-		mode: 'households' | 'enumerationAreas'
-	): void {
-		this.mapVisualizationMode = mode;
-		if (this.map && this.geoJsonData) {
-			this.loadDzongkhagBoundaries();
-		}
-	}
-
-	/**
-	 * Add popup and interactions to each feature
-	 */
 	private onEachFeature(feature: DzongkhagStatsFeature, layer: L.Layer): void {
 		const props = feature.properties;
 
 		// Add permanent label
-		const labelContent = `
-			<div style="
-				color: black;
-				font-weight: 700;
-				font-size: 10px;
-				text-shadow: 
-					-2px -2px 0 #fff,
-					2px -2px 0 #fff,
-					-2px 2px 0 #fff,
-					2px 2px 0 #fff;
-				text-align: center;
-				white-space: nowrap;
-			">
-				${props.name}
-			</div>
-		`;
-
 		if (layer instanceof L.Polygon) {
 			const bounds = layer.getBounds();
 			const center = bounds.getCenter();
-
 			const label = L.tooltip({
 				permanent: true,
 				direction: 'center',
@@ -399,46 +305,16 @@ export class PublicNationalDataViewerComponent
 				opacity: 1,
 			})
 				.setLatLng(center)
-				.setContent(labelContent);
+				.setContent(this.createLabelContent(props.name));
 
 			layer.bindTooltip(label);
 		}
 
-		const popupContent = `
-			<div class="p-2 min-w-[280px]">
-				<h3 class="font-bold text-lg mb-3 text-slate-900">${props.name} Dzongkhag</h3>
-				${
-					props.hasData
-						? `
-				<div class="space-y-0 text-sm mb-3">
-					<!-- Households -->
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Households: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.totalHouseholds.toLocaleString()}</span>
-					</div>
-
-					<!-- Enumeration Areas -->
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Enumeration Areas: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.eaCount}</span>
-					</div>
-				</div>
-				`
-						: '<p class="text-sm text-gray-500 mb-3">No data available for this dzongkhag.</p>'
-				}
-				<button 
-					id="view-dzongkhag-${props.id}" 
-					class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded transition shadow-sm"
-				>
-					View Details
-				</button>
-			</div>
-		`;
-
-		const popup = L.popup().setContent(popupContent);
+		// Add popup
+		const popup = L.popup().setContent(this.createPopupContent(props));
 		layer.bindPopup(popup);
 
-		// Add click listener for the button after popup opens
+		// Add popup button listener
 		layer.on('popupopen', () => {
 			const button = document.getElementById(`view-dzongkhag-${props.id}`);
 			if (button) {
@@ -450,7 +326,7 @@ export class PublicNationalDataViewerComponent
 			}
 		});
 
-		// Hover effects
+		// Add hover effects
 		layer.on({
 			mouseover: (e) => {
 				const target = e.target as L.Path;
@@ -465,9 +341,57 @@ export class PublicNationalDataViewerComponent
 		});
 	}
 
-	/**
-	 * Switch basemap
-	 */
+	private createLabelContent(name: string): string {
+		return `
+			<div style="
+				color: black;
+				font-weight: 700;
+				font-size: 10px;
+				text-shadow: 
+					-2px -2px 0 #fff,
+					2px -2px 0 #fff,
+					-2px 2px 0 #fff,
+					2px 2px 0 #fff;
+				text-align: center;
+				white-space: nowrap;
+			">
+				${name}
+			</div>
+		`;
+	}
+
+	private createPopupContent(props: DzongkhagStatsFeature['properties']): string {
+		const dataSection = props.hasData
+			? `
+				<div class="space-y-0 text-sm mb-3">
+					<div class="py-2 border-b border-slate-200">
+						<span class="font-semibold text-slate-700">Households: </span>
+						<span class="font-bold" style="color: #67A4CA">${props.totalHouseholds.toLocaleString()}</span>
+					</div>
+					<div class="py-2 border-b border-slate-200">
+						<span class="font-semibold text-slate-700">Enumeration Areas: </span>
+						<span class="font-bold" style="color: #67A4CA">${props.eaCount}</span>
+					</div>
+				</div>
+			`
+			: '<p class="text-sm text-gray-500 mb-3">No data available for this dzongkhag.</p>';
+
+		return `
+			<div class="p-2 min-w-[280px]">
+				<h3 class="font-bold text-lg mb-3 text-slate-900">${props.name} Dzongkhag</h3>
+				${dataSection}
+				<button 
+					id="view-dzongkhag-${props.id}" 
+					class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded transition shadow-sm"
+				>
+					View Details
+				</button>
+			</div>
+		`;
+	}
+
+	// ==================== Map Controls ====================
+
 	switchBasemap(): void {
 		if (!this.map || !this.basemapService.hasBasemap(this.selectedBasemapId)) {
 			console.error(`Basemap ${this.selectedBasemapId} not found`);
@@ -485,9 +409,6 @@ export class PublicNationalDataViewerComponent
 		}
 	}
 
-	/**
-	 * Toggle dzongkhag boundaries visibility
-	 */
 	toggleDzongkhagBoundaries(): void {
 		this.showDzongkhagBoundaries = !this.showDzongkhagBoundaries;
 
@@ -500,106 +421,172 @@ export class PublicNationalDataViewerComponent
 		}
 	}
 
-	/**
-	 * Navigate to dzongkhag data viewer (public route)
-	 */
-	viewDzongkhag(dzongkhagId: number): void {
-		// Navigate to dzongkhag viewer - using relative path from current route
-		this.router.navigate(['dzongkhag', dzongkhagId], { relativeTo: this.route.parent || this.route });
+	switchVisualizationMode(mode: VisualizationMode): void {
+		this.mapVisualizationMode = mode;
+		if (this.map && this.geoJsonData) {
+			this.loadDzongkhagBoundaries();
+		}
+
+		if (this.isMobile) {
+			this.closeMobileDrawer();
+		}
 	}
 
-	/**
-	 * Calculate percentage for visual bars
-	 */
+	// ==================== Legend ====================
+
+	getLegendGradient(): string {
+		if (!this.dzongkhagFeatures?.length) {
+			return '';
+		}
+
+		const { min, max } = this.getLegendMinMax();
+		return this.colorScaleService.getLegendGradient(min, max, 'vertical');
+	}
+
+	getLegendBreaks(): { value: number; label: string; position: number }[] {
+		if (!this.dzongkhagFeatures?.length) {
+			return [];
+		}
+
+		const { min, max } = this.getLegendMinMax();
+		return this.colorScaleService.getLegendBreaks(min, max, 5);
+	}
+
+	private getLegendMinMax(): { min: number; max: number } {
+		if (!this.dzongkhagFeatures?.length) {
+			return { min: 0, max: 0 };
+		}
+
+		const values = this.dzongkhagFeatures
+			.filter((f) => f.properties.hasData)
+			.map((f) => this.getFeatureValue(f.properties));
+
+		return {
+			min: Math.min(...values),
+			max: Math.max(...values),
+		};
+	}
+
+	getLegendTitle(): string {
+		return this.mapVisualizationMode === 'households'
+			? 'Households'
+			: 'Enumeration Areas';
+	}
+
+	// ==================== Navigation ====================
+
+	viewDzongkhag(dzongkhagId: number): void {
+		this.router.navigate(['dzongkhag', dzongkhagId], {
+			relativeTo: this.route.parent || this.route,
+		});
+	}
+
+	// ==================== Mobile Controls ====================
+
+	checkMobileViewport(): void {
+		const wasMobile = this.isMobile;
+		this.isMobile = window.innerWidth < 768;
+
+		if (wasMobile && !this.isMobile) {
+			this.isMobileDrawerOpen = false;
+		}
+	}
+
+	toggleMobileDrawer(): void {
+		this.isMobileDrawerOpen = !this.isMobileDrawerOpen;
+		this.invalidateMapSize();
+	}
+
+	closeMobileDrawer(): void {
+		this.isMobileDrawerOpen = false;
+		this.invalidateMapSize();
+	}
+
+	private invalidateMapSize(): void {
+		setTimeout(() => {
+			if (this.map) {
+				this.map.invalidateSize();
+			}
+		}, 300);
+	}
+
+	// ==================== Downloads ====================
+
+	downloadDzongkhagGeojson(): void {
+		this.locationDownloadService.downloadAllDzongkhagsAsGeoJson().subscribe({
+			next: (geoJson) => {
+				this.downloadFile(
+					JSON.stringify(geoJson, null, 2),
+					`all_dzongkhags_${new Date().toISOString().split('T')[0]}.geojson`,
+					'application/json'
+				);
+				this.showSuccessMessage('All Dzongkhags GeoJSON downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Dzongkhags GeoJSON:', error);
+				this.showErrorMessage('Failed to download Dzongkhags GeoJSON file');
+			},
+		});
+	}
+
+	downloadDzongkhagKml(): void {
+		this.locationDownloadService.downloadAllDzongkhagsAsKml().subscribe({
+			next: (kml) => {
+				this.downloadFile(
+					kml,
+					`all_dzongkhags_${new Date().toISOString().split('T')[0]}.kml`,
+					'application/vnd.google-earth.kml+xml'
+				);
+				this.showSuccessMessage('All Dzongkhags KML downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Dzongkhags KML:', error);
+				this.showErrorMessage('Failed to download Dzongkhags KML file');
+			},
+		});
+	}
+
+	private downloadFile(content: string, filename: string, mimeType: string): void {
+		const blob = new Blob([content], { type: mimeType });
+		const url = window.URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = filename;
+		link.click();
+		window.URL.revokeObjectURL(url);
+	}
+
+	private showSuccessMessage(detail: string): void {
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail,
+			life: 3000,
+		});
+	}
+
+	private showErrorMessage(detail: string): void {
+		this.messageService.add({
+			severity: 'error',
+			summary: 'Download Failed',
+			detail,
+			life: 3000,
+		});
+	}
+
+	// ==================== Utility ====================
+
+	trackByDzongkhagId(index: number, item: DzongkhagStats): number {
+		return item.dzongkhagId;
+	}
+
 	getPercentage(value: number, total: number): string {
 		if (!total) return '0';
 		return ((value / total) * 100).toFixed(1);
 	}
 
-	/**
-	 * Get percentage as numeric value
-	 */
 	getPercentageValue(value: number, total: number): number {
 		if (!total) return 0;
 		return (value / total) * 100;
 	}
-
-	/**
-	 * TrackBy function for dzongkhag list
-	 */
-	trackByDzongkhagId(index: number, item: DzongkhagStats): number {
-		return item.dzongkhagId;
-	}
-
-	/**
-	 * Download all Dzongkhags as GeoJSON (National)
-	 */
-	downloadDzongkhagGeojson(): void {
-		this.locationDownloadService.downloadAllDzongkhagsAsGeoJson().subscribe({
-			next: (geoJson) => {
-				const dataStr = JSON.stringify(geoJson, null, 2);
-				const blob = new Blob([dataStr], { type: 'application/json' });
-				const url = window.URL.createObjectURL(blob);
-				const link = document.createElement('a');
-				link.href = url;
-				link.download = `all_dzongkhags_${
-					new Date().toISOString().split('T')[0]
-				}.geojson`;
-				link.click();
-				window.URL.revokeObjectURL(url);
-				this.messageService.add({
-					severity: 'success',
-					summary: 'Download Complete',
-					detail: 'All Dzongkhags GeoJSON downloaded successfully',
-					life: 3000,
-				});
-			},
-			error: (error) => {
-				console.error('Error downloading Dzongkhags GeoJSON:', error);
-				this.messageService.add({
-					severity: 'error',
-					summary: 'Download Failed',
-					detail: 'Failed to download Dzongkhags GeoJSON file',
-					life: 3000,
-				});
-			},
-		});
-	}
-
-	/**
-	 * Download all Dzongkhags as KML (National)
-	 */
-	downloadDzongkhagKml(): void {
-		this.locationDownloadService.downloadAllDzongkhagsAsKml().subscribe({
-			next: (kml) => {
-				const blob = new Blob([kml], {
-					type: 'application/vnd.google-earth.kml+xml',
-				});
-				const url = window.URL.createObjectURL(blob);
-				const link = document.createElement('a');
-				link.href = url;
-				link.download = `all_dzongkhags_${
-					new Date().toISOString().split('T')[0]
-				}.kml`;
-				link.click();
-				window.URL.revokeObjectURL(url);
-				this.messageService.add({
-					severity: 'success',
-					summary: 'Download Complete',
-					detail: 'All Dzongkhags KML downloaded successfully',
-					life: 3000,
-				});
-			},
-			error: (error) => {
-				console.error('Error downloading Dzongkhags KML:', error);
-				this.messageService.add({
-					severity: 'error',
-					summary: 'Download Failed',
-					detail: 'Failed to download Dzongkhags KML file',
-					life: 3000,
-				});
-			},
-		});
-	}
 }
-

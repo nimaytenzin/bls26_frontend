@@ -145,6 +145,80 @@ export interface CreateTwoSazsWithEaResponse {
 }
 
 /**
+ * SAZ Data for Multiple SAZs Creation
+ * Data structure for a single SAZ in the multiple SAZs creation request
+ */
+export interface SazData {
+	name: string;
+	areaCode: string;
+	type: 'chiwog' | 'lap';
+	administrativeZoneId: number;
+}
+
+/**
+ * EA Data for Multiple SAZs Creation
+ * Data structure for EA metadata in the multiple SAZs creation request
+ */
+export interface EaData {
+	name: string;
+	areaCode: string;
+	description?: string;
+}
+
+/**
+ * Create Multiple SAZs with EA Request DTO
+ * Data structure for creating 2-20 SAZs and a single EA that links to all of them
+ */
+export interface CreateMultipleSazsWithEaRequest {
+	sazDataArray: SazData[];
+	eaData: EaData;
+}
+
+/**
+ * Sub-Administrative Zone Response
+ * Response structure for a created SAZ
+ */
+export interface SubAdministrativeZoneResponse {
+	id: number;
+	administrativeZoneId: number;
+	name: string;
+	areaCode: string;
+	type: 'chiwog' | 'lap';
+	geom?: string;
+}
+
+/**
+ * Enumeration Area with Linked SAZs Response
+ * Response structure for created EA with linked SAZs
+ */
+export interface EnumerationAreaWithSazsResponse {
+	id: number;
+	name: string;
+	areaCode: string;
+	description: string;
+	geom?: string;
+	subAdministrativeZones?: Array<{
+		id: number;
+		name: string;
+		areaCode: string;
+		type: 'chiwog' | 'lap';
+		administrativeZone?: {
+			id: number;
+			name: string;
+		};
+	}>;
+}
+
+/**
+ * Create Multiple SAZs with EA Response
+ * Response from the create-multiple-sazs-with-ea endpoint
+ */
+export interface CreateMultipleSazsWithEaResponse {
+	subAdministrativeZones: SubAdministrativeZoneResponse[];
+	enumerationArea: EnumerationAreaWithSazsResponse;
+}
+
+/**
  * Operation Type Enum
  * Types of operations that can be performed on enumeration areas
  */

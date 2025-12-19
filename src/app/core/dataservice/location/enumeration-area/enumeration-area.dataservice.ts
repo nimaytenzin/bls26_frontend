@@ -10,6 +10,9 @@ import {
 	CreateEnumerationAreaDto,
 	CreateTwoSazsWithEaRequest,
 	CreateTwoSazsWithEaResponse,
+	CreateMultipleSazsWithEaResponse,
+	SazData,
+	EaData,
 	EnumerationArea,
 	EnumerationAreaGeoJSON,
 	UpdateEnumerationAreaDto,
@@ -301,6 +304,7 @@ export class EnumerationAreaDataService {
 	 * @param saz1Data - SAZ1 metadata
 	 * @param saz2Data - SAZ2 metadata
 	 * @returns Observable with created SAZs and EA
+	 * @deprecated Use createMultipleSazsWithEa instead for more flexibility
 	 */
 	createTwoSazsWithEa(
 		saz1File: File,
@@ -326,6 +330,42 @@ export class EnumerationAreaDataService {
 			.pipe(
 				catchError((error) => {
 					console.error('Error creating two SAZs with EA:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Create multiple SAZs (2-20) from GeoJSON files and a single EA that links to all of them
+	 * @param files - Array of GeoJSON files (one per SAZ, 2-20 files)
+	 * @param sazDataArray - Array of SAZ metadata objects
+	 * @param eaData - EA metadata object
+	 * @returns Observable with created SAZs and EA
+	 */
+	createMultipleSazsWithEa(
+		files: File[],
+		sazDataArray: SazData[],
+		eaData: EaData
+	): Observable<CreateMultipleSazsWithEaResponse> {
+		const formData = new FormData();
+
+		// Add files (order must match sazDataArray order)
+		files.forEach((file) => {
+			formData.append('files', file);
+		});
+
+		// Add JSON data as strings
+		formData.append('sazDataArray', JSON.stringify(sazDataArray));
+		formData.append('eaData', JSON.stringify(eaData));
+
+		return this.http
+			.post<CreateMultipleSazsWithEaResponse>(
+				`${this.apiUrl}/create-multiple-sazs-with-ea`,
+				formData
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error creating multiple SAZs with EA:', error);
 					return throwError(() => error);
 				})
 			);

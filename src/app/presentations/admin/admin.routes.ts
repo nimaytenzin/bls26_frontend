@@ -8,7 +8,7 @@ import { AdminMasterEnumerationAreasComponent } from './master-data/admin-master
 import { AdminAutoKmlUploadComponent } from './master-data/admin-auto-kml-upload/admin-auto-kml-upload.component';
 import { AdminAutoHouseholdDataUploadByDzongkhagComponent } from './master-data/admin-auto-household-data-upload-by-dzongkhag/admin-auto-household-data-upload-by-dzongkhag.component';
 import { AdminSazEaUploadComponent } from './master-data/admin-saz-ea-upload/admin-saz-ea-upload.component';
-import { AdminTwoSazsEaUploadComponent } from './master-data/admin-two-sazs-ea-upload/admin-two-sazs-ea-upload.component';
+import { AdminMultiSazSingleEaUploadComponent } from './master-data/admin-multi-saz-single-ea-upload/admin-multi-saz-single-ea-upload.component';
 import { AdminMasterSurveyComponent } from './survey/admin-master-survey/admin-master-survey.component';
 import { AdminDzongkhagDataViewerComponent } from './data-viewer/admin-dzongkhag-data-viewer/admin-dzongkhag-data-viewer.component';
 import { AdminAdminstrativeZoneDataViewerComponent } from './data-viewer/admin-adminstrative-zone-data-viewer/admin-adminstrative-zone-data-viewer.component';
@@ -89,8 +89,8 @@ export const adminRoutes: Routes = [
 						component: AdminSazEaUploadComponent,
 					},
 					{
-						path: 'two-sazs-ea-upload',
-						component: AdminTwoSazsEaUploadComponent,
+						path: 'multi-saz-ea-upload',
+						component: AdminMultiSazSingleEaUploadComponent,
 					},
 				],
 			},

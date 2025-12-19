@@ -112,9 +112,9 @@ export const ADMINSIDEBARITEMS = [
 				roles: [USERROLESENUM.ADMIN],
 			},
 			{
-				label: 'Two SAZs + EA Uploader',
+				label: 'Multi SAZ -Single EA Upload',
 				icon: 'pi pi-fw pi-upload',
-				routerLink: ['/admin/master/two-sazs-ea-upload'],
+				routerLink: ['/admin/master/multi-saz-ea-upload'],
 				roles: [USERROLESENUM.ADMIN],
 			},
 		 
