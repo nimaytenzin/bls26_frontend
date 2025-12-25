@@ -1,4 +1,15 @@
-<div class="card p-6">
+<div class="card p-6 relative">
+	<!-- Loading Overlay -->
+	<div
+		*ngIf="loading"
+		class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded"
+	>
+		<div class="flex flex-col items-center gap-3">
+			<i class="pi pi-spin pi-spinner text-4xl text-primary-600"></i>
+			<p class="text-sm text-gray-600">Loading settings...</p>
+		</div>
+	</div>
+
 	<!-- Header Section -->
 	<div class="flex justify-between items-center mb-6">
 		<div>
@@ -12,7 +23,7 @@
 	</div>
 
 	<!-- Settings Form -->
-	<div class="space-y-6">
+	<div class="space-y-6" [class.opacity-50]="loading">
 		<!-- Map Settings Section -->
 		<div>
 			<h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
@@ -172,11 +183,15 @@
 				severity="secondary"
 				(click)="resetSettings()"
 				[outlined]="true"
+				[disabled]="loading || saving || resetting"
+				[loading]="resetting"
 			></p-button>
 			<p-button
 				label="Save Settings"
 				icon="pi pi-save"
 				(click)="saveSettings()"
+				[disabled]="loading || saving || resetting"
+				[loading]="saving"
 			></p-button>
 		</div>
 	</div>

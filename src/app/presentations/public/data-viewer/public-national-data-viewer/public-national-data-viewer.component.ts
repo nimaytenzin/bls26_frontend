@@ -121,6 +121,11 @@ export class PublicNationalDataViewerComponent
 		private downloadService: DownloadService
 	) {}
 
+	// Flags to track initialization state
+	private settingsLoaded = false;
+	private dataLoaded = false;
+	private viewReady = false;
+
 	ngOnInit(): void {
 		this.initializeSettings();
 		this.initializeResponsive();
@@ -128,12 +133,8 @@ export class PublicNationalDataViewerComponent
 	}
 
 	ngAfterViewInit(): void {
-		setTimeout(() => {
-			this.initializeMap();
-			if (this.map && this.geoJsonData) {
-				this.loadDzongkhagBoundaries();
-			}
-		}, 100);
+		this.viewReady = true;
+		this.attemptMapInitialization();
 	}
 
 	ngOnDestroy(): void {
@@ -144,21 +145,44 @@ export class PublicNationalDataViewerComponent
 
 	private initializeSettings(): void {
 		this.basemapCategories = this.basemapService.getBasemapCategories();
-		const settings = this.publicPageSettingsService.getSettings();
-		this.mapVisualizationMode = settings.mapVisualizationMode;
-		this.selectedBasemapId = settings.selectedBasemapId;
-		this.selectedColorScale = settings.colorScale || 'blue';
-		// Load content settings
-		this.pageTitle = settings.nationalDataViewerTitle || 'National Sampling Frame';
-		this.pageDescription =
-			settings.nationalDataViewerDescription ||
-			'Current statistics on households and enumeration areas';
-		this.infoBoxContent =
-			settings.nationalDataViewerInfoBoxContent ||
-			'A sampling frame is a population from which a sample can be drawn, ensuring survey samples are representative and reliable.';
-		this.infoBoxStats =
-			settings.nationalDataViewerInfoBoxStats ||
-			'3,310 EAs total (1,464 urban, 1,846 rural)';
+		
+		// Load settings from API (public endpoint, no auth required)
+		this.publicPageSettingsService.getPublicSettings().subscribe({
+			next: (settings) => {
+				this.mapVisualizationMode = settings.mapVisualizationMode;
+				this.selectedBasemapId = settings.selectedBasemapId;
+				this.selectedColorScale = (settings.colorScale as ColorScaleType) || 'blue';
+				// Load content settings
+				this.pageTitle = settings.nationalDataViewerTitle || 'National Sampling Frame';
+				this.pageDescription =
+					settings.nationalDataViewerDescription ||
+					'Current statistics on households and enumeration areas';
+				this.infoBoxContent =
+					settings.nationalDataViewerInfoBoxContent ||
+					'A sampling frame is a population from which a sample can be drawn, ensuring survey samples are representative and reliable.';
+				this.infoBoxStats =
+					settings.nationalDataViewerInfoBoxStats ||
+					'3,310 EAs total (1,464 urban, 1,846 rural)';
+				
+				this.settingsLoaded = true;
+				this.attemptMapInitialization();
+			},
+			error: (error) => {
+				console.error('Error loading public page settings:', error);
+				// Use default values on error
+				const defaultSettings = this.publicPageSettingsService.getDefaultSettings();
+				this.mapVisualizationMode = defaultSettings.mapVisualizationMode;
+				this.selectedBasemapId = defaultSettings.selectedBasemapId;
+				this.selectedColorScale = defaultSettings.colorScale as ColorScaleType;
+				this.pageTitle = defaultSettings.nationalDataViewerTitle;
+				this.pageDescription = defaultSettings.nationalDataViewerDescription;
+				this.infoBoxContent = defaultSettings.nationalDataViewerInfoBoxContent;
+				this.infoBoxStats = defaultSettings.nationalDataViewerInfoBoxStats;
+				
+				this.settingsLoaded = true;
+				this.attemptMapInitialization();
+			},
+		});
 	}
 
 	private initializeResponsive(): void {
@@ -167,9 +191,34 @@ export class PublicNationalDataViewerComponent
 		window.addEventListener('resize', this.resizeListener);
 	}
 
+	/**
+	 * Attempt to initialize the map when all prerequisites are ready
+	 */
+	private attemptMapInitialization(): void {
+		// Only initialize if all prerequisites are met
+		if (!this.settingsLoaded || !this.viewReady) {
+			return;
+		}
+
+		if (!this.mapContainerRef?.nativeElement) {
+			setTimeout(() => this.attemptMapInitialization(), 200);
+			return;
+		}
+
+		if (this.map) {
+			// Map already initialized, just load boundaries if data is available
+			if (this.geoJsonData) {
+				this.loadDzongkhagBoundaries();
+			}
+			return;
+		}
+
+		// Initialize the map
+		this.initializeMap();
+	}
+
 	private initializeMap(): void {
 		if (!this.mapContainerRef?.nativeElement) {
-			setTimeout(() => this.initializeMap(), 200);
 			return;
 		}
 
@@ -189,6 +238,7 @@ export class PublicNationalDataViewerComponent
 				zoomControl: false,
 			});
 
+			// Load boundaries if data is already available
 			if (this.map && this.geoJsonData) {
 				this.loadDzongkhagBoundaries();
 			}
@@ -219,7 +269,12 @@ export class PublicNationalDataViewerComponent
 				this.dzongkhagFeatures = data.features;
 				this.processStatistics();
 				this.loading = false;
+				this.dataLoaded = true;
 
+				// Attempt to initialize map if not already done
+				this.attemptMapInitialization();
+				
+				// If map is already initialized, load boundaries
 				if (this.map) {
 					this.loadDzongkhagBoundaries();
 				}
@@ -229,6 +284,7 @@ export class PublicNationalDataViewerComponent
 				this.errorMessage =
 					'Failed to load dzongkhag statistics. Please try again.';
 				this.loading = false;
+				this.dataLoaded = true; // Mark as loaded even on error to allow map init
 			},
 		});
 	}

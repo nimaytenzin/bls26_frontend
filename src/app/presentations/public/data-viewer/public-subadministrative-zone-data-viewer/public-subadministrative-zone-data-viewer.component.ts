@@ -128,13 +128,30 @@ export class PublicSubadministrativeZoneDataViewerComponent
 		// Initialize basemap categories from service
 		this.basemapCategories = this.basemapService.getBasemapCategories();
 
-		// Initialize settings (basemap and color scale)
-		const settings = this.publicPageSettingsService.getSettings();
-		this.selectedBasemapId = settings.selectedBasemapId;
-		this.selectedColorScale = settings.colorScale || 'blue';
-
 		// Initialize responsive
 		this.initializeResponsive();
+
+		// Load settings from API (public endpoint, no auth required)
+		this.publicPageSettingsService.getPublicSettings().subscribe({
+			next: (settings) => {
+				this.selectedBasemapId = settings.selectedBasemapId;
+				this.selectedColorScale = (settings.colorScale as ColorScaleType) || 'blue';
+				
+				// Initialize map after settings are loaded
+				if (this.isViewReady) {
+					setTimeout(() => {
+						this.attemptInitializeMap();
+					}, 100);
+				}
+			},
+			error: (error) => {
+				console.error('Error loading public page settings:', error);
+				// Use default values on error
+				const defaultSettings = this.publicPageSettingsService.getDefaultSettings();
+				this.selectedBasemapId = defaultSettings.selectedBasemapId;
+				this.selectedColorScale = defaultSettings.colorScale as ColorScaleType;
+			},
+		});
 
 		// Load parent info
 		this.loadParentInfo();

@@ -1,17 +1,38 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { ColorScaleType } from '../utility/map-feature-color.service';
+import { BASEAPI_URL } from '../constants/constants';
 
 export interface PublicPageSettings {
 	mapVisualizationMode: 'households' | 'enumerationAreas';
 	selectedBasemapId: string;
-	colorScale: ColorScaleType;
+	colorScale: string; // API may return 'gray', 'viridis', 'plasma' which aren't in ColorScaleType
 	nationalDataViewerTitle: string;
 	nationalDataViewerDescription: string;
 	nationalDataViewerInfoBoxContent: string;
 	nationalDataViewerInfoBoxStats: string;
 }
 
-const STORAGE_KEY = 'nsfd_public_page_settings';
+export interface PublicPageSettingsDto extends PublicPageSettings {
+	id: number;
+	createdBy?: number;
+	updatedBy?: number;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface UpdatePublicPageSettingsDto {
+	mapVisualizationMode?: 'households' | 'enumerationAreas';
+	selectedBasemapId?: string;
+	colorScale?: string;
+	nationalDataViewerTitle?: string;
+	nationalDataViewerDescription?: string;
+	nationalDataViewerInfoBoxContent?: string;
+	nationalDataViewerInfoBoxStats?: string;
+}
+
 const DEFAULT_SETTINGS: PublicPageSettings = {
 	mapVisualizationMode: 'households',
 	selectedBasemapId: 'positron',
@@ -27,53 +48,109 @@ const DEFAULT_SETTINGS: PublicPageSettings = {
 	providedIn: 'root',
 })
 export class PublicPageSettingsService {
+	private readonly apiUrl = `${BASEAPI_URL}/public-page-settings`;
+
+	constructor(private http: HttpClient) {}
+
 	/**
-	 * Get public page settings from localStorage
-	 * Returns default values if not set
+	 * Get public page settings (no authentication required)
+	 * Used by public data viewer pages
 	 */
-	getSettings(): PublicPageSettings {
-		try {
-			const stored = localStorage.getItem(STORAGE_KEY);
-			if (stored) {
-				const parsed = JSON.parse(stored);
-				// Merge with defaults to ensure all properties exist
-				return { ...DEFAULT_SETTINGS, ...parsed };
-			}
-		} catch (error) {
-			console.error('Error reading public page settings from localStorage:', error);
-		}
-		return { ...DEFAULT_SETTINGS };
+	getPublicSettings(): Observable<PublicPageSettings> {
+		return this.http.get<PublicPageSettingsDto>(this.apiUrl).pipe(
+			map((dto) => this.mapDtoToSettings(dto)),
+			catchError((error) => {
+				console.error('Error fetching public page settings:', error);
+				// Return default settings on error
+				return throwError(() => error);
+			})
+		);
 	}
 
 	/**
-	 * Save public page settings to localStorage
+	 * Get public page settings for admin (requires authentication)
+	 * Used by admin settings page
 	 */
-	saveSettings(settings: Partial<PublicPageSettings>): void {
-		try {
-			const current = this.getSettings();
-			const updated = { ...current, ...settings };
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-		} catch (error) {
-			console.error('Error saving public page settings to localStorage:', error);
-		}
+	getAdminSettings(): Observable<PublicPageSettings> {
+		return this.http.get<PublicPageSettingsDto>(`${this.apiUrl}/admin`).pipe(
+			map((dto) => this.mapDtoToSettings(dto)),
+			catchError((error) => {
+				console.error('Error fetching admin page settings:', error);
+				return throwError(() => error);
+			})
+		);
+	}
+
+	/**
+	 * Update public page settings (requires authentication)
+	 * Only admins can update settings
+	 */
+	updateSettings(settings: UpdatePublicPageSettingsDto): Observable<PublicPageSettings> {
+		return this.http.put<PublicPageSettingsDto>(`${this.apiUrl}/admin`, settings).pipe(
+			map((dto) => this.mapDtoToSettings(dto)),
+			catchError((error) => {
+				console.error('Error updating public page settings:', error);
+				return throwError(() => error);
+			})
+		);
+	}
+
+	/**
+	 * Reset settings to defaults (requires authentication)
+	 * Only admins can reset settings
+	 */
+	resetSettings(): Observable<PublicPageSettings> {
+		return this.http.post<PublicPageSettingsDto>(`${this.apiUrl}/admin/reset`, {}).pipe(
+			map((dto) => this.mapDtoToSettings(dto)),
+			catchError((error) => {
+				console.error('Error resetting public page settings:', error);
+				return throwError(() => error);
+			})
+		);
 	}
 
 	/**
 	 * Get default settings (for admin UI)
+	 * Returns default values without making API call
 	 */
 	getDefaultSettings(): PublicPageSettings {
 		return { ...DEFAULT_SETTINGS };
 	}
 
 	/**
-	 * Reset settings to defaults
+	 * Map DTO to settings interface (exclude metadata fields)
 	 */
-	resetSettings(): void {
-		try {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SETTINGS));
-		} catch (error) {
-			console.error('Error resetting public page settings:', error);
-		}
+	private mapDtoToSettings(dto: PublicPageSettingsDto): PublicPageSettings {
+		return {
+			mapVisualizationMode: dto.mapVisualizationMode,
+			selectedBasemapId: dto.selectedBasemapId,
+			colorScale: dto.colorScale,
+			nationalDataViewerTitle: dto.nationalDataViewerTitle,
+			nationalDataViewerDescription: dto.nationalDataViewerDescription,
+			nationalDataViewerInfoBoxContent: dto.nationalDataViewerInfoBoxContent,
+			nationalDataViewerInfoBoxStats: dto.nationalDataViewerInfoBoxStats,
+		};
+	}
+
+	/**
+	 * @deprecated Use getPublicSettings() or getAdminSettings() instead
+	 * This method is kept for backwards compatibility but will return default settings
+	 */
+	getSettings(): PublicPageSettings {
+		console.warn(
+			'getSettings() is deprecated. Use getPublicSettings() or getAdminSettings() instead.'
+		);
+		return { ...DEFAULT_SETTINGS };
+	}
+
+	/**
+	 * @deprecated Use updateSettings() instead
+	 * This method is kept for backwards compatibility but does nothing
+	 */
+	saveSettings(settings: Partial<PublicPageSettings>): void {
+		console.warn(
+			'saveSettings() is deprecated. Use updateSettings() Observable method instead.'
+		);
 	}
 }
 
