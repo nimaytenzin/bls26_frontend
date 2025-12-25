@@ -198,27 +198,53 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	}
 
 	/**
-	 * Load all sub-administrative zone data
+	 * Load all sub-administrative zone data with EA boundaries and statistics
 	 */
 	loadData() {
 		this.loading = true;
 		this.error = null;
 		this.noDataFound = false;
 
-		// Load enumeration areas with GeoJSON
-		this.enumerationAreaService
-			.getEnumerationAreaGeojsonBySubAdministrativeZone(
+		// Load enumeration areas with GeoJSON and statistics
+		this.eaAnnualStatsService
+			.getAllCurrentEAStatsGeojsonBySubAdministrativeZone(
 				this.subAdministrativeZoneId
 			)
 			.subscribe({
 				next: (data) => {
-					console.log('Loaded enumeration area GeoJSON:', data);
+					console.log('Loaded EA stats GeoJSON:', data);
 
 					if (data && data.features && data.features.length > 0) {
 						this.enumerationAreaBoundaries = data;
 
-						// Load statistics for each enumeration area
-						this.loadEnumerationAreaStatistics(data.features);
+						// Extract enumeration areas from features with stats
+						this.enumerationAreas = data.features.map((feature) => {
+							const props = feature.properties;
+							return {
+								id: props.id,
+								name: props.name || 'Unknown',
+								areaCode: props.areaCode || '',
+								totalHouseholds: props.totalHouseholds || 0,
+							};
+						});
+
+						// Calculate statistics from metadata summary if available
+						if (data.metadata?.summary) {
+							const summary = data.metadata.summary;
+							this.stats = {
+								totalHouseholds: summary.totalHouseholds || 0,
+								totalEnumerationAreas: summary.totalEAs || 0,
+							};
+						} else {
+							// Fallback to calculating from features
+							this.calculateStatistics();
+						}
+
+						this.loading = false;
+						this.isDataReady = true;
+						setTimeout(() => {
+							this.attemptInitializeMap();
+						}, 0);
 					} else {
 						// No enumeration areas found
 						this.noDataFound = true;
@@ -226,12 +252,13 @@ export class PublicSubadministrativeZoneDataViewerComponent
 					}
 				},
 				error: (error) => {
-					console.error('Error loading enumeration areas:', error);
+					console.error('Error loading EA stats GeoJSON:', error);
 					const errorMessage =
 						error?.error?.message || error?.message || '';
 					if (
 						error?.status === 404 &&
-						errorMessage.includes('No Enumeration Areas found')
+						(errorMessage.includes('No Enumeration Areas found') ||
+							errorMessage.includes('Sub-Administrative Zone'))
 					) {
 						this.noDataFound = true;
 						this.loadSubAdministrativeZoneBoundary();
@@ -242,58 +269,6 @@ export class PublicSubadministrativeZoneDataViewerComponent
 					}
 				},
 			});
-	}
-
-	/**
-	 * Load enumeration area statistics
-	 */
-	loadEnumerationAreaStatistics(features: any[]) {
-		const statsPromises = features.map((feature) => {
-			const eaId = feature.properties.id;
-			return this.eaAnnualStatsService
-				.findEAAnnualStatsByEnumerationArea(eaId)
-				.toPromise()
-				.then((stats) => {
-					// Get the latest year's statistics
-					if (stats && stats.length > 0) {
-						const latestStats = stats[stats.length - 1];
-						return {
-							id: eaId,
-							name: feature.properties.name || 'Unknown',
-							areaCode: feature.properties.areaCode || '',
-							totalHouseholds: latestStats.totalHouseholds || 0,
-						};
-					}
-					return {
-						id: eaId,
-						name: feature.properties.name || 'Unknown',
-						areaCode: feature.properties.areaCode || '',
-						totalHouseholds: 0,
-					};
-				})
-				.catch((error) => {
-					console.error(
-						`Error loading stats for EA ${eaId}:`,
-						error
-					);
-					return {
-						id: eaId,
-						name: feature.properties.name || 'Unknown',
-						areaCode: feature.properties.areaCode || '',
-						totalHouseholds: 0,
-					};
-				});
-		});
-
-		Promise.all(statsPromises).then((statsArray) => {
-			this.enumerationAreas = statsArray;
-			this.calculateStatistics();
-			this.loading = false;
-			this.isDataReady = true;
-			setTimeout(() => {
-				this.attemptInitializeMap();
-			}, 0);
-		});
 	}
 
 	/**
@@ -438,7 +413,7 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	private getFeatureStyle(feature: any): L.PathOptions {
 		const props = feature.properties;
 
-		if (!props) {
+		if (!props || !props.hasData) {
 			return {
 				fillColor: '#cccccc',
 				fillOpacity: 0.3,
@@ -447,12 +422,22 @@ export class PublicSubadministrativeZoneDataViewerComponent
 			};
 		}
 
-		// Get values for households
-		const values = this.enumerationAreas.map((ea) => ea.totalHouseholds);
+		// Get values for households from all features
+		const values = this.enumerationAreaBoundaries?.features
+			?.map((f: any) => f.properties?.totalHouseholds || 0)
+			.filter((v: number) => v > 0) || [];
+
+		if (values.length === 0) {
+			return {
+				fillColor: '#cccccc',
+				fillOpacity: 0.3,
+				color: '#666666',
+				weight: 1,
+			};
+		}
 
 		const minValue = Math.min(...values);
 		const maxValue = Math.max(...values);
-
 		const currentValue = props.totalHouseholds || 0;
 
 		// Get color based on value using color scale service
@@ -477,7 +462,6 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	 */
 	private onEachFeature(feature: any, layer: L.Layer): void {
 		const props = feature.properties;
-		const eaStats = this.enumerationAreas.find((ea) => ea.id === props.id);
 
 		// Add permanent label
 		const labelContent = `
@@ -513,16 +497,28 @@ export class PublicSubadministrativeZoneDataViewerComponent
 			layer.bindTooltip(label);
 		}
 
+		// Build popup content with stats from GeoJSON properties
+		const dataSection = props.hasData
+			? `
+				<div class="space-y-0 text-sm mb-3">
+					<div class="py-2 border-b border-slate-200">
+						<span class="font-semibold text-slate-700">Households: </span>
+						<span class="font-bold" style="color: #67A4CA">${(props.totalHouseholds || 0).toLocaleString()}</span>
+					</div>
+					${props.totalPopulation ? `
+					<div class="py-2 border-b border-slate-200">
+						<span class="font-semibold text-slate-700">Population: </span>
+						<span class="font-bold" style="color: #67A4CA">${props.totalPopulation.toLocaleString()}</span>
+					</div>
+					` : ''}
+				</div>
+			`
+			: '<p class="text-sm text-gray-500 mb-3">No data available for this enumeration area.</p>';
+
 		const popupContent = `
 			<div class="p-2 min-w-[280px]">
 				<h3 class="font-bold text-lg mb-3 text-slate-900">${props.name || 'Unknown'}</h3>
-				<div class="space-y-0 text-sm mb-3">
-					<!-- Households -->
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Households: </span>
-						<span class="font-bold" style="color: #67A4CA">${(eaStats?.totalHouseholds || 0).toLocaleString()}</span>
-					</div>
-				</div>
+				${dataSection}
 				<button 
 					id="download-kml-${props.id}" 
 					class="w-full px-3 py-2 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded transition shadow-sm flex items-center justify-center gap-2"

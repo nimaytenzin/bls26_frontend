@@ -10,6 +10,7 @@ import {
 	EAAnnualStats,
 	UpdateEAAnnualStatsDto,
 	HistoricalStatistics,
+	EABySubAdministrativeZoneGeoJsonResponse,
 } from './ea-annual-stats.dto';
 
 @Injectable({
@@ -235,5 +236,42 @@ export class EAAnnualStatsDataService {
 	 */
 	checkYearExists(stats: EAAnnualStats[], year: number): boolean {
 		return stats.some((s) => s.year === year);
+	}
+
+	/**
+	 * Get all Enumeration Areas for a specific Sub-Administrative Zone with annual statistics as GeoJSON
+	 * Returns all EAs within the specified Sub-Administrative Zone
+	 * Combines geographic boundaries with demographic statistics
+	 * Perfect for detailed map visualization of a single Sub-Administrative Zone
+	 *
+	 * @param subAdministrativeZoneId - ID of the Sub-Administrative Zone to filter by
+	 * @param year - Statistical year (optional, defaults to current year on backend)
+	 * @returns GeoJSON FeatureCollection with statistics embedded in properties
+	 *
+	 * @example
+	 * // Get all EAs in a Chiwog (SAZ ID 1)
+	 * getAllCurrentEAStatsGeojsonBySubAdministrativeZone(1)
+	 *
+	 * // Get EAs for specific year
+	 * getAllCurrentEAStatsGeojsonBySubAdministrativeZone(1, 2024)
+	 */
+	getAllCurrentEAStatsGeojsonBySubAdministrativeZone(
+		subAdministrativeZoneId: number,
+		year?: number
+	): Observable<EABySubAdministrativeZoneGeoJsonResponse> {
+		let url = `${this.apiUrl}/all/geojson&stats/current&bysubadministrativezone/${subAdministrativeZoneId}`;
+		if (year) {
+			url += `?year=${encodeURIComponent(String(year))}`;
+		}
+
+		return this.http.get<EABySubAdministrativeZoneGeoJsonResponse>(url).pipe(
+			catchError((error) => {
+				console.error(
+					'Error fetching EA stats GeoJSON by Sub-Administrative Zone:',
+					error
+				);
+				return throwError(() => error);
+			})
+		);
 	}
 }
