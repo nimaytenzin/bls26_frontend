@@ -225,9 +225,12 @@ export class SurveyEaManagementComponent implements OnInit {
 	loadSurveyEAs() {
 		this.loadingSurveyEAs = true;
 		this.surveyEAService.getBySurvey(this.surveyId).subscribe({
-			next: (data: any[]) => {
+			next: (data: any) => {
+				// API now returns an object: { survey, summary, hierarchy }
+				const hierarchy = Array.isArray(data) ? data : data?.hierarchy || [];
+
 				// Extract survey enumeration areas from hierarchical structure
-				this.surveyEAs = this.extractSurveyEAs(data);
+				this.surveyEAs = this.extractSurveyEAs(hierarchy);
 				this.extractFilterOptions();
 				this.updateSubAdminZoneOptions();
 				this.applyFilters();
@@ -308,27 +311,94 @@ export class SurveyEaManagementComponent implements OnInit {
 			dz.administrativeZones?.forEach((az: any) => {
 				az.subAdministrativeZones?.forEach((saz: any) => {
 					saz.enumerationAreas?.forEach((ea: any) => {
-						ea.surveyEnumerationAreas?.forEach((surveyEA: any) => {
-							surveyEAs.push({
-								...surveyEA,
-								enumerationArea: {
-									...ea,
-									subAdministrativeZone: {
-										...saz,
-										administrativeZone: {
-											...az,
-											dzongkhag: dz,
-										},
-									},
-								},
+						// Case 1: surveyEnumerationAreas array present (old shape)
+						if (ea.surveyEnumerationAreas && ea.surveyEnumerationAreas.length) {
+							ea.surveyEnumerationAreas.forEach((surveyEA: any) => {
+								surveyEAs.push(
+									this.toSurveyEAFromAssociation(surveyEA, ea, saz, az, dz)
+								);
 							});
-						});
+							return;
+						}
+
+						// Case 2: flattened shape with surveyEnumerationAreaId on EA (new shape)
+						if (ea.surveyEnumerationAreaId) {
+							surveyEAs.push(
+								this.toSurveyEAFromFlattenedEA(ea, saz, az, dz)
+							);
+						}
 					});
 				});
 			});
 		});
 
 		return surveyEAs;
+	}
+
+	/**
+	 * Map legacy association object to SurveyEnumerationArea
+	 */
+	private toSurveyEAFromAssociation(
+		surveyEA: any,
+		ea: any,
+		saz: any,
+		az: any,
+		dz: any
+	): SurveyEnumerationArea {
+		return {
+			...surveyEA,
+			enumerationAreaId: surveyEA.enumerationAreaId || ea.id,
+			surveyId: surveyEA.surveyId || this.surveyId,
+			enumerationArea: {
+				...ea,
+				subAdministrativeZones: [
+					{
+						...saz,
+						administrativeZone: {
+							...az,
+							dzongkhag: dz,
+						},
+					},
+				],
+			},
+		};
+	}
+
+	/**
+	 * Map flattened EA (with surveyEnumerationAreaId) to SurveyEnumerationArea
+	 */
+	private toSurveyEAFromFlattenedEA(
+		ea: any,
+		saz: any,
+		az: any,
+		dz: any
+	): SurveyEnumerationArea {
+		return {
+			id: ea.surveyEnumerationAreaId,
+			surveyId: this.surveyId,
+			enumerationAreaId: ea.id,
+			isEnumerated: !!ea.isEnumerated,
+			isSampled: !!ea.isSampled,
+			isPublished: !!ea.isPublished,
+			enumeratedBy: ea.enumeratedBy,
+			enumerationDate: ea.enumerationDate,
+			sampledBy: ea.sampledBy,
+			sampledDate: ea.sampledDate,
+			publishedBy: ea.publishedBy,
+			publishedDate: ea.publishedDate,
+			enumerationArea: {
+				...ea,
+				subAdministrativeZones: [
+					{
+						...saz,
+						administrativeZone: {
+							...az,
+							dzongkhag: dz,
+						},
+					},
+				],
+			},
+		};
 	}
 
 	/**

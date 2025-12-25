@@ -15,11 +15,17 @@ import {
 	BasemapService,
 	BasemapConfig,
 } from '../../../../core/utility/basemap.service';
-import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';
+import {
+	MapFeatureColorService,
+	ColorScaleType,
+} from '../../../../core/utility/map-feature-color.service';
 import { AdminZoneAnnualStatsDataService } from '../../../../core/dataservice/annual-statistics/admin-zone-annual-stats/admin-zone-annual-stats.dataservice';
 import { LocationDownloadService } from '../../../../core/dataservice/downloads/location.download.service';
+import { AnnualStatisticsDownloadService } from '../../../../core/dataservice/downloads/annual-statistics-download.service';
 import { MessageService } from 'primeng/api';
 import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
+import { PublicPageSettingsService } from '../../../../core/services/public-page-settings.service';
+import { DownloadService } from '../../../../core/utility/download.service';
 
 interface AdminZoneStats {
 	id: number;
@@ -48,10 +54,12 @@ export class PublicDzongkhagDataViewerComponent
 	dzongkhag: any = null;
 	loading = true;
 	error: string | null = null;
+	noDataFound = false; // Flag for when no administrative zones exist but dzongkhag exists
 
 	// Data
 	adminZones: AdminZoneStats[] = [];
 	adminZoneBoundaries: any = null;
+	dzongkhagBoundary: any = null; // Dzongkhag boundary when no admin zones exist
 
 	// Statistics (only Households and EAs for public)
 	stats = {
@@ -68,11 +76,17 @@ export class PublicDzongkhagDataViewerComponent
 	// Map visualization mode (only households and EAs for public)
 	mapVisualizationMode: 'households' | 'enumerationAreas' = 'households';
 
+	// Mobile State
+	isMobile: boolean = false;
+	isMobileDrawerOpen: boolean = false;
+	isMobileControlsCollapsed: boolean = true;
+
 	// Map
 	private map?: L.Map;
 	private baseLayer?: L.TileLayer;
 	private currentGeoJSONLayer?: L.GeoJSON;
 	selectedBasemapId = 'positron';
+	selectedColorScale: ColorScaleType = 'blue';
 	basemapCategories: Record<
 		string,
 		{ label: string; basemaps: BasemapConfig[] }
@@ -81,6 +95,7 @@ export class PublicDzongkhagDataViewerComponent
 	// Lifecycle flags
 	private isViewReady = false;
 	private isDataReady = false;
+	private resizeListener?: () => void;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -89,8 +104,11 @@ export class PublicDzongkhagDataViewerComponent
 		private colorScaleService: MapFeatureColorService,
 		private adminZoneAnnualStatsDataService: AdminZoneAnnualStatsDataService,
 		private locationDownloadService: LocationDownloadService,
+		private annualStatisticsDownloadService: AnnualStatisticsDownloadService,
 		private dzongkhagService: DzongkhagDataService,
-		private messageService: MessageService
+		private messageService: MessageService,
+		private publicPageSettingsService: PublicPageSettingsService,
+		private downloadService: DownloadService
 	) {}
 
 	ngOnInit() {
@@ -98,6 +116,14 @@ export class PublicDzongkhagDataViewerComponent
 
 		// Initialize basemap categories from service
 		this.basemapCategories = this.basemapService.getBasemapCategories();
+
+		// Initialize settings (basemap and color scale)
+		const settings = this.publicPageSettingsService.getSettings();
+		this.selectedBasemapId = settings.selectedBasemapId;
+		this.selectedColorScale = settings.colorScale || 'blue';
+
+		// Initialize responsive
+		this.initializeResponsive();
 
 		// Load dzongkhag info
 		this.loadDzongkhagInfo();
@@ -112,6 +138,25 @@ export class PublicDzongkhagDataViewerComponent
 	}
 
 	ngOnDestroy() {
+		this.cleanup();
+	}
+
+	/**
+	 * Initialize responsive behavior
+	 */
+	private initializeResponsive(): void {
+		this.checkMobileViewport();
+		this.resizeListener = () => this.checkMobileViewport();
+		window.addEventListener('resize', this.resizeListener);
+	}
+
+	/**
+	 * Cleanup resources
+	 */
+	private cleanup(): void {
+		if (this.resizeListener) {
+			window.removeEventListener('resize', this.resizeListener);
+		}
 		if (this.map) {
 			this.map.remove();
 		}
@@ -137,6 +182,7 @@ export class PublicDzongkhagDataViewerComponent
 	loadData() {
 		this.loading = true;
 		this.error = null;
+		this.noDataFound = false;
 
 		// Load admin zone stats GeoJSON - contains boundaries and statistics
 		this.adminZoneAnnualStatsDataService
@@ -173,16 +219,61 @@ export class PublicDzongkhagDataViewerComponent
 				},
 				error: (error) => {
 					console.error('Error loading dzongkhag data:', error);
-					this.error = 'Failed to load dzongkhag data. Please try again.';
-					this.loading = false;
+					
+					// Check if this is a "No Administrative Zones found" error
+					const errorMessage = error?.error?.message || error?.message || '';
+					if (error?.status === 404 && errorMessage.includes('No Administrative Zones found')) {
+						// This is not a real error - just no data available
+						this.noDataFound = true;
+						this.loadDzongkhagBoundary();
+					} else {
+						// This is a real error
+						this.error = 'Failed to load dzongkhag data. Please try again.';
+						this.loading = false;
+					}
 				},
 			});
+	}
+
+	/**
+	 * Load dzongkhag boundary when no administrative zones exist
+	 */
+	loadDzongkhagBoundary() {
+		this.dzongkhagService.getDzongkhagGeojson(this.dzongkhagId).subscribe({
+			next: (geojson) => {
+				this.dzongkhagBoundary = geojson;
+				this.loading = false;
+				this.isDataReady = true;
+				
+				// Initialize map with dzongkhag boundary
+				setTimeout(() => {
+					this.attemptInitializeMap();
+				}, 0);
+			},
+			error: (error) => {
+				console.error('Error loading dzongkhag boundary:', error);
+				// If we can't even load the boundary, show error
+				this.error = 'Failed to load dzongkhag data. Please try again.';
+				this.loading = false;
+			},
+		});
 	}
 
 	/**
 	 * Calculate statistics from loaded admin zones (only Households and EAs)
 	 */
 	calculateStatistics() {
+		if (this.noDataFound || !this.adminZones || this.adminZones.length === 0) {
+			this.stats = {
+				totalHouseholds: 0,
+				totalEnumerationAreas: 0,
+				totalAdminZones: 0,
+				totalGewogs: 0,
+				totalThromdes: 0,
+			};
+			return;
+		}
+
 		this.stats = {
 			totalHouseholds: 0,
 			totalEnumerationAreas: 0,
@@ -249,8 +340,8 @@ export class PublicDzongkhagDataViewerComponent
 
 			console.log('Map initialized successfully');
 
-			// Load admin zone boundaries if data is ready
-			if (this.adminZoneBoundaries) {
+			// Load boundaries if data is ready
+			if (this.adminZoneBoundaries || this.dzongkhagBoundary) {
 				this.loadAdminZoneBoundaries();
 			}
 		} catch (error) {
@@ -262,22 +353,53 @@ export class PublicDzongkhagDataViewerComponent
 	 * Load administrative zone boundaries on map
 	 */
 	loadAdminZoneBoundaries() {
-		if (!this.adminZoneBoundaries || !this.map) return;
+		if (!this.map) return;
 
 		if (this.currentGeoJSONLayer) {
 			this.map.removeLayer(this.currentGeoJSONLayer);
 		}
 
-		console.log('Loading admin zone GeoJSON data with statistics');
+		// If we have admin zone boundaries, use those
+		if (this.adminZoneBoundaries) {
+			console.log('Loading admin zone GeoJSON data with statistics');
 
-		this.currentGeoJSONLayer = L.geoJSON(this.adminZoneBoundaries as any, {
-			style: (feature: any) => this.getFeatureStyle(feature),
-			onEachFeature: (feature: any, layer) =>
-				this.onEachFeature(feature, layer),
-		});
+			this.currentGeoJSONLayer = L.geoJSON(this.adminZoneBoundaries as any, {
+				style: (feature: any) => this.getFeatureStyle(feature),
+				onEachFeature: (feature: any, layer) =>
+					this.onEachFeature(feature, layer),
+			});
 
-		this.currentGeoJSONLayer.addTo(this.map);
-		this.map.fitBounds(this.currentGeoJSONLayer.getBounds());
+			this.currentGeoJSONLayer.addTo(this.map);
+			this.map.fitBounds(this.currentGeoJSONLayer.getBounds());
+		} 
+		// If no admin zones but we have dzongkhag boundary, show that
+		else if (this.dzongkhagBoundary && this.noDataFound) {
+			console.log('Loading dzongkhag boundary (no admin zones available)');
+
+			this.currentGeoJSONLayer = L.geoJSON(this.dzongkhagBoundary as any, {
+				style: () => ({
+					fillColor: '#e2e8f0',
+					fillOpacity: 0.3,
+					color: '#94a3b8',
+					weight: 2,
+					opacity: 1,
+				}),
+				onEachFeature: (feature: any, layer) => {
+					// Add simple popup with dzongkhag name
+					const props = feature.properties;
+					const popupContent = `
+						<div class="p-2 min-w-[200px]">
+							<h3 class="font-bold text-lg mb-2 text-slate-900">${this.dzongkhag?.name || 'Dzongkhag'}</h3>
+							<p class="text-sm text-slate-600">No administrative zone data available</p>
+						</div>
+					`;
+					layer.bindPopup(popupContent);
+				},
+			});
+
+			this.currentGeoJSONLayer.addTo(this.map);
+			this.map.fitBounds(this.currentGeoJSONLayer.getBounds());
+		}
 	}
 
 	/**
@@ -318,7 +440,8 @@ export class PublicDzongkhagDataViewerComponent
 		const color = this.colorScaleService.getInterpolatedColor(
 			currentValue,
 			minValue,
-			maxValue
+			maxValue,
+			this.selectedColorScale
 		);
 
 		return {
@@ -386,12 +509,24 @@ export class PublicDzongkhagDataViewerComponent
 						<span class="font-bold" style="color: #67A4CA">${props.eaCount || 0}</span>
 					</div>
 				</div>
-				<button 
-					id="view-adminzone-${props.id}" 
-					class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded transition shadow-sm"
-				>
-					View Details
-				</button>
+				<div class="flex gap-2">
+					<button 
+						id="view-adminzone-${props.id}" 
+						class="flex-1 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded transition shadow-sm"
+					>
+						View Details
+					</button>
+					<button 
+						id="download-kml-${props.id}" 
+						class="px-3 py-2 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded transition shadow-sm flex items-center justify-center"
+						title="Download KML"
+					>
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+						</svg>
+						KML
+					</button>
+				</div>
 			</div>
 		`;
 
@@ -400,11 +535,20 @@ export class PublicDzongkhagDataViewerComponent
 
 		// Add click listener for the button after popup opens
 		layer.on('popupopen', () => {
-			const button = document.getElementById(`view-adminzone-${props.id}`);
-			if (button) {
-				button.addEventListener('click', () => {
+			const viewButton = document.getElementById(`view-adminzone-${props.id}`);
+			if (viewButton) {
+				viewButton.addEventListener('click', () => {
 					if (props.id) {
 						this.viewAdministrativeZone(props.id);
+					}
+				});
+			}
+
+			const downloadButton = document.getElementById(`download-kml-${props.id}`);
+			if (downloadButton) {
+				downloadButton.addEventListener('click', () => {
+					if (props.id) {
+						this.downloadAdminZoneKML(props.id, props.name || 'AdminZone');
 					}
 				});
 			}
@@ -455,6 +599,51 @@ export class PublicDzongkhagDataViewerComponent
 		if (this.map && this.adminZoneBoundaries) {
 			this.loadAdminZoneBoundaries();
 		}
+
+		if (this.isMobile) {
+			this.closeMobileDrawer();
+		}
+	}
+
+	// ==================== Mobile Controls ====================
+
+	/**
+	 * Check if viewport is mobile
+	 */
+	checkMobileViewport(): void {
+		const wasMobile = this.isMobile;
+		this.isMobile = window.innerWidth < 768;
+
+		if (wasMobile && !this.isMobile) {
+			this.isMobileDrawerOpen = false;
+		}
+	}
+
+	/**
+	 * Toggle mobile drawer
+	 */
+	toggleMobileDrawer(): void {
+		this.isMobileDrawerOpen = !this.isMobileDrawerOpen;
+		this.invalidateMapSize();
+	}
+
+	/**
+	 * Close mobile drawer
+	 */
+	closeMobileDrawer(): void {
+		this.isMobileDrawerOpen = false;
+		this.invalidateMapSize();
+	}
+
+	/**
+	 * Invalidate map size after drawer animations
+	 */
+	private invalidateMapSize(): void {
+		setTimeout(() => {
+			if (this.map) {
+				this.map.invalidateSize();
+			}
+		}, 300);
 	}
 
 	/**
@@ -462,17 +651,84 @@ export class PublicDzongkhagDataViewerComponent
 	 */
 	viewAdministrativeZone(adminZoneId: number): void {
 		this.router.navigate([
-			'/public/data-viewer/administrative-zone',
+			'administrative-zone',
 			this.dzongkhagId,
 			adminZoneId,
-		]);
+		], {
+			relativeTo: this.route.parent || this.route,
+		});
 	}
 
 	/**
 	 * Navigate back to national viewer
 	 */
 	goBack(): void {
-		this.router.navigate(['/public/data-viewer/national']);
+		console.log('Going back to national viewer');
+		this.router.navigate(['/']);
+	}
+
+	/**
+	 * Download administrative zone KML file
+	 */
+	downloadAdminZoneKML(adminZoneId: number, adminZoneName: string): void {
+		if (!this.adminZoneBoundaries || !this.adminZoneBoundaries.features) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Download Failed',
+				detail: 'Administrative zone boundaries not available',
+				life: 3000,
+			});
+			return;
+		}
+
+		// Find the specific feature for this admin zone
+		const feature = this.adminZoneBoundaries.features.find(
+			(f: any) => f.properties.id === adminZoneId
+		);
+
+		if (!feature) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Download Failed',
+				detail: 'Administrative zone not found',
+				life: 3000,
+			});
+			return;
+		}
+
+		// Create a GeoJSON with just this feature
+		const featureGeoJSON = {
+			type: 'FeatureCollection',
+			features: [feature],
+		};
+
+		// Generate filename
+		const sanitizedName = adminZoneName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+		const filename = `${sanitizedName}_${adminZoneId}_${new Date().toISOString().split('T')[0]}.kml`;
+
+		// Download the KML
+		try {
+			this.downloadService.downloadKML({
+				data: featureGeoJSON,
+				filename: filename,
+				layerName: adminZoneName,
+			});
+
+			this.messageService.add({
+				severity: 'success',
+				summary: 'Download Complete',
+				detail: `${adminZoneName} KML downloaded successfully`,
+				life: 3000,
+			});
+		} catch (error) {
+			console.error('Error downloading KML:', error);
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Download Failed',
+				detail: 'Failed to download KML file',
+				life: 3000,
+			});
+		}
 	}
 
 	/**
@@ -500,7 +756,12 @@ export class PublicDzongkhagDataViewerComponent
 		}
 
 		const { min, max } = this.getLegendMinMax();
-		return this.colorScaleService.getLegendGradient(min, max, 'vertical');
+		return this.colorScaleService.getLegendGradient(
+			min,
+			max,
+			'vertical',
+			this.selectedColorScale
+		);
 	}
 
 	/**
@@ -512,7 +773,12 @@ export class PublicDzongkhagDataViewerComponent
 		}
 
 		const { min, max } = this.getLegendMinMax();
-		return this.colorScaleService.getLegendBreaks(min, max, 5);
+		return this.colorScaleService.getLegendBreaks(
+			min,
+			max,
+			5,
+			this.selectedColorScale
+		);
 	}
 
 	/**
@@ -564,29 +830,16 @@ export class PublicDzongkhagDataViewerComponent
 			.downloadAZsByDzongkhagAsGeoJson(this.dzongkhagId)
 			.subscribe({
 				next: (geoJson) => {
-					const dataStr = JSON.stringify(geoJson, null, 2);
-					const blob = new Blob([dataStr], { type: 'application/json' });
-					const url = window.URL.createObjectURL(blob);
-					const link = document.createElement('a');
-					link.href = url;
-					link.download = `${this.dzongkhag?.name || 'dzongkhag'}_admin_zones_${new Date().toISOString().split('T')[0]}.geojson`;
-					link.click();
-					window.URL.revokeObjectURL(url);
-					this.messageService.add({
-						severity: 'success',
-						summary: 'Download Complete',
-						detail: 'Administrative Zones GeoJSON downloaded successfully',
-						life: 3000,
-					});
+					this.downloadFile(
+						JSON.stringify(geoJson, null, 2),
+						`${this.dzongkhag?.name || 'dzongkhag'}_admin_zones_${new Date().toISOString().split('T')[0]}.geojson`,
+						'application/json'
+					);
+					this.showSuccessMessage('Administrative Zones GeoJSON downloaded successfully');
 				},
 				error: (error) => {
 					console.error('Error downloading Administrative Zones GeoJSON:', error);
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Download Failed',
-						detail: 'Failed to download Administrative Zones GeoJSON file',
-						life: 3000,
-					});
+					this.showErrorMessage('Failed to download Administrative Zones GeoJSON file');
 				},
 			});
 	}
@@ -600,32 +853,77 @@ export class PublicDzongkhagDataViewerComponent
 			.downloadAZsByDzongkhagAsKml(this.dzongkhagId)
 			.subscribe({
 				next: (kml) => {
-					const blob = new Blob([kml], {
-						type: 'application/vnd.google-earth.kml+xml',
-					});
-					const url = window.URL.createObjectURL(blob);
-					const link = document.createElement('a');
-					link.href = url;
-					link.download = `${this.dzongkhag?.name || 'dzongkhag'}_admin_zones_${new Date().toISOString().split('T')[0]}.kml`;
-					link.click();
-					window.URL.revokeObjectURL(url);
-					this.messageService.add({
-						severity: 'success',
-						summary: 'Download Complete',
-						detail: 'Administrative Zones KML downloaded successfully',
-						life: 3000,
-					});
+					this.downloadFile(
+						kml,
+						`${this.dzongkhag?.name || 'dzongkhag'}_admin_zones_${new Date().toISOString().split('T')[0]}.kml`,
+						'application/vnd.google-earth.kml+xml'
+					);
+					this.showSuccessMessage('Administrative Zones KML downloaded successfully');
 				},
 				error: (error) => {
 					console.error('Error downloading Administrative Zones KML:', error);
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Download Failed',
-						detail: 'Failed to download Administrative Zones KML file',
-						life: 3000,
-					});
+					this.showErrorMessage('Failed to download Administrative Zones KML file');
 				},
 			});
+	}
+
+	/**
+	 * Download file helper
+	 */
+	private downloadFile(content: string, filename: string, mimeType: string): void {
+		const blob = new Blob([content], { type: mimeType });
+		const url = window.URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = filename;
+		link.click();
+		window.URL.revokeObjectURL(url);
+	}
+
+	/**
+	 * Show success message
+	 */
+	private showSuccessMessage(detail: string): void {
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail,
+			life: 3000,
+		});
+	}
+
+	/**
+	 * Show error message
+	 */
+	private showErrorMessage(detail: string): void {
+		this.messageService.add({
+			severity: 'error',
+			summary: 'Download Failed',
+			detail,
+			life: 3000,
+		});
+	}
+
+	/**
+	 * Download Dzongkhag annual statistics as CSV
+	 */
+	downloadDzongkhagStatisticsCSV(): void {
+		if (!this.dzongkhagId) return;
+		
+		this.annualStatisticsDownloadService.downloadDzongkhagStats(this.dzongkhagId).subscribe({
+			next: (csv) => {
+				this.downloadFile(
+					csv,
+					`${this.dzongkhag?.name || 'dzongkhag'}_annual_statistics_${new Date().toISOString().split('T')[0]}.csv`,
+					'text/csv'
+				);
+				this.showSuccessMessage('Dzongkhag annual statistics CSV downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading dzongkhag statistics CSV:', error);
+				this.showErrorMessage('Failed to download dzongkhag statistics CSV file');
+			},
+		});
 	}
 }
 

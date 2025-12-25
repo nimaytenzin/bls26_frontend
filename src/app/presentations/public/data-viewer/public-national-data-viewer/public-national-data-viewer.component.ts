@@ -20,9 +20,14 @@ import {
 } from '../../../../core/dataservice/annual-statistics/dzongkhag-annual-stats/dzongkhag-annual-stats.dto';
 import { DzongkhagAnnualStatsDataService } from '../../../../core/dataservice/annual-statistics/dzongkhag-annual-stats/dzongkhag-annual-stats.dataservice';
 import { LocationDownloadService } from '../../../../core/dataservice/downloads/location.download.service';
+import { AnnualStatisticsDownloadService } from '../../../../core/dataservice/downloads/annual-statistics-download.service';
 import { BasemapConfig, BasemapService } from '../../../../core/utility/basemap.service';
-import { MapFeatureColorService } from '../../../../core/utility/map-feature-color.service';
+import {
+	MapFeatureColorService,
+	ColorScaleType,
+} from '../../../../core/utility/map-feature-color.service';
 import { PublicPageSettingsService } from '../../../../core/services/public-page-settings.service';
+import { DownloadService } from '../../../../core/utility/download.service';
 
 interface DzongkhagStats {
 	dzongkhagId: number;
@@ -68,6 +73,21 @@ export class PublicNationalDataViewerComponent
 		totalHouseholds: 0,
 	};
 
+	// Download options for statistics CSV
+	showStatisticsDownloadDialog = false;
+	statisticsDownloadOptions = {
+		year: undefined as number | undefined,
+		includeAZ: false,
+		includeSAZ: false,
+	};
+
+	// Content settings
+	pageTitle = 'National Sampling Frame';
+	pageDescription = 'Current statistics on households and enumeration areas';
+	infoBoxContent =
+		'A sampling frame is a population from which a sample can be drawn, ensuring survey samples are representative and reliable.';
+	infoBoxStats = '3,310 EAs total (1,464 urban, 1,846 rural)';
+
 	// Mobile State
 	isMobile: boolean = false;
 	isMobileDrawerOpen: boolean = false;
@@ -78,6 +98,7 @@ export class PublicNationalDataViewerComponent
 	private baseLayer?: L.TileLayer;
 	private currentGeoJSONLayer?: L.GeoJSON;
 	selectedBasemapId = 'positron';
+	selectedColorScale: ColorScaleType = 'blue';
 	showDzongkhagBoundaries = true;
 	basemapCategories: Record<
 		string,
@@ -94,8 +115,10 @@ export class PublicNationalDataViewerComponent
 		private colorScaleService: MapFeatureColorService,
 		private basemapService: BasemapService,
 		private locationDownloadService: LocationDownloadService,
+		private annualStatisticsDownloadService: AnnualStatisticsDownloadService,
 		private messageService: MessageService,
-		private publicPageSettingsService: PublicPageSettingsService
+		private publicPageSettingsService: PublicPageSettingsService,
+		private downloadService: DownloadService
 	) {}
 
 	ngOnInit(): void {
@@ -124,6 +147,18 @@ export class PublicNationalDataViewerComponent
 		const settings = this.publicPageSettingsService.getSettings();
 		this.mapVisualizationMode = settings.mapVisualizationMode;
 		this.selectedBasemapId = settings.selectedBasemapId;
+		this.selectedColorScale = settings.colorScale || 'blue';
+		// Load content settings
+		this.pageTitle = settings.nationalDataViewerTitle || 'National Sampling Frame';
+		this.pageDescription =
+			settings.nationalDataViewerDescription ||
+			'Current statistics on households and enumeration areas';
+		this.infoBoxContent =
+			settings.nationalDataViewerInfoBoxContent ||
+			'A sampling frame is a population from which a sample can be drawn, ensuring survey samples are representative and reliable.';
+		this.infoBoxStats =
+			settings.nationalDataViewerInfoBoxStats ||
+			'3,310 EAs total (1,464 urban, 1,846 rural)';
 	}
 
 	private initializeResponsive(): void {
@@ -267,7 +302,8 @@ export class PublicNationalDataViewerComponent
 		const color = this.colorScaleService.getInterpolatedColor(
 			currentValue,
 			minValue,
-			maxValue
+			maxValue,
+			this.selectedColorScale
 		);
 
 		return {
@@ -316,11 +352,20 @@ export class PublicNationalDataViewerComponent
 
 		// Add popup button listener
 		layer.on('popupopen', () => {
-			const button = document.getElementById(`view-dzongkhag-${props.id}`);
-			if (button) {
-				button.addEventListener('click', () => {
+			const viewButton = document.getElementById(`view-dzongkhag-${props.id}`);
+			if (viewButton) {
+				viewButton.addEventListener('click', () => {
 					if (props.id) {
 						this.viewDzongkhag(props.id);
+					}
+				});
+			}
+
+			const downloadButton = document.getElementById(`download-kml-${props.id}`);
+			if (downloadButton) {
+				downloadButton.addEventListener('click', () => {
+					if (props.id) {
+						this.downloadDzongkhagKML(props.id, props.name);
 					}
 				});
 			}
@@ -380,12 +425,24 @@ export class PublicNationalDataViewerComponent
 			<div class="p-2 min-w-[280px]">
 				<h3 class="font-bold text-lg mb-3 text-slate-900">${props.name} Dzongkhag</h3>
 				${dataSection}
-				<button 
-					id="view-dzongkhag-${props.id}" 
-					class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded transition shadow-sm"
-				>
-					View Details
-				</button>
+				<div class="flex gap-2">
+					<button 
+						id="view-dzongkhag-${props.id}" 
+						class="flex-1 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded transition shadow-sm"
+					>
+						View Details
+					</button>
+					<button 
+						id="download-kml-${props.id}" 
+						class="px-3 py-2 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded transition shadow-sm flex items-center justify-center"
+						title="Download KML"
+					>
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+						</svg>
+						KML
+					</button>
+				</div>
 			</div>
 		`;
 	}
@@ -440,7 +497,12 @@ export class PublicNationalDataViewerComponent
 		}
 
 		const { min, max } = this.getLegendMinMax();
-		return this.colorScaleService.getLegendGradient(min, max, 'vertical');
+		return this.colorScaleService.getLegendGradient(
+			min,
+			max,
+			'vertical',
+			this.selectedColorScale
+		);
 	}
 
 	getLegendBreaks(): { value: number; label: string; position: number }[] {
@@ -449,7 +511,7 @@ export class PublicNationalDataViewerComponent
 		}
 
 		const { min, max } = this.getLegendMinMax();
-		return this.colorScaleService.getLegendBreaks(min, max, 5);
+		return this.colorScaleService.getLegendBreaks(min, max, 5, this.selectedColorScale);
 	}
 
 	private getLegendMinMax(): { min: number; max: number } {
@@ -478,6 +540,88 @@ export class PublicNationalDataViewerComponent
 	viewDzongkhag(dzongkhagId: number): void {
 		this.router.navigate(['dzongkhag', dzongkhagId], {
 			relativeTo: this.route.parent || this.route,
+		});
+	}
+
+	/**
+	 * Download dzongkhag KML file
+	 */
+	downloadDzongkhagKML(dzongkhagId: number, dzongkhagName: string): void {
+		if (!this.geoJsonData || !this.geoJsonData.features) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Download Failed',
+				detail: 'Dzongkhag boundaries not available',
+				life: 3000,
+			});
+			return;
+		}
+
+		// Find the specific feature for this dzongkhag
+		const feature = this.geoJsonData.features.find(
+			(f: any) => f.properties.id === dzongkhagId
+		);
+
+		if (!feature) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Download Failed',
+				detail: 'Dzongkhag not found',
+				life: 3000,
+			});
+			return;
+		}
+
+		// Create a GeoJSON with just this feature
+		const featureGeoJSON = {
+			type: 'FeatureCollection',
+			features: [feature],
+		};
+
+		// Generate filename
+		const sanitizedName = dzongkhagName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+		const filename = `${sanitizedName}_${dzongkhagId}_${new Date().toISOString().split('T')[0]}.kml`;
+
+		// Download the KML
+		try {
+			this.downloadService.downloadKML({
+				data: featureGeoJSON,
+				filename: filename,
+				layerName: `${dzongkhagName} Dzongkhag`,
+			});
+
+			this.messageService.add({
+				severity: 'success',
+				summary: 'Download Complete',
+				detail: `${dzongkhagName} Dzongkhag KML downloaded successfully`,
+				life: 3000,
+			});
+		} catch (error) {
+			console.error('Error downloading KML:', error);
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Download Failed',
+				detail: 'Failed to download KML file',
+				life: 3000,
+			});
+		}
+	}
+
+	/**
+	 * Navigate to login page
+	 */
+	navigateToLogin(): void {
+		this.router.navigate(['/auth/login']);
+	}
+
+	/**
+	 * Navigate to geographic statistical code page
+	 */
+	navigateToGeographicStatisticalCode(): void {
+		// Navigate to the parent route level where geographic-statistical-code is defined
+		const parentRoute = this.route.parent?.parent || this.route.parent || this.route;
+		this.router.navigate(['geographic-statistical-code'], {
+			relativeTo: parentRoute,
 		});
 	}
 
@@ -544,6 +688,62 @@ export class PublicNationalDataViewerComponent
 				this.showErrorMessage('Failed to download Dzongkhags KML file');
 			},
 		});
+	}
+
+	openStatisticsDownloadDialog(): void {
+		this.showStatisticsDownloadDialog = true;
+		// Reset options
+		this.statisticsDownloadOptions = {
+			year: undefined,
+			includeAZ: false,
+			includeSAZ: false,
+		};
+	}
+
+	closeStatisticsDownloadDialog(): void {
+		this.showStatisticsDownloadDialog = false;
+	}
+
+	downloadNationalStatisticsCSV(): void {
+		const { year, includeAZ, includeSAZ } = this.statisticsDownloadOptions;
+		
+		// Validate: includeSAZ requires includeAZ
+		if (includeSAZ && !includeAZ) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Invalid Options',
+				detail: 'Sub-Administrative Zones can only be included if Administrative Zones are included.',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.annualStatisticsDownloadService
+			.downloadNationalStats(year, includeAZ, includeSAZ)
+			.subscribe({
+				next: (csv) => {
+					// Build filename with options
+					let filename = 'national_annual_statistics';
+					if (year) {
+						filename += `_${year}`;
+					}
+					if (includeAZ) {
+						filename += '_with_az';
+					}
+					if (includeSAZ) {
+						filename += '_with_saz';
+					}
+					filename += `_${new Date().toISOString().split('T')[0]}.csv`;
+
+					this.downloadFile(csv, filename, 'text/csv');
+					this.showSuccessMessage('National annual statistics CSV downloaded successfully');
+					this.closeStatisticsDownloadDialog();
+				},
+				error: (error) => {
+					console.error('Error downloading national statistics CSV:', error);
+					this.showErrorMessage('Failed to download national statistics CSV file');
+				},
+			});
 	}
 
 	private downloadFile(content: string, filename: string, mimeType: string): void {

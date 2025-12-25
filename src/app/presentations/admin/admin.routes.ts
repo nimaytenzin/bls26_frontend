@@ -32,7 +32,7 @@ export const adminRoutes: Routes = [
 		component: LayoutComponent,
 		// canActivate: [AdminGuard],
 		// canActivateChild: [AdminGuard],
-		// data: { roles: [UserRole.ADMIN, UserRole.MANAGER] },
+		// data: { roles: [UserRole.ADMIN] },
 		children: [
 			{
 				path: '',

@@ -9,6 +9,9 @@ import {
 	LoginResponse,
 	RegisterDto,
 	ChangePasswordDto,
+	UpdateProfileDto,
+	UpdateProfileResponse,
+	ChangePasswordResponse,
 	CreateSupervisorDto,
 	CreateEnumeratorDto,
 	UpdateUserDto,
@@ -124,10 +127,30 @@ export class AuthService {
 	/**
 	 * Change password
 	 * @param changePasswordDto - Change password data
-	 * @returns Observable<any>
+	 * @returns Observable<ChangePasswordResponse>
 	 */
-	changePassword(changePasswordDto: ChangePasswordDto): Observable<any> {
+	changePassword(changePasswordDto: ChangePasswordDto): Observable<ChangePasswordResponse> {
 		return this.authDataService.changePassword(changePasswordDto);
+	}
+
+	/**
+	 * Update current user profile
+	 * @param updateProfileDto - Profile update data
+	 * @returns Observable<UpdateProfileResponse>
+	 */
+	updateProfile(updateProfileDto: UpdateProfileDto): Observable<UpdateProfileResponse> {
+		return this.authDataService.updateProfile(updateProfileDto).pipe(
+			tap((response) => {
+				// Update stored user data with the updated profile
+				const currentState = this.authStateSubject.value;
+				this.setAuthData(currentState.token!, response.user);
+				this.authStateSubject.next({
+					...currentState,
+					user: response.user,
+				});
+			}),
+			catchError((error) => throwError(() => error))
+		);
 	}
 
 	/**
@@ -187,6 +210,15 @@ export class AuthService {
 	 */
 	getUserById(userId: number): Observable<User> {
 		return this.authDataService.getUserById(userId);
+	}
+
+	/**
+	 * Get complete user profile with all role-specific assignments
+	 * @param userId - User ID
+	 * @returns Observable with comprehensive user profile data
+	 */
+	getUserProfile(userId: number): Observable<any> {
+		return this.authDataService.getUserProfile(userId);
 	}
 
 	/**

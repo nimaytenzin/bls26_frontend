@@ -1,8 +1,5 @@
 import { Routes } from '@angular/router';
-import { PublicHomeComponent } from './public-home/public-home.component';
 import { PublicLayoutComponentComponent } from './layout/public-layout-component/public-layout-component.component';
-import { PublicAdministrativezoneViewerComponent } from './public-administrativezone-viewer/public-administrativezone-viewer.component';
-import { PublicSubadministrativezoneViewerComponent } from './public-subadministrativezone-viewer/public-subadministrativezone-viewer.component';
 
 export const publicRoutes: Routes = [
 	{
@@ -28,40 +25,32 @@ export const publicRoutes: Routes = [
 					},
 					{
 						path: 'administrative-zone/:dzongkhagId/:id',
-						component: PublicAdministrativezoneViewerComponent,
+						loadComponent: () =>
+							import(
+								'./data-viewer/public-administrative-zone-data-viewer/public-administrative-zone-data-viewer.component'
+							).then((m) => m.PublicAdministrativeZoneDataViewerComponent),
 					},
 					{
 						path: 'sub-administrative-zone/:administrativeZoneId/:id',
-						component: PublicSubadministrativezoneViewerComponent,
+						loadComponent: () =>
+							import(
+								'./data-viewer/public-subadministrative-zone-data-viewer/public-subadministrative-zone-data-viewer.component'
+							).then((m) => m.PublicSubadministrativeZoneDataViewerComponent),
 					},
 				],
 			},
-			// Legacy routes (keep for backward compatibility)
+		
 			{
-				path: 'dzongkhag-viewer/:id',
+				path: 'geographic-statistical-code',
 				loadComponent: () =>
 					import(
-						'./public-dzongkhag-viewer/public-dzongkhag-viewer.component'
-					).then((m) => m.PublicDzongkhagViewerComponent),
-			},
-			{
-				path: 'adminzone-viewer/:dzongkhagId/:id',
-				component: PublicAdministrativezoneViewerComponent,
-			},
-			{
-				path: 'subadminzone-viewer/:administrativeZoneId/:id',
-				component: PublicSubadministrativezoneViewerComponent,
+						'./public-geographic-statistical-code/public-geographic-statistical-code.component'
+					).then(
+						(m) => m.PublicGeographicStatisticalCodeComponent
+					),
 			},
 
-			// Legacy routes for backward compatibility
-			{
-				path: 'movie/schedule/:movieId',
-				redirectTo: 'select-schedule/:movieId',
-			},
-			{
-				path: 'movie/select-seat/:movieId',
-				redirectTo: 'select-seats/:movieId',
-			},
+			
 		],
 	},
 ];

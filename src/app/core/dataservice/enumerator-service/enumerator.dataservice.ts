@@ -97,4 +97,15 @@ export class EnumeratorDataService {
 	deleteHouseholdListing(id: number): Observable<any> {
 		return this.http.delete<any>(`${this.apiUrl}/household-listing/${id}`);
 	}
+
+	/**
+	 * Get active surveys for a specific enumerator by ID
+	 * @param enumeratorId - Enumerator user ID
+	 * @returns Observable of Survey array (only ACTIVE surveys)
+	 */
+	getActiveSurveysForEnumerator(enumeratorId: number): Observable<Survey[]> {
+		return this.http.get<Survey[]>(
+			`${environment.BASEAPI_URL}/enumerator-routes/active-surveys/${enumeratorId}`
+		);
+	}
 }

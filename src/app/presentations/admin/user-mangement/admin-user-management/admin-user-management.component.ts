@@ -20,6 +20,7 @@ import { AdminAssignDzongkhagComponent } from '../components/admin-assign-dzongk
 import { AdminUserCreateComponent } from '../components/admin-user-create/admin-user-create.component';
 import { AdminUserUpdateComponent } from '../components/admin-user-update/admin-user-update.component';
 import { AdminUserResetPasswordComponent } from '../components/admin-user-reset-password/admin-user-reset-password.component';
+import { AdminUserProfileViewComponent } from '../components/admin-user-profile-view/admin-user-profile-view.component';
 
 @Component({
 	selector: 'app-admin-user-management',
@@ -41,6 +42,7 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 	admins: User[] = [];
 	supervisors: Supervisor[] = [];
 	enumerators: User[] = [];
+	selectedUser: User | Supervisor | null = null;
 
 	// Loading states
 	loadingAdmins = false;
@@ -205,23 +207,72 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 	/**
 	 * Open dialog to create new supervisor
 	 */
+	/**
+	 * Open dialog to create a new admin
+	 */
+	openCreateAdminDialog(): void {
+		const ref: DynamicDialogRef = this.dialogService.open(
+			AdminUserCreateComponent,
+			{
+				header: 'Create New Admin',
+				modal: true,
+				dismissableMask: true,
+				styleClass: 'p-fluid',
+				contentStyle: { overflow: 'auto' },
+				baseZIndex: 10000,
+				data: {
+					userType: UserRole.ADMIN,
+				},
+			}
+		);
+
+		ref.onClose
+			.pipe(takeUntil(this.destroy$))
+			.subscribe((result) => {
+				if (result) {
+					this.loadAdmins();
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: 'Admin created successfully',
+						life: 3000,
+					});
+				}
+			});
+	}
+
+	/**
+	 * Open dialog to create a new supervisor
+	 */
 	openCreateSupervisorDialog(): void {
 		const ref: DynamicDialogRef = this.dialogService.open(
 			AdminUserCreateComponent,
 			{
 				header: 'Create New Supervisor',
-				width: '600px',
+				modal: true,
+				dismissableMask: true,
+				styleClass: 'p-fluid',
+				contentStyle: { overflow: 'auto' },
+				baseZIndex: 10000,
 				data: {
 					userType: UserRole.SUPERVISOR,
 				},
 			}
 		);
 
-		ref.onClose.subscribe((result) => {
-			if (result) {
-				this.loadSupervisors();
-			}
-		});
+		ref.onClose
+			.pipe(takeUntil(this.destroy$))
+			.subscribe((result) => {
+				if (result) {
+					this.loadSupervisors();
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: 'Supervisor created successfully',
+						life: 3000,
+					});
+				}
+			});
 	}
 
 	/**
@@ -233,7 +284,11 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 			AdminUserUpdateComponent,
 			{
 				header: `Edit ${this.getRoleTitle(userType)}`,
-				width: '600px',
+				modal: true,
+				dismissableMask: true,
+				styleClass: 'p-fluid',
+				contentStyle: { overflow: 'auto' },
+				baseZIndex: 10000,
 				data: {
 					user: user,
 					userType: userType,
@@ -241,11 +296,19 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 			}
 		);
 
-		ref.onClose.subscribe((result) => {
-			if (result) {
-				this.loadAllUsers();
-			}
-		});
+		ref.onClose
+			.pipe(takeUntil(this.destroy$))
+			.subscribe((result) => {
+				if (result) {
+					this.loadAllUsers();
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: `${this.getRoleTitle(userType)} updated successfully`,
+						life: 3000,
+					});
+				}
+			});
 	}
 
 	/**
@@ -256,7 +319,9 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 			AdminAssignDzongkhagComponent,
 			{
 				header: 'Manage Dzongkhag Assignments',
-				width: '700px',
+				modal: true,
+				dismissableMask: true,
+				styleClass: 'p-fluid',
 				contentStyle: { overflow: 'auto' },
 				baseZIndex: 10000,
 				data: {
@@ -265,11 +330,19 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 			}
 		);
 
-		ref.onClose.subscribe((result) => {
-			if (result) {
-				this.loadSupervisors();
-			}
-		});
+		ref.onClose
+			.pipe(takeUntil(this.destroy$))
+			.subscribe((result) => {
+				if (result) {
+					this.loadSupervisors();
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: 'Dzongkhag assignments updated successfully',
+						life: 3000,
+					});
+				}
+			});
 	}
 
 	/**
@@ -280,22 +353,56 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 			AdminUserResetPasswordComponent,
 			{
 				header: 'Reset Password',
-				width: '600px',
+				modal: true,
+				dismissableMask: true,
+				styleClass: 'p-fluid',
+				contentStyle: { overflow: 'auto' },
+				baseZIndex: 10000,
 				data: {
 					user: user,
 				},
 			}
 		);
 
-		ref.onClose.subscribe((result) => {
-			if (result) {
-				this.messageService.add({
-					severity: 'success',
-					summary: 'Success',
-					detail: 'Password reset successfully',
-				});
+		ref.onClose
+			.pipe(takeUntil(this.destroy$))
+			.subscribe((result) => {
+				if (result) {
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: 'Password reset successfully',
+						life: 3000,
+					});
+				}
+			});
+	}
+
+	/**
+	 * Open user profile view dialog
+	 */
+	openProfileViewDialog(user: User | Supervisor): void {
+		const ref: DynamicDialogRef = this.dialogService.open(
+			AdminUserProfileViewComponent,
+			{
+				header: `View ${this.getRoleTitle(user.role)} Profile`,
+				modal: true,
+				dismissableMask: true,
+				styleClass: 'p-fluid',
+				contentStyle: { overflow: 'auto', maxHeight: '90vh' },
+				baseZIndex: 10000,
+				maximizable: true,
+				data: {
+					user: user,
+				},
 			}
-		});
+		);
+
+		ref.onClose
+			.pipe(takeUntil(this.destroy$))
+			.subscribe(() => {
+				// Profile view is read-only, no refresh needed
+			});
 	}
 
 	/**
@@ -417,6 +524,189 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 		if (this.enumeratorTable) {
 			this.enumeratorTable.filterGlobal('', 'contains');
 		}
+	}
+
+	/**
+	 * Get first character of name for avatar
+	 */
+	getAvatarInitial(name: string | undefined): string {
+		if (!name) return 'U';
+		return name.charAt(0).toUpperCase();
+	}
+
+	/**
+	 * Get avatar color based on name for consistency
+	 */
+	getAvatarColor(name: string | undefined): string {
+		if (!name) return '#6366f1'; // Default indigo
+		
+		// Generate a consistent color based on the name
+		const colors = [
+			'#6366f1', // indigo
+			'#8b5cf6', // violet
+			'#ec4899', // pink
+			'#f59e0b', // amber
+			'#10b981', // emerald
+			'#3b82f6', // blue
+			'#ef4444', // red
+			'#14b8a6', // teal
+			'#f97316', // orange
+			'#06b6d4', // cyan
+		];
+		
+		// Simple hash function to get consistent color
+		let hash = 0;
+		for (let i = 0; i < name.length; i++) {
+			hash = name.charCodeAt(i) + ((hash << 5) - hash);
+		}
+		return colors[Math.abs(hash) % colors.length];
+	}
+
+	/**
+	 * Download admins data as CSV
+	 */
+	downloadAdminsCSV(): void {
+		if (this.admins.length === 0) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Data',
+				detail: 'No admins available to export',
+				life: 3000,
+			});
+			return;
+		}
+
+		// Create CSV header
+		const headers = ['Role', 'Name', 'CID', 'Email', 'Phone Number'];
+		const csvRows = [headers.join(',')];
+
+		// Add data rows with proper escaping
+		this.admins.forEach((admin) => {
+			const row = [
+				'"Admin"',
+				`"${(admin.name || '').replace(/"/g, '""')}"`,
+				`"${(admin.cid || '').replace(/"/g, '""')}"`,
+				`"${(admin.emailAddress || '').replace(/"/g, '""')}"`,
+				`"${(admin.phoneNumber || '').replace(/"/g, '""')}"`,
+			];
+			csvRows.push(row.join(','));
+		});
+
+		// Create and download file
+		const csvContent = csvRows.join('\n');
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+		const url = window.URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		const dateStr = new Date().toISOString().split('T')[0];
+		link.download = `admins_export_${dateStr}.csv`;
+		link.click();
+		window.URL.revokeObjectURL(url);
+
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail: `Admins CSV downloaded successfully (${this.admins.length} admins)`,
+			life: 3000,
+		});
+	}
+
+	/**
+	 * Download supervisors data as CSV
+	 */
+	downloadSupervisorsCSV(): void {
+		if (this.supervisors.length === 0) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Data',
+				detail: 'No supervisors available to export',
+				life: 3000,
+			});
+			return;
+		}
+
+		// Create CSV header
+		const headers = ['Role', 'Name', 'CID', 'Email', 'Phone Number'];
+		const csvRows = [headers.join(',')];
+
+		// Add data rows with proper escaping
+		this.supervisors.forEach((supervisor) => {
+			const row = [
+				'"Supervisor"',
+				`"${(supervisor.name || '').replace(/"/g, '""')}"`,
+				`"${(supervisor.cid || '').replace(/"/g, '""')}"`,
+				`"${(supervisor.emailAddress || '').replace(/"/g, '""')}"`,
+				`"${(supervisor.phoneNumber || '').replace(/"/g, '""')}"`,
+			];
+			csvRows.push(row.join(','));
+		});
+
+		// Create and download file
+		const csvContent = csvRows.join('\n');
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+		const url = window.URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		const dateStr = new Date().toISOString().split('T')[0];
+		link.download = `supervisors_export_${dateStr}.csv`;
+		link.click();
+		window.URL.revokeObjectURL(url);
+
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail: `Supervisors CSV downloaded successfully (${this.supervisors.length} supervisors)`,
+			life: 3000,
+		});
+	}
+
+	/**
+	 * Download enumerators data as CSV
+	 */
+	downloadEnumeratorsCSV(): void {
+		if (this.enumerators.length === 0) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Data',
+				detail: 'No enumerators available to export',
+				life: 3000,
+			});
+			return;
+		}
+
+		// Create CSV header
+		const headers = ['Role', 'Name', 'CID', 'Email', 'Phone Number'];
+		const csvRows = [headers.join(',')];
+
+		// Add data rows with proper escaping
+		this.enumerators.forEach((enumerator) => {
+			const row = [
+				'"Enumerator"',
+				`"${(enumerator.name || '').replace(/"/g, '""')}"`,
+				`"${(enumerator.cid || '').replace(/"/g, '""')}"`,
+				`"${(enumerator.emailAddress || '').replace(/"/g, '""')}"`,
+				`"${(enumerator.phoneNumber || '').replace(/"/g, '""')}"`,
+			];
+			csvRows.push(row.join(','));
+		});
+
+		// Create and download file
+		const csvContent = csvRows.join('\n');
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+		const url = window.URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		const dateStr = new Date().toISOString().split('T')[0];
+		link.download = `enumerators_export_${dateStr}.csv`;
+		link.click();
+		window.URL.revokeObjectURL(url);
+
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Download Complete',
+			detail: `Enumerators CSV downloaded successfully (${this.enumerators.length} enumerators)`,
+			life: 3000,
+		});
 	}
 }
 

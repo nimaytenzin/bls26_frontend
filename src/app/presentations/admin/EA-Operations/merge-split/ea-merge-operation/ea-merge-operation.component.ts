@@ -11,7 +11,8 @@ import { Router, RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { PrimeNgModules } from '../../../../../primeng.modules';
-import { finalize } from 'rxjs/operators';
+import { finalize, catchError } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
 
 import { EnumerationAreaDataService } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
 import { SubAdministrativeZoneDataService } from '../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
@@ -36,7 +37,9 @@ import { AdministrativeZone } from '../../../../../core/dataservice/location/adm
 export class EaMergeOperationComponent implements OnInit {
 	asDialog: boolean = false;
 	mergeForm: FormGroup;
-	activeEas: EnumerationArea[] = [];
+	activeEas: EnumerationArea[] = []; // EAs available for selection from current SAZ
+	selectedEasContainer: EnumerationArea[] = []; // Container storing all selected EAs from different SAZs
+	selectedEaForAdd: number | null = null; // Currently selected EA from dropdown for adding
 	subAdministrativeZones: SubAdministrativeZone[] = [];
 	loading = false;
 	loadingEas = false;
@@ -71,16 +74,17 @@ export class EaMergeOperationComponent implements OnInit {
 		@Optional() public config: DynamicDialogConfig
 	) {
 		this.mergeForm = this.fb.group({
-			sourceEaIds: [[], [Validators.required, this.arrayMinLengthValidator(2)]],
+			sourceEaIds: [[]], // Managed via selectedEasContainer - validation done separately
 			mergedEa: this.fb.group({
 				name: ['', [Validators.required, Validators.minLength(2)]],
 				areaCode: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]+$/)]],
 				description: ['', [Validators.required, Validators.minLength(5)]],
-				subAdministrativeZoneIds: [[], [Validators.required, this.arrayMinLengthValidator(1)]],
+				subAdministrativeZoneIds: [[]], // Optional - will be auto-collected from source EAs
 				geojsonFile: [null, Validators.required],
 			}),
 			reason: [''],
 		});
+		this.selectedEaForAdd = null;
 	}
 
 	ngOnInit() {
@@ -125,6 +129,7 @@ export class EaMergeOperationComponent implements OnInit {
 		this.administrativeZones = [];
 		this.filteredSubAdministrativeZones = [];
 		this.activeEas = [];
+		// Keep selectedEasContainer - don't clear selected EAs when changing dzongkhag
 		// Clear merged EA form sub-admin zone selection
 		this.mergedEaFormGroup.get('subAdministrativeZoneIds')?.setValue([]);
 
@@ -159,6 +164,7 @@ export class EaMergeOperationComponent implements OnInit {
 		this.selectedSubAdminZone = null;
 		this.filteredSubAdministrativeZones = [];
 		this.activeEas = [];
+		// Keep selectedEasContainer - don't clear selected EAs when changing admin zone
 		// Clear merged EA form sub-admin zone selection
 		this.mergedEaFormGroup.get('subAdministrativeZoneIds')?.setValue([]);
 
@@ -189,29 +195,153 @@ export class EaMergeOperationComponent implements OnInit {
 	}
 
 	onSubAdminZoneChange() {
-		// Reset enumeration areas
-		this.activeEas = [];
-		this.mergeForm.get('sourceEaIds')?.setValue([]);
-
+		// Load EAs from selected SAZ for browsing/selection
+		// Keep selectedEasContainer - don't clear selected EAs when changing SAZ
+		this.selectedEaForAdd = null; // Clear dropdown selection when SAZ changes
 		if (this.selectedSubAdminZone) {
 			this.loadEnumerationAreas(this.selectedSubAdminZone.id);
-			// Automatically set the selected sub-admin zone in the merged EA form
-			this.mergedEaFormGroup.get('subAdministrativeZoneIds')?.setValue([this.selectedSubAdminZone.id]);
 		} else {
-			// Clear the selection if sub-admin zone is cleared
+			// Clear the available EAs list if SAZ is cleared
+			this.activeEas = [];
+		}
+	}
+
+	/**
+	 * Handle EA dropdown selection change - add selected EA to container
+	 */
+	onEaDropdownChange() {
+		if (!this.selectedEaForAdd) {
+			return;
+		}
+
+		// Find the selected EA object
+		const selectedEa = this.activeEas.find(ea => ea.id === this.selectedEaForAdd);
+		
+		if (!selectedEa) {
+			return;
+		}
+
+		// Check if already in container
+		const existsInContainer = this.selectedEasContainer.some(ea => ea.id === selectedEa.id);
+		
+		if (existsInContainer) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Already Added',
+				detail: `${selectedEa.name} is already in your selection`,
+				life: 2000,
+			});
+			this.selectedEaForAdd = null;
+			return;
+		}
+
+		// Add to container
+		this.selectedEasContainer = [...this.selectedEasContainer, selectedEa];
+		
+		// Remove from available list
+		this.activeEas = this.activeEas.filter(ea => ea.id !== selectedEa.id);
+		
+		// Show success toast
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Added',
+			detail: `${selectedEa.name} (${selectedEa.areaCode}) has been added to your selection`,
+			life: 2000,
+		});
+		
+		// Clear the dropdown selection
+		this.selectedEaForAdd = null;
+		
+		// Update form with all selected EA IDs from container
+		this.updateFormFromContainer();
+		
+		// Auto-collect SAZ IDs
+		this.updateSazIdsFromContainer();
+	}
+
+	/**
+	 * Remove EA from container
+	 */
+	removeEaFromContainer(eaId: number) {
+		this.selectedEasContainer = this.selectedEasContainer.filter(ea => ea.id !== eaId);
+		this.updateFormFromContainer();
+		this.updateSazIdsFromContainer();
+		
+		// Reload available EAs if we have a SAZ selected to show the removed EA again
+		if (this.selectedSubAdminZone) {
+			this.loadEnumerationAreas(this.selectedSubAdminZone.id);
+		}
+	}
+
+	/**
+	 * Update form's sourceEaIds from the container
+	 */
+	updateFormFromContainer() {
+		const containerIds = this.selectedEasContainer.map(ea => ea.id);
+		this.mergeForm.get('sourceEaIds')?.setValue(containerIds);
+	}
+
+	/**
+	 * Auto-collect SAZ IDs from EAs in the container
+	 */
+	updateSazIdsFromContainer() {
+		if (this.selectedEasContainer.length > 0) {
+			// Collect all unique SAZ IDs from EAs in container
+			const sazIdsSet = new Set<number>();
+			this.selectedEasContainer.forEach(ea => {
+				if (ea.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
+					ea.subAdministrativeZones.forEach(saz => {
+						sazIdsSet.add(saz.id);
+					});
+				}
+			});
+			
+			const collectedSazIds = Array.from(sazIdsSet);
+			
+			if (collectedSazIds.length > 0) {
+				// Get current SAZ IDs from form (preserve user-added ones)
+				const currentSazIds = this.mergedEaFormGroup.get('subAdministrativeZoneIds')?.value || [];
+				
+				// Merge collected SAZ IDs with current selection (union operation)
+				const mergedSazIds = Array.from(new Set([...collectedSazIds, ...currentSazIds]));
+				
+				// Update the form with merged SAZ IDs
+				this.mergedEaFormGroup.get('subAdministrativeZoneIds')?.setValue(mergedSazIds);
+			}
+		} else {
+			// If container is empty, clear SAZ selection
 			this.mergedEaFormGroup.get('subAdministrativeZoneIds')?.setValue([]);
+		}
+	}
+
+	/**
+	 * Clear all selected EAs from container
+	 */
+	clearSelectedEasContainer() {
+		this.selectedEasContainer = [];
+		this.mergeForm.get('sourceEaIds')?.setValue([]);
+		this.mergedEaFormGroup.get('subAdministrativeZoneIds')?.setValue([]);
+		this.selectedEaForAdd = null;
+		
+		// Reload available EAs if we have a SAZ selected
+		if (this.selectedSubAdminZone) {
+			this.loadEnumerationAreas(this.selectedSubAdminZone.id);
 		}
 	}
 
 	loadEnumerationAreas(subAdminZoneId: number) {
 		this.loadingEas = true;
+		this.activeEas = [];
+		// Load EAs with SAZ relationships included for better UX (auto-population of SAZ field)
 		this.enumerationAreaService
-			.findEnumerationAreasBySubAdministrativeZone(subAdminZoneId, false, false)
+			.findEnumerationAreasBySubAdministrativeZone(subAdminZoneId, false, true)
 			.pipe(finalize(() => (this.loadingEas = false)))
 			.subscribe({
 			next: (eas) => {
 				// Filter only active EAs (isActive defaults to true, so undefined/null means active)
-				this.activeEas = eas.filter(ea => ea.isActive !== false);
+				// Also exclude EAs that are already in the selected container
+				const selectedIds = new Set(this.selectedEasContainer.map(ea => ea.id));
+				this.activeEas = eas.filter(ea => ea.isActive !== false && !selectedIds.has(ea.id));
 			},
 				error: (error) => {
 					console.error('Error loading enumeration areas:', error);
@@ -224,6 +354,7 @@ export class EaMergeOperationComponent implements OnInit {
 				},
 			});
 	}
+
 
 	loadSubAdministrativeZones() {
 		this.loadingZones = true;
@@ -290,7 +421,19 @@ export class EaMergeOperationComponent implements OnInit {
 	}
 
 	onSubmit() {
-		if (this.mergeForm.invalid) {
+		// Validate container has at least 2 EAs
+		if (this.selectedEasContainer.length < 2) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Error',
+				detail: 'At least 2 enumeration areas are required for a merge operation',
+				life: 3000,
+			});
+			return;
+		}
+
+		// Validate merged EA form
+		if (this.mergedEaFormGroup.invalid) {
 			this.markFormGroupTouched();
 			return;
 		}
@@ -310,14 +453,22 @@ export class EaMergeOperationComponent implements OnInit {
 		const formValue = this.mergeForm.value;
 		const mergedEaValue = formValue.mergedEa;
 
+		// Get EA IDs from container
+		const sourceEaIds = this.selectedEasContainer.map(ea => ea.id);
+
 		// Prepare merge data without geometry (geometry comes from file)
+		// Note: subAdministrativeZoneIds is optional - API will auto-collect from source EAs if not provided
 		const mergeData: MergeEaRequest = {
-			sourceEaIds: formValue.sourceEaIds,
+			sourceEaIds: sourceEaIds,
 			mergedEa: {
 				name: mergedEaValue.name,
 				areaCode: mergedEaValue.areaCode,
 				description: mergedEaValue.description,
-				subAdministrativeZoneIds: mergedEaValue.subAdministrativeZoneIds || [],
+				// Only include subAdministrativeZoneIds if user has selected some
+				// The API will auto-collect from source EAs anyway, but we can provide additional ones
+				...(mergedEaValue.subAdministrativeZoneIds && mergedEaValue.subAdministrativeZoneIds.length > 0
+					? { subAdministrativeZoneIds: mergedEaValue.subAdministrativeZoneIds }
+					: {}),
 			},
 			reason: formValue.reason || undefined,
 		};
@@ -370,6 +521,9 @@ export class EaMergeOperationComponent implements OnInit {
 	resetForm() {
 		this.mergeForm.reset();
 		this.selectedFile = null;
+		this.selectedEasContainer = [];
+		this.activeEas = [];
+		this.selectedEaForAdd = null;
 	}
 
 	private markFormGroupTouched() {
@@ -418,7 +572,40 @@ export class EaMergeOperationComponent implements OnInit {
 	}
 
 	get formValid(): boolean {
-		return this.mergeForm.valid && !!this.selectedFile;
+		// Form is valid if container has at least 2 EAs, merged EA details are valid, and file is selected
+		return this.selectedEasContainer.length >= 2 && 
+		       this.mergedEaFormGroup.valid && 
+		       !!this.selectedFile;
+	}
+
+	/**
+	 * Get SAZ names for an EA as a comma-separated string
+	 */
+	getSazNames(ea: EnumerationArea): string {
+		if (!ea.subAdministrativeZones || ea.subAdministrativeZones.length === 0) {
+			return '';
+		}
+		return ea.subAdministrativeZones.map(saz => saz.name).join(', ');
+	}
+
+	/**
+	 * Get first SAZ name for display in selected items
+	 */
+	getFirstSazName(ea: EnumerationArea): string {
+		if (!ea.subAdministrativeZones || ea.subAdministrativeZones.length === 0) {
+			return '';
+		}
+		return ea.subAdministrativeZones[0].name;
+	}
+
+	/**
+	 * Get additional SAZ count for display
+	 */
+	getAdditionalSazCount(ea: EnumerationArea): number {
+		if (!ea.subAdministrativeZones || ea.subAdministrativeZones.length <= 1) {
+			return 0;
+		}
+		return ea.subAdministrativeZones.length - 1;
 	}
 }
 

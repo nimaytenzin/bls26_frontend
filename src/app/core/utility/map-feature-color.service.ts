@@ -1,6 +1,11 @@
 import { Injectable } from '@angular/core';
 
 /**
+ * Color scale types available for visualization
+ */
+export type ColorScaleType = 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
+
+/**
  * Service for managing map feature colors including single features,
  * graduated (continuous) color scales, and categorized (discrete) values
  */
@@ -35,6 +40,99 @@ export class MapFeatureColorService {
 	];
 
 	/**
+	 * Green gradient color scale from dark to light
+	 */
+	private readonly greenScale: string[] = [
+		'#004d40',
+		'#00695c',
+		'#00796b',
+		'#00897b',
+		'#009688',
+		'#00acc1',
+		'#26a69a',
+		'#4db6ac',
+		'#66bb6a',
+		'#81c784',
+		'#a5d6a7',
+		'#c5e1a5',
+		'#dcedc8',
+		'#f1f8e9',
+	];
+
+	/**
+	 * Red gradient color scale from dark to light
+	 */
+	private readonly redScale: string[] = [
+		'#b71c1c',
+		'#c62828',
+		'#d32f2f',
+		'#e53935',
+		'#ef5350',
+		'#e57373',
+		'#ef9a9a',
+		'#ffcdd2',
+		'#ffebee',
+	];
+
+	/**
+	 * Yellow gradient color scale from dark to light
+	 */
+	private readonly yellowScale: string[] = [
+		'#f57f17',
+		'#fbc02d',
+		'#fdd835',
+		'#ffeb3b',
+		'#fff176',
+		'#fff59d',
+		'#fff9c4',
+		'#fffde7',
+	];
+
+	/**
+	 * Purple gradient color scale from dark to light
+	 */
+	private readonly purpleScale: string[] = [
+		'#4a148c',
+		'#6a1b9a',
+		'#7b1fa2',
+		'#8e24aa',
+		'#9c27b0',
+		'#ab47bc',
+		'#ba68c8',
+		'#ce93d8',
+		'#e1bee7',
+		'#f3e5f5',
+	];
+
+	/**
+	 * Orange gradient color scale from dark to light
+	 */
+	private readonly orangeScale: string[] = [
+		'#e65100',
+		'#ef6c00',
+		'#f57c00',
+		'#fb8c00',
+		'#ff9800',
+		'#ffa726',
+		'#ffb74d',
+		'#ffcc80',
+		'#ffe0b2',
+		'#fff3e0',
+	];
+
+	/**
+	 * Map of color scale names to their arrays
+	 */
+	private readonly colorScales: Record<ColorScaleType, string[]> = {
+		blue: this.blueScale,
+		green: this.greenScale,
+		red: this.redScale,
+		yellow: this.yellowScale,
+		purple: this.purpleScale,
+		orange: this.orangeScale,
+	};
+
+	/**
 	 * Standard single feature colors
 	 */
 	private readonly singleFeatureColors = {
@@ -63,26 +161,56 @@ export class MapFeatureColorService {
 	];
 
 	/**
+	 * Get color scale by type
+	 * @param scaleType - Type of color scale to retrieve
+	 * @returns Color scale array
+	 */
+	private getColorScale(scaleType: ColorScaleType = 'blue'): string[] {
+		return this.colorScales[scaleType] || this.blueScale;
+	}
+
+	/**
+	 * Get available color scale types
+	 * @returns Array of color scale type options
+	 */
+	getAvailableColorScales(): { label: string; value: ColorScaleType }[] {
+		return [
+			{ label: 'Blue', value: 'blue' },
+			{ label: 'Green', value: 'green' },
+			{ label: 'Red', value: 'red' },
+			{ label: 'Yellow', value: 'yellow' },
+			{ label: 'Purple', value: 'purple' },
+			{ label: 'Orange', value: 'orange' },
+		];
+	}
+
+	/**
 	 * Get color for a value based on min and max range
 	 * @param value - The value to get color for
 	 * @param min - Minimum value in the dataset
 	 * @param max - Maximum value in the dataset
+	 * @param scaleType - Color scale type to use (default: 'blue')
 	 * @returns Hex color code
 	 */
-	getColorForValue(value: number, min: number, max: number): string {
+	getColorForValue(
+		value: number,
+		min: number,
+		max: number,
+		scaleType: ColorScaleType = 'blue'
+	): string {
+		const scale = this.getColorScale(scaleType);
 		// Handle edge cases
-		if (value <= min) return this.blueScale[0];
-		if (value >= max) return this.blueScale[this.blueScale.length - 1];
-		if (min === max)
-			return this.blueScale[Math.floor(this.blueScale.length / 2)];
+		if (value <= min) return scale[0];
+		if (value >= max) return scale[scale.length - 1];
+		if (min === max) return scale[Math.floor(scale.length / 2)];
 
 		// Normalize value to 0-1 range
 		const normalizedValue = (value - min) / (max - min);
 
 		// Map to color scale index
-		const index = Math.floor(normalizedValue * (this.blueScale.length - 1));
+		const index = Math.floor(normalizedValue * (scale.length - 1));
 
-		return this.blueScale[index];
+		return scale[index];
 	}
 
 	/**
@@ -91,34 +219,40 @@ export class MapFeatureColorService {
 	 * @param value - The value to get color for
 	 * @param min - Minimum value in the dataset
 	 * @param max - Maximum value in the dataset
+	 * @param scaleType - Color scale type to use (default: 'blue')
 	 * @returns Hex color code
 	 */
-	getInterpolatedColor(value: number, min: number, max: number): string {
+	getInterpolatedColor(
+		value: number,
+		min: number,
+		max: number,
+		scaleType: ColorScaleType = 'blue'
+	): string {
+		const scale = this.getColorScale(scaleType);
 		// Handle edge cases
-		if (value <= min) return this.blueScale[this.blueScale.length - 1];
-		if (value >= max) return this.blueScale[0];
+		if (value <= min) return scale[scale.length - 1];
+		if (value >= max) return scale[0];
 
-		if (min === max)
-			return this.blueScale[Math.floor(this.blueScale.length / 2)];
+		if (min === max) return scale[Math.floor(scale.length / 2)];
 
 		// Normalize value to 0-1 range
 		const normalizedValue = (value - min) / (max - min);
 
 		// Calculate position in color scale (floating point)
-		const position = normalizedValue * (this.blueScale.length - 1);
+		const position = normalizedValue * (scale.length - 1);
 		const lowerIndex = Math.floor(position);
 		const upperIndex = Math.ceil(position);
 
 		// If position is exactly on an index, return that color
 		if (lowerIndex === upperIndex) {
-			return this.blueScale[lowerIndex];
+			return scale[lowerIndex];
 		}
 
 		// Interpolate between two colors
 		const fraction = position - lowerIndex;
 		return this.interpolateColors(
-			this.blueScale[lowerIndex],
-			this.blueScale[upperIndex],
+			scale[lowerIndex],
+			scale[upperIndex],
 			fraction
 		);
 	}
@@ -182,12 +316,14 @@ export class MapFeatureColorService {
 	 * @param min - Minimum value
 	 * @param max - Maximum value
 	 * @param steps - Number of legend steps (default 5)
+	 * @param scaleType - Color scale type to use (default: 'blue')
 	 * @returns Array of legend items with color and label
 	 */
 	getLegendItems(
 		min: number,
 		max: number,
-		steps: number = 5
+		steps: number = 5,
+		scaleType: ColorScaleType = 'blue'
 	): { color: string; label: string; value: number }[] {
 		const items: { color: string; label: string; value: number }[] = [];
 		const range = max - min;
@@ -195,7 +331,7 @@ export class MapFeatureColorService {
 
 		for (let i = 0; i < steps; i++) {
 			const value = min + stepSize * i;
-			const color = this.getInterpolatedColor(value, min, max);
+			const color = this.getInterpolatedColor(value, min, max, scaleType);
 			const label = value.toLocaleString(undefined, {
 				maximumFractionDigits: 0,
 			});
@@ -210,20 +346,23 @@ export class MapFeatureColorService {
 	 * @param min - Minimum value
 	 * @param max - Maximum value
 	 * @param direction - Gradient direction: 'vertical' (default) or 'horizontal'
+	 * @param scaleType - Color scale type to use (default: 'blue')
 	 * @returns CSS linear-gradient string
 	 */
 	getLegendGradient(
 		min: number,
 		max: number,
-		direction: 'vertical' | 'horizontal' = 'vertical'
+		direction: 'vertical' | 'horizontal' = 'vertical',
+		scaleType: ColorScaleType = 'blue'
 	): string {
+		const scale = this.getColorScale(scaleType);
 		// Generate gradient stops using the full color scale
 		const stops: string[] = [];
-		const numStops = this.blueScale.length;
+		const numStops = scale.length;
 
 		for (let i = 0; i < numStops; i++) {
 			const percentage = (i / (numStops - 1)) * 100;
-			stops.push(`${this.blueScale[i]} ${percentage}%`);
+			stops.push(`${scale[i]} ${percentage}%`);
 		}
 
 		const gradientDirection =
@@ -237,12 +376,14 @@ export class MapFeatureColorService {
 	 * @param min - Minimum value
 	 * @param max - Maximum value
 	 * @param numBreaks - Number of break points (default 5, including min and max)
+	 * @param scaleType - Color scale type to use (default: 'blue')
 	 * @returns Array of break values with formatted labels
 	 */
 	getLegendBreaks(
 		min: number,
 		max: number,
-		numBreaks: number = 5
+		numBreaks: number = 5,
+		scaleType: ColorScaleType = 'blue'
 	): { value: number; label: string; position: number }[] {
 		const breaks: { value: number; label: string; position: number }[] = [];
 		const range = max - min;
@@ -334,18 +475,25 @@ export class MapFeatureColorService {
 
 	/**
 	 * Get the full color scale array
+	 * @param scaleType - Color scale type to retrieve (default: 'blue')
 	 */
-	getColorScale(): string[] {
-		return [...this.blueScale];
+	getColorScaleArray(scaleType: ColorScaleType = 'blue'): string[] {
+		return [...this.getColorScale(scaleType)];
 	}
 
 	/**
 	 * Get color by quantile classification
 	 * @param value - The value to classify
 	 * @param breaks - Array of break values
+	 * @param scaleType - Color scale type to use (default: 'blue')
 	 * @returns Hex color code
 	 */
-	getColorByQuantile(value: number, breaks: number[]): string {
+	getColorByQuantile(
+		value: number,
+		breaks: number[],
+		scaleType: ColorScaleType = 'blue'
+	): string {
+		const scale = this.getColorScale(scaleType);
 		let classIndex = 0;
 		for (let i = 0; i < breaks.length; i++) {
 			if (value <= breaks[i]) {
@@ -358,9 +506,9 @@ export class MapFeatureColorService {
 
 		// Map class to color scale
 		const colorIndex = Math.floor(
-			(classIndex / (breaks.length + 1)) * (this.blueScale.length - 1)
+			(classIndex / (breaks.length + 1)) * (scale.length - 1)
 		);
-		return this.blueScale[colorIndex];
+		return scale[colorIndex];
 	}
 
 	// ==================== SINGLE FEATURE COLORS ====================
@@ -445,25 +593,35 @@ export class MapFeatureColorService {
 	 * @param value - The value to get color for
 	 * @param min - Minimum value in the dataset
 	 * @param max - Maximum value in the dataset
+	 * @param scaleType - Color scale type to use (default: 'blue')
 	 * @returns Hex color code
 	 */
-	getGraduatedColor(value: number, min: number, max: number): string {
-		return this.getInterpolatedColor(value, min, max);
+	getGraduatedColor(
+		value: number,
+		min: number,
+		max: number,
+		scaleType: ColorScaleType = 'blue'
+	): string {
+		return this.getInterpolatedColor(value, min, max, scaleType);
 	}
 
 	/**
 	 * Create a graduated color scheme with custom breaks
 	 * @param breaks - Array of break values
+	 * @param scaleType - Color scale type to use (default: 'blue')
 	 * @returns Array of colors corresponding to each break range
 	 */
-	getGraduatedColorScheme(breaks: number[]): string[] {
+	getGraduatedColorScheme(
+		breaks: number[],
+		scaleType: ColorScaleType = 'blue'
+	): string[] {
 		const colors: string[] = [];
 		const min = breaks[0];
 		const max = breaks[breaks.length - 1];
 
 		for (let i = 0; i < breaks.length; i++) {
 			const value = breaks[i];
-			colors.push(this.getInterpolatedColor(value, min, max));
+			colors.push(this.getInterpolatedColor(value, min, max, scaleType));
 		}
 
 		return colors;

@@ -12,6 +12,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global Font Family */
+body {
+	font-family: 'Outfit', 'Outfit Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
 /* Fix for Leaflet marker icons in production */
 .leaflet-default-icon-path {
 	background-image: url('leaflet/dist/images/marker-icon.png');

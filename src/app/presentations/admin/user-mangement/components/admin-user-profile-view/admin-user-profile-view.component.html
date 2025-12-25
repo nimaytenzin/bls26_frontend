@@ -1,0 +1,213 @@
+<div class="p-0">
+
+
+	<!-- Loading State -->
+	<div *ngIf="loading" class="flex items-center justify-center py-20 px-6">
+		<div class="text-center">
+			<p-progressSpinner styleClass="w-12 h-12 mx-auto mb-4"></p-progressSpinner>
+			<p class="text-slate-600">Loading profile...</p>
+		</div>
+	</div>
+
+	<!-- Error State -->
+	<div *ngIf="error && !loading" class="px-6 mb-6">
+		<p-message severity="error" [text]="error"></p-message>
+	</div>
+
+	<!-- Profile Content -->
+	<div *ngIf="!loading && !error && user && profileData" class="px-6 pb-6 space-y-6">
+		<!-- Basic User Information -->
+		<div class="">
+			
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+				<div class="space-y-1">
+					<label class="block text-xs font-medium text-slate-500 uppercase tracking-wide">Name</label>
+					<p class="text-base text-slate-900 font-semibold">{{ user.name }}</p>
+				</div>
+				<div class="space-y-1">
+					<label class="block text-xs font-medium text-slate-500 uppercase tracking-wide">CID</label>
+					<p class="text-base text-slate-900 font-mono font-medium">{{ user.cid }}</p>
+				</div>
+				<div class="space-y-1">
+					<label class="block text-xs font-medium text-slate-500 uppercase tracking-wide">Email</label>
+					<div class="flex items-center gap-2">
+						<i class="pi pi-envelope text-slate-400 text-sm"></i>
+						<p class="text-base text-slate-900">{{ user.emailAddress }}</p>
+					</div>
+				</div>
+				<div class="space-y-1">
+					<label class="block text-xs font-medium text-slate-500 uppercase tracking-wide">Phone</label>
+					<div class="flex items-center gap-2">
+						<i class="pi pi-phone text-slate-400 text-sm"></i>
+						<p class="text-base text-slate-900">{{ user.phoneNumber || 'N/A' }}</p>
+					</div>
+				</div>
+				<div class="space-y-1">
+					<label class="block text-xs font-medium text-slate-500 uppercase tracking-wide">Created</label>
+					<div class="flex items-center gap-2">
+						<i class="pi pi-calendar text-slate-400 text-sm"></i>
+						<p class="text-base text-slate-900">{{ formatDate(user.createdAt) }}</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Supervisor: Dzongkhag Assignments -->
+		<div *ngIf="isSupervisor() && getSupervisorProfile()?.dzongkhags" class="mt-6">
+			<h4 class="font-bold text-slate-900 mb-4">Assigned Dzongkhags</h4>
+			<p-divider></p-divider>
+			<div *ngIf="getSupervisorProfile()!.dzongkhags!.length > 0; else noDzongkhags">
+				<p *ngFor="let dzongkhag of getSupervisorProfile()!.dzongkhags" class="font-semibold text-slate-600">
+					- {{ dzongkhag.name }} Dzongkhag | Dzongkhag Code: {{ dzongkhag.areaCode }}
+				</p>
+			</div>
+			<ng-template #noDzongkhags>
+				<p class="text-slate-500 italic">No dzongkhags assigned</p>
+			</ng-template>
+		</div>
+
+		<!-- Enumerator: Supervisor's Dzongkhags -->
+		<div *ngIf="isEnumerator() && profileData?.supervisorDzongkhags" class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+			<div class="flex items-center gap-3 mb-5">
+				<div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+					<i class="pi pi-users text-purple-600"></i>
+				</div>
+				<h4 class="text-lg font-semibold text-slate-900">Supervisor's Dzongkhags</h4>
+			</div>
+			<div *ngIf="profileData.supervisorDzongkhags.length > 0; else noSupervisorDzongkhags">
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+					<div
+						*ngFor="let dzongkhag of profileData.supervisorDzongkhags"
+						class="bg-gradient-to-br from-purple-50 to-white border border-purple-200 rounded-lg p-4 hover:shadow-md transition-all hover:border-purple-300"
+					>
+						<div class="flex items-center gap-2 mb-2">
+							<div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+								<i class="pi pi-map-marker text-purple-600 text-sm"></i>
+							</div>
+							<span class="font-semibold text-slate-900">{{ dzongkhag.name }}</span>
+						</div>
+						<div *ngIf="dzongkhag.areaCode" class="text-sm text-slate-600 font-mono">
+							{{ dzongkhag.areaCode }}
+						</div>
+					</div>
+				</div>
+			</div>
+			<ng-template #noSupervisorDzongkhags>
+				<p class="text-slate-500 italic">No supervisor dzongkhags available</p>
+			</ng-template>
+		</div>
+
+		<!-- Enumerator: Active Surveys -->
+		<div *ngIf="isEnumerator() && getEnumeratorProfile()?.allSurveys" class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+			<div class="flex items-center gap-3 mb-5">
+				<div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+					<i class="pi pi-check-circle text-green-600"></i>
+				</div>
+				<h4 class="text-lg font-semibold text-slate-900">Active Surveys</h4>
+			</div>
+			<div *ngIf="getActiveSurveyAssignments().length > 0; else noActiveSurveys">
+				<p-table
+					[value]="getActiveSurveyAssignments()"
+					[responsive]="true"
+					styleClass="p-datatable-sm"
+					[tableStyle]="{ 'min-width': '50rem' }"
+				>
+					<ng-template pTemplate="header">
+						<tr>
+							<th>Name</th>
+							<th>Start Date</th>
+							<th>End Date</th>
+							<th>Assigned At</th>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="body" let-assignment>
+						<tr>
+							<td>
+								<div class="font-semibold text-slate-900">
+									{{ assignment.survey?.name || 'N/A' }}
+								</div>
+							</td>
+							<td>
+								<span class="text-sm">{{ formatDate(assignment.survey?.startDate) }}</span>
+							</td>
+							<td>
+								<span class="text-sm">{{ formatDate(assignment.survey?.endDate) }}</span>
+							</td>
+							<td>
+								<span class="text-sm">{{ formatDate(assignment.assignedAt) }}</span>
+							</td>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="emptymessage">
+						<tr>
+							<td colspan="4" class="text-center py-4 text-slate-500">
+								No active surveys found
+							</td>
+						</tr>
+					</ng-template>
+				</p-table>
+			</div>
+			<ng-template #noActiveSurveys>
+				<p class="text-slate-500 italic">No active surveys assigned</p>
+			</ng-template>
+		</div>
+
+		<!-- Enumerator: Ended Surveys -->
+		<div *ngIf="isEnumerator() && getEnumeratorProfile()?.allSurveys" class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+			<div class="flex items-center gap-3 mb-5">
+				<div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+					<i class="pi pi-history text-slate-600"></i>
+				</div>
+				<h4 class="text-lg font-semibold text-slate-900">Ended Surveys</h4>
+			</div>
+			<div *ngIf="getEndedSurveyAssignments().length > 0; else noEndedSurveys">
+				<p-table
+					[value]="getEndedSurveyAssignments()"
+					[responsive]="true"
+					styleClass="p-datatable-sm"
+					[tableStyle]="{ 'min-width': '50rem' }"
+				>
+					<ng-template pTemplate="header">
+						<tr>
+							<th>Name</th>
+							<th>Start Date</th>
+							<th>End Date</th>
+							<th>Assigned At</th>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="body" let-assignment>
+						<tr>
+							<td>
+								<div class="font-semibold text-slate-900">
+									{{ assignment.survey?.name || 'N/A' }}
+								</div>
+							</td>
+							<td>
+								<span class="text-sm">{{ formatDate(assignment.survey?.startDate) }}</span>
+							</td>
+							<td>
+								<span class="text-sm">{{ formatDate(assignment.survey?.endDate) }}</span>
+							</td>
+							<td>
+								<span class="text-sm">{{ formatDate(assignment.assignedAt) }}</span>
+							</td>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="emptymessage">
+						<tr>
+							<td colspan="4" class="text-center py-4 text-slate-500">
+								No ended surveys found
+							</td>
+						</tr>
+					</ng-template>
+				</p-table>
+			</div>
+			<ng-template #noEndedSurveys>
+				<p class="text-slate-500 italic">No ended surveys found</p>
+			</ng-template>
+		</div>
+
+	</div>
+
+</div>
+

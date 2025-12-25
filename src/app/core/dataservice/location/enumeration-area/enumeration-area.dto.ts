@@ -257,6 +257,7 @@ export interface SplitEaRequest {
 /**
  * Merge EA Request DTO
  * Data structure for merging enumeration areas
+ * Note: subAdministrativeZoneIds is optional - the API will automatically collect SAZ IDs from source EAs
  */
 export interface MergeEaRequest {
 	sourceEaIds: number[];
@@ -264,7 +265,7 @@ export interface MergeEaRequest {
 		name: string;
 		areaCode: string;
 		description: string;
-		subAdministrativeZoneIds: number[];
+		subAdministrativeZoneIds?: number[]; // Optional - auto-collected from source EAs if not provided
 	};
 	reason?: string;
 }

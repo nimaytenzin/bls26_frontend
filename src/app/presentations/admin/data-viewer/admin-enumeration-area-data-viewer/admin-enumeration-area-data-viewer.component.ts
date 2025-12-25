@@ -319,4 +319,38 @@ export class AdminEnumerationAreaDataViewerComponent
 		// or emit an event to refresh data
 	}
 
+	/**
+	 * Check if enumeration area is active
+	 */
+	isActive(): boolean {
+		return this.enumerationArea?.isActive !== false; // Default to true if undefined
+	}
+
+	/**
+	 * Get status label
+	 */
+	getStatusLabel(): string {
+		return this.isActive() ? 'Active' : 'Inactive';
+	}
+
+	/**
+	 * Get status severity for tag
+	 */
+	getStatusSeverity(): 'success' | 'danger' {
+		return this.isActive() ? 'success' : 'danger';
+	}
+
+	/**
+	 * Format date for display
+	 */
+	formatDate(date: Date | string | undefined): string {
+		if (!date) return '—';
+		const d = typeof date === 'string' ? new Date(date) : date;
+		return d.toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric',
+		});
+	}
+
 }

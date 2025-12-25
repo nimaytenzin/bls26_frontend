@@ -1,6 +1,7 @@
 // Auth-related interfaces and types for NSFD
 
 import { AdministrativeZone } from '../location/administrative-zone/administrative-zone.dto';
+import { Survey } from '../survey/survey.dto';
 
 export interface LoginDto {
 	email: string;
@@ -29,6 +30,21 @@ export interface RegisterResponse {
 export interface ChangePasswordDto {
 	currentPassword: string;
 	newPassword: string;
+}
+
+export interface UpdateProfileDto {
+	name?: string;
+	emailAddress?: string;
+	phoneNumber?: string;
+}
+
+export interface UpdateProfileResponse {
+	user: User;
+	message: string;
+}
+
+export interface ChangePasswordResponse {
+	message: string;
 }
 
 export interface CreateSupervisorDto {
@@ -161,3 +177,28 @@ export interface RemoveDzongkhagResponse {
 	message: string;
 	removedCount: number;
 }
+
+// User Profile Interfaces
+export interface SurveyAssignment {
+	userId: number;
+	surveyId: number;
+	survey?: Survey;
+	assignedAt?: Date;
+}
+
+export interface EnumeratorProfile {
+	user: User;
+	allSurveys?: SurveyAssignment[];
+	activeSurveys?: Survey[];
+}
+
+export interface SupervisorProfile {
+	user: User;
+	dzongkhags?: Dzongkhag[];
+}
+
+export interface AdminProfile {
+	user: User;
+}
+
+export type UserProfile = EnumeratorProfile | SupervisorProfile | AdminProfile;

@@ -92,6 +92,13 @@
 												getFullEACode(enumerationArea)
 											}}</span>
 										</div>
+										<div class="flex justify-between">
+											<span class="text-slate-500">Status:</span>
+											<p-tag
+												[value]="getStatusLabel()"
+												[severity]="getStatusSeverity()"
+											></p-tag>
+										</div>
 										<div
 											*ngIf="enumerationArea.description"
 											class="pt-2 border-t border-slate-100"
@@ -100,6 +107,30 @@
 											<p class="text-base text-slate-700">
 												{{ enumerationArea.description }}
 											</p>
+										</div>
+										<!-- Deactivation Information -->
+										<div
+											*ngIf="!isActive()"
+											class="pt-2 border-t border-slate-100 space-y-2"
+										>
+											<div
+												*ngIf="enumerationArea.deactivatedAt"
+												class="flex justify-between"
+											>
+												<span class="text-slate-500">Deactivated At:</span>
+												<span class="font-semibold text-slate-900">{{
+													formatDate(enumerationArea.deactivatedAt)
+												}}</span>
+											</div>
+											<div
+												*ngIf="enumerationArea.deactivatedReason"
+												class="pt-2"
+											>
+												<p class="text-sm text-slate-500 mb-1">Deactivation Reason:</p>
+												<p class="text-base text-red-700 bg-red-50 p-2 rounded border border-red-200">
+													{{ enumerationArea.deactivatedReason }}
+												</p>
+											</div>
 										</div>
 									</div>
 								</div>

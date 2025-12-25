@@ -1,0 +1,152 @@
+import { Injectable } from '@angular/core';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
+import { map, catchError, tap } from 'rxjs/operators';
+import { PublicPageSettingsDataService } from '../dataservice/public-page-settings/public-page-settings.dataservice';
+import {
+	PublicPageSettings,
+	PublicPageSettingsDto,
+	UpdatePublicPageSettingsDto,
+} from './public-page-settings.interface';
+
+/**
+ * Default settings - used as fallback
+ */
+const DEFAULT_SETTINGS: PublicPageSettings = {
+	mapVisualizationMode: 'households',
+	selectedBasemapId: 'positron',
+	colorScale: 'blue',
+	nationalDataViewerTitle: 'National Sampling Frame',
+	nationalDataViewerDescription:
+		'Current statistics on households and enumeration areas',
+	nationalDataViewerInfoBoxContent:
+		'A sampling frame is a population from which a sample can be drawn, ensuring survey samples are representative and reliable.',
+	nationalDataViewerInfoBoxStats: '3,310 EAs total (1,464 urban, 1,846 rural)',
+};
+
+/**
+ * Updated PublicPageSettingsService that uses API instead of localStorage
+ * 
+ * This service provides:
+ * - Reactive settings via BehaviorSubject for real-time updates
+ * - Caching of settings to avoid unnecessary API calls
+ * - Fallback to default settings on error
+ * - Async/Observable-based methods for admin operations
+ * - Synchronous getter for backward compatibility (with cache)
+ */
+@Injectable({
+	providedIn: 'root',
+})
+export class PublicPageSettingsService {
+	private settingsCache: PublicPageSettings | null = null;
+	private settingsSubject = new BehaviorSubject<PublicPageSettings | null>(
+		null
+	);
+	public settings$: Observable<PublicPageSettings | null> =
+		this.settingsSubject.asObservable();
+
+	constructor(
+		private publicPageSettingsDataService: PublicPageSettingsDataService
+	) {
+		// Load settings on service initialization
+		this.loadSettings();
+	}
+
+	/**
+	 * Load settings from API (public endpoint)
+	 * This is called automatically on service initialization
+	 */
+	loadSettings(): Observable<PublicPageSettings> {
+		return this.publicPageSettingsDataService.getSettings().pipe(
+			map((dto) => this.dtoToSettings(dto)),
+			tap((settings) => {
+				this.settingsCache = settings;
+				this.settingsSubject.next(settings);
+			}),
+			catchError((error) => {
+				console.error(
+					'Error loading public page settings, using defaults:',
+					error
+				);
+				this.settingsCache = { ...DEFAULT_SETTINGS };
+				this.settingsSubject.next(this.settingsCache);
+				return throwError(() => error);
+			})
+		);
+	}
+
+	/**
+	 * Get current settings synchronously (from cache)
+	 * Returns default settings if cache is not loaded yet
+	 * For real-time updates, use settings$ observable
+	 */
+	getSettings(): PublicPageSettings {
+		if (!this.settingsCache) {
+			// Return defaults if not loaded yet
+			return { ...DEFAULT_SETTINGS };
+		}
+		return { ...this.settingsCache };
+	}
+
+	/**
+	 * Save settings (admin only - async)
+	 * Updates the cache and notifies subscribers
+	 */
+	saveSettings(
+		settings: Partial<PublicPageSettings>
+	): Observable<PublicPageSettings> {
+		const updateDto: UpdatePublicPageSettingsDto = settings;
+		return this.publicPageSettingsDataService
+			.updateSettings(updateDto)
+			.pipe(
+				map((dto) => this.dtoToSettings(dto)),
+				tap((updatedSettings) => {
+					this.settingsCache = updatedSettings;
+					this.settingsSubject.next(updatedSettings);
+				}),
+				catchError((error) => {
+					console.error('Error saving public page settings:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get default settings (synchronous)
+	 */
+	getDefaultSettings(): PublicPageSettings {
+		return { ...DEFAULT_SETTINGS };
+	}
+
+	/**
+	 * Reset settings to defaults (admin only - async)
+	 */
+	resetSettings(): Observable<PublicPageSettings> {
+		return this.publicPageSettingsDataService.resetSettings().pipe(
+			map((dto) => this.dtoToSettings(dto)),
+			tap((resetSettings) => {
+				this.settingsCache = resetSettings;
+				this.settingsSubject.next(resetSettings);
+			}),
+			catchError((error) => {
+				console.error('Error resetting public page settings:', error);
+				return throwError(() => error);
+			})
+		);
+	}
+
+	/**
+	 * Convert DTO to Settings (strip audit fields)
+	 */
+	private dtoToSettings(dto: PublicPageSettingsDto): PublicPageSettings {
+		return {
+			mapVisualizationMode: dto.mapVisualizationMode,
+			selectedBasemapId: dto.selectedBasemapId,
+			colorScale: dto.colorScale,
+			nationalDataViewerTitle: dto.nationalDataViewerTitle,
+			nationalDataViewerDescription: dto.nationalDataViewerDescription,
+			nationalDataViewerInfoBoxContent: dto.nationalDataViewerInfoBoxContent,
+			nationalDataViewerInfoBoxStats: dto.nationalDataViewerInfoBoxStats,
+		};
+	}
+}
+

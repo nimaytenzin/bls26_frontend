@@ -100,6 +100,7 @@
 					<div class="border-t border-slate-200 p-3 space-y-2">
 						<button
 							type="button"
+							(click)="openEditProfileDialog()"
 							class="w-full px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
 						>
 							<i class="pi pi-user-edit text-xs"></i>
@@ -108,7 +109,7 @@
 
 						<button
 							type="button"
-							(click)="resetPassword(); profilePopover.hide()"
+							(click)="openChangePasswordDialog()"
 							class="w-full px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
 						>
 							<i class="pi pi-key text-xs"></i>
@@ -149,3 +150,220 @@
 
 <p-toast />
 <p-confirmPopup />
+
+<!-- Edit Profile Dialog -->
+<p-dialog
+	[(visible)]="showEditProfileDialog"
+	[style]="{ width: '500px' }"
+	header="Edit Profile"
+	[modal]="true"
+	[closable]="!isUpdatingProfile"
+	[dismissableMask]="!isUpdatingProfile"
+	(onHide)="closeEditProfileDialog()"
+	styleClass="p-fluid"
+>
+	<ng-template pTemplate="content">
+		<div class="flex flex-col gap-4">
+			<!-- Name Field -->
+			<div class="flex flex-col">
+				<label for="editName" class="text-sm font-medium text-slate-700 mb-1">
+					Full Name
+				</label>
+				<input
+					pInputText
+					id="editName"
+					[(ngModel)]="editProfileForm.name"
+					[disabled]="isUpdatingProfile"
+					placeholder="Enter your full name"
+					class="w-full"
+				/>
+			</div>
+
+			<!-- Email Field -->
+			<div class="flex flex-col">
+				<label
+					for="editEmail"
+					class="text-sm font-medium text-slate-700 mb-1"
+				>
+					Email Address
+				</label>
+				<input
+					pInputText
+					id="editEmail"
+					type="email"
+					[(ngModel)]="editProfileForm.emailAddress"
+					[disabled]="isUpdatingProfile"
+					placeholder="Enter your email address"
+					class="w-full"
+				/>
+			</div>
+
+			<!-- Phone Number Field -->
+			<div class="flex flex-col">
+				<label
+					for="editPhone"
+					class="text-sm font-medium text-slate-700 mb-1"
+				>
+					Phone Number
+				</label>
+				<input
+					pInputText
+					id="editPhone"
+					[(ngModel)]="editProfileForm.phoneNumber"
+					[disabled]="isUpdatingProfile"
+					placeholder="Enter your phone number"
+					class="w-full"
+				/>
+			</div>
+
+			<!-- Info Message -->
+			<div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+				<div class="flex items-start">
+					<i class="pi pi-info-circle text-blue-600 text-sm mr-2 mt-0.5"></i>
+					<p class="text-xs text-blue-800 m-0">
+						Only the fields you modify will be updated. CID and role cannot be
+						changed.
+					</p>
+				</div>
+			</div>
+		</div>
+	</ng-template>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				icon="pi pi-times"
+				class="p-button-text"
+				[disabled]="isUpdatingProfile"
+				(click)="closeEditProfileDialog()"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Update Profile"
+				icon="pi pi-check"
+				[loading]="isUpdatingProfile"
+				[disabled]="isUpdatingProfile"
+				(click)="updateProfile()"
+			></button>
+		</div>
+	</ng-template>
+</p-dialog>
+
+<!-- Change Password Dialog -->
+<p-dialog
+	[(visible)]="showChangePasswordDialog"
+	[style]="{ width: '500px' }"
+	header="Change Password"
+	[modal]="true"
+	[closable]="!isChangingPassword"
+	[dismissableMask]="!isChangingPassword"
+	(onHide)="closeChangePasswordDialog()"
+	styleClass="p-fluid"
+>
+	<ng-template pTemplate="content">
+		<div class="flex flex-col gap-4">
+			<!-- Current Password Field -->
+			<div class="flex flex-col">
+				<label
+					for="currentPassword"
+					class="text-sm font-medium text-slate-700 mb-1"
+				>
+					Current Password *
+				</label>
+				<p-password
+					id="currentPassword"
+					[(ngModel)]="changePasswordForm.currentPassword"
+					[disabled]="isChangingPassword"
+					placeholder="Enter your current password"
+					[feedback]="false"
+					[toggleMask]="true"
+					styleClass="w-full"
+					inputStyleClass="w-full"
+				></p-password>
+			</div>
+
+			<!-- New Password Field -->
+			<div class="flex flex-col">
+				<label
+					for="newPassword"
+					class="text-sm font-medium text-slate-700 mb-1"
+				>
+					New Password *
+				</label>
+				<p-password
+					id="newPassword"
+					[(ngModel)]="changePasswordForm.newPassword"
+					[disabled]="isChangingPassword"
+					placeholder="Enter your new password"
+					[feedback]="true"
+					[toggleMask]="true"
+					styleClass="w-full"
+					inputStyleClass="w-full"
+				></p-password>
+				<small class="text-xs text-slate-500 mt-1">
+					Password must be at least 6 characters long.
+				</small>
+			</div>
+
+			<!-- Confirm New Password Field -->
+			<div class="flex flex-col">
+				<label
+					for="confirmNewPassword"
+					class="text-sm font-medium text-slate-700 mb-1"
+				>
+					Confirm New Password *
+				</label>
+				<p-password
+					id="confirmNewPassword"
+					[(ngModel)]="confirmNewPassword"
+					[disabled]="isChangingPassword"
+					placeholder="Confirm your new password"
+					[feedback]="false"
+					[toggleMask]="true"
+					styleClass="w-full"
+					inputStyleClass="w-full"
+				></p-password>
+			</div>
+
+			<!-- Info Message -->
+			<div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+				<div class="flex items-start">
+					<i
+						class="pi pi-exclamation-triangle text-amber-600 text-sm mr-2 mt-0.5"
+					></i>
+					<p class="text-xs text-amber-800 m-0">
+						Make sure your new password is strong and different from your current
+						password.
+					</p>
+				</div>
+			</div>
+		</div>
+	</ng-template>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				type="button"
+				label="Cancel"
+				icon="pi pi-times"
+				class="p-button-text"
+				[disabled]="isChangingPassword"
+				(click)="closeChangePasswordDialog()"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Change Password"
+				icon="pi pi-check"
+				[loading]="isChangingPassword"
+				[disabled]="isChangingPassword"
+				(click)="changePassword()"
+			></button>
+		</div>
+	</ng-template>
+</p-dialog>

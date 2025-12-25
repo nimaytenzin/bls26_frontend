@@ -1,0 +1,93 @@
+Test ID,Module / Feature,Objective,Steps,Expected Results,Status (P/F/B)
+TC1-101,Login Page,Verify that clicking on login button on home page loads the login page,"1. Navigate to the home page (/)
+2. Locate the ""Login"" button in the navigation bar (desktop) or mobile menu
+3. Click on the ""Login"" button","1. User is redirected to the login page (/auth/login)
+2. Login page displays with the following elements:
+   - Page title: ""National Sampling Frame Dashboard""
+   - Subtitle: ""National Statistics Bureau of Bhutan""
+   - Email address input field
+   - Password input field
+   - ""Sign in"" button
+   - ""Back to Home"" link
+3. Particles.js background animation is visible (if loaded)
+4. Form fields are empty and enabled",P
+TC1-102,View User Profile on Top bar,Verify that user can view their profile information from the top bar,"1. Log in to the application with valid credentials
+2. Navigate to any admin dashboard page (user must be authenticated)
+3. Locate the user avatar/profile icon in the top right corner of the admin top bar
+4. Click on the user avatar/profile icon","1. A profile popover opens displaying:
+   - User's profile image (or avatar with first letter of name)
+   - User's full name
+   - User's role (e.g., Admin, Supervisor, Enumerator)
+   - User's email address with envelope icon
+   - User's phone number (if available) with phone icon
+2. Three action buttons are visible:
+   - ""Edit Profile"" button
+   - ""Change Password"" button
+   - ""Sign Out"" button
+3. All information is correctly displayed and matches the logged-in user's data",P
+TC1-103,Update Profile,Verify that user can update their profile information (name, email, phone number),"1. Log in to the application with valid credentials
+2. Click on the user avatar/profile icon in the top bar
+3. Click on the ""Edit Profile"" button in the profile popover
+4. Verify that the Edit Profile dialog opens with current user data pre-filled
+5. Modify one or more fields (name, email address, or phone number)
+6. Click on the ""Update Profile"" button
+7. Wait for the update to complete","1. Edit Profile dialog opens with:
+   - Full Name field pre-filled with current name
+   - Email Address field pre-filled with current email
+   - Phone Number field pre-filled with current phone (if available)
+   - Info message stating ""Only the fields you modify will be updated. CID and role cannot be changed.""
+   - ""Cancel"" and ""Update Profile"" buttons
+2. After clicking ""Update Profile"":
+   - Loading indicator appears on the button
+   - Dialog is disabled during update
+   - Success toast message appears: ""Profile updated successfully""
+   - Dialog closes automatically
+   - Updated information is reflected in the profile popover
+3. If no changes are made, a warning message appears: ""Please make at least one change to update your profile.""",P
+TC1-104,Change Password,Verify that user can change their password,"1. Log in to the application with valid credentials
+2. Click on the user avatar/profile icon in the top bar
+3. Click on the ""Change Password"" button in the profile popover
+4. Verify that the Change Password dialog opens
+5. Enter the current password in the ""Current Password"" field
+6. Enter a new password (minimum 6 characters) in the ""New Password"" field
+7. Enter the same new password in the ""Confirm New Password"" field
+8. Click on the ""Change Password"" button
+9. Wait for the password change to complete","1. Change Password dialog opens with:
+   - Current Password field (with toggle mask option)
+   - New Password field (with toggle mask and password strength feedback)
+   - Confirm New Password field (with toggle mask option)
+   - Info message: ""Make sure your new password is strong and different from your current password.""
+   - ""Cancel"" and ""Change Password"" buttons
+2. Validation checks:
+   - If current password is empty: Warning ""Please enter your current password.""
+   - If new password is empty: Warning ""Please enter a new password.""
+   - If new password is less than 6 characters: Warning ""New password must be at least 6 characters long.""
+   - If passwords don't match: Warning ""New password and confirmation do not match.""
+   - If new password equals current password: Warning ""New password must be different from current password.""
+3. After successful password change:
+   - Loading indicator appears on the button
+   - Dialog is disabled during change
+   - Success toast message appears: ""Password changed successfully""
+   - Dialog closes automatically
+4. User can log in with the new password on next login",P
+TC1-105,Logout,Verify that user can successfully log out from the application,"1. Log in to the application with valid credentials
+2. Click on the user avatar/profile icon in the top bar
+3. Click on the ""Sign Out"" button in the profile popover
+4. A confirmation dialog appears - click ""Yes"" or ""Accept"" to confirm logout","1. Profile popover closes when ""Sign Out"" is clicked
+2. A confirmation dialog appears with:
+   - Header: ""Sign Out""
+   - Message: ""Are you sure you want to sign out?""
+   - Sign out icon
+   - ""Yes"" (danger/red button) and ""No"" (cancel) options
+3. After confirming logout:
+   - Loading state is shown (if applicable)
+   - Success toast message appears: ""You have been signed out successfully""
+   - User session is terminated
+   - User is redirected to the login page or home page
+   - All authentication tokens are cleared
+   - User cannot access protected routes without logging in again
+4. If user clicks ""No"" or cancels:
+   - Confirmation dialog closes
+   - User remains logged in
+   - No logout action occurs",P
+

@@ -14,6 +14,9 @@ import {
 	CreateSupervisorDto,
 	CreateEnumeratorDto,
 	UpdateUserDto,
+	UpdateProfileDto,
+	UpdateProfileResponse,
+	ChangePasswordResponse,
 	User,
 	UserRole,
 	ApiError,
@@ -72,11 +75,22 @@ export class AuthDataService {
 	/**
 	 * Change user password
 	 * @param changePasswordDto - Change password data
-	 * @returns Observable<any>
+	 * @returns Observable<ChangePasswordResponse>
 	 */
-	changePassword(changePasswordDto: ChangePasswordDto): Observable<any> {
+	changePassword(changePasswordDto: ChangePasswordDto): Observable<ChangePasswordResponse> {
 		return this.http
-			.post(`${this.apiUrl}/change-password`, changePasswordDto)
+			.post<ChangePasswordResponse>(`${this.apiUrl}/change-password`, changePasswordDto)
+			.pipe(catchError(this.handleError));
+	}
+
+	/**
+	 * Update current user profile
+	 * @param updateProfileDto - Profile update data
+	 * @returns Observable<UpdateProfileResponse>
+	 */
+	updateProfile(updateProfileDto: UpdateProfileDto): Observable<UpdateProfileResponse> {
+		return this.http
+			.patch<UpdateProfileResponse>(`${this.apiUrl}/profile`, updateProfileDto)
 			.pipe(catchError(this.handleError));
 	}
 
@@ -133,6 +147,17 @@ export class AuthDataService {
 	getUserById(userId: number): Observable<User> {
 		return this.http
 			.get<User>(`${this.apiUrl}/users/${userId}`)
+			.pipe(catchError(this.handleError));
+	}
+
+	/**
+	 * Get complete user profile with all role-specific assignments
+	 * @param userId - User ID
+	 * @returns Observable with comprehensive user profile data
+	 */
+	getUserProfile(userId: number): Observable<any> {
+		return this.http
+			.get<any>(`${this.apiUrl}/users/${userId}/profile`)
 			.pipe(catchError(this.handleError));
 	}
 

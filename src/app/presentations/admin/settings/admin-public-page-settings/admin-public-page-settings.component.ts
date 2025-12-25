@@ -8,6 +8,10 @@ import {
 	PublicPageSettingsService,
 } from '../../../../core/services/public-page-settings.service';
 import { BasemapService, BasemapConfig } from '../../../../core/utility/basemap.service';
+import {
+	MapFeatureColorService,
+	ColorScaleType,
+} from '../../../../core/utility/map-feature-color.service';
 
 @Component({
 	selector: 'app-admin-public-page-settings',
@@ -21,6 +25,12 @@ export class AdminPublicPageSettingsComponent implements OnInit {
 	settings: PublicPageSettings = {
 		mapVisualizationMode: 'households',
 		selectedBasemapId: 'positron',
+		colorScale: 'blue',
+		nationalDataViewerTitle: 'National Sampling Frame',
+		nationalDataViewerDescription: 'Current statistics on households and enumeration areas',
+		nationalDataViewerInfoBoxContent:
+			'A sampling frame is a population from which a sample can be drawn, ensuring survey samples are representative and reliable.',
+		nationalDataViewerInfoBoxStats: '3,310 EAs total (1,464 urban, 1,846 rural)',
 	};
 
 	basemapCategories: Record<
@@ -35,9 +45,12 @@ export class AdminPublicPageSettingsComponent implements OnInit {
 		{ label: 'Enumeration Areas', value: 'enumerationAreas' },
 	];
 
+	colorScaleOptions: { label: string; value: ColorScaleType }[] = [];
+
 	constructor(
 		private publicPageSettingsService: PublicPageSettingsService,
 		private basemapService: BasemapService,
+		private colorScaleService: MapFeatureColorService,
 		private messageService: MessageService
 	) {}
 
@@ -48,6 +61,9 @@ export class AdminPublicPageSettingsComponent implements OnInit {
 		// Initialize basemap categories
 		this.basemapCategories = this.basemapService.getBasemapCategories();
 		this.buildBasemapOptions();
+
+		// Initialize color scale options
+		this.colorScaleOptions = this.colorScaleService.getAvailableColorScales();
 	}
 
 	/**
@@ -92,6 +108,18 @@ export class AdminPublicPageSettingsComponent implements OnInit {
 			detail: 'Public page settings have been reset to default values.',
 			life: 3000,
 		});
+	}
+
+	/**
+	 * Get the CSS gradient for the selected color scale preview
+	 */
+	getColorScalePreview(): string {
+		return this.colorScaleService.getLegendGradient(
+			0,
+			100,
+			'horizontal',
+			this.settings.colorScale || 'blue'
+		);
 	}
 }
 

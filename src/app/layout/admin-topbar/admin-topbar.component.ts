@@ -18,7 +18,11 @@ import { FormsModule } from '@angular/forms';
 import { PasswordModule } from 'primeng/password';
 import { AvatarModule } from 'primeng/avatar';
 import { AuthService } from '../../core/dataservice/auth/auth.service';
-import { User } from '../../core/dataservice/auth/auth.interface';
+import {
+	User,
+	UpdateProfileDto,
+	ChangePasswordDto,
+} from '../../core/dataservice/auth/auth.interface';
 
 @Component({
 	selector: 'app-admin-topbar',
@@ -57,6 +61,24 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 	// User profile
 	userProfile: User | null = null;
 	private authStateSubscription?: Subscription;
+
+	// Edit Profile Dialog
+	showEditProfileDialog: boolean = false;
+	editProfileForm: UpdateProfileDto = {
+		name: '',
+		emailAddress: '',
+		phoneNumber: '',
+	};
+	isUpdatingProfile: boolean = false;
+
+	// Change Password Dialog
+	showChangePasswordDialog: boolean = false;
+	changePasswordForm: ChangePasswordDto = {
+		currentPassword: '',
+		newPassword: '',
+	};
+	confirmNewPassword: string = '';
+	isChangingPassword: boolean = false;
 
 	constructor(
 		public layoutService: AdminLayoutService,
@@ -98,8 +120,6 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 	 * Show logout confirmation dialog and execute logout if confirmed
 	 */
 	confirmLogout(event: Event): void {
-		this.profilePopover.hide();
-
 		this.confirmationService.confirm({
 			target: event.target as EventTarget,
 			message: 'Are you sure you want to sign out?',
@@ -107,6 +127,8 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 			icon: 'pi pi-sign-out',
 			acceptButtonStyleClass: 'p-button-danger',
 			accept: () => {
+				// Hide profile popover only when user confirms logout
+				this.profilePopover.hide();
 				this.isLoggingOut = true;
 				this.authService.logout().subscribe({
 					next: () => {
@@ -134,16 +156,223 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 				});
 			},
 			reject: () => {
-				// User cancelled, do nothing
+				// User cancelled, keep profile popover open
 			},
 		});
 	}
 
-	resetPassword() {
-		this.messageService.add({
-			severity: 'info',
-			summary: 'Reset Password',
-			detail: 'Password reset functionality will be implemented soon.',
+	/**
+	 * Open Edit Profile dialog and initialize form with current user data
+	 */
+	openEditProfileDialog(): void {
+		if (this.userProfile) {
+			this.editProfileForm = {
+				name: this.userProfile.name || '',
+				emailAddress: this.userProfile.emailAddress || '',
+				phoneNumber: this.userProfile.phoneNumber || '',
+			};
+			this.showEditProfileDialog = true;
+			this.profilePopover.hide();
+		}
+	}
+
+	/**
+	 * Close Edit Profile dialog and reset form
+	 */
+	closeEditProfileDialog(): void {
+		this.showEditProfileDialog = false;
+		this.editProfileForm = {
+			name: '',
+			emailAddress: '',
+			phoneNumber: '',
+		};
+	}
+
+	/**
+	 * Submit profile update
+	 */
+	updateProfile(): void {
+		if (!this.userProfile) {
+			return;
+		}
+
+		// Validate that at least one field is provided
+		const hasChanges =
+			(this.editProfileForm.name &&
+				this.editProfileForm.name !== this.userProfile.name) ||
+			(this.editProfileForm.emailAddress &&
+				this.editProfileForm.emailAddress !== this.userProfile.emailAddress) ||
+			(this.editProfileForm.phoneNumber &&
+				this.editProfileForm.phoneNumber !== this.userProfile.phoneNumber);
+
+		if (!hasChanges) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Changes',
+				detail: 'Please make at least one change to update your profile.',
+			});
+			return;
+		}
+
+		// Build update payload with only changed fields
+		const updatePayload: UpdateProfileDto = {};
+		if (
+			this.editProfileForm.name &&
+			this.editProfileForm.name !== this.userProfile.name
+		) {
+			updatePayload.name = this.editProfileForm.name;
+		}
+		if (
+			this.editProfileForm.emailAddress &&
+			this.editProfileForm.emailAddress !== this.userProfile.emailAddress
+		) {
+			updatePayload.emailAddress = this.editProfileForm.emailAddress;
+		}
+		if (
+			this.editProfileForm.phoneNumber &&
+			this.editProfileForm.phoneNumber !== this.userProfile.phoneNumber
+		) {
+			updatePayload.phoneNumber = this.editProfileForm.phoneNumber;
+		}
+
+		this.isUpdatingProfile = true;
+		this.authService.updateProfile(updatePayload).subscribe({
+			next: (response) => {
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: response.message || 'Profile updated successfully',
+				});
+				this.closeEditProfileDialog();
+			},
+			error: (error) => {
+				console.error('Profile update error:', error);
+				const errorMessage =
+					error?.error?.message ||
+					error?.message ||
+					'Failed to update profile. Please try again.';
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: errorMessage,
+				});
+			},
+			complete: () => {
+				this.isUpdatingProfile = false;
+			},
 		});
+	}
+
+	/**
+	 * Open Change Password dialog
+	 */
+	openChangePasswordDialog(): void {
+		this.changePasswordForm = {
+			currentPassword: '',
+			newPassword: '',
+		};
+		this.confirmNewPassword = '';
+		this.showChangePasswordDialog = true;
+		this.profilePopover.hide();
+	}
+
+	/**
+	 * Close Change Password dialog and reset form
+	 */
+	closeChangePasswordDialog(): void {
+		this.showChangePasswordDialog = false;
+		this.changePasswordForm = {
+			currentPassword: '',
+			newPassword: '',
+		};
+		this.confirmNewPassword = '';
+	}
+
+	/**
+	 * Submit password change
+	 */
+	changePassword(): void {
+		// Validate form
+		if (!this.changePasswordForm.currentPassword) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Please enter your current password.',
+			});
+			return;
+		}
+
+		if (!this.changePasswordForm.newPassword) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Please enter a new password.',
+			});
+			return;
+		}
+
+		if (this.changePasswordForm.newPassword.length < 6) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'New password must be at least 6 characters long.',
+			});
+			return;
+		}
+
+		if (this.changePasswordForm.newPassword !== this.confirmNewPassword) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'New password and confirmation do not match.',
+			});
+			return;
+		}
+
+		if (
+			this.changePasswordForm.currentPassword ===
+			this.changePasswordForm.newPassword
+		) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'New password must be different from current password.',
+			});
+			return;
+		}
+
+		this.isChangingPassword = true;
+		this.authService.changePassword(this.changePasswordForm).subscribe({
+			next: (response) => {
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: response.message || 'Password changed successfully',
+				});
+				this.closeChangePasswordDialog();
+			},
+			error: (error) => {
+				console.error('Password change error:', error);
+				const errorMessage =
+					error?.error?.message ||
+					error?.message ||
+					'Failed to change password. Please check your current password and try again.';
+		this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: errorMessage,
+				});
+			},
+			complete: () => {
+				this.isChangingPassword = false;
+			},
+		});
+	}
+
+	/**
+	 * Legacy method - now opens change password dialog
+	 */
+	resetPassword(): void {
+		this.openChangePasswordDialog();
 	}
 }
