@@ -116,19 +116,15 @@
 				<div class="p-4 md:p-6">
 					<div class="flex items-start justify-between gap-3 md:gap-4 mb-4">
 						<div class="flex items-start gap-3 md:gap-4 flex-1">
-							<div class="hidden md:flex flex-shrink-0 w-12 h-12 rounded-lg bg-primary-600 items-center justify-center">
-								<i class="pi pi-map text-xl text-white"></i>
-							</div>
+							 
 							<div class="flex-1">
 								<h1 class="text-lg md:text-2xl font-bold text-slate-900 mb-1 md:mb-2 leading-tight">
-									{{ subAdministrativeZone?.name || "Sub-Administrative Zone" }}
-								</h1>
+									{{ subAdministrativeZone?.name || "Sub-Administrative Zone" }} {{ subAdministrativeZone?.type || "" }}
+								</h1> 
 								<p class="text-xs text-slate-500 mb-1">
 									{{ administrativeZone?.name || "Administrative Zone" }}, {{ dzongkhag?.name || "Dzongkhag" }} Dzongkhag
 								</p>
-								<p class="text-xs text-slate-500 mb-4">
-									{{ subAdministrativeZone?.type || "" }} - Comprehensive sampling frame data
-								</p>
+							 
 							</div>
 						</div>
 						<!-- Back Button -->
