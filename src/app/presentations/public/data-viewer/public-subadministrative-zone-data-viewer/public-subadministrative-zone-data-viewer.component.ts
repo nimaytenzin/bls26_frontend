@@ -78,6 +78,9 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	// Map visualization mode (only households for public)
 	mapVisualizationMode: 'households' = 'households';
 
+	// Download dialog
+	showDownloadDialog = false;
+
 	// Mobile State
 	isMobile: boolean = false;
 	isMobileDrawerOpen: boolean = false;
@@ -757,29 +760,24 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	}
 
 	/**
-	 * Download enumeration areas GeoJSON
+	 * Download enumeration areas GeoJSON (Public Route)
 	 */
 	downloadEnumerationAreasGeojson(): void {
-		if (!this.enumerationAreaBoundaries) {
-			this.showErrorMessage(
-				'Enumeration area boundaries not available for download'
-			);
-			return;
-		}
+		if (!this.subAdministrativeZoneId) return;
 
 		this.locationDownloadService
-			.downloadEAsBySubAdministrativeZoneAsGeoJson(
+			.downloadEAsBySubAdministrativeZoneAsGeoJsonPublic(
 				this.subAdministrativeZoneId
 			)
 			.subscribe({
 				next: (geojson: any) => {
-					const filename = `enumeration_areas_${this.subAdministrativeZoneId}_${new Date().toISOString().split('T')[0]}.geojson`;
+					const filename = `${this.subAdministrativeZone?.name || 'enumeration_areas'}_${new Date().toISOString().split('T')[0]}.geojson`;
 					this.downloadFile(
 						JSON.stringify(geojson, null, 2),
 						filename,
-						'application/geo+json'
+						'application/json'
 					);
-					this.showSuccessMessage('Enumeration areas GeoJSON downloaded');
+					this.showSuccessMessage('Enumeration areas GeoJSON downloaded successfully');
 				},
 				error: (error: any) => {
 					console.error('Error downloading GeoJSON:', error);
@@ -789,28 +787,30 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	}
 
 	/**
-	 * Download enumeration areas KML
+	 * Download enumeration areas KML (Public Route)
 	 */
 	downloadEnumerationAreasKml(): void {
-		if (!this.enumerationAreaBoundaries) {
-			this.showErrorMessage(
-				'Enumeration area boundaries not available for download'
-			);
-			return;
-		}
+		if (!this.subAdministrativeZoneId) return;
 
-		try {
-			this.downloadService.downloadKML({
-				data: this.enumerationAreaBoundaries,
-				filename: `enumeration_areas_${this.subAdministrativeZoneId}_${new Date().toISOString().split('T')[0]}.kml`,
-				layerName: this.subAdministrativeZone?.name || 'Enumeration Areas',
+		this.locationDownloadService
+			.downloadEAsBySubAdministrativeZoneAsKmlPublic(
+				this.subAdministrativeZoneId
+			)
+			.subscribe({
+				next: (kml: string) => {
+					const filename = `${this.subAdministrativeZone?.name || 'enumeration_areas'}_${new Date().toISOString().split('T')[0]}.kml`;
+					this.downloadFile(
+						kml,
+						filename,
+						'application/vnd.google-earth.kml+xml'
+					);
+					this.showSuccessMessage('Enumeration areas KML downloaded successfully');
+				},
+				error: (error: any) => {
+					console.error('Error downloading KML:', error);
+					this.showErrorMessage('Failed to download KML file');
+				},
 			});
-
-			this.showSuccessMessage('Enumeration areas KML downloaded');
-		} catch (error) {
-			console.error('Error downloading KML:', error);
-			this.showErrorMessage('Failed to download KML file');
-		}
 	}
 
 	/**
@@ -936,5 +936,42 @@ export class PublicSubadministrativeZoneDataViewerComponent
 			life: 3000,
 		});
 	}
+
+	// ==================== Download Dialog ====================
+
+	openDownloadDialog(): void {
+		this.showDownloadDialog = true;
+	}
+
+	closeDownloadDialog(): void {
+		this.showDownloadDialog = false;
+	}
+
+	// ==================== CSV Downloads ====================
+
+	/**
+	 * Download Sub-Administrative Zone Sampling Frame as CSV
+	 */
+	downloadSubAdministrativeZoneSamplingFrame(): void {
+		if (!this.subAdministrativeZoneId) return;
+		
+		this.annualStatisticsDownloadService.downloadSubAdministrativeZoneSamplingFrame(this.subAdministrativeZoneId).subscribe({
+			next: (csv) => {
+				this.downloadFile(
+					csv,
+					`${this.subAdministrativeZone?.name || 'sub_admin_zone'}_sampling_frame_${new Date().toISOString().split('T')[0]}.csv`,
+					'text/csv'
+				);
+				this.showSuccessMessage('Sub-Administrative Zone Sampling Frame CSV downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading sub-administrative zone sampling frame CSV:', error);
+				this.showErrorMessage('Failed to download Sub-Administrative Zone Sampling Frame CSV file');
+			},
+		});
+	}
+
+	// ==================== GeoJSON/KML Downloads ====================
+
 }
 

@@ -396,5 +396,75 @@ export class AnnualStatisticsDownloadService {
 				})
 			);
 	}
+
+	/**
+	 * ADMINISTRATIVE ZONE VIEWER CSV DOWNLOADS
+	 * All endpoints are publicly accessible (no authentication required)
+	 * Designed specifically for the administrative zone data viewer
+	 */
+
+	/**
+	 * Download Administrative Zone Sampling Frame as CSV
+	 * Dynamic columns based on type:
+	 * - If Gewog: Gewog Name, Gewog Code, Chiwog Name, Chiwog Code, EA Name, EA Code, Household Count
+	 * - If Thromde: Thromde Name, Thromde Code, LAP Name, LAP Code, EA Name, EA Code, Household Count
+	 * @param administrativeZoneId - Administrative Zone ID
+	 * @param year - Optional year (defaults to latest available year)
+	 * @returns Observable of CSV string
+	 * @public - No authentication required
+	 */
+	downloadAdministrativeZoneSamplingFrame(administrativeZoneId: number, year?: number): Observable<string> {
+		const params: any = {};
+		if (year) {
+			params.year = year.toString();
+		}
+
+		return this.http
+			.get(`${this.apiUrl}/administrative-zone/${administrativeZoneId}/sampling-frame/csv`, {
+				params,
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading administrative zone ${administrativeZoneId} sampling frame CSV:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * SUB-ADMINISTRATIVE ZONE VIEWER CSV DOWNLOADS
+	 * All endpoints are publicly accessible (no authentication required)
+	 * Designed specifically for the sub-administrative zone data viewer
+	 */
+
+	/**
+	 * Download Sub-Administrative Zone Sampling Frame as CSV
+	 * Dynamic columns based on type:
+	 * - If Chiwog: Chiwog Name, Chiwog Code, EA Name, EA Code, Household Count
+	 * - If LAP: LAP Name, LAP Code, EA Name, EA Code, Household Count
+	 * @param subAdministrativeZoneId - Sub-Administrative Zone ID
+	 * @param year - Optional year (defaults to latest available year)
+	 * @returns Observable of CSV string
+	 * @public - No authentication required
+	 */
+	downloadSubAdministrativeZoneSamplingFrame(subAdministrativeZoneId: number, year?: number): Observable<string> {
+		const params: any = {};
+		if (year) {
+			params.year = year.toString();
+		}
+
+		return this.http
+			.get(`${this.apiUrl}/sub-administrative-zone/${subAdministrativeZoneId}/sampling-frame/csv`, {
+				params,
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading sub-administrative zone ${subAdministrativeZoneId} sampling frame CSV:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
 }
 

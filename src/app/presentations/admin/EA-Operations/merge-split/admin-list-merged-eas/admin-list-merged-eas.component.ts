@@ -144,7 +144,7 @@ export class AdminListMergedEasComponent implements OnInit {
 			header: 'EA History Viewer',
 			modal: true,
 			dismissableMask: true,
-			styleClass: 'p-fluid',
+			style: { 'max-width': '80vw' },
 			data: {
 				eaId: eaId,
 			},

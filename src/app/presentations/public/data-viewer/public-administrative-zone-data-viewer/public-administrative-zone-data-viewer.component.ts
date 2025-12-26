@@ -78,6 +78,9 @@ export class PublicAdministrativeZoneDataViewerComponent
 	// Map visualization mode (only households and EAs for public)
 	mapVisualizationMode: 'households' | 'enumerationAreas' = 'households';
 
+	// Download dialog
+	showDownloadDialog = false;
+
 	// Mobile State
 	isMobile: boolean = false;
 	isMobileDrawerOpen: boolean = false;
@@ -1027,6 +1030,130 @@ export class PublicAdministrativeZoneDataViewerComponent
 			summary: 'Download Failed',
 			detail,
 			life: 3000,
+		});
+	}
+
+	// ==================== Download Dialog ====================
+
+	openDownloadDialog(): void {
+		this.showDownloadDialog = true;
+	}
+
+	closeDownloadDialog(): void {
+		this.showDownloadDialog = false;
+	}
+
+	// ==================== CSV Downloads ====================
+
+	/**
+	 * Download Administrative Zone Sampling Frame as CSV
+	 */
+	downloadAdministrativeZoneSamplingFrame(): void {
+		if (!this.administrativeZoneId) return;
+		
+		this.annualStatisticsDownloadService.downloadAdministrativeZoneSamplingFrame(this.administrativeZoneId).subscribe({
+			next: (csv) => {
+				this.downloadFile(
+					csv,
+					`${this.administrativeZone?.name || 'admin_zone'}_sampling_frame_${new Date().toISOString().split('T')[0]}.csv`,
+					'text/csv'
+				);
+				this.showSuccessMessage('Administrative Zone Sampling Frame CSV downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading administrative zone sampling frame CSV:', error);
+				this.showErrorMessage('Failed to download Administrative Zone Sampling Frame CSV file');
+			},
+		});
+	}
+
+	// ==================== GeoJSON/KML Downloads ====================
+
+	/**
+	 * Download Chiwogs as GeoJSON (only for Gewog)
+	 */
+	downloadChiwogsGeojson(): void {
+		if (!this.administrativeZoneId || this.administrativeZone?.type !== 'Gewog') return;
+		
+		this.locationDownloadService.downloadChiwogsByAdministrativeZoneAsGeoJson(this.administrativeZoneId).subscribe({
+			next: (geoJson) => {
+				this.downloadFile(
+					JSON.stringify(geoJson, null, 2),
+					`${this.administrativeZone?.name || 'gewog'}_chiwogs_${new Date().toISOString().split('T')[0]}.geojson`,
+					'application/json'
+				);
+				this.showSuccessMessage('Chiwogs GeoJSON downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Chiwogs GeoJSON:', error);
+				this.showErrorMessage('Failed to download Chiwogs GeoJSON file');
+			},
+		});
+	}
+
+	/**
+	 * Download Chiwogs as KML (only for Gewog)
+	 */
+	downloadChiwogsKml(): void {
+		if (!this.administrativeZoneId || this.administrativeZone?.type !== 'Gewog') return;
+		
+		this.locationDownloadService.downloadChiwogsByAdministrativeZoneAsKml(this.administrativeZoneId).subscribe({
+			next: (kml) => {
+				this.downloadFile(
+					kml,
+					`${this.administrativeZone?.name || 'gewog'}_chiwogs_${new Date().toISOString().split('T')[0]}.kml`,
+					'application/vnd.google-earth.kml+xml'
+				);
+				this.showSuccessMessage('Chiwogs KML downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Chiwogs KML:', error);
+				this.showErrorMessage('Failed to download Chiwogs KML file');
+			},
+		});
+	}
+
+	/**
+	 * Download EAs (Enumeration Areas) as GeoJSON
+	 */
+	downloadEAsGeojson(): void {
+		if (!this.administrativeZoneId) return;
+		
+		this.locationDownloadService.downloadEAsByAdministrativeZoneAsGeoJsonPublic(this.administrativeZoneId).subscribe({
+			next: (geoJson) => {
+				this.downloadFile(
+					JSON.stringify(geoJson, null, 2),
+					`${this.administrativeZone?.name || 'admin_zone'}_enumeration_areas_${new Date().toISOString().split('T')[0]}.geojson`,
+					'application/json'
+				);
+				this.showSuccessMessage('Enumeration Areas GeoJSON downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Enumeration Areas GeoJSON:', error);
+				this.showErrorMessage('Failed to download Enumeration Areas GeoJSON file');
+			},
+		});
+	}
+
+	/**
+	 * Download EAs (Enumeration Areas) as KML
+	 */
+	downloadEAsKml(): void {
+		if (!this.administrativeZoneId) return;
+		
+		this.locationDownloadService.downloadEAsByAdministrativeZoneAsKmlPublic(this.administrativeZoneId).subscribe({
+			next: (kml) => {
+				this.downloadFile(
+					kml,
+					`${this.administrativeZone?.name || 'admin_zone'}_enumeration_areas_${new Date().toISOString().split('T')[0]}.kml`,
+					'application/vnd.google-earth.kml+xml'
+				);
+				this.showSuccessMessage('Enumeration Areas KML downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Enumeration Areas KML:', error);
+				this.showErrorMessage('Failed to download Enumeration Areas KML file');
+			},
 		});
 	}
 }

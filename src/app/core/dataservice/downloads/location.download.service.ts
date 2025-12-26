@@ -560,5 +560,127 @@ export class LocationDownloadService {
 				})
 			);
 	}
+
+	/**
+	 * ADMINISTRATIVE ZONE VIEWER PUBLIC DOWNLOADS
+	 * All endpoints are publicly accessible (no authentication required)
+	 * Designed specifically for the administrative zone data viewer
+	 */
+
+	/**
+	 * Download Chiwogs by Administrative Zone as GeoJSON
+	 * Filters Sub-Administrative Zones where type = 'chiwog'
+	 * @param administrativeZoneId - Administrative Zone ID
+	 * @returns Observable of GeoJSON object
+	 * @public - No authentication required
+	 */
+	downloadChiwogsByAdministrativeZoneAsGeoJson(administrativeZoneId: number): Observable<any> {
+		return this.http
+			.get<any>(`${this.apiUrl}/administrative-zone/${administrativeZoneId}/chiwogs/geojson`)
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading chiwogs for administrative zone ${administrativeZoneId} as GeoJSON:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Chiwogs by Administrative Zone as KML
+	 * Filters Sub-Administrative Zones where type = 'chiwog'
+	 * @param administrativeZoneId - Administrative Zone ID
+	 * @returns Observable of KML string
+	 * @public - No authentication required
+	 */
+	downloadChiwogsByAdministrativeZoneAsKml(administrativeZoneId: number): Observable<string> {
+		return this.http
+			.get(`${this.apiUrl}/administrative-zone/${administrativeZoneId}/chiwogs/kml`, {
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading chiwogs for administrative zone ${administrativeZoneId} as KML:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Enumeration Areas by Administrative Zone as GeoJSON (Public)
+	 * @param administrativeZoneId - Administrative Zone ID
+	 * @returns Observable of GeoJSON object
+	 * @public - No authentication required
+	 */
+	downloadEAsByAdministrativeZoneAsGeoJsonPublic(administrativeZoneId: number): Observable<any> {
+		return this.http
+			.get<any>(`${this.apiUrl}/administrative-zone/${administrativeZoneId}/enumeration-areas/geojson`)
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading EAs for administrative zone ${administrativeZoneId} as GeoJSON (public):`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Enumeration Areas by Administrative Zone as KML (Public)
+	 * @param administrativeZoneId - Administrative Zone ID
+	 * @returns Observable of KML string
+	 * @public - No authentication required
+	 */
+	downloadEAsByAdministrativeZoneAsKmlPublic(administrativeZoneId: number): Observable<string> {
+		return this.http
+			.get(`${this.apiUrl}/administrative-zone/${administrativeZoneId}/enumeration-areas/kml`, {
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading EAs for administrative zone ${administrativeZoneId} as KML (public):`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * SUB-ADMINISTRATIVE ZONE VIEWER PUBLIC DOWNLOADS
+	 * All endpoints are publicly accessible (no authentication required)
+	 * Designed specifically for the sub-administrative zone data viewer
+	 */
+
+	/**
+	 * Download Enumeration Areas by Sub-Administrative Zone as GeoJSON (Public)
+	 * @param subAdministrativeZoneId - Sub-Administrative Zone ID
+	 * @returns Observable of GeoJSON object
+	 * @public - No authentication required
+	 */
+	downloadEAsBySubAdministrativeZoneAsGeoJsonPublic(subAdministrativeZoneId: number): Observable<any> {
+		return this.http
+			.get<any>(`${this.apiUrl}/sub-administrative-zone/${subAdministrativeZoneId}/enumeration-areas/geojson`)
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading EAs for sub-administrative zone ${subAdministrativeZoneId} as GeoJSON (public):`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Enumeration Areas by Sub-Administrative Zone as KML (Public)
+	 * @param subAdministrativeZoneId - Sub-Administrative Zone ID
+	 * @returns Observable of KML string
+	 * @public - No authentication required
+	 */
+	downloadEAsBySubAdministrativeZoneAsKmlPublic(subAdministrativeZoneId: number): Observable<string> {
+		return this.http
+			.get(`${this.apiUrl}/sub-administrative-zone/${subAdministrativeZoneId}/enumeration-areas/kml`, {
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading EAs for sub-administrative zone ${subAdministrativeZoneId} as KML (public):`, error);
+					return throwError(() => error);
+				})
+			);
+	}
 }
 

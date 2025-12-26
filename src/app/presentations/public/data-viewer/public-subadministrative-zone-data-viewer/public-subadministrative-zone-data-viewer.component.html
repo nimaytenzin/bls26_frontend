@@ -181,45 +181,9 @@
 
 					<!-- Desktop Download Button -->
 					<div *ngIf="!noDataFound" class="hidden md:block mb-4">
-						<p-popover #downloadPopover>
-							<div class="flex flex-col gap-3 w-[20rem] p-1">
-								<div>
-									<div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
-										<i class="pi pi-download text-primary-600"></i>
-										<span class="font-bold text-slate-900 text-sm">Download Sub-Administrative Zone Data</span>
-									</div>
-									<div class="flex flex-col gap-2">
-										<button
-											type="button"
-											(click)="downloadEnumerationAreasGeojson(); downloadPopover.hide()"
-											class="w-full px-4 py-3 min-h-[44px] bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-										>
-											<i class="pi pi-file text-sm"></i>
-											Download GeoJSON
-										</button>
-										<button
-											type="button"
-											(click)="downloadEnumerationAreasKml(); downloadPopover.hide()"
-											class="w-full px-4 py-3 min-h-[44px] bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-										>
-											<i class="pi pi-file text-sm"></i>
-											Download KML
-										</button>
-										<button
-											type="button"
-											(click)="downloadSubAdministrativeZoneStatisticsCSV(); downloadPopover.hide()"
-											class="w-full px-4 py-3 min-h-[44px] bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-										>
-											<i class="pi pi-file text-sm"></i>
-											Download Statistics CSV
-										</button>
-									</div>
-								</div>
-							</div>
-						</p-popover>
 						<button
 							type="button"
-							(click)="downloadPopover.toggle($event)"
+							(click)="openDownloadDialog()"
 							class="w-full px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg border border-slate-200"
 						>
 							<i class="pi pi-download"></i>
@@ -359,42 +323,9 @@
 		<div class="absolute inset-0 pointer-events-none z-[999]">
 			<!-- Mobile Download Button -->
 			<div *ngIf="!noDataFound" class="md:hidden fixed bottom-4 right-3 pointer-events-auto z-[1000]">
-				<p-popover #downloadPopoverMobile>
-					<div class="flex flex-col gap-2 w-[16rem] p-1">
-						<div class="px-3 py-2 border-b border-slate-200">
-							<span class="font-semibold text-slate-900 text-xs">Download</span>
-						</div>
-						<div class="flex flex-col gap-1.5 p-1">
-							<button
-								type="button"
-								(click)="downloadEnumerationAreasGeojson(); downloadPopoverMobile.hide()"
-								class="w-full px-3 py-2.5 min-h-[40px] bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium rounded-md transition-all flex items-center justify-center gap-2"
-							>
-								<i class="pi pi-file text-xs"></i>
-								GeoJSON
-							</button>
-							<button
-								type="button"
-								(click)="downloadEnumerationAreasKml(); downloadPopoverMobile.hide()"
-								class="w-full px-3 py-2.5 min-h-[40px] bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium rounded-md transition-all flex items-center justify-center gap-2"
-							>
-								<i class="pi pi-file text-xs"></i>
-								KML
-							</button>
-							<button
-								type="button"
-								(click)="downloadSubAdministrativeZoneStatisticsCSV(); downloadPopoverMobile.hide()"
-								class="w-full px-3 py-2.5 min-h-[40px] bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-all flex items-center justify-center gap-2"
-							>
-								<i class="pi pi-file text-xs"></i>
-								Statistics CSV
-							</button>
-						</div>
-					</div>
-				</p-popover>
 				<button
 					type="button"
-					(click)="downloadPopoverMobile.toggle($event)"
+					(click)="openDownloadDialog()"
 					class="w-10 h-10 rounded-lg bg-white/95 backdrop-blur-sm border border-slate-200 text-slate-700 shadow-lg hover:bg-white hover:shadow-xl transition-all flex items-center justify-center"
 					aria-label="Download"
 				>
@@ -452,7 +383,7 @@
 								<div
 									*ngFor="let break of getLegendBreaks()"
 									class="absolute text-xs font-semibold text-slate-700 whitespace-nowrap"
-									[style.bottom]="break.position + '%'"
+									[style.bottom]="(100 - break.position) + '%'"
 									[style.transform]="'translateY(50%)'"
 								>
 									{{ break.label }}
@@ -517,7 +448,7 @@
 								<div
 									*ngFor="let break of getLegendBreaks(); let i = index"
 									class="absolute whitespace-nowrap"
-									[style.bottom]="break.position + '%'"
+									[style.bottom]="(100 - break.position) + '%'"
 									[style.transform]="'translateY(50%)'"
 								>
 									{{ break.label }}
@@ -554,5 +485,110 @@
 			</div>
 		</div>
 	</ng-container>
+
+	<!-- Download Options Dialog -->
+	<p-dialog
+		[(visible)]="showDownloadDialog"
+		[modal]="true"
+		[closable]="true"
+		[style]="{ width: '90vw', maxWidth: '600px' }"
+		[draggable]="false"
+		[resizable]="false"
+		[header]="'Download ' + (subAdministrativeZone?.type === 'Chiwog' ? 'Chiwog' : 'LAP') + ' Data'"
+		(onHide)="closeDownloadDialog()"
+	>
+		<div class="flex flex-col gap-4 p-2">
+			<!-- Statistics Downloads -->
+			<div>
+				<h3
+					class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b border-slate-200"
+				>
+					Statistics Data
+				</h3>
+				<table class="w-full mb-4">
+					<thead>
+						<tr class="text-left text-xs font-semibold text-slate-600 uppercase">
+							<th class="pb-2">Sampling Frame Data</th>
+							<th class="pb-2 text-center">CSV Download</th>
+						</tr>
+					</thead>
+					<tbody>
+						<!-- Sub-Administrative Zone Sampling Frame -->
+						<tr>
+							<td class="py-2.5 text-sm text-slate-700">
+								<div class="flex flex-col">
+									<span class="font-semibold">{{ subAdministrativeZone?.type === 'Chiwog' ? 'Chiwog' : 'LAP' }} Sampling Frame</span>
+								</div>
+							</td>
+							<td class="py-2.5 text-center">
+								<button
+									type="button"
+									(click)="downloadSubAdministrativeZoneSamplingFrame(); closeDownloadDialog()"
+									class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded transition-all"
+									title="Download Sampling Frame CSV"
+								>
+									Download
+								</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<!-- Geographic Data Downloads -->
+			<div>
+				<h3
+					class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b border-slate-200"
+				>
+					Geographic Data
+				</h3>
+				<table class="w-full">
+					<thead>
+						<tr class="text-left text-xs font-semibold text-slate-600 uppercase">
+							<th class="pb-2">Location Type</th>
+							<th class="pb-2 text-center">GeoJSON</th>
+							<th class="pb-2 text-center">KML</th>
+						</tr>
+					</thead>
+					<tbody>
+						<!-- EAs (Enumeration Areas) -->
+						<tr>
+							<td class="py-2 text-sm text-slate-700">EAs (Enumeration Areas)</td>
+							<td class="py-2 text-center">
+								<button
+									type="button"
+									(click)="downloadEnumerationAreasGeojson(); closeDownloadDialog()"
+									class="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition-all"
+									title="Download GeoJSON"
+								>
+									Download
+								</button>
+							</td>
+							<td class="py-2 text-center">
+								<button
+									type="button"
+									(click)="downloadEnumerationAreasKml(); closeDownloadDialog()"
+									class="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition-all"
+									title="Download KML"
+								>
+									Download
+								</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<!-- Action Buttons -->
+			<div class="flex gap-3 pt-2 border-t border-slate-200">
+				<button
+					type="button"
+					(click)="closeDownloadDialog()"
+					class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-all"
+				>
+					Close
+				</button>
+			</div>
+		</div>
+	</p-dialog>
 </div>
 

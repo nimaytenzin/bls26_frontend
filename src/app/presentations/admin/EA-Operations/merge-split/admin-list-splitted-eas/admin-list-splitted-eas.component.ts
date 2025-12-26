@@ -145,7 +145,8 @@ export class AdminListSplittedEasComponent implements OnInit {
 	openHistoryDialog(eaId: number) {
 		this.historyDialogRef = this.dialogService.open(EaHistoryViewerComponent, {
 			header: 'EA History Viewer',
-			
+			width: '80vw',
+			style: { 'max-width': '80vw' },
 			modal: true,
 			dismissableMask: true,
 			styleClass: 'p-fluid',
