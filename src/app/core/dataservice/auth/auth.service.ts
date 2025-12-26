@@ -19,6 +19,8 @@ import {
 	UserRole,
 	AdminSignupDto,
 	Supervisor,
+	ActivateUserResponse,
+	DeactivateUserResponse,
 } from './auth.interface';
 
 @Injectable({
@@ -238,6 +240,24 @@ export class AuthService {
 	 */
 	deleteUser(userId: number): Observable<any> {
 		return this.authDataService.deleteUser(userId);
+	}
+
+	/**
+	 * Activate user (Admin only)
+	 * @param userId - User ID
+	 * @returns Observable<ActivateUserResponse>
+	 */
+	activateUser(userId: number): Observable<ActivateUserResponse> {
+		return this.authDataService.activateUser(userId);
+	}
+
+	/**
+	 * Deactivate user (Admin only)
+	 * @param userId - User ID
+	 * @returns Observable<DeactivateUserResponse>
+	 */
+	deactivateUser(userId: number): Observable<DeactivateUserResponse> {
+		return this.authDataService.deactivateUser(userId);
 	}
 
 	// ========================

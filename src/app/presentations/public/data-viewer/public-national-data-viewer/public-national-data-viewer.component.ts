@@ -102,6 +102,12 @@ export class PublicNationalDataViewerComponent
 		includeSAZ: false,
 	};
 
+	// Download state tracking
+	isDownloading = false;
+	currentDownloadType: string | null = null;
+	showDownloadProgressDialog = false;
+	downloadProgress = 0;
+
 	// Content settings
 	pageTitle = 'National Sampling Frame';
 	pageDescription = 'Current statistics on households and enumeration areas';
@@ -689,6 +695,8 @@ export class PublicNationalDataViewerComponent
 	 * Download dzongkhag KML file
 	 */
 	downloadDzongkhagKML(dzongkhagId: number, dzongkhagName: string): void {
+		if (this.isDownloading) return;
+		
 		if (!this.geoJsonData || !this.geoJsonData.features) {
 			this.messageService.add({
 				severity: 'error',
@@ -714,6 +722,8 @@ export class PublicNationalDataViewerComponent
 			return;
 		}
 
+		this.startDownload(`${dzongkhagName} Dzongkhag KML`);
+
 		// Create a GeoJSON with just this feature
 		const featureGeoJSON = {
 			type: 'FeatureCollection',
@@ -726,26 +736,18 @@ export class PublicNationalDataViewerComponent
 
 		// Download the KML
 		try {
+			setTimeout(() => {
+				this.downloadProgress = 50;
 			this.downloadService.downloadKML({
 				data: featureGeoJSON,
 				filename: filename,
 				layerName: `${dzongkhagName} Dzongkhag`,
 			});
-
-			this.messageService.add({
-				severity: 'success',
-				summary: 'Download Complete',
-				detail: `${dzongkhagName} Dzongkhag KML downloaded successfully`,
-				life: 3000,
-			});
+				this.completeDownload(true, `${dzongkhagName} Dzongkhag KML downloaded successfully`);
+			}, 300);
 		} catch (error) {
 			console.error('Error downloading KML:', error);
-			this.messageService.add({
-				severity: 'error',
-				summary: 'Download Failed',
-				detail: 'Failed to download KML file',
-				life: 3000,
-			});
+			this.completeDownload(false, 'Failed to download KML file');
 		}
 	}
 
@@ -798,138 +800,225 @@ export class PublicNationalDataViewerComponent
 
 	// ==================== Downloads ====================
 
+	private startDownload(downloadType: string): void {
+		this.isDownloading = true;
+		this.currentDownloadType = downloadType;
+		this.downloadProgress = 0;
+		this.showDownloadProgressDialog = true;
+		
+		// Simulate initial progress
+		const progressInterval = setInterval(() => {
+			if (this.downloadProgress < 30 && this.isDownloading) {
+				this.downloadProgress += 5;
+			} else {
+				clearInterval(progressInterval);
+			}
+		}, 200);
+	}
+
+	private completeDownload(success: boolean, message?: string): void {
+		if (success) {
+			this.downloadProgress = 100;
+			setTimeout(() => {
+				this.showDownloadProgressDialog = false;
+				if (message) {
+					this.showSuccessMessage(message);
+				}
+				this.isDownloading = false;
+				this.currentDownloadType = null;
+				this.downloadProgress = 0;
+			}, 500);
+		} else {
+			this.showDownloadProgressDialog = false;
+			if (message) {
+				this.showErrorMessage(message);
+			}
+			this.isDownloading = false;
+			this.currentDownloadType = null;
+			this.downloadProgress = 0;
+		}
+	}
+
 	downloadDzongkhagGeojson(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Dzongkhags GeoJSON');
+
 		this.locationDownloadService.downloadAllDzongkhagsAsGeoJson().subscribe({
 			next: (geoJson) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					JSON.stringify(geoJson, null, 2),
 					`all_dzongkhags_${new Date().toISOString().split('T')[0]}.geojson`,
 					'application/json'
 				);
-				this.showSuccessMessage('All Dzongkhags GeoJSON downloaded successfully');
+					this.completeDownload(true, 'All Dzongkhags GeoJSON downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading Dzongkhags GeoJSON:', error);
-				this.showErrorMessage('Failed to download Dzongkhags GeoJSON file');
+				this.completeDownload(false, 'Failed to download Dzongkhags GeoJSON file');
 			},
 		});
 	}
 
 	downloadDzongkhagKml(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Dzongkhags KML');
+
 		this.locationDownloadService.downloadAllDzongkhagsAsKml().subscribe({
 			next: (kml) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					kml,
 					`all_dzongkhags_${new Date().toISOString().split('T')[0]}.kml`,
 					'application/vnd.google-earth.kml+xml'
 				);
-				this.showSuccessMessage('All Dzongkhags KML downloaded successfully');
+					this.completeDownload(true, 'All Dzongkhags KML downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading Dzongkhags KML:', error);
-				this.showErrorMessage('Failed to download Dzongkhags KML file');
+				this.completeDownload(false, 'Failed to download Dzongkhags KML file');
 			},
 		});
 	}
 
 	downloadGewogsThromdeGeojson(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Gewogs/Thromde GeoJSON');
+
 		this.locationDownloadService.downloadAllAZsAsGeoJson().subscribe({
 			next: (geoJson) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					JSON.stringify(geoJson, null, 2),
 					`all_gewogs_thromde_${new Date().toISOString().split('T')[0]}.geojson`,
 					'application/json'
 				);
-				this.showSuccessMessage('All Gewogs/Thromde GeoJSON downloaded successfully');
+					this.completeDownload(true, 'All Gewogs/Thromde GeoJSON downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading Gewogs/Thromde GeoJSON:', error);
-				this.showErrorMessage('Failed to download Gewogs/Thromde GeoJSON file');
+				this.completeDownload(false, 'Failed to download Gewogs/Thromde GeoJSON file');
 			},
 		});
 	}
 
 	downloadGewogsThromdeKml(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Gewogs/Thromde KML');
+
 		this.locationDownloadService.downloadAllAZsAsKml().subscribe({
 			next: (kml) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					kml,
 					`all_gewogs_thromde_${new Date().toISOString().split('T')[0]}.kml`,
 					'application/vnd.google-earth.kml+xml'
 				);
-				this.showSuccessMessage('All Gewogs/Thromde KML downloaded successfully');
+					this.completeDownload(true, 'All Gewogs/Thromde KML downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading Gewogs/Thromde KML:', error);
-				this.showErrorMessage('Failed to download Gewogs/Thromde KML file');
+				this.completeDownload(false, 'Failed to download Gewogs/Thromde KML file');
 			},
 		});
 	}
 
 	downloadChiwogsLapGeojson(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Chiwogs/LAP GeoJSON');
+
 		this.locationDownloadService.downloadAllSAZsAsGeoJson().subscribe({
 			next: (geoJson) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					JSON.stringify(geoJson, null, 2),
 					`all_chiwogs_lap_${new Date().toISOString().split('T')[0]}.geojson`,
 					'application/json'
 				);
-				this.showSuccessMessage('All Chiwogs/LAP GeoJSON downloaded successfully');
+					this.completeDownload(true, 'All Chiwogs/LAP GeoJSON downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading Chiwogs/LAP GeoJSON:', error);
-				this.showErrorMessage('Failed to download Chiwogs/LAP GeoJSON file');
+				this.completeDownload(false, 'Failed to download Chiwogs/LAP GeoJSON file');
 			},
 		});
 	}
 
 	downloadChiwogsLapKml(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Chiwogs/LAP KML');
+
 		this.locationDownloadService.downloadAllSAZsAsKml().subscribe({
 			next: (kml) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					kml,
 					`all_chiwogs_lap_${new Date().toISOString().split('T')[0]}.kml`,
 					'application/vnd.google-earth.kml+xml'
 				);
-				this.showSuccessMessage('All Chiwogs/LAP KML downloaded successfully');
+					this.completeDownload(true, 'All Chiwogs/LAP KML downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading Chiwogs/LAP KML:', error);
-				this.showErrorMessage('Failed to download Chiwogs/LAP KML file');
+				this.completeDownload(false, 'Failed to download Chiwogs/LAP KML file');
 			},
 		});
 	}
 
 	downloadEAsGeojson(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Enumeration Areas GeoJSON');
+
 		this.locationDownloadService.downloadAllEAsAsGeoJson().subscribe({
 			next: (geoJson) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					JSON.stringify(geoJson, null, 2),
 					`all_enumeration_areas_${new Date().toISOString().split('T')[0]}.geojson`,
 					'application/json'
 				);
-				this.showSuccessMessage('All Enumeration Areas GeoJSON downloaded successfully');
+					this.completeDownload(true, 'All Enumeration Areas GeoJSON downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading Enumeration Areas GeoJSON:', error);
-				this.showErrorMessage('Failed to download Enumeration Areas GeoJSON file');
+				this.completeDownload(false, 'Failed to download Enumeration Areas GeoJSON file');
 			},
 		});
 	}
 
 	downloadEAsKml(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Enumeration Areas KML');
+
 		this.locationDownloadService.downloadAllEAsAsKml().subscribe({
 			next: (kml) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					kml,
 					`all_enumeration_areas_${new Date().toISOString().split('T')[0]}.kml`,
 					'application/vnd.google-earth.kml+xml'
 				);
-				this.showSuccessMessage('All Enumeration Areas KML downloaded successfully');
+					this.completeDownload(true, 'All Enumeration Areas KML downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading Enumeration Areas KML:', error);
-				this.showErrorMessage('Failed to download Enumeration Areas KML file');
+				this.completeDownload(false, 'Failed to download Enumeration Areas KML file');
 			},
 		});
 	}
@@ -937,103 +1026,139 @@ export class PublicNationalDataViewerComponent
 	// ==================== National Viewer CSV Downloads ====================
 
 	downloadNationalViewerDzongkhags(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Dzongkhags CSV');
+
 		this.annualStatisticsDownloadService.downloadNationalViewerDzongkhags().subscribe({
 			next: (csv) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					csv,
 					`national_viewer_dzongkhags_${new Date().toISOString().split('T')[0]}.csv`,
 					'text/csv'
 				);
-				this.showSuccessMessage('All Dzongkhags CSV downloaded successfully');
+					this.completeDownload(true, 'All Dzongkhags CSV downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading national viewer dzongkhags CSV:', error);
-				this.showErrorMessage('Failed to download All Dzongkhags CSV file');
+				this.completeDownload(false, 'Failed to download All Dzongkhags CSV file');
 			},
 		});
 	}
 
 	downloadNationalViewerDzongkhagGewogThromde(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Dzongkhag → Gewog/Thromde CSV');
+
 		this.annualStatisticsDownloadService.downloadNationalViewerDzongkhagGewogThromde().subscribe({
 			next: (csv) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					csv,
 					`national_viewer_dzongkhag_gewog_thromde_${new Date().toISOString().split('T')[0]}.csv`,
 					'text/csv'
 				);
-				this.showSuccessMessage('Dzongkhag → Gewog/Thromde CSV downloaded successfully');
+					this.completeDownload(true, 'Dzongkhag → Gewog/Thromde CSV downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading national viewer dzongkhag-gewog-thromde CSV:', error);
-				this.showErrorMessage('Failed to download Dzongkhag → Gewog/Thromde CSV file');
+				this.completeDownload(false, 'Failed to download Dzongkhag → Gewog/Thromde CSV file');
 			},
 		});
 	}
 
 	downloadNationalViewerDzongkhagChiwogLap(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Dzongkhag → Chiwog/LAP CSV');
+
 		this.annualStatisticsDownloadService.downloadNationalViewerDzongkhagChiwogLap().subscribe({
 			next: (csv) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					csv,
 					`national_viewer_dzongkhag_chiwog_lap_${new Date().toISOString().split('T')[0]}.csv`,
 					'text/csv'
 				);
-				this.showSuccessMessage('Dzongkhag → Chiwog/LAP CSV downloaded successfully');
+					this.completeDownload(true, 'Dzongkhag → Chiwog/LAP CSV downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading national viewer dzongkhag-chiwog-lap CSV:', error);
-				this.showErrorMessage('Failed to download Dzongkhag → Chiwog/LAP CSV file');
+				this.completeDownload(false, 'Failed to download Dzongkhag → Chiwog/LAP CSV file');
 			},
 		});
 	}
 
 	downloadNationalViewerFullHierarchy(): void {
+		if (this.isDownloading) return;
+		this.startDownload('National Sampling Frame Data CSV');
+
 		this.annualStatisticsDownloadService.downloadNationalViewerFullHierarchy().subscribe({
 			next: (csv) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					csv,
 					`national_viewer_full_hierarchy_${new Date().toISOString().split('T')[0]}.csv`,
 					'text/csv'
 				);
-				this.showSuccessMessage('National Sampling Frame Data CSV downloaded successfully');
+					this.completeDownload(true, 'National Sampling Frame Data CSV downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading national viewer full hierarchy CSV:', error);
-				this.showErrorMessage('Failed to download National Sampling Frame Data CSV file');
+				this.completeDownload(false, 'Failed to download National Sampling Frame Data CSV file');
 			},
 		});
 	}
 
 	downloadRuralFullHierarchyForNationalViewer(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Rural Sampling Frame Data CSV');
+
 		this.annualStatisticsDownloadService.downloadRuralFullHierarchyForNationalViewer().subscribe({
 			next: (csv) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					csv,
 					`national_viewer_rural_full_hierarchy_${new Date().toISOString().split('T')[0]}.csv`,
 					'text/csv'
 				);
-				this.showSuccessMessage('Rural Sampling Frame Data CSV downloaded successfully');
+					this.completeDownload(true, 'Rural Sampling Frame Data CSV downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading rural full hierarchy CSV:', error);
-				this.showErrorMessage('Failed to download Rural Sampling Frame Data CSV file');
+				this.completeDownload(false, 'Failed to download Rural Sampling Frame Data CSV file');
 			},
 		});
 	}
 
 	downloadUrbanFullHierarchyForNationalViewer(): void {
+		if (this.isDownloading) return;
+		this.startDownload('Urban Sampling Frame Data CSV');
+
 		this.annualStatisticsDownloadService.downloadUrbanFullHierarchyForNationalViewer().subscribe({
 			next: (csv) => {
+				this.downloadProgress = 50;
+				setTimeout(() => {
 				this.downloadFile(
 					csv,
 					`national_viewer_urban_full_hierarchy_${new Date().toISOString().split('T')[0]}.csv`,
 					'text/csv'
 				);
-				this.showSuccessMessage('Urban Sampling Frame Data CSV downloaded successfully');
+					this.completeDownload(true, 'Urban Sampling Frame Data CSV downloaded successfully');
+				}, 300);
 			},
 			error: (error) => {
 				console.error('Error downloading urban full hierarchy CSV:', error);
-				this.showErrorMessage('Failed to download Urban Sampling Frame Data CSV file');
+				this.completeDownload(false, 'Failed to download Urban Sampling Frame Data CSV file');
 			},
 		});
 	}
@@ -1065,6 +1190,8 @@ export class PublicNationalDataViewerComponent
 	}
 
 	downloadNationalStatisticsCSV(): void {
+		if (this.isDownloading) return;
+		
 		// Use downloadOptions if dialog is open, otherwise use statisticsDownloadOptions
 		const options = this.showDownloadDialog ? this.downloadOptions : this.statisticsDownloadOptions;
 		const { includeAZ, includeSAZ } = options;
@@ -1080,10 +1207,14 @@ export class PublicNationalDataViewerComponent
 			return;
 		}
 
+		this.startDownload('National Statistics CSV');
+
 		this.annualStatisticsDownloadService
 			.downloadNationalStats(undefined, includeAZ, includeSAZ)
 			.subscribe({
 				next: (csv) => {
+					this.downloadProgress = 50;
+					setTimeout(() => {
 					// Build filename with options
 					let filename = 'national_annual_statistics';
 					if (includeAZ) {
@@ -1095,21 +1226,24 @@ export class PublicNationalDataViewerComponent
 					filename += `_${new Date().toISOString().split('T')[0]}.csv`;
 
 					this.downloadFile(csv, filename, 'text/csv');
-					this.showSuccessMessage('National annual statistics CSV downloaded successfully');
+						this.completeDownload(true, 'National annual statistics CSV downloaded successfully');
 					if (this.showDownloadDialog) {
 						this.closeDownloadDialog();
 					} else {
 						this.closeStatisticsDownloadDialog();
 					}
+					}, 300);
 				},
 				error: (error) => {
 					console.error('Error downloading national statistics CSV:', error);
-					this.showErrorMessage('Failed to download national statistics CSV file');
+					this.completeDownload(false, 'Failed to download national statistics CSV file');
 				},
 			});
 	}
 
 	downloadNationalStatisticsExcel(): void {
+		if (this.isDownloading) return;
+		
 		const { includeAZ, includeSAZ } = this.downloadOptions;
 		
 		// Validate: includeSAZ requires includeAZ
@@ -1123,10 +1257,14 @@ export class PublicNationalDataViewerComponent
 			return;
 		}
 
+		this.startDownload('National Statistics Excel');
+
 		this.annualStatisticsDownloadService
 			.downloadNationalStats(undefined, includeAZ, includeSAZ)
 			.subscribe({
 				next: (csv) => {
+					this.downloadProgress = 50;
+					setTimeout(() => {
 					// Convert CSV to Excel format
 					const excelContent = this.convertCsvToExcel(csv);
 					
@@ -1141,12 +1279,13 @@ export class PublicNationalDataViewerComponent
 					filename += `_${new Date().toISOString().split('T')[0]}.xlsx`;
 
 					this.downloadFile(excelContent, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-					this.showSuccessMessage('National annual statistics Excel downloaded successfully');
+						this.completeDownload(true, 'National annual statistics Excel downloaded successfully');
 					this.closeDownloadDialog();
+					}, 300);
 				},
 				error: (error) => {
 					console.error('Error downloading national statistics Excel:', error);
-					this.showErrorMessage('Failed to download national statistics Excel file');
+					this.completeDownload(false, 'Failed to download national statistics Excel file');
 				},
 			});
 	}

@@ -12,6 +12,10 @@ export class AppComponent implements OnInit {
 	constructor(private router: Router) {}
 
 	ngOnInit(): void {
+		// Force light mode - disable automatic dark mode detection
+		document.documentElement.style.colorScheme = 'light';
+		document.documentElement.setAttribute('data-theme', 'light');
+		
 		const savedTab = localStorage.getItem('activeTab');
 
 		// Listen to first navigation event ONLY

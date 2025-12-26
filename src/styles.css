@@ -12,6 +12,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force light mode - disable dark mode */
+:root {
+	color-scheme: light !important;
+}
+
+html {
+	color-scheme: light !important;
+}
+
+/* Override any dark mode media queries */
+@media (prefers-color-scheme: dark) {
+	:root,
+	html,
+	body {
+		color-scheme: light !important;
+	}
+}
+
 /* Global Font Family */
 body {
 	font-family: 'Outfit', 'Outfit Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;

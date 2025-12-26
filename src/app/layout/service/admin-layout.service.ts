@@ -51,7 +51,13 @@ export class AdminLayoutService {
 
 	overlayOpen$ = this.overlayOpen.asObservable();
 
-	constructor() {}
+	constructor() {
+		// Ensure colorScheme is always 'light' - prevent dark mode
+		if (this._config.colorScheme !== 'light') {
+			this._config.colorScheme = 'light';
+			this.config.set({ ...this._config });
+		}
+	}
 
 	updateStyle(config: AppConfig) {
 		return (

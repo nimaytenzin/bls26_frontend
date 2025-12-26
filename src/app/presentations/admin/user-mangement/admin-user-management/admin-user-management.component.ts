@@ -708,5 +708,117 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 			life: 3000,
 		});
 	}
+
+	/**
+	 * Activate user account
+	 * @param user - User to activate
+	 * @param event - Event object for confirmation dialog
+	 */
+	activateUser(user: User | Supervisor, event: Event): void {
+		this.confirmationService.confirm({
+			target: event.target as EventTarget,
+			message: `Are you sure you want to activate ${user.name}? They will be able to log in to the system.`,
+			header: 'Confirm Activation',
+			icon: 'pi pi-check-circle',
+			acceptButtonStyleClass: 'p-button-success',
+			accept: () => {
+				this.authService
+					.activateUser(user.id)
+					.pipe(takeUntil(this.destroy$))
+					.subscribe({
+						next: (response) => {
+							// Update the user in the appropriate array
+							this.updateUserInArray(response.user);
+							this.messageService.add({
+								severity: 'success',
+								summary: 'Success',
+								detail: response.message || 'User activated successfully',
+								life: 3000,
+							});
+						},
+						error: (error) => {
+							console.error('Error activating user:', error);
+							this.messageService.add({
+								severity: 'error',
+								summary: 'Error',
+								detail: error.error?.message || 'Failed to activate user',
+								life: 3000,
+							});
+						},
+					});
+			},
+		});
+	}
+
+	/**
+	 * Deactivate user account
+	 * @param user - User to deactivate
+	 * @param event - Event object for confirmation dialog
+	 */
+	deactivateUser(user: User | Supervisor, event: Event): void {
+		this.confirmationService.confirm({
+			target: event.target as EventTarget,
+			message: `Are you sure you want to deactivate ${user.name}? They will not be able to log in to the system, and any existing authentication tokens will become invalid.`,
+			header: 'Confirm Deactivation',
+			icon: 'pi pi-exclamation-triangle',
+			acceptButtonStyleClass: 'p-button-danger',
+			accept: () => {
+				this.authService
+					.deactivateUser(user.id)
+					.pipe(takeUntil(this.destroy$))
+					.subscribe({
+						next: (response) => {
+							// Update the user in the appropriate array
+							this.updateUserInArray(response.user);
+							this.messageService.add({
+								severity: 'success',
+								summary: 'Success',
+								detail: response.message || 'User deactivated successfully',
+								life: 3000,
+							});
+						},
+						error: (error) => {
+							console.error('Error deactivating user:', error);
+							this.messageService.add({
+								severity: 'error',
+								summary: 'Error',
+								detail: error.error?.message || 'Failed to deactivate user',
+								life: 3000,
+							});
+						},
+					});
+			},
+		});
+	}
+
+	/**
+	 * Update user in the appropriate array after activation/deactivation
+	 * @param updatedUser - Updated user object
+	 */
+	private updateUserInArray(updatedUser: User): void {
+		// Update in admins array
+		const adminIndex = this.admins.findIndex((u) => u.id === updatedUser.id);
+		if (adminIndex !== -1) {
+			this.admins[adminIndex] = { ...this.admins[adminIndex], ...updatedUser };
+		}
+
+		// Update in supervisors array
+		const supervisorIndex = this.supervisors.findIndex((u) => u.id === updatedUser.id);
+		if (supervisorIndex !== -1) {
+			this.supervisors[supervisorIndex] = {
+				...this.supervisors[supervisorIndex],
+				...updatedUser,
+			};
+		}
+
+		// Update in enumerators array
+		const enumeratorIndex = this.enumerators.findIndex((u) => u.id === updatedUser.id);
+		if (enumeratorIndex !== -1) {
+			this.enumerators[enumeratorIndex] = {
+				...this.enumerators[enumeratorIndex],
+				...updatedUser,
+			};
+		}
+	}
 }
 

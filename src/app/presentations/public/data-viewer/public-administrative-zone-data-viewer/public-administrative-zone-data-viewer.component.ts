@@ -771,6 +771,17 @@ export class PublicAdministrativeZoneDataViewerComponent
 	}
 
 	/**
+	 * Navigate to geographic statistical code page
+	 */
+	navigateToGeographicStatisticalCode(): void {
+		// Navigate to the parent route level where geographic-statistical-code is defined
+		const parentRoute = this.route.parent?.parent || this.route.parent || this.route;
+		this.router.navigate(['geographic-statistical-code'], {
+			relativeTo: parentRoute,
+		});
+	}
+
+	/**
 	 * Get CSS gradient string for continuous color scale legend
 	 */
 	getLegendGradient(): string {
@@ -782,7 +793,7 @@ export class PublicAdministrativeZoneDataViewerComponent
 		return this.colorScaleService.getLegendGradient(
 			min,
 			max,
-			'vertical',
+			'horizontal',
 			this.selectedColorScale
 		);
 	}

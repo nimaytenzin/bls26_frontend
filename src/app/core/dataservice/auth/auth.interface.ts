@@ -47,6 +47,16 @@ export interface ChangePasswordResponse {
 	message: string;
 }
 
+export interface ActivateUserResponse {
+	message: string;
+	user: User;
+}
+
+export interface DeactivateUserResponse {
+	message: string;
+	user: User;
+}
+
 export interface CreateSupervisorDto {
 	name: string;
 	cid: string;
@@ -80,6 +90,7 @@ export interface User {
 	profileImage?: string;
 	isVerified?: boolean;
 	hasLoginAccess?: boolean;
+	isActive?: boolean;
 	createdAt?: Date;
 	updatedAt?: Date;
 }

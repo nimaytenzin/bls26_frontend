@@ -25,6 +25,8 @@ import {
 	RemoveDzongkhagResponse,
 	SupervisorDzongkhagAssignment,
 	Supervisor,
+	ActivateUserResponse,
+	DeactivateUserResponse,
 } from './auth.interface';
 import { BASEAPI_URL } from '../../constants/constants';
 
@@ -181,6 +183,28 @@ export class AuthDataService {
 	deleteUser(userId: number): Observable<any> {
 		return this.http
 			.delete(`${this.apiUrl}/users/${userId}`)
+			.pipe(catchError(this.handleError));
+	}
+
+	/**
+	 * Activate user (Admin only)
+	 * @param userId - User ID
+	 * @returns Observable<ActivateUserResponse>
+	 */
+	activateUser(userId: number): Observable<ActivateUserResponse> {
+		return this.http
+			.patch<ActivateUserResponse>(`${this.apiUrl}/users/${userId}/activate`, {})
+			.pipe(catchError(this.handleError));
+	}
+
+	/**
+	 * Deactivate user (Admin only)
+	 * @param userId - User ID
+	 * @returns Observable<DeactivateUserResponse>
+	 */
+	deactivateUser(userId: number): Observable<DeactivateUserResponse> {
+		return this.http
+			.patch<DeactivateUserResponse>(`${this.apiUrl}/users/${userId}/deactivate`, {})
 			.pipe(catchError(this.handleError));
 	}
 
