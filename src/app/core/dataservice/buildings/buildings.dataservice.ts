@@ -38,6 +38,24 @@ export class BuildingDataService {
 	}
 
 	/**
+	 * Get buildings as GeoJSON by one or more enumeration area IDs
+	 * @param enumerationAreaIds - Single ID or comma-separated list of IDs (e.g., "1,2,983")
+	 * @returns Observable<BuildingGeoJsonFeatureCollection>
+	 */
+	findAsGeoJsonByEnumerationAreas(
+		enumerationAreaIds: string | number[]
+	): Observable<BuildingGeoJsonFeatureCollection> {
+		// Convert array to comma-separated string if needed
+		const idsString = Array.isArray(enumerationAreaIds)
+			? enumerationAreaIds.join(',')
+			: enumerationAreaIds.toString();
+
+		return this.http.get<BuildingGeoJsonFeatureCollection>(
+			`${this.apiUrl}/by-enumeration-area/${idsString}`
+		);
+	}
+
+	/**
 	 * Get all buildings as GeoJSON
 	 */
 	findAllAsGeoJson(): Observable<BuildingGeoJsonFeatureCollection> {

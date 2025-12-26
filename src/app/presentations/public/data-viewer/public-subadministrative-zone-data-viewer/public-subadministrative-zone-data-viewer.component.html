@@ -276,6 +276,51 @@
 								</div>
 							</div>
 						</div>
+
+						<!-- Buildings Toggle Card -->
+						<div
+							*ngIf="!noDataFound"
+							(click)="toggleBuildings()"
+							class="group rounded-lg border transition-all duration-200 cursor-pointer bg-white hover:border-amber-400 hover:shadow-md min-h-[44px]"
+							[class.border-amber-500]="showBuildings"
+							[class.border-slate-200]="!showBuildings"
+						>
+							<div class="relative p-4">
+								<div class="flex items-center justify-between">
+									<div class="flex items-center gap-3">
+										<div class="w-10 h-10 rounded-lg bg-amber-600 flex items-center justify-center">
+											<i class="pi pi-building text-base text-white"></i>
+										</div>
+										<div>
+											<p class="text-sm font-semibold text-slate-800">Buildings</p>
+											<p class="text-xs text-slate-500 mt-0.5">
+												{{ showBuildings ? 'Hide buildings' : 'Show buildings' }}
+											</p>
+										</div>
+									</div>
+									<div class="flex items-center gap-2">
+										<p-progressSpinner
+											*ngIf="loadingBuildings"
+											styleClass="w-5 h-5"
+										></p-progressSpinner>
+										<div
+											*ngIf="showBuildings && !loadingBuildings"
+											class="w-6 h-6 rounded-full bg-amber-600 flex items-center justify-center"
+										>
+											<i class="pi pi-check text-xs text-white"></i>
+										</div>
+									</div>
+								</div>
+								<div class="mt-3 pt-3 border-t border-slate-200" *ngIf="buildingsData">
+									<div class="flex items-center justify-between">
+										<span class="text-xs text-slate-600">Total Buildings:</span>
+										<span class="text-lg font-bold text-slate-900">
+											{{ buildingsData.features?.length || 0 | number }}
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 
 					<!-- Enumeration Areas Tab Content -->

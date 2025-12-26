@@ -29,6 +29,7 @@ import { DzongkhagDataService } from '../../../../core/dataservice/location/dzon
 import { PublicPageSettingsService } from '../../../../core/services/public-page-settings.service';
 import { DownloadService } from '../../../../core/utility/download.service';
 import { EAAnnualStatsDataService } from '../../../../core/dataservice/household-listings/ea-annual-stats/ea-annual-stats.dataservice';
+import { BuildingDataService } from '../../../../core/dataservice/buildings/buildings.dataservice';
 
 interface EnumerationAreaStats {
 	id: number;
@@ -91,8 +92,14 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	private baseLayer?: L.TileLayer;
 	private currentGeoJSONLayer?: L.GeoJSON;
 	private subAdminZoneLayer?: L.GeoJSON;
+	private buildingsLayer?: L.GeoJSON;
 	selectedBasemapId = 'positron';
 	selectedColorScale: ColorScaleType = 'blue';
+	
+	// Buildings
+	showBuildings = false;
+	loadingBuildings = false;
+	buildingsData: any = null;
 	basemapCategories: Record<
 		string,
 		{ label: string; basemaps: BasemapConfig[] }
@@ -117,7 +124,8 @@ export class PublicSubadministrativeZoneDataViewerComponent
 		private messageService: MessageService,
 		private publicPageSettingsService: PublicPageSettingsService,
 		private downloadService: DownloadService,
-		private eaAnnualStatsService: EAAnnualStatsDataService
+		private eaAnnualStatsService: EAAnnualStatsDataService,
+		private buildingDataService: BuildingDataService
 	) {}
 
 	ngOnInit() {
@@ -187,6 +195,9 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	private cleanup(): void {
 		if (this.resizeListener) {
 			window.removeEventListener('resize', this.resizeListener);
+		}
+		if (this.buildingsLayer && this.map) {
+			this.map.removeLayer(this.buildingsLayer);
 		}
 		if (this.map) {
 			this.map.remove();
@@ -389,6 +400,9 @@ export class PublicSubadministrativeZoneDataViewerComponent
 		if (this.subAdminZoneLayer) {
 			this.map.removeLayer(this.subAdminZoneLayer);
 		}
+		if (this.buildingsLayer) {
+			this.map.removeLayer(this.buildingsLayer);
+		}
 
 		// Load sub-administrative zone boundary first (as background)
 		if (this.subAdministrativeZoneBoundary) {
@@ -424,6 +438,139 @@ export class PublicSubadministrativeZoneDataViewerComponent
 		// If no enumeration areas but we have sub-administrative zone boundary, show that
 		else if (this.subAdministrativeZoneBoundary && this.noDataFound) {
 			this.map.fitBounds(this.subAdminZoneLayer!.getBounds());
+		}
+
+		// Load buildings if enabled
+		if (this.showBuildings && this.enumerationAreas.length > 0) {
+			this.loadBuildings();
+		}
+	}
+
+	/**
+	 * Load buildings for all enumeration areas in the sub-administrative zone
+	 */
+	loadBuildings(): void {
+		if (!this.map || this.enumerationAreas.length === 0) return;
+
+		this.loadingBuildings = true;
+
+		// Get all enumeration area IDs
+		const eaIds = this.enumerationAreas.map((ea) => ea.id);
+
+		// Fetch buildings for all EAs
+		this.buildingDataService.findAsGeoJsonByEnumerationAreas(eaIds).subscribe({
+			next: (geojson) => {
+				this.buildingsData = geojson;
+				this.loadingBuildings = false;
+
+				// Add buildings layer to map
+				if (geojson && geojson.features && geojson.features.length > 0) {
+					this.addBuildingsLayer(geojson);
+				} else {
+					this.messageService.add({
+						severity: 'info',
+						summary: 'No Buildings',
+						detail: 'No buildings found for the enumeration areas in this sub-administrative zone.',
+						life: 3000,
+					});
+				}
+			},
+			error: (error) => {
+				console.error('Error loading buildings:', error);
+				this.loadingBuildings = false;
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: 'Failed to load buildings. Please try again.',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Add buildings layer to map
+	 */
+	private addBuildingsLayer(geojson: any): void {
+		if (!this.map) return;
+
+		// Remove existing buildings layer if any
+		if (this.buildingsLayer) {
+			this.map.removeLayer(this.buildingsLayer);
+		}
+
+		// Create buildings layer with styling
+		this.buildingsLayer = L.geoJSON(geojson, {
+			style: () => ({
+				fillColor: '#f59e0b', // Amber color for buildings
+				fillOpacity: 0.6,
+				color: '#d97706', // Darker amber for borders
+				weight: 1,
+				opacity: 0.8,
+			}),
+			onEachFeature: (feature: any, layer: L.Layer) => {
+				const props = feature.properties;
+				
+				// Add popup with building information
+				const popupContent = `
+					<div class="p-2 min-w-[200px]">
+						<h3 class="font-bold text-sm mb-2 text-slate-900">Building</h3>
+						<div class="space-y-1 text-xs">
+							${props.structureId ? `<div><span class="font-semibold">Structure ID:</span> ${props.structureId}</div>` : ''}
+							${props.buildingType ? `<div><span class="font-semibold">Type:</span> ${props.buildingType}</div>` : ''}
+							${props.eaId ? `<div><span class="font-semibold">EA ID:</span> ${props.eaId}</div>` : ''}
+						</div>
+					</div>
+				`;
+				
+				const popup = L.popup().setContent(popupContent);
+				layer.bindPopup(popup);
+
+				// Hover effects
+				layer.on('mouseover', () => {
+					if (layer instanceof L.Path) {
+						layer.setStyle({
+							weight: 2,
+							fillOpacity: 0.8,
+						});
+					}
+				});
+
+				layer.on('mouseout', () => {
+					if (layer instanceof L.Path) {
+						layer.setStyle({
+							weight: 1,
+							fillOpacity: 0.6,
+						});
+					}
+				});
+			},
+		});
+
+		this.buildingsLayer.addTo(this.map);
+	}
+
+	/**
+	 * Toggle buildings layer visibility
+	 */
+	toggleBuildings(): void {
+		this.showBuildings = !this.showBuildings;
+
+		if (this.showBuildings) {
+			// Load buildings if not already loaded
+			if (!this.buildingsData) {
+				this.loadBuildings();
+			} else {
+				// Recreate and add the layer if data is already loaded
+				if (this.map && this.buildingsData && this.buildingsData.features && this.buildingsData.features.length > 0) {
+					this.addBuildingsLayer(this.buildingsData);
+				}
+			}
+		} else {
+			// Remove buildings layer
+			if (this.buildingsLayer && this.map) {
+				this.map.removeLayer(this.buildingsLayer);
+			}
 		}
 	}
 
