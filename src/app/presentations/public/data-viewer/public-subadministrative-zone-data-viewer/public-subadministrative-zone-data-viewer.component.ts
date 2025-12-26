@@ -78,6 +78,9 @@ export class PublicSubadministrativeZoneDataViewerComponent
 
 	// Map visualization mode (only households for public)
 	mapVisualizationMode: 'households' = 'households';
+	
+	// EA display mode
+	showEABoundariesOnly = false;
 
 	// Download dialog
 	showDownloadDialog = false;
@@ -97,7 +100,7 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	selectedColorScale: ColorScaleType = 'blue';
 	
 	// Buildings
-	showBuildings = false;
+	showBuildings = true; // Load buildings by default
 	loadingBuildings = false;
 	buildingsData: any = null;
 	basemapCategories: Record<
@@ -578,6 +581,17 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	 * Get feature style based on data
 	 */
 	private getFeatureStyle(feature: any): L.PathOptions {
+		// If boundary-only mode is enabled, return boundary-only style
+		if (this.showEABoundariesOnly) {
+			return {
+				fillColor: 'transparent',
+				fillOpacity: 0,
+				color: '#475569', // Slate-600
+				weight: 1.5,
+				opacity: 1,
+			};
+		}
+
 		const props = feature.properties;
 
 		if (!props || !props.hasData) {
@@ -766,6 +780,27 @@ export class PublicSubadministrativeZoneDataViewerComponent
 
 		if (this.isMobile) {
 			this.closeMobileDrawer();
+		}
+	}
+
+	/**
+	 * Toggle EA boundary-only display mode
+	 */
+	toggleEABoundariesOnly(): void {
+		this.showEABoundariesOnly = !this.showEABoundariesOnly;
+		
+		// Refresh the boundaries layer to apply new style
+		if (this.map && this.enumerationAreaBoundaries && this.currentGeoJSONLayer) {
+			// Update each feature's style
+			this.currentGeoJSONLayer.eachLayer((layer: L.Layer) => {
+				if (layer instanceof L.Path) {
+					const feature = (layer as any).feature;
+					if (feature) {
+						const style = this.getFeatureStyle(feature);
+						layer.setStyle(style);
+					}
+				}
+			});
 		}
 	}
 

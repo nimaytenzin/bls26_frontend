@@ -321,6 +321,37 @@
 								</div>
 							</div>
 						</div>
+
+						<!-- EA Boundaries Only Toggle Card -->
+						<div
+							*ngIf="!noDataFound"
+							(click)="toggleEABoundariesOnly()"
+							class="group rounded-lg border transition-all duration-200 cursor-pointer bg-white hover:border-slate-400 hover:shadow-md min-h-[44px]"
+							[class.border-slate-500]="showEABoundariesOnly"
+							[class.border-slate-200]="!showEABoundariesOnly"
+						>
+							<div class="relative p-4">
+								<div class="flex items-center justify-between">
+									<div class="flex items-center gap-3">
+										<div class="w-10 h-10 rounded-lg bg-slate-600 flex items-center justify-center">
+											<i class="pi pi-border-all text-base text-white"></i>
+										</div>
+										<div>
+											<p class="text-sm font-semibold text-slate-800">EA Boundaries Only</p>
+											<p class="text-xs text-slate-500 mt-0.5">
+												{{ showEABoundariesOnly ? 'Show colored EAs' : 'Show boundaries only' }}
+											</p>
+										</div>
+									</div>
+									<div
+										*ngIf="showEABoundariesOnly"
+										class="w-6 h-6 rounded-full bg-slate-600 flex items-center justify-center"
+									>
+										<i class="pi pi-check text-xs text-white"></i>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 
 					<!-- Enumeration Areas Tab Content -->
@@ -422,7 +453,7 @@
 				</div>
 
 				<!-- Legend -->
-				<div class="pt-3 border-t border-slate-200" *ngIf="!noDataFound">
+				<div class="pt-3 border-t border-slate-200" *ngIf="!noDataFound && !showEABoundariesOnly">
 					<div class="flex items-center gap-1.5 mb-2">
 						<i class="pi pi-info-circle text-primary-600 text-xs"></i>
 						<p class="text-xs font-bold text-slate-900">{{ getLegendTitle() }}</p>
@@ -490,7 +521,7 @@
 						</div>
 					</div>
 
-					<div class="pt-2 border-t border-slate-200" *ngIf="!noDataFound">
+					<div class="pt-2 border-t border-slate-200" *ngIf="!noDataFound && !showEABoundariesOnly">
 						<div class="flex items-center gap-2 mb-2">
 							<i class="pi pi-info-circle text-[10px] text-primary-600"></i>
 							<span class="text-xs font-medium text-slate-700">{{ getLegendTitle() }}</span>
