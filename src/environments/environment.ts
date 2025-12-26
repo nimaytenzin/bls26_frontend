@@ -2,6 +2,6 @@ export const environment = {
 	production: false, // Should be false for development environment
 	BASEAPI_URL: 'http://localhost:3000',
 	KMLPARSER_URL: 'http://localhost:8000',
-	APPNAME: 'NSDF',
+	APPNAME: 'NSFD',
 	APPSLOGAN: 'National Sampling and Frame Dashboard',
 };

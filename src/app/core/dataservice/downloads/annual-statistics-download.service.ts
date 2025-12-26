@@ -153,5 +153,161 @@ export class AnnualStatisticsDownloadService {
 				})
 			);
 	}
+
+	/**
+	 * NATIONAL VIEWER CSV DOWNLOADS
+	 * All endpoints are publicly accessible (no authentication required)
+	 * Designed specifically for the national data viewer
+	 */
+
+	/**
+	 * Download all Dzongkhags with basic statistics as CSV
+	 * @param year - Optional year (defaults to latest available year)
+	 * @returns Observable of CSV string
+	 * @public - No authentication required
+	 */
+	downloadNationalViewerDzongkhags(year?: number): Observable<string> {
+		const params: any = {};
+		if (year) {
+			params.year = year.toString();
+		}
+
+		return this.http
+			.get(`${this.apiUrl}/national-viewer/dzongkhags/csv`, {
+				params,
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error downloading national viewer dzongkhags CSV:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Dzongkhag with Gewog/Thromde breakdown as CSV
+	 * @param year - Optional year (defaults to latest available year)
+	 * @returns Observable of CSV string
+	 * @public - No authentication required
+	 */
+	downloadNationalViewerDzongkhagGewogThromde(year?: number): Observable<string> {
+		const params: any = {};
+		if (year) {
+			params.year = year.toString();
+		}
+
+		return this.http
+			.get(`${this.apiUrl}/national-viewer/dzongkhag-gewog-thromde/csv`, {
+				params,
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error downloading national viewer dzongkhag-gewog-thromde CSV:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Dzongkhag with Chiwog/LAP breakdown as CSV
+	 * @param year - Optional year (defaults to latest available year)
+	 * @returns Observable of CSV string
+	 * @public - No authentication required
+	 */
+	downloadNationalViewerDzongkhagChiwogLap(year?: number): Observable<string> {
+		const params: any = {};
+		if (year) {
+			params.year = year.toString();
+		}
+
+		return this.http
+			.get(`${this.apiUrl}/national-viewer/dzongkhag-chiwog-lap/csv`, {
+				params,
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error downloading national viewer dzongkhag-chiwog-lap CSV:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download full hierarchy (Dzongkhag → Gewog/Thromde → Chiwog/LAP → EA) as CSV
+	 * @param year - Optional year (defaults to latest available year)
+	 * @returns Observable of CSV string
+	 * @public - No authentication required
+	 */
+	downloadNationalViewerFullHierarchy(year?: number): Observable<string> {
+		const params: any = {};
+		if (year) {
+			params.year = year.toString();
+		}
+
+		return this.http
+			.get(`${this.apiUrl}/national-viewer/full-hierarchy/csv`, {
+				params,
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error downloading national viewer full hierarchy CSV:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download rural full hierarchy (Dzongkhag → Gewog → Chiwog → EA) as CSV
+	 * @param year - Optional year (defaults to latest available year)
+	 * @returns Observable of CSV string
+	 * @public - No authentication required
+	 */
+	downloadRuralFullHierarchyForNationalViewer(year?: number): Observable<string> {
+		const params: any = {};
+		if (year) {
+			params.year = year.toString();
+		}
+
+		return this.http
+			.get(`${this.apiUrl}/national-viewer/rural-full-hierarchy/csv`, {
+				params,
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error downloading rural full hierarchy CSV:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download urban full hierarchy (Dzongkhag → Thromde → LAP → EA) as CSV
+	 * @param year - Optional year (defaults to latest available year)
+	 * @returns Observable of CSV string
+	 * @public - No authentication required
+	 */
+	downloadUrbanFullHierarchyForNationalViewer(year?: number): Observable<string> {
+		const params: any = {};
+		if (year) {
+			params.year = year.toString();
+		}
+
+		return this.http
+			.get(`${this.apiUrl}/national-viewer/urban-full-hierarchy/csv`, {
+				params,
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error downloading urban full hierarchy CSV:', error);
+					return throwError(() => error);
+				})
+			);
+	}
 }
 

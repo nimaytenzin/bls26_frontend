@@ -29,18 +29,17 @@ export class LocationDownloadService {
 
 	/**
 	 * NATIONAL DATA DOWNLOADS
+	 * All endpoints are publicly accessible (no authentication required)
 	 */
 
 	/**
 	 * Download all Dzongkhags as GeoJSON
 	 * @returns Observable of GeoJSON object
-	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 * @public - No authentication required
 	 */
 	downloadAllDzongkhagsAsGeoJson(): Observable<any> {
 		return this.http
-			.get<any>(`${this.apiUrl}/national/dzongkhags/geojson`, {
-				headers: this.getAuthHeaders(),
-			})
+			.get<any>(`${this.apiUrl}/national/dzongkhags/geojson`)
 			.pipe(
 				catchError((error) => {
 					console.error('Error downloading all Dzongkhags as GeoJSON:', error);
@@ -52,12 +51,11 @@ export class LocationDownloadService {
 	/**
 	 * Download all Dzongkhags as KML
 	 * @returns Observable of KML string
-	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 * @public - No authentication required
 	 */
 	downloadAllDzongkhagsAsKml(): Observable<string> {
 		return this.http
 			.get(`${this.apiUrl}/national/dzongkhags/kml`, {
-				headers: this.getAuthHeaders(),
 				responseType: 'text',
 			})
 			.pipe(
@@ -71,13 +69,11 @@ export class LocationDownloadService {
 	/**
 	 * Download all Enumeration Areas as GeoJSON
 	 * @returns Observable of GeoJSON object
-	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 * @public - No authentication required
 	 */
 	downloadAllEAsAsGeoJson(): Observable<any> {
 		return this.http
-			.get<any>(`${this.apiUrl}/national/enumeration-areas/geojson`, {
-				headers: this.getAuthHeaders(),
-			})
+			.get<any>(`${this.apiUrl}/national/enumeration-areas/geojson`)
 			.pipe(
 				catchError((error) => {
 					console.error('Error downloading all EAs as GeoJSON:', error);
@@ -89,12 +85,11 @@ export class LocationDownloadService {
 	/**
 	 * Download all Enumeration Areas as KML
 	 * @returns Observable of KML string
-	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 * @public - No authentication required
 	 */
 	downloadAllEAsAsKml(): Observable<string> {
 		return this.http
 			.get(`${this.apiUrl}/national/enumeration-areas/kml`, {
-				headers: this.getAuthHeaders(),
 				responseType: 'text',
 			})
 			.pipe(
@@ -106,15 +101,13 @@ export class LocationDownloadService {
 	}
 
 	/**
-	 * Download all Sub-Administrative Zones as GeoJSON
+	 * Download all Sub-Administrative Zones (Chiwogs/LAP) as GeoJSON
 	 * @returns Observable of GeoJSON object
-	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 * @public - No authentication required
 	 */
 	downloadAllSAZsAsGeoJson(): Observable<any> {
 		return this.http
-			.get<any>(`${this.apiUrl}/national/sub-administrative-zones/geojson`, {
-				headers: this.getAuthHeaders(),
-			})
+			.get<any>(`${this.apiUrl}/national/sub-administrative-zones/geojson`)
 			.pipe(
 				catchError((error) => {
 					console.error('Error downloading all SAZs as GeoJSON:', error);
@@ -124,14 +117,13 @@ export class LocationDownloadService {
 	}
 
 	/**
-	 * Download all Sub-Administrative Zones as KML
+	 * Download all Sub-Administrative Zones (Chiwogs/LAP) as KML
 	 * @returns Observable of KML string
-	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 * @public - No authentication required
 	 */
 	downloadAllSAZsAsKml(): Observable<string> {
 		return this.http
 			.get(`${this.apiUrl}/national/sub-administrative-zones/kml`, {
-				headers: this.getAuthHeaders(),
 				responseType: 'text',
 			})
 			.pipe(
@@ -143,15 +135,13 @@ export class LocationDownloadService {
 	}
 
 	/**
-	 * Download all Administrative Zones as GeoJSON
+	 * Download all Administrative Zones (Gewogs/Thromde) as GeoJSON
 	 * @returns Observable of GeoJSON object
-	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 * @public - No authentication required
 	 */
 	downloadAllAZsAsGeoJson(): Observable<any> {
 		return this.http
-			.get<any>(`${this.apiUrl}/national/administrative-zones/geojson`, {
-				headers: this.getAuthHeaders(),
-			})
+			.get<any>(`${this.apiUrl}/national/administrative-zones/geojson`)
 			.pipe(
 				catchError((error) => {
 					console.error('Error downloading all AZs as GeoJSON:', error);
@@ -161,14 +151,13 @@ export class LocationDownloadService {
 	}
 
 	/**
-	 * Download all Administrative Zones as KML
+	 * Download all Administrative Zones (Gewogs/Thromde) as KML
 	 * @returns Observable of KML string
-	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 * @public - No authentication required
 	 */
 	downloadAllAZsAsKml(): Observable<string> {
 		return this.http
 			.get(`${this.apiUrl}/national/administrative-zones/kml`, {
-				headers: this.getAuthHeaders(),
 				responseType: 'text',
 			})
 			.pipe(

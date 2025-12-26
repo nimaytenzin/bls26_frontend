@@ -13,7 +13,7 @@ import { Router } from '@angular/router';
 import * as L from 'leaflet';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import { MessageService } from 'primeng/api';
-import { DzongkhagStatsFeature, DzongkhagStatsGeoJson, NationalSummary } from '../../../../core/dataservice/annual-statistics/dzongkhag-annual-stats/dzongkhag-annual-stats.dto';
+import { DzongkhagStatsFeature, DzongkhagStatsGeoJson, DzongkhagStatsDetailedProperties, NationalSummary } from '../../../../core/dataservice/annual-statistics/dzongkhag-annual-stats/dzongkhag-annual-stats.dto';
 import { DzongkhagAnnualStatsDataService } from '../../../../core/dataservice/annual-statistics/dzongkhag-annual-stats/dzongkhag-annual-stats.dataservice';
 import { LocationDownloadService } from '../../../../core/dataservice/downloads/location.download.service';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
@@ -224,28 +224,28 @@ export class AdminNationalDataViewerComponent
 		this.dzongkhagStats = [];
 
 		this.dzongkhagFeatures.forEach((feature) => {
-			const props = feature.properties;
+			const props = feature.properties as DzongkhagStatsDetailedProperties;
 			if (props.hasData) {
 				this.dzongkhagStats.push({
 					dzongkhagId: props.id,
 					dzongkhagName: props.name,
 					dzongkhagCode: props.areaCode,
-					totalAdminZones: props.azCount,
-					totalSubAdminZones: props.sazCount,
-					totalEnumerationAreas: props.eaCount,
-					urbanEnumerationAreas: props.urbanEACount || 0,
-					ruralEnumerationAreas: props.ruralEACount || 0,
-					totalHouseholds: props.totalHouseholds,
+					totalAdminZones: props.azCount || 0,
+					totalSubAdminZones: props.sazCount || 0,
+					totalEnumerationAreas: props.eaCount || props.totalEA || 0,
+					urbanEnumerationAreas: props.urbanEACount || props.urbanEA || 0,
+					ruralEnumerationAreas: props.ruralEACount || props.ruralEA || 0,
+					totalHouseholds: props.totalHouseholds || props.totalHousehold || 0,
 					totalPopulation: props.totalPopulation,
-					totalMale: props.totalMale,
-					totalFemale: props.totalFemale,
-					urbanHouseholds: props.urbanHouseholdCount,
-					ruralHouseholds: props.ruralHouseholdCount,
+					totalMale: props.totalMale || 0,
+					totalFemale: props.totalFemale || 0,
+					urbanHouseholds: props.urbanHouseholdCount || props.urbanHousehold || 0,
+					ruralHouseholds: props.ruralHouseholdCount || props.ruralHousehold || 0,
 					urbanPopulation: props.urbanPopulation,
 					ruralPopulation: props.ruralPopulation,
-					urbanizationRate: props.urbanizationRate,
-					populationDensity: props.populationDensity,
-					averageHouseholdSize: props.averageHouseholdSize,
+					urbanizationRate: props.urbanizationRate || 0,
+					populationDensity: props.populationDensity || 0,
+					averageHouseholdSize: props.averageHouseholdSize || 0,
 				});
 			}
 		});
@@ -267,14 +267,20 @@ export class AdminNationalDataViewerComponent
 					0
 				),
 				urbanEnumerationAreas: this.dzongkhagFeatures.reduce(
-					(sum, feature) => sum + (feature.properties.urbanEACount || 0),
+					(sum, feature) => {
+						const props = feature.properties as DzongkhagStatsDetailedProperties;
+						return sum + (props.urbanEACount || props.urbanEA || 0);
+					},
 					0
 				),
 				ruralEnumerationAreas: this.dzongkhagFeatures.reduce(
-					(sum, feature) => sum + (feature.properties.ruralEACount || 0),
+					(sum, feature) => {
+						const props = feature.properties as DzongkhagStatsDetailedProperties;
+						return sum + (props.ruralEACount || props.ruralEA || 0);
+					},
 					0
 				),
-				totalHouseholds: this.nationalSummary.totalHouseholds,
+				totalHouseholds: this.nationalSummary.totalHouseholds || this.nationalSummary.totalHousehold || 0,
 				totalPopulation: this.nationalSummary.totalPopulation,
 				totalMale: this.dzongkhagStats.reduce(
 					(sum, stat) => sum + stat.totalMale,
@@ -344,25 +350,27 @@ export class AdminNationalDataViewerComponent
 		const values = this.dzongkhagFeatures
 			.filter((f) => f.properties.hasData)
 			.map((f) => {
+				const fProps = f.properties as DzongkhagStatsDetailedProperties;
 				if (this.mapVisualizationMode === 'households') {
-					return f.properties.totalHouseholds;
+					return fProps.totalHouseholds || fProps.totalHousehold || 0;
 				} else if (this.mapVisualizationMode === 'population') {
-					return f.properties.totalPopulation;
+					return fProps.totalPopulation;
 				} else {
-					return f.properties.eaCount;
+					return fProps.eaCount || fProps.totalEA || 0;
 				}
 			});
 
 		const minValue = Math.min(...values);
 		const maxValue = Math.max(...values);
 
+		const detailedProps = props as DzongkhagStatsDetailedProperties;
 		let currentValue: number;
 		if (this.mapVisualizationMode === 'households') {
-			currentValue = props.totalHouseholds;
+			currentValue = detailedProps.totalHouseholds || detailedProps.totalHousehold || 0;
 		} else if (this.mapVisualizationMode === 'population') {
-			currentValue = props.totalPopulation;
+			currentValue = detailedProps.totalPopulation;
 		} else {
-			currentValue = props.eaCount;
+			currentValue = detailedProps.eaCount || detailedProps.totalEA || 0;
 		}
 
 		// Get color based on value using color scale service
@@ -393,12 +401,13 @@ export class AdminNationalDataViewerComponent
 		const values = this.dzongkhagFeatures
 			.filter((f) => f.properties.hasData)
 			.map((f) => {
+				const fProps = f.properties as DzongkhagStatsDetailedProperties;
 				if (this.mapVisualizationMode === 'households') {
-					return f.properties.totalHouseholds;
+					return fProps.totalHouseholds || fProps.totalHousehold || 0;
 				} else if (this.mapVisualizationMode === 'population') {
-					return f.properties.totalPopulation;
+					return fProps.totalPopulation;
 				} else {
-					return f.properties.eaCount;
+					return fProps.eaCount || fProps.totalEA || 0;
 				}
 			});
 
@@ -450,12 +459,13 @@ export class AdminNationalDataViewerComponent
 		const values = this.dzongkhagFeatures
 			.filter((f) => f.properties.hasData)
 			.map((f) => {
+				const fProps = f.properties as DzongkhagStatsDetailedProperties;
 				if (this.mapVisualizationMode === 'households') {
-					return f.properties.totalHouseholds;
+					return fProps.totalHouseholds || fProps.totalHousehold || 0;
 				} else if (this.mapVisualizationMode === 'population') {
-					return f.properties.totalPopulation;
+					return fProps.totalPopulation;
 				} else {
-					return f.properties.eaCount;
+					return fProps.eaCount || fProps.totalEA || 0;
 				}
 			});
 
@@ -533,18 +543,24 @@ export class AdminNationalDataViewerComponent
 			layer.bindTooltip(label);
 		}
 
+		const detailedProps = props as DzongkhagStatsDetailedProperties;
 		// Calculate percentages
+		const totalHH = detailedProps.totalHouseholds || detailedProps.totalHousehold || 0;
+		const urbanHH = detailedProps.urbanHouseholdCount || detailedProps.urbanHousehold || 0;
+		const totalEA = detailedProps.eaCount || detailedProps.totalEA || 0;
+		const urbanEA = detailedProps.urbanEACount || detailedProps.urbanEA || 0;
+		
 		const urbanPopPct =
-			props.totalPopulation > 0
-				? ((props.urbanPopulation / props.totalPopulation) * 100).toFixed(1)
+			detailedProps.totalPopulation > 0
+				? ((detailedProps.urbanPopulation / detailedProps.totalPopulation) * 100).toFixed(1)
 				: '0.0';
 		const urbanHHPct =
-			props.totalHouseholds > 0
-				? ((props.urbanHouseholdCount / props.totalHouseholds) * 100).toFixed(1)
+			totalHH > 0
+				? ((urbanHH / totalHH) * 100).toFixed(1)
 				: '0.0';
 		const urbanEAPct =
-			props.eaCount > 0
-				? (((props.urbanEACount || 0) / props.eaCount) * 100).toFixed(1)
+			totalEA > 0
+				? ((urbanEA / totalEA) * 100).toFixed(1)
 				: '0.0';
 
 		const popupContent = `
@@ -564,14 +580,14 @@ export class AdminNationalDataViewerComponent
 					<!-- Households -->
 					<div class="py-2 border-b border-slate-200">
 						<span class="font-semibold text-slate-700">Households: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.totalHouseholds.toLocaleString()}</span>
+						<span class="font-bold" style="color: #67A4CA">${totalHH.toLocaleString()}</span>
 						<span class="text-slate-600"> (${urbanHHPct}% Urban)</span>
 					</div>
 
 					<!-- Enumeration Areas -->
 					<div class="py-2 border-b border-slate-200">
 						<span class="font-semibold text-slate-700">Enumeration Areas: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.eaCount}</span>
+						<span class="font-bold" style="color: #67A4CA">${totalEA}</span>
 						<span class="text-slate-600"> (${urbanEAPct}% Urban)</span>
 					</div>
 				</div>

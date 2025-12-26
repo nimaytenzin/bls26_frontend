@@ -33,8 +33,15 @@ interface DzongkhagStats {
 	dzongkhagId: number;
 	dzongkhagName: string;
 	dzongkhagCode: string;
-	totalEnumerationAreas: number;
-	totalHouseholds: number;
+	totalEA: number;
+	urbanEA: number;
+	ruralEA: number;
+	totalHousehold: number;
+	urbanHousehold: number;
+	ruralHousehold: number;
+	totalPopulation: number;
+	urbanPopulation: number;
+	ruralPopulation: number;
 }
 
 type VisualizationMode = 'households' | 'enumerationAreas';
@@ -69,14 +76,28 @@ export class PublicNationalDataViewerComponent
 	// Statistics
 	stats = {
 		totalDzongkhags: 0,
-		totalEnumerationAreas: 0,
-		totalHouseholds: 0,
+		totalEA: 0,
+		urbanEA: 0,
+		ruralEA: 0,
+		totalHousehold: 0,
+		urbanHousehold: 0,
+		ruralHousehold: 0,
+		totalPopulation: 0,
+		urbanPopulation: 0,
+		ruralPopulation: 0,
 	};
+
 
 	// Download options for statistics CSV
 	showStatisticsDownloadDialog = false;
 	statisticsDownloadOptions = {
-		year: undefined as number | undefined,
+		includeAZ: false,
+		includeSAZ: false,
+	};
+
+	// Download dialog
+	showDownloadDialog = false;
+	downloadOptions = {
 		includeAZ: false,
 		includeSAZ: false,
 	};
@@ -300,21 +321,43 @@ export class PublicNationalDataViewerComponent
 					dzongkhagId: props.id,
 					dzongkhagName: props.name,
 					dzongkhagCode: props.areaCode,
-					totalEnumerationAreas: props.eaCount,
-					totalHouseholds: props.totalHouseholds,
+					totalEA: props.totalEA,
+					urbanEA: props.urbanEA,
+					ruralEA: props.ruralEA,
+					totalHousehold: props.totalHousehold,
+					urbanHousehold: props.urbanHousehold,
+					ruralHousehold: props.ruralHousehold,
+					totalPopulation: props.totalPopulation,
+					urbanPopulation: props.urbanPopulation,
+					ruralPopulation: props.ruralPopulation,
 				};
 			});
 
 		if (this.nationalSummary) {
 			this.stats = {
 				totalDzongkhags: this.geoJsonData?.metadata.totalDzongkhags || 0,
-				totalEnumerationAreas: this.dzongkhagStats.reduce(
-					(sum, stat) => sum + stat.totalEnumerationAreas,
-					0
-				),
-				totalHouseholds: this.nationalSummary.totalHouseholds,
+				totalEA: this.nationalSummary.totalEA,
+				urbanEA: this.nationalSummary.urbanEA,
+				ruralEA: this.nationalSummary.ruralEA,
+				totalHousehold: this.nationalSummary.totalHousehold,
+				urbanHousehold: this.nationalSummary.urbanHousehold,
+				ruralHousehold: this.nationalSummary.ruralHousehold,
+				totalPopulation: this.nationalSummary.totalPopulation,
+				urbanPopulation: this.nationalSummary.urbanPopulation,
+				ruralPopulation: this.nationalSummary.ruralPopulation,
 			};
+
 		}
+	}
+
+	// ==================== Percentage Calculation Helpers ====================
+
+	getUrbanPercentage(total: number, urban: number): number {
+		return total > 0 ? (urban / total) * 100 : 0;
+	}
+
+	getRuralPercentage(total: number, rural: number): number {
+		return total > 0 ? (rural / total) * 100 : 0;
 	}
 
 	// ==================== Map Operations ====================
@@ -351,9 +394,32 @@ export class PublicNationalDataViewerComponent
 		}
 
 		const values = this.getFeatureValues();
+		
+		// Safety check: if no values, return default color
+		if (values.length === 0) {
+			return {
+				fillColor: '#cccccc',
+				fillOpacity: 0.3,
+				color: '#666666',
+				weight: 1,
+			};
+		}
+
 		const minValue = Math.min(...values);
 		const maxValue = Math.max(...values);
 		const currentValue = this.getFeatureValue(props);
+
+		// Safety check: if min equals max, all values are the same
+		if (minValue === maxValue) {
+			const scale = this.colorScaleService.getColorScaleArray(this.selectedColorScale);
+			return {
+				fillColor: scale[Math.floor(scale.length / 2)],
+				fillOpacity: 0.7,
+				color: 'darkcyan',
+				weight: 0.5,
+				opacity: 1,
+			};
+		}
 
 		const color = this.colorScaleService.getInterpolatedColor(
 			currentValue,
@@ -379,8 +445,8 @@ export class PublicNationalDataViewerComponent
 
 	private getFeatureValue(props: DzongkhagStatsFeature['properties']): number {
 		return this.mapVisualizationMode === 'households'
-			? props.totalHouseholds
-			: props.eaCount;
+			? props.totalHousehold
+			: props.totalEA;
 	}
 
 	private onEachFeature(feature: DzongkhagStatsFeature, layer: L.Layer): void {
@@ -466,12 +532,32 @@ export class PublicNationalDataViewerComponent
 			? `
 				<div class="space-y-0 text-sm mb-3">
 					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Households: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.totalHouseholds.toLocaleString()}</span>
+						<span class="font-semibold text-slate-700">Total Households: </span>
+						<span class="font-bold" style="color: #67A4CA">${props.totalHousehold.toLocaleString()}</span>
 					</div>
 					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Enumeration Areas: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.eaCount}</span>
+						<span class="font-semibold text-slate-700">Urban Households: </span>
+						<span class="font-bold" style="color: #67A4CA">${props.urbanHousehold.toLocaleString()}</span>
+					</div>
+					<div class="py-2 border-b border-slate-200">
+						<span class="font-semibold text-slate-700">Rural Households: </span>
+						<span class="font-bold" style="color: #67A4CA">${props.ruralHousehold.toLocaleString()}</span>
+					</div>
+					<div class="py-2 border-b border-slate-200">
+						<span class="font-semibold text-slate-700">Total EA: </span>
+						<span class="font-bold" style="color: #67A4CA">${props.totalEA}</span>
+					</div>
+					<div class="py-2 border-b border-slate-200">
+						<span class="font-semibold text-slate-700">Urban EA: </span>
+						<span class="font-bold" style="color: #67A4CA">${props.urbanEA}</span>
+					</div>
+					<div class="py-2 border-b border-slate-200">
+						<span class="font-semibold text-slate-700">Rural EA: </span>
+						<span class="font-bold" style="color: #67A4CA">${props.ruralEA}</span>
+					</div>
+					<div class="py-2 border-b border-slate-200">
+						<span class="font-semibold text-slate-700">Total Population: </span>
+						<span class="font-bold" style="color: #67A4CA">${props.totalPopulation.toLocaleString()}</span>
 					</div>
 				</div>
 			`
@@ -556,7 +642,7 @@ export class PublicNationalDataViewerComponent
 		return this.colorScaleService.getLegendGradient(
 			min,
 			max,
-			'vertical',
+			'horizontal',
 			this.selectedColorScale
 		);
 	}
@@ -746,11 +832,229 @@ export class PublicNationalDataViewerComponent
 		});
 	}
 
+	downloadGewogsThromdeGeojson(): void {
+		this.locationDownloadService.downloadAllAZsAsGeoJson().subscribe({
+			next: (geoJson) => {
+				this.downloadFile(
+					JSON.stringify(geoJson, null, 2),
+					`all_gewogs_thromde_${new Date().toISOString().split('T')[0]}.geojson`,
+					'application/json'
+				);
+				this.showSuccessMessage('All Gewogs/Thromde GeoJSON downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Gewogs/Thromde GeoJSON:', error);
+				this.showErrorMessage('Failed to download Gewogs/Thromde GeoJSON file');
+			},
+		});
+	}
+
+	downloadGewogsThromdeKml(): void {
+		this.locationDownloadService.downloadAllAZsAsKml().subscribe({
+			next: (kml) => {
+				this.downloadFile(
+					kml,
+					`all_gewogs_thromde_${new Date().toISOString().split('T')[0]}.kml`,
+					'application/vnd.google-earth.kml+xml'
+				);
+				this.showSuccessMessage('All Gewogs/Thromde KML downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Gewogs/Thromde KML:', error);
+				this.showErrorMessage('Failed to download Gewogs/Thromde KML file');
+			},
+		});
+	}
+
+	downloadChiwogsLapGeojson(): void {
+		this.locationDownloadService.downloadAllSAZsAsGeoJson().subscribe({
+			next: (geoJson) => {
+				this.downloadFile(
+					JSON.stringify(geoJson, null, 2),
+					`all_chiwogs_lap_${new Date().toISOString().split('T')[0]}.geojson`,
+					'application/json'
+				);
+				this.showSuccessMessage('All Chiwogs/LAP GeoJSON downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Chiwogs/LAP GeoJSON:', error);
+				this.showErrorMessage('Failed to download Chiwogs/LAP GeoJSON file');
+			},
+		});
+	}
+
+	downloadChiwogsLapKml(): void {
+		this.locationDownloadService.downloadAllSAZsAsKml().subscribe({
+			next: (kml) => {
+				this.downloadFile(
+					kml,
+					`all_chiwogs_lap_${new Date().toISOString().split('T')[0]}.kml`,
+					'application/vnd.google-earth.kml+xml'
+				);
+				this.showSuccessMessage('All Chiwogs/LAP KML downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Chiwogs/LAP KML:', error);
+				this.showErrorMessage('Failed to download Chiwogs/LAP KML file');
+			},
+		});
+	}
+
+	downloadEAsGeojson(): void {
+		this.locationDownloadService.downloadAllEAsAsGeoJson().subscribe({
+			next: (geoJson) => {
+				this.downloadFile(
+					JSON.stringify(geoJson, null, 2),
+					`all_enumeration_areas_${new Date().toISOString().split('T')[0]}.geojson`,
+					'application/json'
+				);
+				this.showSuccessMessage('All Enumeration Areas GeoJSON downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Enumeration Areas GeoJSON:', error);
+				this.showErrorMessage('Failed to download Enumeration Areas GeoJSON file');
+			},
+		});
+	}
+
+	downloadEAsKml(): void {
+		this.locationDownloadService.downloadAllEAsAsKml().subscribe({
+			next: (kml) => {
+				this.downloadFile(
+					kml,
+					`all_enumeration_areas_${new Date().toISOString().split('T')[0]}.kml`,
+					'application/vnd.google-earth.kml+xml'
+				);
+				this.showSuccessMessage('All Enumeration Areas KML downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Enumeration Areas KML:', error);
+				this.showErrorMessage('Failed to download Enumeration Areas KML file');
+			},
+		});
+	}
+
+	// ==================== National Viewer CSV Downloads ====================
+
+	downloadNationalViewerDzongkhags(): void {
+		this.annualStatisticsDownloadService.downloadNationalViewerDzongkhags().subscribe({
+			next: (csv) => {
+				this.downloadFile(
+					csv,
+					`national_viewer_dzongkhags_${new Date().toISOString().split('T')[0]}.csv`,
+					'text/csv'
+				);
+				this.showSuccessMessage('All Dzongkhags CSV downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading national viewer dzongkhags CSV:', error);
+				this.showErrorMessage('Failed to download All Dzongkhags CSV file');
+			},
+		});
+	}
+
+	downloadNationalViewerDzongkhagGewogThromde(): void {
+		this.annualStatisticsDownloadService.downloadNationalViewerDzongkhagGewogThromde().subscribe({
+			next: (csv) => {
+				this.downloadFile(
+					csv,
+					`national_viewer_dzongkhag_gewog_thromde_${new Date().toISOString().split('T')[0]}.csv`,
+					'text/csv'
+				);
+				this.showSuccessMessage('Dzongkhag → Gewog/Thromde CSV downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading national viewer dzongkhag-gewog-thromde CSV:', error);
+				this.showErrorMessage('Failed to download Dzongkhag → Gewog/Thromde CSV file');
+			},
+		});
+	}
+
+	downloadNationalViewerDzongkhagChiwogLap(): void {
+		this.annualStatisticsDownloadService.downloadNationalViewerDzongkhagChiwogLap().subscribe({
+			next: (csv) => {
+				this.downloadFile(
+					csv,
+					`national_viewer_dzongkhag_chiwog_lap_${new Date().toISOString().split('T')[0]}.csv`,
+					'text/csv'
+				);
+				this.showSuccessMessage('Dzongkhag → Chiwog/LAP CSV downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading national viewer dzongkhag-chiwog-lap CSV:', error);
+				this.showErrorMessage('Failed to download Dzongkhag → Chiwog/LAP CSV file');
+			},
+		});
+	}
+
+	downloadNationalViewerFullHierarchy(): void {
+		this.annualStatisticsDownloadService.downloadNationalViewerFullHierarchy().subscribe({
+			next: (csv) => {
+				this.downloadFile(
+					csv,
+					`national_viewer_full_hierarchy_${new Date().toISOString().split('T')[0]}.csv`,
+					'text/csv'
+				);
+				this.showSuccessMessage('National Sampling Frame Data CSV downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading national viewer full hierarchy CSV:', error);
+				this.showErrorMessage('Failed to download National Sampling Frame Data CSV file');
+			},
+		});
+	}
+
+	downloadRuralFullHierarchyForNationalViewer(): void {
+		this.annualStatisticsDownloadService.downloadRuralFullHierarchyForNationalViewer().subscribe({
+			next: (csv) => {
+				this.downloadFile(
+					csv,
+					`national_viewer_rural_full_hierarchy_${new Date().toISOString().split('T')[0]}.csv`,
+					'text/csv'
+				);
+				this.showSuccessMessage('Rural Sampling Frame Data CSV downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading rural full hierarchy CSV:', error);
+				this.showErrorMessage('Failed to download Rural Sampling Frame Data CSV file');
+			},
+		});
+	}
+
+	downloadUrbanFullHierarchyForNationalViewer(): void {
+		this.annualStatisticsDownloadService.downloadUrbanFullHierarchyForNationalViewer().subscribe({
+			next: (csv) => {
+				this.downloadFile(
+					csv,
+					`national_viewer_urban_full_hierarchy_${new Date().toISOString().split('T')[0]}.csv`,
+					'text/csv'
+				);
+				this.showSuccessMessage('Urban Sampling Frame Data CSV downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading urban full hierarchy CSV:', error);
+				this.showErrorMessage('Failed to download Urban Sampling Frame Data CSV file');
+			},
+		});
+	}
+
+	openDownloadDialog(): void {
+		this.showDownloadDialog = true;
+		// Reset options
+		this.downloadOptions = {
+			includeAZ: false,
+			includeSAZ: false,
+		};
+	}
+
+	closeDownloadDialog(): void {
+		this.showDownloadDialog = false;
+	}
+
 	openStatisticsDownloadDialog(): void {
 		this.showStatisticsDownloadDialog = true;
 		// Reset options
 		this.statisticsDownloadOptions = {
-			year: undefined,
 			includeAZ: false,
 			includeSAZ: false,
 		};
@@ -761,7 +1065,9 @@ export class PublicNationalDataViewerComponent
 	}
 
 	downloadNationalStatisticsCSV(): void {
-		const { year, includeAZ, includeSAZ } = this.statisticsDownloadOptions;
+		// Use downloadOptions if dialog is open, otherwise use statisticsDownloadOptions
+		const options = this.showDownloadDialog ? this.downloadOptions : this.statisticsDownloadOptions;
+		const { includeAZ, includeSAZ } = options;
 		
 		// Validate: includeSAZ requires includeAZ
 		if (includeSAZ && !includeAZ) {
@@ -775,14 +1081,11 @@ export class PublicNationalDataViewerComponent
 		}
 
 		this.annualStatisticsDownloadService
-			.downloadNationalStats(year, includeAZ, includeSAZ)
+			.downloadNationalStats(undefined, includeAZ, includeSAZ)
 			.subscribe({
 				next: (csv) => {
 					// Build filename with options
 					let filename = 'national_annual_statistics';
-					if (year) {
-						filename += `_${year}`;
-					}
 					if (includeAZ) {
 						filename += '_with_az';
 					}
@@ -793,13 +1096,139 @@ export class PublicNationalDataViewerComponent
 
 					this.downloadFile(csv, filename, 'text/csv');
 					this.showSuccessMessage('National annual statistics CSV downloaded successfully');
-					this.closeStatisticsDownloadDialog();
+					if (this.showDownloadDialog) {
+						this.closeDownloadDialog();
+					} else {
+						this.closeStatisticsDownloadDialog();
+					}
 				},
 				error: (error) => {
 					console.error('Error downloading national statistics CSV:', error);
 					this.showErrorMessage('Failed to download national statistics CSV file');
 				},
 			});
+	}
+
+	downloadNationalStatisticsExcel(): void {
+		const { includeAZ, includeSAZ } = this.downloadOptions;
+		
+		// Validate: includeSAZ requires includeAZ
+		if (includeSAZ && !includeAZ) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Invalid Options',
+				detail: 'Sub-Administrative Zones can only be included if Administrative Zones are included.',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.annualStatisticsDownloadService
+			.downloadNationalStats(undefined, includeAZ, includeSAZ)
+			.subscribe({
+				next: (csv) => {
+					// Convert CSV to Excel format
+					const excelContent = this.convertCsvToExcel(csv);
+					
+					// Build filename with options
+					let filename = 'national_annual_statistics';
+					if (includeAZ) {
+						filename += '_with_az';
+					}
+					if (includeSAZ) {
+						filename += '_with_saz';
+					}
+					filename += `_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+					this.downloadFile(excelContent, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+					this.showSuccessMessage('National annual statistics Excel downloaded successfully');
+					this.closeDownloadDialog();
+				},
+				error: (error) => {
+					console.error('Error downloading national statistics Excel:', error);
+					this.showErrorMessage('Failed to download national statistics Excel file');
+				},
+			});
+	}
+
+	private convertCsvToExcel(csv: string): string {
+		// Parse CSV with proper handling of quoted fields
+		const lines = csv.split('\n');
+		if (lines.length === 0) return '';
+
+		// Parse CSV line properly handling quoted fields
+		const parseCsvLine = (line: string): string[] => {
+			const result: string[] = [];
+			let current = '';
+			let inQuotes = false;
+
+			for (let i = 0; i < line.length; i++) {
+				const char = line[i];
+				if (char === '"') {
+					if (inQuotes && line[i + 1] === '"') {
+						current += '"';
+						i++; // Skip next quote
+					} else {
+						inQuotes = !inQuotes;
+					}
+				} else if (char === ',' && !inQuotes) {
+					result.push(current.trim());
+					current = '';
+				} else {
+					current += char;
+				}
+			}
+			result.push(current.trim());
+			return result;
+		};
+
+		// Create XML structure for Excel (Excel 2003 XML format)
+		let xml = '<?xml version="1.0"?>\n';
+		xml += '<?mso-application progid="Excel.Sheet"?>\n';
+		xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n';
+		xml += ' xmlns:o="urn:schemas-microsoft-com:office:office"\n';
+		xml += ' xmlns:x="urn:schemas-microsoft-com:office:excel"\n';
+		xml += ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"\n';
+		xml += ' xmlns:html="http://www.w3.org/TR/REC-html40">\n';
+		xml += '<Worksheet ss:Name="Statistics">\n';
+		xml += '<Table>\n';
+
+		lines.forEach((line) => {
+			if (line.trim()) {
+				const cells = parseCsvLine(line);
+				xml += '<Row>\n';
+				cells.forEach((cell) => {
+					const cellValue = cell.replace(/^"|"$/g, ''); // Remove surrounding quotes
+					// Check if it's a number (integer or decimal)
+					const numValue = Number(cellValue);
+					const isNumber = !isNaN(numValue) && cellValue !== '' && cellValue.trim() !== '';
+					
+					xml += '<Cell>\n';
+					if (isNumber) {
+						xml += `<Data ss:Type="Number">${cellValue}</Data>\n`;
+					} else {
+						xml += `<Data ss:Type="String">${this.escapeXml(cellValue)}</Data>\n`;
+					}
+					xml += '</Cell>\n';
+				});
+				xml += '</Row>\n';
+			}
+		});
+
+		xml += '</Table>\n';
+		xml += '</Worksheet>\n';
+		xml += '</Workbook>';
+
+		return xml;
+	}
+
+	private escapeXml(unsafe: string): string {
+		return unsafe
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&apos;');
 	}
 
 	private downloadFile(content: string, filename: string, mimeType: string): void {

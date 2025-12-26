@@ -14,11 +14,15 @@ export class DzongkhagAnnualStatsDataService {
 
 	/**
 	 * Get current year Dzongkhag statistics as GeoJSON
+	 * Endpoint: GET /dzongkhag-annual-stats/all/geojson&Stats
+	 * @param year - Optional year parameter (defaults to current year)
 	 */
-	getAllDzongkhagsCurrentStatsGeoJson(): Observable<DzongkhagStatsGeoJson> {
-		return this.http.get<DzongkhagStatsGeoJson>(
-			`${this.apiUrl}/all/geojson&stats`
-		);
+	getAllDzongkhagsCurrentStatsGeoJson(year?: number): Observable<DzongkhagStatsGeoJson> {
+		let url = `${this.apiUrl}/all/geojson&Stats`;
+		if (year) {
+			url += `?year=${year}`;
+		}
+		return this.http.get<DzongkhagStatsGeoJson>(url);
 	}
 
 	/**

@@ -200,15 +200,16 @@ export class MapFeatureColorService {
 	): string {
 		const scale = this.getColorScale(scaleType);
 		// Handle edge cases
-		if (value <= min) return scale[0];
-		if (value >= max) return scale[scale.length - 1];
+		// For choropleth maps: high values get dark colors, low values get light colors
+		if (value <= min) return scale[scale.length - 1]; // Min value → lightest color
+		if (value >= max) return scale[0]; // Max value → darkest color
 		if (min === max) return scale[Math.floor(scale.length / 2)];
 
 		// Normalize value to 0-1 range
 		const normalizedValue = (value - min) / (max - min);
 
-		// Map to color scale index
-		const index = Math.floor(normalizedValue * (scale.length - 1));
+		// Reverse the index: high values should map to low indices (dark), low values to high indices (light)
+		const index = Math.floor((1 - normalizedValue) * (scale.length - 1));
 
 		return scale[index];
 	}
@@ -230,16 +231,18 @@ export class MapFeatureColorService {
 	): string {
 		const scale = this.getColorScale(scaleType);
 		// Handle edge cases
-		if (value <= min) return scale[scale.length - 1];
-		if (value >= max) return scale[0];
+		// Color scales go from dark (index 0) to light (last index)
+		// For choropleth maps: high values get dark colors, low values get light colors
+		if (value <= min) return scale[scale.length - 1]; // Min value → lightest color
+		if (value >= max) return scale[0]; // Max value → darkest color
 
 		if (min === max) return scale[Math.floor(scale.length / 2)];
 
 		// Normalize value to 0-1 range
 		const normalizedValue = (value - min) / (max - min);
 
-		// Calculate position in color scale (floating point)
-		const position = normalizedValue * (scale.length - 1);
+		// Reverse the position: high values should map to low indices (dark), low values to high indices (light)
+		const position = (1 - normalizedValue) * (scale.length - 1);
 		const lowerIndex = Math.floor(position);
 		const upperIndex = Math.ceil(position);
 
@@ -357,12 +360,15 @@ export class MapFeatureColorService {
 	): string {
 		const scale = this.getColorScale(scaleType);
 		// Generate gradient stops using the full color scale
+		// Reverse the scale so gradient goes from light (min) to dark (max)
 		const stops: string[] = [];
 		const numStops = scale.length;
 
 		for (let i = 0; i < numStops; i++) {
 			const percentage = (i / (numStops - 1)) * 100;
-			stops.push(`${scale[i]} ${percentage}%`);
+			// Reverse index: scale goes dark→light, but we want light→dark for legend
+			const reversedIndex = numStops - 1 - i;
+			stops.push(`${scale[reversedIndex]} ${percentage}%`);
 		}
 
 		const gradientDirection =
