@@ -309,5 +309,92 @@ export class AnnualStatisticsDownloadService {
 				})
 			);
 	}
+
+	/**
+	 * DZONGKHAG VIEWER CSV DOWNLOADS
+	 * All endpoints are publicly accessible (no authentication required)
+	 * Designed specifically for the dzongkhag data viewer
+	 */
+
+	/**
+	 * Download Dzongkhag Sampling Frame (Overall) as CSV
+	 * Returns: Dzongkhag → AZ → SAZ → EA (both rural and urban)
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @param year - Optional year (defaults to latest available year)
+	 * @returns Observable of CSV string
+	 * @public - No authentication required
+	 */
+	downloadDzongkhagSamplingFrame(dzongkhagId: number, year?: number): Observable<string> {
+		const params: any = {};
+		if (year) {
+			params.year = year.toString();
+		}
+
+		return this.http
+			.get(`${this.apiUrl}/dzongkhag/${dzongkhagId}/sampling-frame/csv`, {
+				params,
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading dzongkhag ${dzongkhagId} sampling frame CSV:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Dzongkhag Rural Sampling Frame as CSV
+	 * Returns: Dzongkhag → Gewog → Chiwog → EA (rural only)
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @param year - Optional year (defaults to latest available year)
+	 * @returns Observable of CSV string
+	 * @public - No authentication required
+	 */
+	downloadDzongkhagRuralSamplingFrame(dzongkhagId: number, year?: number): Observable<string> {
+		const params: any = {};
+		if (year) {
+			params.year = year.toString();
+		}
+
+		return this.http
+			.get(`${this.apiUrl}/dzongkhag/${dzongkhagId}/rural-sampling-frame/csv`, {
+				params,
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading dzongkhag ${dzongkhagId} rural sampling frame CSV:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Dzongkhag Urban Sampling Frame as CSV
+	 * Returns: Dzongkhag → Thromde → LAP → EA (urban only)
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @param year - Optional year (defaults to latest available year)
+	 * @returns Observable of CSV string
+	 * @public - No authentication required
+	 */
+	downloadDzongkhagUrbanSamplingFrame(dzongkhagId: number, year?: number): Observable<string> {
+		const params: any = {};
+		if (year) {
+			params.year = year.toString();
+		}
+
+		return this.http
+			.get(`${this.apiUrl}/dzongkhag/${dzongkhagId}/urban-sampling-frame/csv`, {
+				params,
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading dzongkhag ${dzongkhagId} urban sampling frame CSV:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
 }
 

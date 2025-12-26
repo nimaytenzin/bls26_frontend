@@ -64,7 +64,11 @@ export class PublicDzongkhagDataViewerComponent
 	// Statistics (only Households and EAs for public)
 	stats = {
 		totalHouseholds: 0,
+		urbanHouseholds: 0,
+		ruralHouseholds: 0,
 		totalEnumerationAreas: 0,
+		urbanEnumerationAreas: 0,
+		ruralEnumerationAreas: 0,
 		totalAdminZones: 0,
 		totalGewogs: 0,
 		totalThromdes: 0,
@@ -75,6 +79,9 @@ export class PublicDzongkhagDataViewerComponent
 
 	// Map visualization mode (only households and EAs for public)
 	mapVisualizationMode: 'households' | 'enumerationAreas' = 'households';
+
+	// Download dialog
+	showDownloadDialog = false;
 
 	// Mobile State
 	isMobile: boolean = false;
@@ -283,7 +290,11 @@ export class PublicDzongkhagDataViewerComponent
 		if (this.noDataFound || !this.adminZones || this.adminZones.length === 0) {
 			this.stats = {
 				totalHouseholds: 0,
+				urbanHouseholds: 0,
+				ruralHouseholds: 0,
 				totalEnumerationAreas: 0,
+				urbanEnumerationAreas: 0,
+				ruralEnumerationAreas: 0,
 				totalAdminZones: 0,
 				totalGewogs: 0,
 				totalThromdes: 0,
@@ -293,7 +304,11 @@ export class PublicDzongkhagDataViewerComponent
 
 		this.stats = {
 			totalHouseholds: 0,
+			urbanHouseholds: 0,
+			ruralHouseholds: 0,
 			totalEnumerationAreas: 0,
+			urbanEnumerationAreas: 0,
+			ruralEnumerationAreas: 0,
 			totalAdminZones: this.adminZones.length,
 			totalGewogs: 0,
 			totalThromdes: 0,
@@ -301,12 +316,24 @@ export class PublicDzongkhagDataViewerComponent
 
 		this.adminZones.forEach((zone) => {
 			const isUrban = zone.type === 'Thromde';
+			const households = zone.totalHouseholds || 0;
+			const enumerationAreas = zone.totalEnumerationAreas || 0;
 
 			// Households
-			this.stats.totalHouseholds += zone.totalHouseholds || 0;
+			this.stats.totalHouseholds += households;
+			if (isUrban) {
+				this.stats.urbanHouseholds += households;
+			} else {
+				this.stats.ruralHouseholds += households;
+			}
 
 			// Enumeration Areas
-			this.stats.totalEnumerationAreas += zone.totalEnumerationAreas || 0;
+			this.stats.totalEnumerationAreas += enumerationAreas;
+			if (isUrban) {
+				this.stats.urbanEnumerationAreas += enumerationAreas;
+			} else {
+				this.stats.ruralEnumerationAreas += enumerationAreas;
+			}
 
 			// Admin zone types
 			if (isUrban) {
@@ -939,6 +966,218 @@ export class PublicDzongkhagDataViewerComponent
 			error: (error) => {
 				console.error('Error downloading dzongkhag statistics CSV:', error);
 				this.showErrorMessage('Failed to download dzongkhag statistics CSV file');
+			},
+		});
+	}
+
+	// ==================== Download Dialog ====================
+
+	openDownloadDialog(): void {
+		this.showDownloadDialog = true;
+	}
+
+	closeDownloadDialog(): void {
+		this.showDownloadDialog = false;
+	}
+
+	// ==================== CSV Downloads ====================
+
+	/**
+	 * Download Dzongkhag Sampling Frame (Overall) as CSV
+	 */
+	downloadDzongkhagSamplingFrame(): void {
+		if (!this.dzongkhagId) return;
+		
+		this.annualStatisticsDownloadService.downloadDzongkhagSamplingFrame(this.dzongkhagId).subscribe({
+			next: (csv) => {
+				this.downloadFile(
+					csv,
+					`${this.dzongkhag?.name || 'dzongkhag'}_sampling_frame_${new Date().toISOString().split('T')[0]}.csv`,
+					'text/csv'
+				);
+				this.showSuccessMessage('Dzongkhag Sampling Frame CSV downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading dzongkhag sampling frame CSV:', error);
+				this.showErrorMessage('Failed to download Dzongkhag Sampling Frame CSV file');
+			},
+		});
+	}
+
+	/**
+	 * Download Dzongkhag Rural Sampling Frame as CSV
+	 */
+	downloadDzongkhagRuralSamplingFrame(): void {
+		if (!this.dzongkhagId) return;
+		
+		this.annualStatisticsDownloadService.downloadDzongkhagRuralSamplingFrame(this.dzongkhagId).subscribe({
+			next: (csv) => {
+				this.downloadFile(
+					csv,
+					`${this.dzongkhag?.name || 'dzongkhag'}_rural_sampling_frame_${new Date().toISOString().split('T')[0]}.csv`,
+					'text/csv'
+				);
+				this.showSuccessMessage('Dzongkhag Rural Sampling Frame CSV downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading dzongkhag rural sampling frame CSV:', error);
+				this.showErrorMessage('Failed to download Dzongkhag Rural Sampling Frame CSV file');
+			},
+		});
+	}
+
+	/**
+	 * Download Dzongkhag Urban Sampling Frame as CSV
+	 */
+	downloadDzongkhagUrbanSamplingFrame(): void {
+		if (!this.dzongkhagId) return;
+		
+		this.annualStatisticsDownloadService.downloadDzongkhagUrbanSamplingFrame(this.dzongkhagId).subscribe({
+			next: (csv) => {
+				this.downloadFile(
+					csv,
+					`${this.dzongkhag?.name || 'dzongkhag'}_urban_sampling_frame_${new Date().toISOString().split('T')[0]}.csv`,
+					'text/csv'
+				);
+				this.showSuccessMessage('Dzongkhag Urban Sampling Frame CSV downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading dzongkhag urban sampling frame CSV:', error);
+				this.showErrorMessage('Failed to download Dzongkhag Urban Sampling Frame CSV file');
+			},
+		});
+	}
+
+	// ==================== GeoJSON/KML Downloads ====================
+
+	/**
+	 * Download Gewog/Thromde (Administrative Zones) as GeoJSON
+	 */
+	downloadGewogThromdeGeojson(): void {
+		if (!this.dzongkhagId) return;
+		
+		this.locationDownloadService.downloadGewogThromdeByDzongkhagAsGeoJson(this.dzongkhagId).subscribe({
+			next: (geoJson) => {
+				this.downloadFile(
+					JSON.stringify(geoJson, null, 2),
+					`${this.dzongkhag?.name || 'dzongkhag'}_gewog_thromde_${new Date().toISOString().split('T')[0]}.geojson`,
+					'application/json'
+				);
+				this.showSuccessMessage('Gewog/Thromde GeoJSON downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Gewog/Thromde GeoJSON:', error);
+				this.showErrorMessage('Failed to download Gewog/Thromde GeoJSON file');
+			},
+		});
+	}
+
+	/**
+	 * Download Gewog/Thromde (Administrative Zones) as KML
+	 */
+	downloadGewogThromdeKml(): void {
+		if (!this.dzongkhagId) return;
+		
+		this.locationDownloadService.downloadGewogThromdeByDzongkhagAsKml(this.dzongkhagId).subscribe({
+			next: (kml) => {
+				this.downloadFile(
+					kml,
+					`${this.dzongkhag?.name || 'dzongkhag'}_gewog_thromde_${new Date().toISOString().split('T')[0]}.kml`,
+					'application/vnd.google-earth.kml+xml'
+				);
+				this.showSuccessMessage('Gewog/Thromde KML downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Gewog/Thromde KML:', error);
+				this.showErrorMessage('Failed to download Gewog/Thromde KML file');
+			},
+		});
+	}
+
+	/**
+	 * Download Chiwog/LAP (Sub-Administrative Zones) as GeoJSON
+	 */
+	downloadChiwogLapGeojson(): void {
+		if (!this.dzongkhagId) return;
+		
+		this.locationDownloadService.downloadChiwogLapByDzongkhagAsGeoJson(this.dzongkhagId).subscribe({
+			next: (geoJson) => {
+				this.downloadFile(
+					JSON.stringify(geoJson, null, 2),
+					`${this.dzongkhag?.name || 'dzongkhag'}_chiwog_lap_${new Date().toISOString().split('T')[0]}.geojson`,
+					'application/json'
+				);
+				this.showSuccessMessage('Chiwog/LAP GeoJSON downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Chiwog/LAP GeoJSON:', error);
+				this.showErrorMessage('Failed to download Chiwog/LAP GeoJSON file');
+			},
+		});
+	}
+
+	/**
+	 * Download Chiwog/LAP (Sub-Administrative Zones) as KML
+	 */
+	downloadChiwogLapKml(): void {
+		if (!this.dzongkhagId) return;
+		
+		this.locationDownloadService.downloadChiwogLapByDzongkhagAsKml(this.dzongkhagId).subscribe({
+			next: (kml) => {
+				this.downloadFile(
+					kml,
+					`${this.dzongkhag?.name || 'dzongkhag'}_chiwog_lap_${new Date().toISOString().split('T')[0]}.kml`,
+					'application/vnd.google-earth.kml+xml'
+				);
+				this.showSuccessMessage('Chiwog/LAP KML downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Chiwog/LAP KML:', error);
+				this.showErrorMessage('Failed to download Chiwog/LAP KML file');
+			},
+		});
+	}
+
+	/**
+	 * Download EAs (Enumeration Areas) as GeoJSON
+	 */
+	downloadEAsGeojson(): void {
+		if (!this.dzongkhagId) return;
+		
+		this.locationDownloadService.downloadEAsByDzongkhagAsGeoJsonPublic(this.dzongkhagId).subscribe({
+			next: (geoJson) => {
+				this.downloadFile(
+					JSON.stringify(geoJson, null, 2),
+					`${this.dzongkhag?.name || 'dzongkhag'}_enumeration_areas_${new Date().toISOString().split('T')[0]}.geojson`,
+					'application/json'
+				);
+				this.showSuccessMessage('Enumeration Areas GeoJSON downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Enumeration Areas GeoJSON:', error);
+				this.showErrorMessage('Failed to download Enumeration Areas GeoJSON file');
+			},
+		});
+	}
+
+	/**
+	 * Download EAs (Enumeration Areas) as KML
+	 */
+	downloadEAsKml(): void {
+		if (!this.dzongkhagId) return;
+		
+		this.locationDownloadService.downloadEAsByDzongkhagAsKmlPublic(this.dzongkhagId).subscribe({
+			next: (kml) => {
+				this.downloadFile(
+					kml,
+					`${this.dzongkhag?.name || 'dzongkhag'}_enumeration_areas_${new Date().toISOString().split('T')[0]}.kml`,
+					'application/vnd.google-earth.kml+xml'
+				);
+				this.showSuccessMessage('Enumeration Areas KML downloaded successfully');
+			},
+			error: (error) => {
+				console.error('Error downloading Enumeration Areas KML:', error);
+				this.showErrorMessage('Failed to download Enumeration Areas KML file');
 			},
 		});
 	}

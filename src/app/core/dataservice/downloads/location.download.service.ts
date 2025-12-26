@@ -446,5 +446,119 @@ export class LocationDownloadService {
 				})
 			);
 	}
+
+	/**
+	 * DZONGKHAG VIEWER PUBLIC DOWNLOADS
+	 * All endpoints are publicly accessible (no authentication required)
+	 * Designed specifically for the dzongkhag data viewer
+	 */
+
+	/**
+	 * Download Gewog/Thromde (Administrative Zones) by Dzongkhag as GeoJSON
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @returns Observable of GeoJSON object
+	 * @public - No authentication required
+	 */
+	downloadGewogThromdeByDzongkhagAsGeoJson(dzongkhagId: number): Observable<any> {
+		return this.http
+			.get<any>(`${this.apiUrl}/dzongkhag/${dzongkhagId}/gewog-thromde/geojson`)
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading gewog/thromde for dzongkhag ${dzongkhagId} as GeoJSON:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Gewog/Thromde (Administrative Zones) by Dzongkhag as KML
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @returns Observable of KML string
+	 * @public - No authentication required
+	 */
+	downloadGewogThromdeByDzongkhagAsKml(dzongkhagId: number): Observable<string> {
+		return this.http
+			.get(`${this.apiUrl}/dzongkhag/${dzongkhagId}/gewog-thromde/kml`, {
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading gewog/thromde for dzongkhag ${dzongkhagId} as KML:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Chiwog/LAP (Sub-Administrative Zones) by Dzongkhag as GeoJSON
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @returns Observable of GeoJSON object
+	 * @public - No authentication required
+	 */
+	downloadChiwogLapByDzongkhagAsGeoJson(dzongkhagId: number): Observable<any> {
+		return this.http
+			.get<any>(`${this.apiUrl}/dzongkhag/${dzongkhagId}/chiwog-lap/geojson`)
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading chiwog/lap for dzongkhag ${dzongkhagId} as GeoJSON:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Chiwog/LAP (Sub-Administrative Zones) by Dzongkhag as KML
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @returns Observable of KML string
+	 * @public - No authentication required
+	 */
+	downloadChiwogLapByDzongkhagAsKml(dzongkhagId: number): Observable<string> {
+		return this.http
+			.get(`${this.apiUrl}/dzongkhag/${dzongkhagId}/chiwog-lap/kml`, {
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading chiwog/lap for dzongkhag ${dzongkhagId} as KML:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Enumeration Areas by Dzongkhag as GeoJSON (Public)
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @returns Observable of GeoJSON object
+	 * @public - No authentication required
+	 */
+	downloadEAsByDzongkhagAsGeoJsonPublic(dzongkhagId: number): Observable<any> {
+		return this.http
+			.get<any>(`${this.apiUrl}/dzongkhag/${dzongkhagId}/enumeration-areas/geojson`)
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading EAs for dzongkhag ${dzongkhagId} as GeoJSON (public):`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Enumeration Areas by Dzongkhag as KML (Public)
+	 * @param dzongkhagId - Dzongkhag ID
+	 * @returns Observable of KML string
+	 * @public - No authentication required
+	 */
+	downloadEAsByDzongkhagAsKmlPublic(dzongkhagId: number): Observable<string> {
+		return this.http
+			.get(`${this.apiUrl}/dzongkhag/${dzongkhagId}/enumeration-areas/kml`, {
+				responseType: 'text',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(`Error downloading EAs for dzongkhag ${dzongkhagId} as KML (public):`, error);
+					return throwError(() => error);
+				})
+			);
+	}
 }
 

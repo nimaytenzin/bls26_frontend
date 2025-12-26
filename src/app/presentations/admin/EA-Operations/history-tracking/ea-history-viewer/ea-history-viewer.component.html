@@ -52,7 +52,7 @@
 				</div>
 				<div class="flex items-center gap-4">
 					<div class="text-right">
-						<p class="text-xs font-medium text-slate-500">Area Code</p>
+						<p class="text-xs font-medium text-slate-500">EA Code</p>
 						<p class="text-sm font-semibold text-slate-900 font-mono">
 							{{ historyData.currentEa.areaCode }}
 						</p>
@@ -249,7 +249,7 @@
 										</p>
 									</div>
 									<div>
-										<label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Area Code</label>
+										<label class="text-xs font-medium text-slate-500 uppercase tracking-wide">EA Code</label>
 										<p class="text-sm font-semibold text-slate-900 font-mono mt-1">
 											{{ selectedEaDetails.areaCode }}
 										</p>
@@ -290,20 +290,20 @@
 										class="space-y-3"
 									>
 										<div>
-											<label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Sub-Administrative Zone</label>
+											<label class="text-xs font-medium text-slate-500 uppercase tracking-wide">{{ saz.type === 'chiwog' ? 'Chiwog' : 'Lap' }}</label>
 											<p class="text-sm font-semibold text-slate-900 mt-1">
 												{{ saz.name }}
 											</p>
-											<p class="text-xs text-slate-600 font-mono mt-0.5">Code: {{ saz.areaCode }}</p>
+											<p class="text-xs text-slate-600 font-mono mt-0.5">{{ saz.type === 'chiwog' ? 'Chiwog' : 'Lap' }} Code: {{ saz.areaCode }}</p>
 										</div>
 
 										<div *ngIf="saz.administrativeZone">
-											<label class="text-xs font-medium text-slate-500 uppercase tracking-wide">Administrative Zone</label>
+											<label class="text-xs font-medium text-slate-500 uppercase tracking-wide">{{ saz.administrativeZone.type === 'Thromde' ? 'Thromde' : 'Gewog' }}</label>
 											<p class="text-sm font-semibold text-slate-900 mt-1">
 												{{ saz.administrativeZone.name }}
 											</p>
 											<p class="text-xs text-slate-600 font-mono mt-0.5">
-												Code: {{ saz.administrativeZone.areaCode }}
+												{{ saz.administrativeZone.type === 'Thromde' ? 'Thromde' : 'Gewog' }} Code: {{ saz.administrativeZone.areaCode }}
 											</p>
 											<p class="text-xs text-slate-500 mt-0.5">
 												Type: {{ saz.administrativeZone.type }}

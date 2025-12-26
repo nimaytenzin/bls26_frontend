@@ -7,7 +7,7 @@
 					Merge Enumeration Areas
 				</h1>
 				<p class="text-sm text-slate-600 mt-1">
-					Select enumeration areas from one or multiple SAZs and merge them into a single new area
+					Select enumeration areas from one or multiple Lap/Chiwog and merge them into a single new area
 				</p>
 			</div>
 			<button
@@ -78,14 +78,16 @@
 						<!-- Administrative Zone Dropdown -->
 						<div class="flex flex-col">
 							<label for="adminZone" class="text-sm font-medium text-gray-700 mb-2">
-								Administrative Zone <span class="text-red-500">*</span>
+								<span *ngIf="selectedAdminZone">{{ getAdminZoneLabel(selectedAdminZone) }}</span>
+								<span *ngIf="!selectedAdminZone">Gewog/Thromde</span>
+								<span class="text-red-500">*</span>
 							</label>
 							<p-dropdown
 								id="adminZone"
 								[(ngModel)]="selectedAdminZone"
 								[options]="administrativeZones"
 								optionLabel="name"
-								placeholder="Select Admin Zone"
+								placeholder="Select Gewog/Thromde"
 								[filter]="true"
 								filterBy="name"
 								[showClear]="true"
@@ -113,14 +115,16 @@
 						<!-- Sub-Administrative Zone Dropdown -->
 						<div class="flex flex-col">
 							<label for="subAdminZone" class="text-sm font-medium text-gray-700 mb-2">
-								Sub-Administrative Zone <span class="text-red-500">*</span>
+								<span *ngIf="selectedSubAdminZone">{{ getSubAdminZoneLabel(selectedSubAdminZone) }}</span>
+								<span *ngIf="!selectedSubAdminZone">Lap/Chiwog</span>
+								<span class="text-red-500">*</span>
 							</label>
 							<p-dropdown
 								id="subAdminZone"
 								[(ngModel)]="selectedSubAdminZone"
 								[options]="filteredSubAdministrativeZones"
 								optionLabel="name"
-								placeholder="Select SAZ"
+								placeholder="Select Lap/Chiwog"
 								[filter]="true"
 								filterBy="name"
 								[showClear]="true"
@@ -187,11 +191,11 @@
 						(onChange)="onEaDropdownChange()"
 						[ngModelOptions]="{standalone: true}"
 					>
-						<ng-template let-ea pTemplate="item">
+								<ng-template let-ea pTemplate="item">
 							<div class="flex items-center justify-between w-full py-2">
 								<div class="flex-1">
 									<div class="font-medium text-gray-900">{{ ea.name }}</div>
-									<div class="text-sm text-gray-500">{{ ea.areaCode }}</div>
+									<div class="text-sm text-gray-500">EA Code: {{ ea.areaCode }}</div>
 								</div>
 							</div>
 						</ng-template>
@@ -205,7 +209,7 @@
 									No available enumeration areas
 								</p>
 								<p class="text-sm text-yellow-700 mt-1">
-									All enumeration areas from {{ selectedSubAdminZone.name }} are already selected, or there are no active EAs in this SAZ.
+									All enumeration areas from {{ selectedSubAdminZone.name }} are already selected, or there are no active EAs in this Lap/Chiwog.
 								</p>
 							</div>
 						</div>
@@ -213,7 +217,7 @@
 
 					<div class="mt-3 flex items-center gap-2 text-sm text-gray-600">
 						<i class="pi pi-info-circle"></i>
-						<span>Select an enumeration area and it will be automatically added to your selection list below. You can switch to another SAZ to add more EAs.</span>
+						<span>Select an enumeration area and it will be automatically added to your selection list below. You can switch to another Lap/Chiwog to add more EAs.</span>
 					</div>
 				</div>
 			</p-card>
@@ -258,7 +262,7 @@
 							</div>
 							<div>
 								<p class="text-gray-600 font-medium">No enumeration areas selected yet</p>
-								<p class="text-sm text-gray-500 mt-1">Select a SAZ above and choose enumeration areas to add them here</p>
+								<p class="text-sm text-gray-500 mt-1">Select a Lap/Chiwog above and choose enumeration areas to add them here</p>
 							</div>
 						</div>
 					</div>
@@ -275,6 +279,7 @@
 									</div>
 									<div>
 										<div class="font-semibold text-gray-900">{{ ea.name }}</div>
+										<div class="text-xs text-gray-500 mt-0.5">EA Code: {{ ea.areaCode }}</div>
 										<div *ngIf="getSazNames(ea)" class="flex items-center gap-1 mt-1">
 											<i class="pi pi-map-marker text-xs text-blue-500"></i>
 											<span class="text-xs text-blue-600">{{ getSazNames(ea) }}</span>
@@ -349,10 +354,10 @@
 							</small>
 						</div>
 
-						<!-- Area Code -->
+						<!-- EA Code -->
 						<div>
 							<label for="mergedEaAreaCode" class="block text-sm font-medium text-gray-700 mb-2">
-								Area Code <span class="text-red-500">*</span>
+								EA Code <span class="text-red-500">*</span>
 							</label>
 							<input
 								id="mergedEaAreaCode"
@@ -393,7 +398,7 @@
 					<!-- Sub-Administrative Zones -->
 					<div class="mt-4">
 						<label for="mergedEaSubAdministrativeZoneIds" class="block text-sm font-medium text-gray-700 mb-2">
-							Sub-Administrative Zone(s) <span class="text-gray-500 text-xs">(Optional)</span>
+							Lap/Chiwog <span class="text-gray-500 text-xs">(Optional)</span>
 						</label>
 						<p-multiSelect
 							id="mergedEaSubAdministrativeZoneIds"
@@ -414,7 +419,7 @@
 								<div class="flex align-items-center justify-content-between">
 									<div>
 										<div class="font-medium">{{ zone.name }}</div>
-										<div class="text-sm text-gray-500">{{ zone.areaCode }}</div>
+										<div class="text-sm text-gray-500">{{ zone.type === 'chiwog' ? 'Chiwog' : 'Lap' }} Code: {{ zone.areaCode }}</div>
 									</div>
 									<p-tag
 										[value]="zone.type === 'chiwog' ? 'Chiwog' : 'Lap'"
@@ -426,7 +431,7 @@
 						</p-multiSelect>
 						<small class="text-gray-500 block mt-1">
 							<i class="pi pi-info-circle mr-1"></i>
-							Sub-Administrative Zones are automatically collected from the selected EAs. You can add additional zones if needed.
+							Lap/Chiwog are automatically collected from the selected EAs. You can add additional ones if needed.
 						</small>
 					</div>
 

@@ -152,7 +152,7 @@ export class EaMergeOperationComponent implements OnInit {
 					this.messageService.add({
 						severity: 'error',
 						summary: 'Error',
-						detail: 'Failed to load administrative zones',
+						detail: 'Failed to load Gewog/Thromde',
 						life: 3000,
 					});
 				},
@@ -187,7 +187,7 @@ export class EaMergeOperationComponent implements OnInit {
 					this.messageService.add({
 						severity: 'error',
 						summary: 'Error',
-						detail: 'Failed to load sub-administrative zones',
+						detail: 'Failed to load Lap/Chiwog',
 						life: 3000,
 					});
 				},
@@ -565,7 +565,7 @@ export class EaMergeOperationComponent implements OnInit {
 			if (control.errors['minlength']) return `${field} is too short`;
 			if (control.errors['pattern']) return `${field} format is invalid`;
 			if (control.errors['arrayMinLength']) {
-				return 'At least one Sub-Administrative Zone is required';
+				return 'At least one Lap/Chiwog is required';
 			}
 		}
 		return '';
@@ -606,6 +606,22 @@ export class EaMergeOperationComponent implements OnInit {
 			return 0;
 		}
 		return ea.subAdministrativeZones.length - 1;
+	}
+
+	/**
+	 * Get label for Administrative Zone based on type
+	 */
+	getAdminZoneLabel(adminZone: AdministrativeZone | null): string {
+		if (!adminZone) return 'Gewog/Thromde';
+		return adminZone.type === 'Thromde' ? 'Thromde' : 'Gewog';
+	}
+
+	/**
+	 * Get label for Sub-Administrative Zone based on type
+	 */
+	getSubAdminZoneLabel(subAdminZone: SubAdministrativeZone | null): string {
+		if (!subAdminZone) return 'Lap/Chiwog';
+		return subAdminZone.type === 'chiwog' ? 'Chiwog' : 'Lap';
 	}
 }
 
