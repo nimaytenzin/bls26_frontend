@@ -349,6 +349,15 @@ export class AuthService {
 		return this.authDataService.getSupervisorDzongkhagAssignments(supervisorId);
 	}
 
+	/**
+	 * Get dzongkhag assignments for the current authenticated supervisor
+	 * Uses the current user's ID from the JWT token
+	 * @returns Observable<SupervisorDzongkhagAssignment[]>
+	 */
+	getMyDzongkhagAssignments(): Observable<any[]> {
+		return this.authDataService.getMyDzongkhagAssignments();
+	}
+
 	// ========================
 	// AUTH STATE & UTILITY METHODS
 	// ========================

@@ -20,6 +20,7 @@ import { SurveyEnumerationArea } from '../../../../core/dataservice/survey-enume
 export class SurveyListingViewerComponent implements OnInit {
 	surveyId!: number;
 	enumerationArea!: SurveyEnumerationArea;
+	showSampledOnly: boolean = false;
 
 	resultLoading = false;
 	currentResult: SamplingResultsResponseDto['data'] | null = null;
@@ -39,6 +40,7 @@ export class SurveyListingViewerComponent implements OnInit {
 		if (this.config.data) {
 			this.surveyId = this.config.data.surveyId;
 			this.enumerationArea = this.config.data.enumerationArea;
+			this.showSampledOnly = this.config.data.showSampledOnly || false;
 		}
 	}
 

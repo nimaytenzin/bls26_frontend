@@ -2,10 +2,10 @@ import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { BulkAssignCSVDto, EnumeratorCSVData, SurveyEnumerator } from '../../../../core/dataservice/survey-enumerator/survey-enumerator.dto';
-import { PrimeNgModules } from '../../../../primeng.modules';
-import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
-import { SurveyEnumeratorDataService } from '../../../../core/dataservice/survey-enumerator/survey-enumerator.dataservice';
+import { BulkAssignCSVDto, EnumeratorCSVData, SurveyEnumerator } from '../../../../../core/dataservice/survey-enumerator/survey-enumerator.dto';
+import { PrimeNgModules } from '../../../../../primeng.modules';
+import { SurveyDataService } from '../../../../../core/dataservice/survey/survey.dataservice';
+import { SurveyEnumeratorDataService } from '../../../../../core/dataservice/survey-enumerator/survey-enumerator.dataservice';
 
 interface ParsedCSVResult {
 	valid: EnumeratorCSVData[];
@@ -13,14 +13,14 @@ interface ParsedCSVResult {
 }
 
 @Component({
-	selector: 'app-survey-users',
-	templateUrl: './survey-users.component.html',
-	styleUrls: ['./survey-users.component.scss'],
+	selector: 'app-admin-survey-users',
+	templateUrl: './admin-survey-users.component.html',
+	styleUrls: ['./admin-survey-users.component.scss'],
 	standalone: true,
 	imports: [CommonModule, FormsModule, PrimeNgModules],
 	providers: [MessageService, ConfirmationService],
 })
-export class SurveyUsersComponent implements OnInit {
+export class AdminSurveyUsersComponent implements OnInit {
 	@Input() surveyId!: number;
 
 	// Supervisors

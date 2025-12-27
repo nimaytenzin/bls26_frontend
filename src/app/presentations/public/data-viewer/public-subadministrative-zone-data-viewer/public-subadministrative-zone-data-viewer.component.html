@@ -136,6 +136,111 @@
 						</button>
 					</div>
 
+					<!-- Location Switcher Dropdowns -->
+					<div class="mb-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg p-3 border border-slate-200">
+						<div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-3 px-1">
+							<i class="pi pi-sitemap text-[10px]"></i>
+							<span>Switch Location</span>
+						</div>
+						<div class="space-y-2.5">
+							<!-- Dzongkhag Dropdown -->
+							<div>
+								<label class="text-[10px] font-medium text-slate-600 mb-1.5 flex items-center gap-1">
+									<i class="pi pi-map text-[9px]"></i>
+									Dzongkhag
+								</label>
+								<p-dropdown
+									[options]="allDzongkhags"
+									[(ngModel)]="dzongkhag"
+									(onChange)="onDzongkhagChange($event)"
+									optionLabel="name"
+									[showClear]="false"
+									[loading]="loadingLocations"
+									placeholder="Select Dzongkhag"
+									styleClass="w-full text-xs"
+									[style]="{'min-height': '36px'}"
+								>
+									<ng-template let-dzongkhag pTemplate="selectedItem">
+										<div class="flex items-center gap-1.5">
+											<i class="pi pi-map text-[10px] text-primary-600"></i>
+											<span>{{ dzongkhag.name }}</span>
+										</div>
+									</ng-template>
+									<ng-template let-dzongkhag pTemplate="item">
+										<div class="flex items-center gap-1.5 py-1">
+											<i class="pi pi-map text-[10px] text-slate-500"></i>
+											<span>{{ dzongkhag.name }}</span>
+										</div>
+									</ng-template>
+								</p-dropdown>
+							</div>
+
+							<!-- Administrative Zone Dropdown -->
+							<div *ngIf="dzongkhagId">
+								<label class="text-[10px] font-medium text-slate-600 mb-1.5 flex items-center gap-1">
+									<i class="pi text-[9px]" [class.pi-globe]="administrativeZone?.type === 'Gewog'" [class.pi-building]="administrativeZone?.type === 'Thromde'"></i>
+									{{ administrativeZone?.type === 'Gewog' ? 'Gewog' : administrativeZone?.type === 'Thromde' ? 'Thromde' : 'Administrative Zone' }}
+								</label>
+								<p-dropdown
+									[options]="allAdministrativeZones"
+									[(ngModel)]="administrativeZone"
+									(onChange)="onAdministrativeZoneChange($event)"
+									optionLabel="name"
+									[showClear]="false"
+									[loading]="loadingLocations"
+									[placeholder]="'Select ' + (administrativeZone?.type === 'Gewog' ? 'Gewog' : 'Thromde')"
+									styleClass="w-full text-xs"
+									[style]="{'min-height': '36px'}"
+								>
+									<ng-template let-adminZone pTemplate="selectedItem">
+										<div class="flex items-center gap-1.5">
+											<i class="pi text-[10px] text-primary-600" [class.pi-globe]="adminZone.type === 'Gewog'" [class.pi-building]="adminZone.type === 'Thromde'"></i>
+											<span>{{ adminZone.name }}</span>
+										</div>
+									</ng-template>
+									<ng-template let-adminZone pTemplate="item">
+										<div class="flex items-center gap-1.5 py-1">
+											<i class="pi text-[10px] text-slate-500" [class.pi-globe]="adminZone.type === 'Gewog'" [class.pi-building]="adminZone.type === 'Thromde'"></i>
+											<span>{{ adminZone.name }}</span>
+										</div>
+									</ng-template>
+								</p-dropdown>
+							</div>
+
+							<!-- Sub-Administrative Zone Dropdown -->
+							<div *ngIf="administrativeZoneId">
+								<label class="text-[10px] font-medium text-slate-600 mb-1.5 flex items-center gap-1">
+									<i class="pi text-[9px]" [class.pi-globe]="subAdministrativeZone?.type === 'Chiwog'" [class.pi-building]="subAdministrativeZone?.type === 'LAP'"></i>
+									{{ subAdministrativeZone?.type === 'Chiwog' ? 'Chiwog' : subAdministrativeZone?.type === 'LAP' ? 'LAP' : 'Sub-Administrative Zone' }}
+								</label>
+								<p-dropdown
+									[options]="allSubAdministrativeZones"
+									[(ngModel)]="subAdministrativeZone"
+									(onChange)="onSubAdministrativeZoneChange($event)"
+									optionLabel="name"
+									[showClear]="false"
+									[loading]="loadingLocations"
+									[placeholder]="'Select ' + (subAdministrativeZone?.type === 'Chiwog' ? 'Chiwog' : 'LAP')"
+									styleClass="w-full text-xs"
+									[style]="{'min-height': '36px'}"
+								>
+									<ng-template let-subAdminZone pTemplate="selectedItem">
+										<div class="flex items-center gap-1.5">
+											<i class="pi text-[10px] text-primary-600" [class.pi-globe]="subAdminZone.type === 'Chiwog'" [class.pi-building]="subAdminZone.type === 'LAP'"></i>
+											<span>{{ subAdminZone.name }}</span>
+										</div>
+									</ng-template>
+									<ng-template let-subAdminZone pTemplate="item">
+										<div class="flex items-center gap-1.5 py-1">
+											<i class="pi text-[10px] text-slate-500" [class.pi-globe]="subAdminZone.type === 'Chiwog'" [class.pi-building]="subAdminZone.type === 'LAP'"></i>
+											<span>{{ subAdminZone.name }}</span>
+										</div>
+									</ng-template>
+								</p-dropdown>
+							</div>
+						</div>
+					</div>
+
 					<!-- No Data Found Message -->
 					<div *ngIf="noDataFound" class="mb-4 rounded-lg border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-white p-4">
 						<div class="flex items-start gap-3">
@@ -583,21 +688,17 @@
 		[style]="{ width: '90vw', maxWidth: '600px' }"
 		[draggable]="false"
 		[resizable]="false"
-		[header]="'Download ' + (subAdministrativeZone?.type === 'Chiwog' ? 'Chiwog' : 'LAP') + ' Data'"
+		[header]="'Download ' + (subAdministrativeZone?.type === 'Chiwog' ? 'Chiwog' : 'LAP') + ' Sampling Frame'"
 		(onHide)="closeDownloadDialog()"
 	>
 		<div class="flex flex-col gap-4 p-2">
 			<!-- Statistics Downloads -->
 			<div>
-				<h3
-					class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b border-slate-200"
-				>
-					Statistics Data
-				</h3>
+			 
 				<table class="w-full mb-4">
 					<thead>
 						<tr class="text-left text-xs font-semibold text-slate-600 uppercase">
-							<th class="pb-2">Sampling Frame Data</th>
+							<th class="pb-2"></th>
 							<th class="pb-2 text-center">CSV Download</th>
 						</tr>
 					</thead>
@@ -607,6 +708,9 @@
 							<td class="py-2.5 text-sm text-slate-700">
 								<div class="flex flex-col">
 									<span class="font-semibold">{{ subAdministrativeZone?.type === 'Chiwog' ? 'Chiwog' : 'LAP' }} Sampling Frame</span>
+									<span class="text-xs text-slate-500 font-normal mt-0.5">
+										({{ subAdministrativeZone?.type === 'Chiwog' ? 'Rural' : 'Urban' }})
+									</span>
 								</div>
 							</td>
 							<td class="py-2.5 text-center">
@@ -666,6 +770,8 @@
 					</tbody>
 				</table>
 			</div>
+
+			
 
 			<!-- Action Buttons -->
 			<div class="flex gap-3 pt-2 border-t border-slate-200">

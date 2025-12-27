@@ -62,6 +62,12 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	error: string | null = null;
 	noDataFound = false;
 
+	// Location switcher data
+	allDzongkhags: any[] = [];
+	allAdministrativeZones: any[] = [];
+	allSubAdministrativeZones: any[] = [];
+	loadingLocations = false;
+
 	// Data
 	enumerationAreas: EnumerationAreaStats[] = [];
 	enumerationAreaBoundaries: any = null;
@@ -167,7 +173,7 @@ export class PublicSubadministrativeZoneDataViewerComponent
 			},
 		});
 
-		// Load parent info
+		// Load parent info first, then location lists
 		this.loadParentInfo();
 		this.loadData();
 	}
@@ -224,9 +230,13 @@ export class PublicSubadministrativeZoneDataViewerComponent
 							this.dzongkhagId = subAdminZone.administrativeZone.dzongkhag.id;
 						}
 					}
+					// Load location lists after parent info is loaded
+					this.loadLocationLists();
 				},
 				error: (error) => {
 					console.error('Error loading sub-administrative zone info:', error);
+					// Still try to load location lists even if parent info fails
+					this.loadLocationLists();
 				},
 			});
 	}
@@ -581,14 +591,19 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	 * Get feature style based on data
 	 */
 	private getFeatureStyle(feature: any): L.PathOptions {
-		// If boundary-only mode is enabled, return boundary-only style
+		// If boundary-only mode is enabled, return boundary-only style with thick, visible borders
 		if (this.showEABoundariesOnly) {
+			// Check if Google satellite basemap is selected for better contrast
+			const isGoogleSatellite = this.selectedBasemapId?.includes('google') || 
+			                          this.selectedBasemapId?.includes('satellite');
+			
 			return {
 				fillColor: 'transparent',
 				fillOpacity: 0,
-				color: '#475569', // Slate-600
-				weight: 1.5,
+				color: isGoogleSatellite ? '#ff0000' : '#1e293b', // Bright red for satellite, dark slate for others
+				weight: 3, // Thinner border for better visibility
 				opacity: 1,
+				dashArray: undefined, // Solid line
 			};
 		}
 
@@ -678,75 +693,66 @@ export class PublicSubadministrativeZoneDataViewerComponent
 			layer.bindTooltip(label);
 		}
 
-		// Build popup content with stats from GeoJSON properties
+		// Build popup content with stats from GeoJSON properties (no population, no download KML)
 		const dataSection = props.hasData
 			? `
-				<div class="space-y-0 text-sm mb-3">
+				<div class="space-y-0 text-sm">
 					<div class="py-2 border-b border-slate-200">
 						<span class="font-semibold text-slate-700">Households: </span>
 						<span class="font-bold" style="color: #67A4CA">${(props.totalHouseholds || 0).toLocaleString()}</span>
 					</div>
-					${props.totalPopulation ? `
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Population: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.totalPopulation.toLocaleString()}</span>
-					</div>
-					` : ''}
 				</div>
 			`
-			: '<p class="text-sm text-gray-500 mb-3">No data available for this enumeration area.</p>';
+			: '<p class="text-sm text-gray-500">No data available for this enumeration area.</p>';
 
 		const popupContent = `
 			<div class="p-2 min-w-[280px]">
 				<h3 class="font-bold text-lg mb-3 text-slate-900">${props.name || 'Unknown'}</h3>
 				${dataSection}
-				<button 
-					id="download-kml-${props.id}" 
-					class="w-full px-3 py-2 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded transition shadow-sm flex items-center justify-center gap-2"
-					title="Download KML"
-				>
-					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-					</svg>
-					Download KML
-				</button>
 			</div>
 		`;
 
 		const popup = L.popup().setContent(popupContent);
 		layer.bindPopup(popup);
 
-		// Add click listener for the download button after popup opens
-		layer.on('popupopen', () => {
-			const downloadButton = document.getElementById(`download-kml-${props.id}`);
-			if (downloadButton) {
-				downloadButton.addEventListener('click', () => {
-					if (props.id) {
-						this.downloadEnumerationAreaKML(
-							props.id,
-							props.name || 'EnumerationArea'
-						);
-					}
-				});
-			}
-		});
+		// Hover effects (only if not in boundary-only mode)
+		if (!this.showEABoundariesOnly) {
+			layer.on('mouseover', () => {
+				if (layer instanceof L.Path) {
+					layer.setStyle({
+						weight: 2,
+						opacity: 1,
+					});
+				}
+			});
 
-		// Hover effects
-		layer.on('mouseover', () => {
-			if (layer instanceof L.Path) {
-				layer.setStyle({
-					weight: 2,
-					opacity: 1,
-				});
-			}
-		});
+			layer.on('mouseout', () => {
+				if (layer instanceof L.Path) {
+					const style = this.getFeatureStyle(feature);
+					layer.setStyle(style);
+				}
+			});
+		} else {
+			// In boundary-only mode, make hover thicker for better visibility
+			layer.on('mouseover', () => {
+				if (layer instanceof L.Path) {
+					const isGoogleSatellite = this.selectedBasemapId?.includes('google') || 
+					                          this.selectedBasemapId?.includes('satellite');
+					layer.setStyle({
+						weight: 4, // Thicker on hover
+						color: isGoogleSatellite ? '#ff0000' : '#3b82f6', // Bright red for satellite, blue for others
+						opacity: 1,
+					});
+				}
+			});
 
-		layer.on('mouseout', () => {
-			if (layer instanceof L.Path) {
-				const style = this.getFeatureStyle(feature);
-				layer.setStyle(style);
-			}
-		});
+			layer.on('mouseout', () => {
+				if (layer instanceof L.Path) {
+					const style = this.getFeatureStyle(feature);
+					layer.setStyle(style);
+				}
+			});
+		}
 	}
 
 	/**
@@ -766,6 +772,19 @@ export class PublicSubadministrativeZoneDataViewerComponent
 			this.basemapService.createTileLayer(this.selectedBasemapId) || undefined;
 		if (this.baseLayer) {
 			this.baseLayer.addTo(this.map);
+		}
+
+		// Update EA boundary styles if in boundary-only mode (for better contrast with new basemap)
+		if (this.showEABoundariesOnly && this.currentGeoJSONLayer) {
+			this.currentGeoJSONLayer.eachLayer((layer: L.Layer) => {
+				if (layer instanceof L.Path) {
+					const feature = (layer as any).feature;
+					if (feature) {
+						const style = this.getFeatureStyle(feature);
+						layer.setStyle(style);
+					}
+				}
+			});
 		}
 	}
 
@@ -862,6 +881,145 @@ export class PublicSubadministrativeZoneDataViewerComponent
 		], {
 			relativeTo: this.route.parent || this.route,
 		});
+	}
+
+	/**
+	 * Navigate to dzongkhag viewer
+	 */
+	navigateToDzongkhag(): void {
+		this.router.navigate(['dzongkhag', this.dzongkhagId], {
+			relativeTo: this.route.parent || this.route,
+		});
+	}
+
+	/**
+	 * Navigate to administrative zone viewer
+	 */
+	navigateToAdministrativeZone(): void {
+		this.router.navigate([
+			'administrative-zone',
+			this.dzongkhagId,
+			this.administrativeZoneId,
+		], {
+			relativeTo: this.route.parent || this.route,
+		});
+	}
+
+	/**
+	 * Load location lists for dropdown switchers
+	 */
+	loadLocationLists(): void {
+		this.loadingLocations = true;
+
+		// Load all dzongkhags
+		this.dzongkhagService.findAllDzongkhags(false, false, false, false).subscribe({
+			next: (dzongkhags) => {
+				this.allDzongkhags = dzongkhags || [];
+				this.loadingLocations = false;
+			},
+			error: (error) => {
+				console.error('Error loading dzongkhags:', error);
+				this.loadingLocations = false;
+			},
+		});
+
+		// Load administrative zones for current dzongkhag (will be updated when dzongkhag changes)
+		if (this.dzongkhagId) {
+			this.loadAdministrativeZonesForDzongkhag(this.dzongkhagId);
+		}
+
+		// Load sub-administrative zones for current administrative zone (will be updated when admin zone changes)
+		if (this.administrativeZoneId) {
+			this.loadSubAdministrativeZonesForAdministrativeZone(this.administrativeZoneId);
+		}
+	}
+
+	/**
+	 * Load administrative zones for a dzongkhag
+	 */
+	loadAdministrativeZonesForDzongkhag(dzongkhagId: number): void {
+		this.administrativeZoneService.findAdministrativeZonesByDzongkhag(dzongkhagId).subscribe({
+			next: (adminZones) => {
+				this.allAdministrativeZones = adminZones || [];
+			},
+			error: (error) => {
+				console.error('Error loading administrative zones:', error);
+				this.allAdministrativeZones = [];
+			},
+		});
+	}
+
+	/**
+	 * Load sub-administrative zones for an administrative zone
+	 */
+	loadSubAdministrativeZonesForAdministrativeZone(administrativeZoneId: number): void {
+		this.subAdministrativeZoneService.findSubAdministrativeZonesByAdministrativeZone(administrativeZoneId).subscribe({
+			next: (subAdminZones) => {
+				this.allSubAdministrativeZones = subAdminZones || [];
+			},
+			error: (error) => {
+				console.error('Error loading sub-administrative zones:', error);
+				this.allSubAdministrativeZones = [];
+			},
+		});
+	}
+
+	/**
+	 * Handle dzongkhag selection change
+	 */
+	onDzongkhagChange(event: any): void {
+		const selectedDzongkhag = event.value;
+		if (selectedDzongkhag && selectedDzongkhag.id !== this.dzongkhagId) {
+			// Load administrative zones for the selected dzongkhag
+			this.loadAdministrativeZonesForDzongkhag(selectedDzongkhag.id);
+			// Navigate to dzongkhag view
+			this.router.navigate(['dzongkhag', selectedDzongkhag.id], {
+				relativeTo: this.route.parent || this.route,
+			});
+		}
+	}
+
+	/**
+	 * Handle administrative zone selection change
+	 */
+	onAdministrativeZoneChange(event: any): void {
+		const selectedAdminZone = event.value;
+		if (selectedAdminZone && selectedAdminZone.id !== this.administrativeZoneId) {
+			// Load sub-administrative zones for the selected administrative zone
+			this.loadSubAdministrativeZonesForAdministrativeZone(selectedAdminZone.id);
+			// Navigate to administrative zone view
+			this.router.navigate([
+				'administrative-zone',
+				this.dzongkhagId,
+				selectedAdminZone.id,
+			], {
+				relativeTo: this.route.parent || this.route,
+			});
+		}
+	}
+
+	/**
+	 * Handle sub-administrative zone selection change
+	 */
+	onSubAdministrativeZoneChange(event: any): void {
+		const selectedSubAdminZone = event.value;
+		if (selectedSubAdminZone && selectedSubAdminZone.id !== this.subAdministrativeZoneId) {
+			// Get the administrative zone ID from the selected sub-admin zone
+			const adminZoneId = selectedSubAdminZone.administrativeZoneId || this.administrativeZoneId;
+			// Get dzongkhag ID from the selected sub-admin zone or use current
+			const dzongkhagId = selectedSubAdminZone.administrativeZone?.dzongkhagId || 
+			                    selectedSubAdminZone.administrativeZone?.dzongkhag?.id || 
+			                    this.dzongkhagId;
+			
+			this.router.navigate([
+				'sub-administrative-zone',
+				dzongkhagId,
+				adminZoneId,
+				selectedSubAdminZone.id,
+			], {
+				relativeTo: this.route.parent || this.route,
+			});
+		}
 	}
 
 	/**

@@ -1,17 +1,17 @@
 <div class="enumerator-sampling-results bg-gray-50 min-h-screen">
 	<!-- Header -->
 	<div class="bg-primary-600 shadow-lg">
-		<div class="flex items-center justify-between p-4">
-			<div class="flex items-center gap-3">
+		<div class="flex items-center justify-between p-3 sm:p-4">
+			<div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
 				<button
 					pButton
 					type="button"
 					icon="pi pi-arrow-left"
 					(click)="goBack()"
-					class="p-button-text p-button-plain !text-white"
+					class="p-button-text p-button-plain !text-white flex-shrink-0"
 				></button>
-				<div class="flex-1 flex flex-col justify-center overflow-hidden">
-					<h1 class="text-white font-bold leading-tight truncate">
+				<div class="flex-1 flex flex-col justify-center overflow-hidden min-w-0">
+					<h1 class="text-white font-bold leading-tight truncate text-base sm:text-lg">
 						Sampling Results
 					</h1>
 					<p
@@ -26,36 +26,28 @@
 	</div>
 
 	<!-- Content -->
-	<div class="p-4">
+	<div class="p-3 sm:p-4">
 		<!-- Sampling Metadata -->
-		<div *ngIf="currentResult" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-			<h4 class="text-sm font-semibold text-gray-900 mb-3">Sampling Details</h4>
-			<div class="grid grid-cols-2 gap-3 text-sm text-gray-700">
-				<div>
-					<span class="text-gray-500">Sample Size:</span>
-					<span class="font-semibold ml-2">{{ currentResult.sampling.sampleSize }}</span>
-				</div>
-				<div>
-					<span class="text-gray-500">Population Size:</span>
-					<span class="font-semibold ml-2">{{ currentResult.sampling.populationSize }}</span>
-				</div>
-				<div>
-					<span class="text-gray-500">Sampled At:</span>
-					<span class="font-semibold ml-2">{{ currentResult.sampling.executedAt | date: 'short' }}</span>
-				</div>
+		<div *ngIf="currentResult" class="bg-blue-50 border border-blue-200 rounded-md p-2 mb-3">
+			<div class="flex flex-wrap items-center gap-3 text-xs text-gray-700">
+				<span><span class="text-gray-500">Sample Size:</span> <strong>{{ currentResult.sampling.sampleSize }}</strong></span>
+				<span>|</span>
+				<span><span class="text-gray-500">Population:</span> <strong>{{ currentResult.sampling.populationSize }}</strong></span>
+				<span>|</span>
+				<span><span class="text-gray-500">Sampled:</span> <strong>{{ currentResult.sampling.executedAt | date: 'short' }}</strong></span>
 			</div>
 		</div>
 
 		<!-- Search Bar -->
-		<div *ngIf="selectedHouseholds.length > 0" class="mb-4">
+		<div *ngIf="selectedHouseholds.length > 0" class="mb-3">
 			<span class="p-input-icon-left w-full">
 				<input
 					type="text"
 					pInputText
 					[(ngModel)]="searchQuery"
 					(ngModelChange)="filterHouseholds()"
-					placeholder="Search by selection order, household ID, name, phone, structure number..."
-					class="w-full"
+					placeholder="Search households..."
+					class="w-full text-sm"
 				/>
 			</span>
 		</div>
@@ -70,121 +62,102 @@
 			<!-- Empty State -->
 			<div
 				*ngIf="!currentResult"
-				class="bg-white rounded-lg shadow-sm p-8 text-center"
+				class="bg-white rounded-lg shadow-sm p-6 sm:p-8 text-center"
 			>
-				<i class="pi pi-inbox text-4xl text-gray-400 mb-3"></i>
+				<i class="pi pi-inbox text-3xl sm:text-4xl text-gray-400 mb-3"></i>
 				<p class="text-gray-500 text-sm">No sampling results found</p>
-				<p class="text-gray-400 text-xs mt-2">Sampling has not been performed for this enumeration area yet</p>
+				<p class="text-gray-400 text-xs mt-2 px-4">Sampling has not been performed for this enumeration area yet</p>
 			</div>
 
 			<!-- Sampled Households List -->
-			<div *ngIf="currentResult && filteredHouseholds.length > 0" class="space-y-4">
+			<div *ngIf="currentResult && filteredHouseholds.length > 0" class="space-y-2">
 				<div
 					*ngFor="
 						let item of filteredHouseholds;
 						trackBy: trackByHouseholdId
 					"
-					class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-4 hover:bg-gray-50 transition-colors"
+					class="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden p-2.5 hover:border-blue-300 hover:shadow transition-all"
 				>
-					<div class="flex items-center justify-between gap-4">
-						<div class="flex-1">
-							<div class="flex items-center gap-4 mb-2">
-								<div class="flex items-center gap-2">
-									<span class="text-xs text-gray-500">Selection Order:</span>
-									<span class="text-xs font-semibold px-2 py-1 rounded bg-blue-100 text-blue-800">
-										#{{ item.selectionOrder }}
-									</span>
-								</div>
-								<div class="flex items-center gap-2">
-									<span class="text-xs text-gray-500">Serial Number:</span>
-									<span class="text-xs  px-2 py-1 rounded">
-										{{ item.household.householdSerialNumber }}
-									</span>
-								</div>
-								<div class="flex items-center gap-2">
-									<span class="text-xs text-gray-500">Household ID:</span>
-									<span class="text-xs ">
-										{{ item.household.householdIdentification }}
-									</span>
-								</div>
-								
+					<!-- Row 1: Key Identifiers (Grouped together) -->
+					<div class="flex items-center gap-3 mb-2 pb-2 border-b border-gray-100">
+						<!-- Selection Order Badge -->
+						<span class="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800 flex-shrink-0">
+							#{{ item.selectionOrder }}
+						</span>
+						<!-- Structure & Serial (Grouped) -->
+						<div class="flex items-center gap-3 flex-1 min-w-0">
+							<div class="flex items-center gap-1.5">
+								<span class="text-xs text-gray-500">Structure:</span>
+								<span class="text-xs font-semibold text-gray-900" *ngIf="item.household.structure?.structureNumber">
+									{{ item.household.structure?.structureNumber }}
+								</span>
+								<span class="text-xs text-gray-400" *ngIf="!item.household.structure?.structureNumber">N/A</span>
 							</div>
+							<span class="text-gray-300">|</span>
+							<div class="flex items-center gap-1.5 min-w-0">
+								<span class="text-xs text-gray-500">Serial:</span>
+								<span class="text-xs font-semibold text-gray-900 truncate">{{ item.household.householdSerialNumber }}</span>
+							</div>
+						</div>
+					</div>
 
-							<!-- Head of Household & Phone -->
-							<div class="flex justify-between">
-							<p>
-								Name: {{ item.household.nameOfHOH }}
+					<!-- Row 2: Contact Info (Grouped) -->
+					<div class="flex items-center justify-between gap-2 mb-1.5">
+						<div class="flex-1 min-w-0">
+							<p class="text-sm font-medium text-gray-900 truncate">
+								{{ item.household.nameOfHOH }}
 							</p>
-							
-								<div class="flex items-center gap-2">
-									<p-button
-										*ngIf="item.household.phoneNumber"
-										type="button"
-										icon="pi pi-phone"
-										[label]="item.household.phoneNumber"
-										styleClass="p-button-sm"
-										(click)="callPhone(item.household.phoneNumber!)"
-										title="Call {{ item.household.phoneNumber }}"
-										size="small"
-										severity="success"
-									></p-button>
-									<span *ngIf="!item.household.phoneNumber" class="text-sm text-gray-400 flex items-center gap-1">
-										<i class="pi pi-phone text-xs"></i>
-										<span>N/A</span>
-									</span>
-								</div>
-							</div>
-							
-							
-							<!-- Population Stats -->
-							<div class="flex flex-wrap items-center gap-3 text-sm">
-								Population | Male({{item.household.totalMale}}) | Female({{item.household.totalFemale}}) | Total({{getTotalPopulation(item)}})
-							</div>
+						</div>
+						<div class="flex items-center gap-2 flex-shrink-0">
+							<button
+								*ngIf="item.household.phoneNumber"
+								pButton
+								type="button"
+								icon="pi pi-phone"
+								[label]="item.household.phoneNumber"
+								styleClass="p-button-sm p-button-text p-button-success"
+								(click)="callPhone(item.household.phoneNumber!)"
+								title="Call {{ item.household.phoneNumber }}"
+								size="small"
+							></button>
+							<span *ngIf="!item.household.phoneNumber" class="text-xs text-gray-400">
+								<i class="pi pi-phone"></i>
+							</span>
+						</div>
+					</div>
 
-
-							<!-- Structure Location -->
-							 <div class="flex justify-between mt-3">
-								<div *ngIf="item.household.structure?.structureNumber" class="flex items-center gap-2">
-									<span class="text-xs text-gray-500">Structure #:</span>
-									<span class="text-xs ">
-										{{ item.household.structure?.structureNumber }}
-									</span>
-								</div>
-
-
-								<div *ngIf="!item.household.structure?.latitude || !item.household.structure?.longitude" class="text-xs text-gray-500">
-										No Geolocation Data Available  
-								 </div>
-
-							<div class="flex items-center gap-2 mt-2">
-								<button
-									*ngIf="item.household.structure?.latitude && item.household.structure?.longitude"
-									pButton
-									type="button"
-									icon="pi pi-map-marker"
-									label="Map"
-									styleClass="p-button-sm p-button-text"
-									(click)="zoomToStructure(item.household.structureId, item.household.structure?.latitude, item.household.structure?.longitude)"
-									title="Locate on Map"
-									size="small"
-									severity="secondary"
-								></button>
-								<button
-									*ngIf="item.household.structure?.latitude && item.household.structure?.longitude"
-									pButton
-									type="button"
-									icon="pi pi-external-link"
-									label="Google Maps"
-									styleClass="p-button-sm p-button-text"
-									(click)="openGoogleMaps(item.household.structure?.latitude!, item.household.structure?.longitude!)"
-									title="Open in Google Maps"
-									size="small"
-									severity="secondary"
-								></button>
-							</div>
-							 </div>
-
-							
+					<!-- Row 3: Population & Actions (Grouped) -->
+					<div class="flex items-center justify-between gap-2 text-xs">
+						<div class="flex items-center gap-2 text-gray-600">
+							<span>Pop:</span>
+							<span class="font-medium">M:{{item.household.totalMale || 0}}</span>
+							<span class="font-medium">F:{{item.household.totalFemale || 0}}</span>
+							<span class="font-semibold">Total:{{getTotalPopulation(item)}}</span>
+							<span *ngIf="item.household.householdIdentification" class="text-gray-400 ml-1">
+								| HH ID: <span class="font-medium">{{ item.household.householdIdentification }}</span>
+							</span>
+						</div>
+						<div class="flex items-center gap-1 flex-shrink-0">
+							<button
+								*ngIf="item.household.structure?.latitude && item.household.structure?.longitude"
+								pButton
+								type="button"
+								icon="pi pi-map-marker"
+								styleClass="p-button-sm p-button-text p-button-secondary"
+								(click)="zoomToStructure(item.household.structureId, item.household.structure?.latitude, item.household.structure?.longitude)"
+								title="Locate on Map"
+								size="small"
+							></button>
+							<button
+								*ngIf="item.household.structure?.latitude && item.household.structure?.longitude"
+								pButton
+								type="button"
+								icon="pi pi-external-link"
+								styleClass="p-button-sm p-button-text p-button-secondary"
+								(click)="openGoogleMaps(item.household.structure?.latitude!, item.household.structure?.longitude!)"
+								title="Open in Google Maps"
+								size="small"
+							></button>
 						</div>
 					</div>
 				</div>
@@ -193,36 +166,22 @@
 			<!-- No Results After Search -->
 			<div
 				*ngIf="currentResult && selectedHouseholds.length > 0 && filteredHouseholds.length === 0"
-				class="bg-white rounded-lg shadow-sm p-8 text-center"
+				class="bg-white rounded-lg shadow-sm p-6 sm:p-8 text-center"
 			>
-				<i class="pi pi-search text-4xl text-gray-400 mb-3"></i>
+				<i class="pi pi-search text-3xl sm:text-4xl text-gray-400 mb-3"></i>
 				<p class="text-gray-500 text-sm">No households match your search criteria</p>
 			</div>
 
 			<!-- Summary -->
 			<div
 				*ngIf="currentResult && filteredHouseholds.length > 0"
-				class="mt-4"
+				class="mt-3"
 			>
-				<div class="bg-white rounded-lg shadow-md p-4">
-					<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-						<div>
-							<p class="text-sm text-gray-600">
-								Showing
-								<span class="font-semibold">{{
-									getTotalHouseholds()
-								}}</span>
-								{{ getTotalHouseholds() === 1 ? 'sampled household' : 'sampled households' }}
-							</p>
-						</div>
-						<div class="flex gap-4 text-sm">
-							<div>
-								<span class="text-gray-600">Total Population: </span>
-								<span class="font-semibold text-gray-900">
-									{{ getTotalPopulationSum() }}
-								</span>
-							</div>
-						</div>
+				<div class="bg-white rounded-md shadow-sm border border-gray-200 p-2">
+					<div class="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+						<span>Showing <strong>{{ getTotalHouseholds() }}</strong> {{ getTotalHouseholds() === 1 ? 'household' : 'households' }}</span>
+						<span>|</span>
+						<span>Total Population: <strong class="text-gray-900">{{ getTotalPopulationSum() }}</strong></span>
 					</div>
 				</div>
 			</div>

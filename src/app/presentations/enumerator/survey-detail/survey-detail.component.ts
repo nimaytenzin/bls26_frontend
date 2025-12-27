@@ -386,6 +386,59 @@ export class SurveyDetailComponent implements OnInit {
 	}
 
 	/**
+	 * Get status for enumeration area
+	 * Priority: Published > Sampled > Listing Completed > PENDING
+	 */
+	getEaStatus(surveyEa: any): 'PENDING' | 'Listing Completed' | 'Sampled' | 'Published' {
+		if (surveyEa.isPublished) {
+			return 'Published';
+		}
+		if (surveyEa.isSampled) {
+			return 'Sampled';
+		}
+		if (surveyEa.isEnumerated) {
+			return 'Listing Completed';
+		}
+		return 'PENDING';
+	}
+
+	/**
+	 * Get status badge color class
+	 */
+	getStatusBadgeClass(status: string): string {
+		switch (status) {
+			case 'Published':
+				return 'bg-green-100 text-green-800 border-green-200';
+			case 'Sampled':
+				return 'bg-blue-100 text-blue-800 border-blue-200';
+			case 'Listing Completed':
+				return 'bg-purple-100 text-purple-800 border-purple-200';
+			case 'PENDING':
+				return 'bg-amber-100 text-amber-800 border-amber-200';
+			default:
+				return 'bg-gray-100 text-gray-800 border-gray-200';
+		}
+	}
+
+	/**
+	 * Get status icon
+	 */
+	getStatusIcon(status: string): string {
+		switch (status) {
+			case 'Published':
+				return 'pi pi-check-circle';
+			case 'Sampled':
+				return 'pi pi-filter';
+			case 'Listing Completed':
+				return 'pi pi-check';
+			case 'PENDING':
+				return 'pi pi-clock';
+			default:
+				return 'pi pi-info-circle';
+		}
+	}
+
+	/**
 	 * Load survey details with enumeration areas
 	 */
 	loadSurveyDetails() {

@@ -572,21 +572,17 @@
 		[style]="{ width: '90vw', maxWidth: '600px' }"
 		[draggable]="false"
 		[resizable]="false"
-		[header]="'Download ' + (administrativeZone?.type === 'Gewog' ? 'Gewog' : 'Thromde') + ' Data'"
+		[header]="'Download ' + (administrativeZone?.type === 'Gewog' ? 'Gewog' : administrativeZone?.type === 'Thromde' ? 'Thromde' : 'Administrative Zone') + ' Sampling Frame'"
 		(onHide)="closeDownloadDialog()"
 	>
 		<div class="flex flex-col gap-4 p-2">
 			<!-- Statistics Downloads -->
 			<div>
-				<h3
-					class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b border-slate-200"
-				>
-					Statistics Data
-				</h3>
+			 
 				<table class="w-full mb-4">
 					<thead>
 						<tr class="text-left text-xs font-semibold text-slate-600 uppercase">
-							<th class="pb-2">Sampling Frame Data</th>
+							<th class="pb-2"></th>
 							<th class="pb-2 text-center">CSV Download</th>
 						</tr>
 					</thead>
@@ -595,8 +591,10 @@
 						<tr>
 							<td class="py-2.5 text-sm text-slate-700">
 								<div class="flex flex-col">
-									<span class="font-semibold">{{ administrativeZone?.type === 'Gewog' ? 'Gewog' : 'Thromde' }} Sampling Frame</span>
-									 
+									<span class="font-semibold">{{ administrativeZone?.type === 'Gewog' ? 'Gewog' : administrativeZone?.type === 'Thromde' ? 'Thromde' : 'Administrative Zone' }} Sampling Frame</span>
+									<span class="text-xs text-slate-500 font-normal mt-0.5">
+										({{ administrativeZone?.type === 'Gewog' ? 'Rural' : administrativeZone?.type === 'Thromde' ? 'Urban' : 'All' }})
+									</span>
 								</div>
 							</td>
 							<td class="py-2.5 text-center">
@@ -680,6 +678,8 @@
 					</tbody>
 				</table>
 			</div>
+
+			
 
 			<!-- Action Buttons -->
 			<div class="flex gap-3 pt-2 border-t border-slate-200">

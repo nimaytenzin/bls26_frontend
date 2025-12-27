@@ -322,6 +322,19 @@ export class AuthDataService {
 			.pipe(catchError(this.handleError));
 	}
 
+	/**
+	 * Get dzongkhag assignments for the current authenticated supervisor
+	 * Uses the current user's ID from the JWT token
+	 * @returns Observable<SupervisorDzongkhagAssignment[]>
+	 */
+	getMyDzongkhagAssignments(): Observable<SupervisorDzongkhagAssignment[]> {
+		return this.http
+			.get<SupervisorDzongkhagAssignment[]>(
+				`${this.apiUrl}/my-dzongkhags`
+			)
+			.pipe(catchError(this.handleError));
+	}
+
 	// ========================
 	// LEGACY ENDPOINTS (for backward compatibility)
 	// ========================

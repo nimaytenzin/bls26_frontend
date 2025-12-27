@@ -48,22 +48,138 @@
 		</div>
 	</section>
 
-	<!-- Main Content: Split Layout -->
+	<!-- Main Content: Column Flow Layout -->
 	<ng-container *ngIf="survey && !loading && !notFound">
-		<section class="flex flex-col lg:flex-row gap-4 px-4 py-6">
-			<!-- Left Pane: Survey Details & Metadata -->
-			<div
-				class="w-full lg:w-[25vw] lg:flex-shrink-0 flex flex-col overflow-y-auto bg-white rounded-2xl shadow-sm border border-gray-200"
-			>
-				<app-survey-overview
-					[surveyId]="surveyId"
-					[survey]="survey"
-				></app-survey-overview>
+		<section class="flex flex-col gap-4 px-4 py-6">
+			<!-- Survey Details and Sampling Parameters Row -->
+			<div class="flex flex-col lg:flex-row gap-4">
+				<!-- Survey Details Section -->
+				<div
+					class="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-200"
+				>
+					<div class="p-6">
+						<!-- Back Button -->
+						<button 
+							(click)="navigateToSurveys()" 
+							class="flex items-center font-medium mb-4 text-gray-600 hover:text-gray-900 transition-colors"
+						>
+							<i class="pi pi-arrow-left mr-2"></i>
+							<span>Back to Surveys</span>
+						</button>
+
+						<!-- Survey Info -->
+						<div class="space-y-4">
+							<!-- Survey Name -->
+							<div>
+								<h1 class="font-bold text-xl leading-tight text-gray-900 mb-2">
+									{{ survey.name }}
+								</h1>
+								<p class="text-sm text-gray-600 mb-4" *ngIf="survey.description">
+									{{ survey.description }}
+								</p>
+							</div>
+
+							<!-- Survey Status and Dates Row -->
+							<div class="flex flex-wrap items-center gap-4">
+								<!-- Survey Status -->
+								<div class="flex items-center gap-2">
+									<span class="text-sm font-medium text-gray-700">Status:</span>
+									<span
+										class="px-2 py-1 text-xs font-semibold rounded-full"
+										[class.bg-green-100]="survey.status === 'ACTIVE'"
+										[class.text-green-800]="survey.status === 'ACTIVE'"
+										[class.bg-gray-100]="survey.status !== 'ACTIVE'"
+										[class.text-gray-800]="survey.status !== 'ACTIVE'"
+									>
+										<i
+											[class]="
+												survey.status === 'ACTIVE'
+													? 'pi pi-check-circle mr-1'
+													: 'pi pi-times-circle mr-1'
+											"
+										></i>
+										{{ survey.status }}
+									</span>
+								</div>
+
+								<!-- Duration -->
+								<div class="flex items-center gap-4 text-sm text-gray-700">
+									<div class="flex items-center gap-2">
+										<i class="pi pi-calendar-plus text-xs"></i>
+										<span class="font-medium">Start:</span>
+										<span>{{ formatDate(survey.startDate) }}</span>
+									</div>
+									<div class="flex items-center gap-2">
+										<i class="pi pi-calendar-minus text-xs"></i>
+										<span class="font-medium">End:</span>
+										<span>{{ formatDate(survey.endDate) }}</span>
+									</div>
+								</div>
+
+							<!-- Days Remaining (if active) -->
+							<div *ngIf="isSurveyActive()" class="flex items-center gap-2 text-sm">
+								<span class="font-medium" [ngClass]="getStatusColor()">
+									<i class="pi pi-clock mr-1"></i>
+									{{ getDaysRemaining() }} day{{ getDaysRemaining() !== 1 ? 's' : '' }} remaining
+								</span>
+							</div>
+						</div>
+
+						<!-- Export Household Count Section -->
+						<div class="mt-6 pt-6 border-t border-gray-200">
+							<div class="flex flex-col gap-3">
+								<div class="flex items-center gap-2">
+									<i class="pi pi-download text-lg" style="color: #1A58AF;"></i>
+									<h3 class="text-sm font-semibold text-gray-900">Export Household Count</h3>
+								</div>
+								<p class="text-xs text-gray-600">
+									Download household count data by dzongkhag in CSV format
+								</p>
+								<div class="flex flex-col sm:flex-row gap-2">
+									<p-dropdown
+										[(ngModel)]="selectedDzongkhagForExport"
+										[options]="dzongkhagOptions"
+										optionLabel="name"
+										placeholder="Select Dzongkhag"
+										styleClass="flex-1"
+										[disabled]="downloadingExport || dzongkhagOptions.length === 0"
+									>
+										<ng-template let-dzongkhag pTemplate="item">
+											<div>{{ dzongkhag.name }}</div>
+										</ng-template>
+									</p-dropdown>
+									<button
+										pButton
+										type="button"
+										label="Download CSV"
+										icon="pi pi-download"
+										class="p-button-primary"
+										[disabled]="!selectedDzongkhagForExport || downloadingExport"
+										[loading]="downloadingExport"
+										(click)="downloadHouseholdCountCSV()"
+									></button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				</div>
+
+				<!-- Global Sampling Parameters Section -->
+				<div
+					class="w-full lg:w-80 lg:flex-shrink-0 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-200"
+				>
+					<div class="p-6">
+						<app-survey-sampling-global-parameters
+							[surveyId]="survey.id"
+						></app-survey-sampling-global-parameters>
+					</div>
+				</div>
 			</div>
 
-			<!-- Right Pane: Tabs Content -->
+			<!-- Tabs Content Section -->
 			<div
-				class="flex-1 min-w-0 relative bg-white rounded-2xl shadow-sm border border-gray-200"
+				class="w-full flex flex-col bg-white rounded-2xl shadow-sm border border-gray-200"
 			>
 				<p-tabView
 					class="h-full"
@@ -72,25 +188,25 @@
 				>
 					<!-- PRIMARY: Enumeration Areas Tab (Default) -->
 					<p-tabPanel header="Enumeration Areas">
-						<app-survey-ea-management
+						<app-supervisor-ea-management
 							[surveyId]="survey.id"
-						></app-survey-ea-management>
+						></app-supervisor-ea-management>
 					</p-tabPanel>
 
 					<!-- Secondary: Household Listings (All EAs view) -->
 					<p-tabPanel header="Household Listings">
-						<app-survey-household-listings
+						<app-supervisor-household-listing
 							[surveyId]="survey.id"
 							[surveyName]="survey.name"
-						></app-survey-household-listings>
+						></app-supervisor-household-listing>
 					</p-tabPanel>
 
 					
 					<!-- Keep: Enumerators -->
 					<p-tabPanel header="Enumerators">
-						<app-survey-users
+						<app-supervisor-enumerators
 							[surveyId]="survey.id"
-						></app-survey-users>
+						></app-supervisor-enumerators>
 					</p-tabPanel>
 				</p-tabView>
 			</div>

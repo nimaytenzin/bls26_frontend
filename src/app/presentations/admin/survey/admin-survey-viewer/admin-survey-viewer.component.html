@@ -53,22 +53,22 @@
 				<p-tabView class="h-full">
 					<!-- PRIMARY: Enumeration Areas Tab (Default) -->
 					<p-tabPanel header="Enumeration Areas">
-						<app-survey-ea-management
+						<app-admin-survey-ea-management
 							[surveyId]="survey.id"
-						></app-survey-ea-management>
+						></app-admin-survey-ea-management>
 					</p-tabPanel>
 
 					<!-- Secondary: Household Listings (All EAs view) -->
 					<p-tabPanel header="Household Listings">
-						<app-survey-household-listings
+						<app-admin-survey-household-listings
 							[surveyId]="survey.id"
 							[surveyName]="survey.name"
-						></app-survey-household-listings>
+						></app-admin-survey-household-listings>
 					</p-tabPanel>
 
 					<!-- Keep: Enumerators -->
 					<p-tabPanel header="Enumerators">
-						<app-survey-users [surveyId]="survey.id"></app-survey-users>
+						<app-admin-survey-users [surveyId]="survey.id"></app-admin-survey-users>
 					</p-tabPanel>
 
 					<!-- <p-tabPanel header="Sampling">

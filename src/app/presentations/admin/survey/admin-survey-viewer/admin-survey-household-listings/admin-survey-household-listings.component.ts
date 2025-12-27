@@ -9,23 +9,23 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { TableLazyLoadEvent } from 'primeng/table';
-import { PrimeNgModules } from '../../../../primeng.modules';
-import { CreateBlankHouseholdListingsDto, HouseholdListingStatisticsResponseDto, SurveyEnumerationAreaHouseholdListing, CreateSurveyEnumerationAreaHouseholdListingDto, BulkUploadResponse } from '../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
-import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dataservice';
-import { DzongkhagHierarchyDto, AdministrativeZoneHierarchyDto, SubAdministrativeZoneHierarchyDto, EnumerationAreaHierarchyDto } from '../../../../core/dataservice/survey/survey-enumeration-hierarchy.dto';
-import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
-import { PaginationQueryDto, PaginatedResponse } from '../../../../core/utility/pagination.utility.service';
+import { PrimeNgModules } from '../../../../../primeng.modules';
+import { CreateBlankHouseholdListingsDto, HouseholdListingStatisticsResponseDto, SurveyEnumerationAreaHouseholdListing, CreateSurveyEnumerationAreaHouseholdListingDto, BulkUploadResponse } from '../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
+import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dataservice';
+import { DzongkhagHierarchyDto, AdministrativeZoneHierarchyDto, SubAdministrativeZoneHierarchyDto, EnumerationAreaHierarchyDto } from '../../../../../core/dataservice/survey/survey-enumeration-hierarchy.dto';
+import { SurveyDataService } from '../../../../../core/dataservice/survey/survey.dataservice';
+import { PaginationQueryDto, PaginatedResponse } from '../../../../../core/utility/pagination.utility.service';
 import * as Papa from 'papaparse';
 
 @Component({
-	selector: 'app-survey-household-listings',
+	selector: 'app-admin-survey-household-listings',
 	standalone: true,
 	imports: [CommonModule, FormsModule, PrimeNgModules],
-	templateUrl: './survey-household-listings.component.html',
-	styleUrls: ['./survey-household-listings.component.css'],
+	templateUrl: './admin-survey-household-listings.component.html',
+	styleUrls: ['./admin-survey-household-listings.component.css'],
 	providers: [MessageService],
 })
-export class SurveyHouseholdListingsComponent 
+export class AdminSurveyHouseholdListingsComponent 
 	implements OnInit, OnChanges
 {
 	@Input() surveyId!: number;

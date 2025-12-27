@@ -1,0 +1,850 @@
+import { Component, OnInit, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { forkJoin } from 'rxjs';
+import { BulkAssignCSVDto, EnumeratorCSVData, SurveyEnumerator } from '../../../../../../core/dataservice/survey-enumerator/survey-enumerator.dto';
+import { SupervisorSurveyEnumerator, UpdateEnumeratorDto, ResetPasswordDto } from '../../../../../../core/dataservice/supervisor/supervisor-survey-enumerator.dataservice';
+import { PrimeNgModules } from '../../../../../../primeng.modules';
+import { SurveyDataService } from '../../../../../../core/dataservice/survey/survey.dataservice';
+import { SupervisorSurveyEnumeratorDataService } from '../../../../../../core/dataservice/supervisor/supervisor-survey-enumerator.dataservice';
+
+interface ParsedCSVResult {
+	valid: EnumeratorCSVData[];
+	invalid: Array<{ row: number; data: any; errors: string[] }>;
+}
+
+@Component({
+	selector: 'app-supervisor-enumerators',
+	templateUrl: './supervisor-enumerators.component.html',
+	styleUrls: ['./supervisor-enumerators.component.scss'],
+	standalone: true,
+	imports: [CommonModule, FormsModule, ReactiveFormsModule, PrimeNgModules],
+	providers: [MessageService, ConfirmationService],
+})
+export class SupervisorEnumeratorsComponent implements OnInit {
+	@Input() surveyId!: number;
+
+	// Supervisors
+	supervisors: any[] = [];
+	loadingSupervisors = false;
+
+	// Enumerators
+	enumerators: SupervisorSurveyEnumerator[] = [];
+	loadingEnumerators = false;
+	selectedEnumerators: SupervisorSurveyEnumerator[] = [];
+
+	// Upload dialog
+	showUploadDialog = false;
+	selectedFile: File | null = null;
+	parsedData: ParsedCSVResult | null = null;
+	showPreview = false;
+	parsing = false;
+	uploading = false;
+
+	// Edit dialog
+	showEditDialog = false;
+	editForm!: FormGroup;
+	editingEnumerator: SupervisorSurveyEnumerator | null = null;
+	saving = false;
+
+	// Reset password dialog
+	showResetPasswordDialog = false;
+	resetPasswordForm!: FormGroup;
+	resettingPasswordEnumerator: SupervisorSurveyEnumerator | null = null;
+	resettingPassword = false;
+
+	// Table columns
+	enumeratorColumns = [
+		{ field: 'user.name', header: 'Name' },
+		{ field: 'user.cid', header: 'CID' },
+		{ field: 'user.emailAddress', header: 'Email' },
+		{ field: 'user.phoneNumber', header: 'Phone' },
+		{ field: 'assignedAt', header: 'Assigned Date' },
+	];
+
+	supervisorColumns = [
+		{ field: 'user.name', header: 'Name' },
+		{ field: 'user.emailAddress', header: 'Email' },
+		{ field: 'dzongkhags', header: 'Assigned Dzongkhags' },
+	];
+
+	constructor(
+		private surveyService: SurveyDataService,
+		private surveyEnumeratorService: SupervisorSurveyEnumeratorDataService,
+		private messageService: MessageService,
+		private confirmationService: ConfirmationService,
+		private fb: FormBuilder
+	) {}
+
+	ngOnInit() {
+		this.initializeForms();
+		if (this.surveyId) {
+			this.loadData();
+		}
+	}
+
+	/**
+	 * Initialize form groups
+	 */
+	initializeForms() {
+		// Edit form
+		this.editForm = this.fb.group({
+			name: ['', [Validators.required, Validators.minLength(3)]],
+			emailAddress: ['', [Validators.required, Validators.email]],
+			phoneNumber: ['', [Validators.pattern(/^$|^[17689]\d{7}$/)]],
+		});
+
+		// Reset password form
+		this.resetPasswordForm = this.fb.group({
+			newPassword: [
+				'',
+				[
+					Validators.required,
+					Validators.minLength(8),
+					this.passwordStrengthValidator,
+				],
+			],
+			confirmPassword: ['', [Validators.required]],
+		}, { validators: this.passwordMatchValidator });
+	}
+
+	/**
+	 * Password strength validator
+	 */
+	private passwordStrengthValidator(
+		control: AbstractControl
+	): ValidationErrors | null {
+		const value = control.value;
+		if (!value) {
+			return null;
+		}
+
+		const hasUpperCase = /[A-Z]/.test(value);
+		const hasLowerCase = /[a-z]/.test(value);
+		const hasNumeric = /[0-9]/.test(value);
+		const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(value);
+
+		const strength =
+			(hasUpperCase ? 1 : 0) +
+			(hasLowerCase ? 1 : 0) +
+			(hasNumeric ? 1 : 0) +
+			(hasSpecialChar ? 1 : 0);
+
+		if (strength < 3) {
+			return { weakPassword: true };
+		}
+
+		return null;
+	}
+
+	/**
+	 * Password match validator
+	 */
+	passwordMatchValidator(form: FormGroup) {
+		const password = form.get('newPassword');
+		const confirmPassword = form.get('confirmPassword');
+		if (password && confirmPassword && password.value !== confirmPassword.value) {
+			confirmPassword.setErrors({ passwordMismatch: true });
+			return { passwordMismatch: true };
+		}
+		return null;
+	}
+
+	/**
+	 * Load all data
+	 */
+	loadData() {
+		this.loadSupervisors();
+		this.loadEnumerators();
+	}
+
+	/**
+	 * Load supervisors for this survey
+	 */
+	loadSupervisors() {
+		this.loadingSupervisors = true;
+		this.surveyService.getSupervisorsForSurvey(this.surveyId).subscribe({
+			next: (data) => {
+				this.supervisors = data;
+				this.loadingSupervisors = false;
+			},
+			error: (error) => {
+				console.error('Error loading supervisors:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: 'Failed to load supervisors',
+					life: 3000,
+				});
+				this.loadingSupervisors = false;
+			},
+		});
+	}
+
+	/**
+	 * Load enumerators for this survey
+	 */
+	loadEnumerators() {
+		this.loadingEnumerators = true;
+		this.surveyEnumeratorService
+			.getEnumeratorsBySurvey(this.surveyId)
+			.subscribe({
+				next: (data) => {
+					this.enumerators = data;
+					this.loadingEnumerators = false;
+				},
+				error: (error) => {
+					console.error('Error loading enumerators:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Failed to load enumerators',
+						life: 3000,
+					});
+					this.loadingEnumerators = false;
+				},
+			});
+	}
+
+	/**
+	 * Get dzongkhag names for supervisor
+	 */
+	getDzongkhagNames(supervisor: any): string {
+		if (!supervisor.dzongkhags || supervisor.dzongkhags.length === 0) {
+			return 'N/A';
+		}
+		return supervisor.dzongkhags
+			.map((d: any) => d.name || d)
+			.join(', ');
+	}
+
+	/**
+	 * Format date for display
+	 */
+	formatDate(date: string | Date | undefined): string {
+		if (!date) return 'N/A';
+		return new Date(date).toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
+		});
+	}
+
+	/**
+	 * Open upload dialog
+	 */
+	openUploadDialog() {
+		this.showUploadDialog = true;
+		this.selectedFile = null;
+		this.parsedData = null;
+		this.showPreview = false;
+	}
+
+	/**
+	 * Handle file selection
+	 */
+	onFileSelect(event: any) {
+		const file = event.files[0];
+		if (file) {
+			this.selectedFile = file;
+			this.parseCSVFile(file);
+		}
+	}
+
+	/**
+	 * Parse CSV file
+	 */
+	async parseCSVFile(file: File) {
+		this.parsing = true;
+		try {
+			const text = await file.text();
+			const result = this.parseCSVText(text);
+			this.parsedData = result;
+			this.showPreview = true;
+
+			if (result.invalid.length > 0) {
+				this.messageService.add({
+					severity: 'warn',
+					summary: 'Validation Warnings',
+					detail: `${result.invalid.length} row(s) have validation errors`,
+					life: 5000,
+				});
+			} else {
+				this.messageService.add({
+					severity: 'success',
+					summary: 'File Parsed',
+					detail: `${result.valid.length} enumerator(s) ready to upload`,
+					life: 3000,
+				});
+			}
+		} catch (error) {
+			console.error('Error parsing CSV:', error);
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Parse Error',
+				detail: 'Failed to parse CSV file. Please check the format.',
+			});
+		} finally {
+			this.parsing = false;
+		}
+	}
+
+	/**
+	 * Parse CSV text content
+	 */
+	parseCSVText(text: string): ParsedCSVResult {
+		const lines = text.split('\n').filter((line) => line.trim());
+		if (lines.length < 2) {
+			throw new Error(
+				'CSV file must have at least a header row and one data row'
+			);
+		}
+
+		// Parse header
+		const header = lines[0].split(',').map((h) => h.trim());
+		const nameIndex = header.findIndex((h) => h.toLowerCase() === 'name');
+		const cidIndex = header.findIndex((h) => h.toLowerCase() === 'cid');
+		const emailIndex = header.findIndex(
+			(h) => h.toLowerCase() === 'emailaddress' || h.toLowerCase() === 'email' || h.toLowerCase().includes('email')
+		);
+		const phoneIndex = header.findIndex(
+			(h) => h.toLowerCase() === 'phonenumber' || h.toLowerCase() === 'phone' || h.toLowerCase().includes('phone')
+		);
+		const passwordIndex = header.findIndex(
+			(h) => h.toLowerCase() === 'password'
+		);
+		const dzongkhagCodeIndex = header.findIndex(
+			(h) => h.toLowerCase().includes('dzongkhag') && h.toLowerCase().includes('code')
+		);
+
+		if (nameIndex === -1 || cidIndex === -1) {
+			throw new Error('CSV must have "name" and "cid" columns');
+		}
+		if (dzongkhagCodeIndex === -1) {
+			throw new Error('CSV must have "Dzongkhag Code" column');
+		}
+
+		const valid: EnumeratorCSVData[] = [];
+		const invalid: Array<{ row: number; data: any; errors: string[] }> = [];
+
+		// Parse data rows
+		for (let i = 1; i < lines.length; i++) {
+			const line = lines[i].trim();
+			if (!line) continue;
+
+			const values = this.parseCSVLine(line);
+			const errors: string[] = [];
+
+			const name = values[nameIndex]?.trim() || '';
+			const cid = values[cidIndex]?.trim() || '';
+			const emailAddress = emailIndex !== -1 ? values[emailIndex]?.trim() : '';
+			const phoneNumber = phoneIndex !== -1 ? values[phoneIndex]?.trim() : '';
+			const password =
+				passwordIndex !== -1 ? values[passwordIndex]?.trim() : '';
+			const dzongkhagCode = values[dzongkhagCodeIndex]?.trim() || '';
+
+			// Validate required fields
+			if (!name) {
+				errors.push('Name is required');
+			}
+			if (!cid) {
+				errors.push('CID is required');
+			} else if (!/^\d{11}$/.test(cid)) {
+				errors.push('CID must be 11 digits');
+			}
+			if (!dzongkhagCode) {
+				errors.push('Dzongkhag Code is required');
+			}
+
+			// Validate email format if provided
+			if (emailAddress && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress)) {
+				errors.push('Invalid email format');
+			}
+
+			// Validate phone format if provided
+			if (phoneNumber && !/^\d{8}$/.test(phoneNumber)) {
+				errors.push('Phone number must be 8 digits');
+			}
+
+			if (errors.length > 0) {
+				invalid.push({
+					row: i + 1,
+					data: { name, cid, emailAddress, phoneNumber, dzongkhagCode },
+					errors,
+				});
+			} else {
+				const enumerator: EnumeratorCSVData = {
+					name,
+					cid,
+					dzongkhagCode: this.normalizeDzongkhagCode(dzongkhagCode),
+				};
+				if (emailAddress) enumerator.emailAddress = emailAddress;
+				if (phoneNumber) enumerator.phoneNumber = phoneNumber;
+				if (password) enumerator.password = password;
+
+				valid.push(enumerator);
+			}
+		}
+
+		return { valid, invalid };
+	}
+
+	/**
+	 * Parse a single CSV line handling quoted values
+	 */
+	parseCSVLine(line: string): string[] {
+		const result: string[] = [];
+		let current = '';
+		let inQuotes = false;
+
+		for (let i = 0; i < line.length; i++) {
+			const char = line[i];
+
+			if (char === '"') {
+				inQuotes = !inQuotes;
+			} else if (char === ',' && !inQuotes) {
+				result.push(current);
+				current = '';
+			} else {
+				current += char;
+			}
+		}
+		result.push(current);
+
+		return result;
+	}
+
+	/**
+	 * Clear file selection
+	 */
+	clearFile() {
+		this.selectedFile = null;
+		this.parsedData = null;
+		this.showPreview = false;
+	}
+
+	/**
+	 * Normalize dzongkhag code (pad single digits with leading zero)
+	 */
+	private normalizeDzongkhagCode(code: string): string {
+		// If it's a numeric string, pad with leading zero if single digit
+		if (/^\d+$/.test(code)) {
+			return code.length === 1 ? `0${code}` : code;
+		}
+		return code;
+	}
+
+	/**
+	 * Download CSV template from API
+	 */
+	downloadTemplate() {
+		this.surveyEnumeratorService.downloadTemplate().subscribe({
+			next: (blob: Blob) => {
+		const url = window.URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = 'enumerators_template.csv';
+		link.click();
+		window.URL.revokeObjectURL(url);
+
+		this.messageService.add({
+			severity: 'success',
+			summary: 'Template Downloaded',
+			detail: 'CSV template downloaded successfully',
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading template:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download CSV template. Please try again.',
+				});
+			},
+		});
+	}
+
+	/**
+	 * Upload enumerators via CSV
+	 */
+	uploadEnumerators() {
+		if (!this.selectedFile) {
+			this.messageService.add({
+				severity: 'error',
+				summary: 'No File Selected',
+				detail: 'Please select a CSV file to upload',
+			});
+			return;
+		}
+
+		this.uploading = true;
+		// Supervisor API expects file upload directly
+		this.surveyEnumeratorService.bulkUploadEnumerators(this.surveyId, this.selectedFile).subscribe({
+			next: (response) => {
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Upload Successful',
+					detail: `Successfully uploaded ${response.success} enumerator(s). Created: ${response.created}, Existing: ${response.existing}`,
+					life: 5000,
+				});
+
+				if (response.failed > 0) {
+					console.error('Failed assignments:', response.errors);
+					this.messageService.add({
+						severity: 'warn',
+						summary: 'Partial Success',
+						detail: `${response.failed} enumerator(s) failed to upload`,
+						life: 5000,
+					});
+				}
+
+				this.showUploadDialog = false;
+				this.selectedFile = null;
+				this.parsedData = null;
+				this.showPreview = false;
+				this.loadEnumerators();
+				this.uploading = false;
+			},
+			error: (error) => {
+				console.error('Error uploading enumerators:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Upload Failed',
+					detail: error?.error?.message || 'Failed to upload enumerators',
+					life: 3000,
+				});
+				this.uploading = false;
+			},
+		});
+	}
+
+	/**
+	 * Delete selected enumerators
+	 */
+	deleteSelectedEnumerators() {
+		if (this.selectedEnumerators.length === 0) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Selection',
+				detail: 'Please select enumerators to delete',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.confirmationService.confirm({
+			message: `Are you sure you want to remove ${this.selectedEnumerators.length} enumerator(s) from this survey?`,
+			header: 'Confirm Deletion',
+			icon: 'pi pi-exclamation-triangle',
+			accept: () => {
+				const userIds = this.selectedEnumerators.map((e) => e.userId);
+				// Delete enumerators one by one (supervisor API doesn't have bulk delete)
+				const deleteObservables = userIds.map(userId => 
+					this.surveyEnumeratorService.deleteEnumerator(userId, this.surveyId)
+				);
+				
+				forkJoin(deleteObservables).subscribe({
+					next: () => {
+						this.messageService.add({
+							severity: 'success',
+							summary: 'Deleted',
+							detail: `Removed ${userIds.length} enumerator(s)`,
+							life: 3000,
+						});
+						this.selectedEnumerators = [];
+						this.loadEnumerators();
+					},
+					error: (error: any) => {
+						console.error('Error deleting enumerators:', error);
+						this.messageService.add({
+							severity: 'error',
+							summary: 'Error',
+							detail: 'Failed to delete enumerators',
+							life: 3000,
+						});
+					}
+				});
+			},
+		});
+	}
+
+	/**
+	 * Delete single enumerator
+	 */
+	deleteEnumerator(enumerator: SupervisorSurveyEnumerator) {
+		this.confirmationService.confirm({
+			message: `Are you sure you want to remove ${enumerator.user?.name} from this survey?`,
+			header: 'Confirm Deletion',
+			icon: 'pi pi-exclamation-triangle',
+			accept: () => {
+				this.surveyEnumeratorService
+					.deleteEnumerator(enumerator.userId, this.surveyId)
+					.subscribe({
+						next: () => {
+							this.messageService.add({
+								severity: 'success',
+								summary: 'Deleted',
+								detail: 'Enumerator removed successfully',
+								life: 3000,
+							});
+							this.loadEnumerators();
+						},
+						error: (error: any) => {
+							console.error('Error deleting enumerator:', error);
+							this.messageService.add({
+								severity: 'error',
+								summary: 'Error',
+								detail: 'Failed to delete enumerator',
+								life: 3000,
+							});
+						},
+					});
+			},
+		});
+	}
+
+	/**
+	 * Open edit dialog
+	 */
+	openEditDialog(enumerator: SupervisorSurveyEnumerator) {
+		this.editingEnumerator = enumerator;
+		this.editForm.patchValue({
+			name: enumerator.user?.name || '',
+			emailAddress: enumerator.user?.emailAddress || '',
+			phoneNumber: enumerator.user?.phoneNumber || '',
+		});
+		this.showEditDialog = true;
+	}
+
+	/**
+	 * Close edit dialog
+	 */
+	closeEditDialog() {
+		this.showEditDialog = false;
+		this.editingEnumerator = null;
+		this.editForm.reset();
+	}
+
+	/**
+	 * Save enumerator changes
+	 */
+	saveEnumerator() {
+		if (this.editForm.invalid || !this.editingEnumerator) {
+			this.editForm.markAllAsTouched();
+			return;
+		}
+
+		this.saving = true;
+		const updateData: UpdateEnumeratorDto = {
+			name: this.editForm.value.name,
+			emailAddress: this.editForm.value.emailAddress,
+			phoneNumber: this.editForm.value.phoneNumber || null,
+		};
+
+		this.surveyEnumeratorService
+			.updateEnumerator(this.editingEnumerator.userId, updateData)
+			.subscribe({
+				next: () => {
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: 'Enumerator updated successfully',
+						life: 3000,
+					});
+					this.closeEditDialog();
+					this.loadEnumerators();
+					this.saving = false;
+				},
+				error: (error: any) => {
+					console.error('Error updating enumerator:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: error?.error?.message || 'Failed to update enumerator',
+						life: 3000,
+					});
+					this.saving = false;
+				},
+			});
+	}
+
+	/**
+	 * Check if form field has error
+	 */
+	hasFormError(form: FormGroup, field: string): boolean {
+		const control = form.get(field);
+		return !!(control && control.invalid && (control.dirty || control.touched));
+	}
+
+	/**
+	 * Get form field error message
+	 */
+	getFormError(form: FormGroup, field: string): string {
+		const control = form.get(field);
+		if (!control) return '';
+
+		if (control.hasError('required')) {
+			return `${this.getFieldLabel(field)} is required`;
+		}
+		if (control.hasError('email')) {
+			return 'Please enter a valid email address';
+		}
+		if (control.hasError('minlength')) {
+			const minLength = control.errors?.['minlength'].requiredLength;
+			return `${this.getFieldLabel(field)} must be at least ${minLength} characters`;
+		}
+		if (control.hasError('pattern')) {
+			if (field === 'phoneNumber') {
+				return 'Phone number must be 8 digits starting with 1, 7, 6, 8, or 9';
+			}
+			return 'Invalid format';
+		}
+		if (control.hasError('passwordMismatch')) {
+			return 'Passwords do not match';
+		}
+		if (control.hasError('weakPassword')) {
+			return 'Password must contain at least 3 of: uppercase, lowercase, number, special character';
+		}
+		return '';
+	}
+
+	/**
+	 * Get password mismatch error
+	 */
+	getPasswordMismatchError(): string {
+		if (this.resetPasswordForm.errors?.['passwordMismatch']) {
+			return 'Passwords do not match';
+		}
+		return '';
+	}
+
+	/**
+	 * Get field label
+	 */
+	getFieldLabel(field: string): string {
+		const labels: { [key: string]: string } = {
+			name: 'Name',
+			emailAddress: 'Email Address',
+			phoneNumber: 'Phone Number',
+			newPassword: 'New Password',
+			confirmPassword: 'Confirm Password',
+		};
+		return labels[field] || field;
+	}
+
+	/**
+	 * Open reset password dialog
+	 */
+	openResetPasswordDialog(enumerator: SupervisorSurveyEnumerator) {
+		this.resettingPasswordEnumerator = enumerator;
+		this.resetPasswordForm.reset();
+		this.showResetPasswordDialog = true;
+	}
+
+	/**
+	 * Close reset password dialog
+	 */
+	closeResetPasswordDialog() {
+		this.showResetPasswordDialog = false;
+		this.resettingPasswordEnumerator = null;
+		this.resetPasswordForm.reset();
+	}
+
+	/**
+	 * Get password strength indicator
+	 */
+	getPasswordStrength(): string {
+		const password = this.resetPasswordForm.get('newPassword')?.value;
+		if (!password) {
+			return '';
+		}
+
+		const hasUpperCase = /[A-Z]/.test(password);
+		const hasLowerCase = /[a-z]/.test(password);
+		const hasNumeric = /[0-9]/.test(password);
+		const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+		const strength =
+			(hasUpperCase ? 1 : 0) +
+			(hasLowerCase ? 1 : 0) +
+			(hasNumeric ? 1 : 0) +
+			(hasSpecialChar ? 1 : 0);
+
+		if (strength === 4) {
+			return 'strong';
+		} else if (strength === 3) {
+			return 'medium';
+		} else if (strength >= 1) {
+			return 'weak';
+		}
+
+		return '';
+	}
+
+	/**
+	 * Get password strength color
+	 */
+	getPasswordStrengthColor(): string {
+		const strength = this.getPasswordStrength();
+		switch (strength) {
+			case 'strong':
+				return 'text-green-600';
+			case 'medium':
+				return 'text-yellow-600';
+			case 'weak':
+				return 'text-red-600';
+			default:
+				return 'text-gray-600';
+		}
+	}
+
+	/**
+	 * Reset enumerator password
+	 */
+	resetPassword() {
+		if (this.resetPasswordForm.invalid || !this.resettingPasswordEnumerator) {
+			Object.keys(this.resetPasswordForm.controls).forEach((key) => {
+				this.resetPasswordForm.get(key)?.markAsTouched();
+			});
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Validation Error',
+				detail: 'Please fix all form errors before submitting',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.resettingPassword = true;
+		const resetData: ResetPasswordDto = {
+			newPassword: this.resetPasswordForm.value.newPassword,
+		};
+
+		this.surveyEnumeratorService
+			.resetEnumeratorPassword(this.resettingPasswordEnumerator.userId, resetData)
+			.subscribe({
+				next: () => {
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: 'Password reset successfully',
+						life: 3000,
+					});
+					this.closeResetPasswordDialog();
+					this.resettingPassword = false;
+				},
+				error: (error: any) => {
+					console.error('Error resetting password:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: error?.error?.message || 'Failed to reset password',
+						life: 3000,
+					});
+					this.resettingPassword = false;
+				},
+			});
+	}
+}
+

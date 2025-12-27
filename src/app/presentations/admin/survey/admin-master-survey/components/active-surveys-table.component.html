@@ -101,6 +101,14 @@
 						<button
 							pButton
 							type="button"
+							icon="pi pi-download"
+							class="p-button-outlined p-button-sm p-button-success"
+							(click)="onDownloadHouseholdCounts(survey)"
+							pTooltip="Download Household Data"
+						></button>
+						<button
+							pButton
+							type="button"
 							icon="pi pi-pencil"
 							class="p-button-outlined p-button-sm p-button-info"
 							(click)="onEdit(survey)"

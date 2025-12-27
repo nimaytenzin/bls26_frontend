@@ -151,32 +151,32 @@
 						></p-dropdown>
 					</div>
 
-					<!-- Admin Zone Filter -->
+					<!-- Gewog/Thromde Filter -->
 					<div class="flex flex-col">
 						<label class="text-xs font-medium text-gray-600 mb-1"
-							>Admin Zone</label
+							>Gewog/Thromde</label
 						>
 						<p-dropdown
 							[(ngModel)]="selectedAdminZoneFilter"
 							[options]="adminZoneFilters"
 							optionLabel="name"
-							placeholder="All Admin Zones"
+							placeholder="All Gewogs/Thromdes"
 							[disabled]="!selectedDzongkhagFilter"
 							(onChange)="onAdminZoneFilterChange()"
 							styleClass="w-full p-inputtext-sm"
 						></p-dropdown>
 					</div>
 
-					<!-- Sub-Admin Zone Filter -->
+					<!-- Chiwog/Lap Filter -->
 					<div class="flex flex-col">
 						<label class="text-xs font-medium text-gray-600 mb-1"
-							>Sub-Admin Zone</label
+							>Chiwog/Lap</label
 						>
 						<p-dropdown
 							[(ngModel)]="selectedSubAdminZoneFilter"
 							[options]="subAdminZoneFilters"
 							optionLabel="name"
-							placeholder="All Sub-Admin Zones"
+							placeholder="All Chiwogs/Laps"
 							[disabled]="!selectedAdminZoneFilter"
 							(onChange)="onSubAdminZoneFilterChange()"
 							styleClass="w-full p-inputtext-sm"
@@ -356,28 +356,28 @@
 				></p-dropdown>
 			</div>
 
-			<!-- Admin Zone Selection -->
+			<!-- Gewog/Thromde Selection -->
 			<div class="flex flex-col gap-1.5">
-				<label class="text-xs font-medium text-gray-600">Admin Zone</label>
+				<label class="text-xs font-medium text-gray-600">Gewog/Thromde</label>
 				<p-dropdown
 					[(ngModel)]="selectedDialogAdminZone"
 					[options]="dialogAdminZoneFilters"
 					optionLabel="name"
-					placeholder="Select Admin Zone"
+					placeholder="Select Gewog/Thromde"
 					[disabled]="!selectedDialogDzongkhag"
 					(onChange)="onDialogAdminZoneChange()"
 					styleClass="w-full"
 				></p-dropdown>
 			</div>
 
-			<!-- Sub-Admin Zone Selection -->
+			<!-- Chiwog/Lap Selection -->
 			<div class="flex flex-col gap-1.5">
-				<label class="text-xs font-medium text-gray-600">Sub-Admin Zone</label>
+				<label class="text-xs font-medium text-gray-600">Chiwog/Lap</label>
 				<p-dropdown
 					[(ngModel)]="selectedDialogSubAdminZone"
 					[options]="dialogSubAdminZoneFilters"
 					optionLabel="name"
-					placeholder="Select Sub-Admin Zone"
+					placeholder="Select Chiwog/Lap"
 					[disabled]="!selectedDialogAdminZone"
 					(onChange)="onDialogSubAdminZoneChange()"
 					styleClass="w-full"
@@ -494,28 +494,28 @@
 				></p-dropdown>
 			</div>
 
-			<!-- Admin Zone Selection -->
+			<!-- Gewog/Thromde Selection -->
 			<div class="flex flex-col gap-1.5">
-				<label class="text-xs font-medium text-gray-600">Admin Zone</label>
+				<label class="text-xs font-medium text-gray-600">Gewog/Thromde</label>
 				<p-dropdown
 					[(ngModel)]="selectedDialogAdminZone"
 					[options]="dialogAdminZoneFilters"
 					optionLabel="name"
-					placeholder="Select Admin Zone"
+					placeholder="Select Gewog/Thromde"
 					[disabled]="!selectedDialogDzongkhag"
 					(onChange)="onDialogAdminZoneChange()"
 					styleClass="w-full"
 				></p-dropdown>
 			</div>
 
-			<!-- Sub-Admin Zone Selection -->
+			<!-- Chiwog/Lap Selection -->
 			<div class="flex flex-col gap-1.5">
-				<label class="text-xs font-medium text-gray-600">Sub-Admin Zone</label>
+				<label class="text-xs font-medium text-gray-600">Chiwog/Lap</label>
 				<p-dropdown
 					[(ngModel)]="selectedDialogSubAdminZone"
 					[options]="dialogSubAdminZoneFilters"
 					optionLabel="name"
-					placeholder="Select Sub-Admin Zone"
+					placeholder="Select Chiwog/Lap"
 					[disabled]="!selectedDialogAdminZone"
 					(onChange)="onDialogSubAdminZoneChange()"
 					styleClass="w-full"

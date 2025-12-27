@@ -22,7 +22,11 @@ import {
 	User,
 	UpdateProfileDto,
 	ChangePasswordDto,
+	UserRole,
+	SupervisorDzongkhagAssignment,
 } from '../../core/dataservice/auth/auth.interface';
+import { DzongkhagDataService } from '../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
+import { Dzongkhag } from '../../core/dataservice/location/dzongkhag/dzongkhag.interface';
 
 @Component({
 	selector: 'app-admin-topbar',
@@ -62,6 +66,10 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 	userProfile: User | null = null;
 	private authStateSubscription?: Subscription;
 
+	// Supervisor dzongkhags
+	assignedDzongkhags: Dzongkhag[] = [];
+	loadingDzongkhags: boolean = false;
+
 	// Edit Profile Dialog
 	showEditProfileDialog: boolean = false;
 	editProfileForm: UpdateProfileDto = {
@@ -85,7 +93,8 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 		private confirmationService: ConfirmationService,
 		private messageService: MessageService,
 		private authService: AuthService,
-		private router: Router
+		private router: Router,
+		private dzongkhagService: DzongkhagDataService
 	) {}
 
 	ngOnInit(): void {
@@ -96,6 +105,12 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 		this.authStateSubscription = this.authService.authState$.subscribe(
 			(authState) => {
 				this.userProfile = authState.user;
+				// Load dzongkhags if user is supervisor
+				if (this.isSupervisor()) {
+					this.loadSupervisorDzongkhags();
+				} else {
+					this.assignedDzongkhags = [];
+				}
 			}
 		);
 	}
@@ -374,5 +389,53 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 	 */
 	resetPassword(): void {
 		this.openChangePasswordDialog();
+	}
+
+	/**
+	 * Check if current user is a supervisor
+	 */
+	isSupervisor(): boolean {
+		return this.userProfile?.role === UserRole.SUPERVISOR;
+	}
+
+	/**
+	 * Load assigned dzongkhags for supervisor
+	 * Tries the new /auth/my-dzongkhags endpoint first, falls back to the old endpoint if it doesn't exist
+	 */
+	loadSupervisorDzongkhags(): void {
+		console.log('Loading supervisor dzongkhags');	
+		if (!this.userProfile?.id) {
+			console.warn('Cannot load dzongkhags: user profile ID is missing');
+			return;
+		}
+
+		this.loadingDzongkhags = true;
+		
+		
+		// Try the new endpoint first (uses JWT token)
+		this.authService
+			.getMyDzongkhagAssignments()
+			.subscribe({
+				next: (assiignedDzongkhags:Dzongkhag[]) => {
+					this.assignedDzongkhags = assiignedDzongkhags;
+					this.loadingDzongkhags = false;
+				},
+				error: (error) => {
+					console.error('Error loading dzongkhags:', error);
+					this.assignedDzongkhags = [];
+					this.loadingDzongkhags = false;
+				},
+				 
+			});
+	}
+
+	/**
+	 * Get formatted string of assigned dzongkhag names
+	 */
+	getDzongkhagNames(): string {
+		if (this.assignedDzongkhags.length === 0) {
+			return '';
+		}
+		return this.assignedDzongkhags.map((dz) => dz.name +" Dzongkhag").join(', ');
 	}
 }

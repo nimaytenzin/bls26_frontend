@@ -7,7 +7,7 @@ import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../core/
 import { SurveyEnumerationAreaStructureDataService } from '../../../core/dataservice/survey-enumeration-area-structure/survey-enumeration-area-structure.dataservice';
 import { EnumeratorMapStateService } from '../../../core/utility/enumerator-map-state.service';
 import { PrimeNgModules } from '../../../primeng.modules';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { SurveyEnumerationAreaHouseholdListing } from '../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
 import { SurveyEnumerationAreaStructure } from '../../../core/dataservice/survey-enumeration-area-structure/survey-enumeration-area-structure.dto';
 import { SurveyEnumerationArea } from '../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
@@ -16,7 +16,7 @@ import { SurveyEnumerationArea } from '../../../core/dataservice/survey-enumerat
 	selector: 'app-household-listings-table',
 	standalone: true,
 	imports: [CommonModule, FormsModule, PrimeNgModules],
-	providers: [MessageService],
+	providers: [MessageService, ConfirmationService],
 	templateUrl: './household-listings-table.component.html',
 	styleUrls: ['./household-listings-table.component.scss'],
 })
@@ -38,6 +38,7 @@ export class HouseholdListingsTableComponent implements OnInit {
 		private householdService: SurveyEnumerationAreaHouseholdListingDataService,
 		private structureService: SurveyEnumerationAreaStructureDataService,
 		private messageService: MessageService,
+		private confirmationService: ConfirmationService,
 		private mapStateService: EnumeratorMapStateService
 	) {}
 
@@ -284,6 +285,41 @@ export class HouseholdListingsTableComponent implements OnInit {
 		return this.filteredStructures.length;
 	}
 
+
+	/**
+	 * Delete a household listing
+	 */
+	deleteHousehold(household: SurveyEnumerationAreaHouseholdListing): void {
+		this.confirmationService.confirm({
+			message: `Are you sure you want to delete household "${household.householdIdentification || household.nameOfHOH || 'this household'}"? This action cannot be undone.`,
+			header: 'Confirm Deletion',
+			icon: 'pi pi-exclamation-triangle',
+			acceptButtonStyleClass: 'p-button-danger',
+			accept: () => {
+				this.enumeratorService.deleteHouseholdListing(household.id).subscribe({
+					next: () => {
+						this.messageService.add({
+							severity: 'success',
+							summary: 'Success',
+							detail: 'Household listing deleted successfully',
+							life: 3000,
+						});
+						// Reload structures and households
+						this.loadStructuresWithHouseholdListings();
+					},
+					error: (error) => {
+						console.error('Error deleting household:', error);
+						this.messageService.add({
+							severity: 'error',
+							summary: 'Error',
+							detail: error?.error?.message || 'Failed to delete household listing',
+							life: 3000,
+						});
+					},
+				});
+			},
+		});
+	}
 
 	/**
 	 * Track by function for structure rows

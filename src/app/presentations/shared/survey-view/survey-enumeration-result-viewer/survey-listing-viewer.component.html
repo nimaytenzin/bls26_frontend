@@ -24,6 +24,19 @@
 
 	<!-- Results Content -->
 	<div *ngIf="!resultLoading && !loadingAllHouseholds" class="space-y-4">
+		<!-- No Sampling Results Message (when showSampledOnly is true) -->
+		<div *ngIf="showSampledOnly && !currentResult" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+			<div class="flex items-center gap-2">
+				<i class="pi pi-exclamation-triangle text-yellow-600"></i>
+				<div>
+					<p class="text-sm font-semibold text-yellow-900">No Sampling Results</p>
+					<p class="text-xs text-yellow-700 mt-1">
+						Sampling has not been performed for this enumeration area yet. Please run sampling first.
+					</p>
+				</div>
+			</div>
+		</div>
+
 		<!-- Sampling Metadata -->
 		<div *ngIf="currentResult" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
 			<h4 class="text-sm font-semibold text-gray-900 mb-3">Sampling Details</h4>
@@ -57,7 +70,7 @@
 
 		<!-- Tabs for Household List and Sampled List -->
 		<p-tabView>
-			<p-tabPanel header="All Households" [leftIcon]="'pi pi-list'">
+			<p-tabPanel *ngIf="!showSampledOnly" header="All Households" [leftIcon]="'pi pi-list'">
 				<div class="mt-4">
 					<h4 class="text-sm font-semibold text-gray-900 mb-2">
 						All Households ({{ allHouseholdListings.length }})
@@ -116,7 +129,12 @@
 				</div>
 			</p-tabPanel>
 
-			<p-tabPanel header="Sampled Households" [leftIcon]="'pi pi-check-circle'" [disabled]="!currentResult || selectedHouseholds.length === 0">
+			<p-tabPanel 
+				header="Sampled Households" 
+				[leftIcon]="'pi pi-check-circle'" 
+				[disabled]="!currentResult || selectedHouseholds.length === 0"
+				[selected]="showSampledOnly"
+			>
 				<div class="mt-4">
 					<h4 class="text-sm font-semibold text-gray-900 mb-2">
 						Selected Households ({{ selectedHouseholds.length }})

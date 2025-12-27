@@ -67,16 +67,21 @@
 					class="bg-white rounded-lg  border border-gray-300 overflow-hidden"
 				>
 					<!-- Structure Header -->
-					<div class="p-4 bg-gray-50 border-b border-gray-200">
+					<div class="p-3 bg-gray-50 border-b border-gray-200">
 						<div class="flex items-center justify-between">
 							<div class="flex items-center gap-3">
-								<span class="font-semibold text-gray-900 text-base">
-									Structure #: {{ structure.structureNumber }}
+								<span class="font-semibold text-gray-900 text-sm">
+									{{ structure.structureNumber }}
 								</span>
-								
-								
+								<span class="text-xs text-gray-600">
+									({{ structure.householdListings.length }}
+									{{ structure.householdListings.length === 1 ? 'household' : 'households' }})
+								</span>
+								<span *ngIf="!structure.latitude" class="text-xs text-red-500">
+									• No Geolocation
+								</span>
 							</div>
-							<div class="flex  items-center gap-2">
+							<div class="flex items-center gap-2">
 								<button
 									pButton
 									type="button"
@@ -92,87 +97,94 @@
 									icon="pi pi-map-marker"
 									styleClass="p-button-text p-button-sm"
 									(click)="zoomToStructure(structure.id)"
- 									
 									size="small"
 									style="pointer-events: auto; z-index: 10; position: relative;"
 								></button>
 							</div>
 						</div>
-						<span class="text-xs text-gray-600">
-							{{ structure.householdListings.length }}
-							{{ structure.householdListings.length === 1 ? 'household' : 'households' }}
-						</span>
-						<span *ngIf="!structure.latitude" class="text-xs text-red-500">
-							| No Geolocation Data available
-					</span>
 					</div>
 
 					<!-- Household Listings -->
-					<div class="divide-y divide-gray-100">
+					<div>
 						<div
 							*ngFor="
 								let household of structure.householdListings;
-								trackBy: trackByHouseholdId
+								trackBy: trackByHouseholdId;
+								let last = last
 							"
-							class="p-4 hover:bg-gray-50 transition-colors"
+							class="p-3 hover:bg-gray-50 transition-colors border-b border-gray-200"
+							[class.border-b-0]="last"
 						>
-							<div class="flex items-center justify-between gap-4">
-								<div class="flex-1">
-									<div class="flex items-center gap-4 mb-2">
-										<div class="flex items-center gap-2">
-											<span class="text-xs text-gray-500">Serial Number:</span>
-											<span class="text-sm font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+							<div class="flex items-center justify-between gap-3">
+								<div class="flex-1 min-w-0">
+									<div class="flex items-center gap-3 mb-1.5 flex-wrap">
+										<div class="flex items-center gap-1.5">
+											<span class="text-xs text-gray-500">Household Serial Number:</span>
+											<span class="text-xs font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
 												{{ household.householdSerialNumber }}
 											</span>
 										</div>
-										<div class="flex items-center gap-2">
-											<span class="text-xs text-gray-500">Household ID:</span>
-											<span class="text-sm font-medium text-gray-700">
+										<div class="flex items-center gap-1.5">
+											<span class="text-xs text-gray-500">Identification:</span>
+											<span class="text-xs font-medium text-gray-700">
 												{{ household.householdIdentification }}
 											</span>
 										</div>
 									</div>
-									<h3 class="font-semibold text-gray-900 text-base mb-3">
+									<h3 class="font-semibold text-gray-900 text-sm mb-1.5 truncate">
 										{{ household.nameOfHOH }}
 									</h3>
-									<div class="grid grid-cols-2 gap-3 text-sm">
-										<div class="flex items-center gap-2">
+									<div class="flex items-center gap-4 text-xs">
+										<div class="flex items-center gap-1.5">
 											<span class="text-gray-600">Phone:</span>
 											<span class="font-medium text-gray-900">
 												{{ household.phoneNumber || "-" }}
 											</span>
 										</div>
-										<div class="flex items-center gap-2">
-											<span class="text-gray-600">Male:</span>
+										<div class="flex items-center gap-1.5">
+											<span class="text-gray-600">M:</span>
 											<span class="font-semibold text-gray-900">
 												{{ household.totalMale || 0 }}
 											</span>
 										</div>
-										<div class="flex items-center gap-2">
-											<span class="text-gray-600">Female:</span>
+										<div class="flex items-center gap-1.5">
+											<span class="text-gray-600">F:</span>
 											<span class="font-semibold text-gray-900">
 												{{ household.totalFemale || 0 }}
 											</span>
 										</div>
-										<div class="flex items-center gap-2">
-											<span class="text-gray-600">Total Population:</span>
+										<div class="flex items-center gap-1.5">
+											<span class="text-gray-600">Total:</span>
 											<span class="font-bold text-gray-900">
 												{{ getTotalPopulation(household) }}
 											</span>
 										</div>
 									</div>
 								</div>
-								<button
-									pButton
-									type="button"
-									icon="pi pi-pencil"
-									styleClass="p-button-text p-button-sm"
-									(click)="viewHouseholdDetails(household)"
-									title="Edit Household"
-									size="small"
-									style="pointer-events: auto; z-index: 10; position: relative; flex-shrink: 0;"
-									[attr.aria-label]="'Edit Household'"
-								></button>
+								<div class="flex items-center gap-1 flex-shrink-0">
+									<button
+										pButton
+										type="button"
+										icon="pi pi-pencil"
+										styleClass="p-button-text p-button-sm"
+										(click)="viewHouseholdDetails(household)"
+										title="Edit Household"
+										size="small"
+										style="pointer-events: auto; z-index: 10; position: relative;"
+										[attr.aria-label]="'Edit Household'"
+									></button>
+									<button
+										pButton
+										type="button"
+										icon="pi pi-trash"
+										styleClass="p-button-text p-button-sm p-button-danger"
+										(click)="deleteHousehold(household)"
+										title="Delete Household"
+										size="small"
+										style="pointer-events: auto; z-index: 10; position: relative;"
+										[attr.aria-label]="'Delete Household'"
+									></button>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -212,4 +224,7 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Confirmation Dialog -->
+	<p-confirmDialog></p-confirmDialog>
 </div>

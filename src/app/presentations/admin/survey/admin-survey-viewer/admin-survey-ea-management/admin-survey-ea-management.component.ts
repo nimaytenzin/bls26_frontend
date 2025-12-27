@@ -6,30 +6,29 @@ import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 
 
-
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
   
-import { PrimeNgModules } from '../../../../primeng.modules';
-import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
-import { SurveyEnumerationAreaDataService } from '../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dataservice';
-import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dataservice';
-import { SamplingDataService } from '../../../../core/dataservice/sampling/sampling.dataservice';
-import { SurveyEnumerationArea } from '../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
-import { AdministrativeZone, AdministrativeZoneType } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
-import { SubAdministrativeZone } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
-import { Dzongkhag } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
-import { SurveyEnumerationAreaHouseholdListing } from '../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
-import { RunEnumerationAreaSamplingDto, SamplingExistsCheckDto, SamplingMethod, SurveySamplingConfigDto } from '../../../../core/dataservice/sampling/sampling.dto';
-import { AuthService } from '../../../../core/dataservice/auth/auth.service';
-import { User, UserRole } from '../../../../core/dataservice/auth/auth.interface';
-import { SurveyListingViewerComponent } from '../survey-enumeration-result-viewer/survey-listing-viewer.component';
-import { EnumerationAreaDataService } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
-import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
-import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
-import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
-import { EnumerationArea } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
-import { BulkUploadResponse, PublishSurveyEnumerationAreaDto } from '../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
+import { PrimeNgModules } from '../../../../../primeng.modules';
+import { SurveyDataService } from '../../../../../core/dataservice/survey/survey.dataservice';
+import { SurveyEnumerationAreaDataService } from '../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dataservice';
+import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dataservice';
+import { SamplingDataService } from '../../../../../core/dataservice/sampling/sampling.dataservice';
+import { SurveyEnumerationArea } from '../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
+import { AdministrativeZone, AdministrativeZoneType } from '../../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import { SubAdministrativeZone } from '../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
+import { Dzongkhag } from '../../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
+import { SurveyEnumerationAreaHouseholdListing } from '../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
+import { RunEnumerationAreaSamplingDto, SamplingExistsCheckDto, SamplingMethod, SurveySamplingConfigDto } from '../../../../../core/dataservice/sampling/sampling.dto';
+import { AuthService } from '../../../../../core/dataservice/auth/auth.service';
+import { User, UserRole } from '../../../../../core/dataservice/auth/auth.interface';
+import { SurveyListingViewerComponent } from '../../../../shared/survey-view/survey-enumeration-result-viewer/survey-listing-viewer.component';
+import { EnumerationAreaDataService } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
+import { DzongkhagDataService } from '../../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
+import { AdministrativeZoneDataService } from '../../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
+import { SubAdministrativeZoneDataService } from '../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
+import { EnumerationArea } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
+import { BulkUploadResponse, PublishSurveyEnumerationAreaDto } from '../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
 import { finalize } from 'rxjs/operators';
 
 interface GroupedEA {
@@ -44,14 +43,14 @@ interface GroupedEA {
 }
 
 @Component({
-	selector: 'app-survey-ea-management',
-	templateUrl: './survey-ea-management.component.html',
-	styleUrls: ['./survey-ea-management.component.scss'],
+	selector: 'app-admin-survey-ea-management',
+	templateUrl: './admin-survey-ea-management.component.html',
+	styleUrls: ['./admin-survey-ea-management.component.scss'],
 	standalone: true,
 	imports: [CommonModule, FormsModule, ReactiveFormsModule, PrimeNgModules],
 	providers: [MessageService, ConfirmationService, DialogService],
 })
-export class SurveyEaManagementComponent implements OnInit {
+export class AdminSurveyEaManagementComponent implements OnInit {
 	@Input() surveyId!: number;
 
 	// Authenticated user for role-based access
@@ -1847,3 +1846,4 @@ export class SurveyEaManagementComponent implements OnInit {
 		});
 	}
 }
+

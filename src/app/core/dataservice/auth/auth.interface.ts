@@ -173,6 +173,7 @@ export interface SupervisorDzongkhagAssignment {
 	dzongkhagId: number;
 	createdAt: Date;
 	updatedAt: Date;
+	dzonkghags:Dzongkhag[];
 }
 
 export interface AssignDzongkhagDto {

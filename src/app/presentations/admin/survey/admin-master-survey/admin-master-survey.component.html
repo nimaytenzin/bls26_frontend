@@ -44,6 +44,7 @@
 					(viewSurvey)="viewSurvey($event)"
 					(editSurvey)="editSurvey($event)"
 					(deleteSurvey)="confirmDelete($event)"
+					(downloadHouseholdCounts)="downloadHouseholdCountCSV($event)"
 					(globalFilterChange)="onActiveSurveyFilterChange($event)"
 				></app-active-surveys-table>
 			</p-tabPanel>
@@ -62,6 +63,7 @@
 					(viewSurvey)="viewSurvey($event)"
 					(editSurvey)="editSurvey($event)"
 					(deleteSurvey)="confirmDelete($event)"
+					(downloadHouseholdCounts)="downloadHouseholdCountCSV($event)"
 					(globalFilterChange)="onAllSurveyFilterChange($event)"
 				></app-all-surveys-table>
 			</p-tabPanel>

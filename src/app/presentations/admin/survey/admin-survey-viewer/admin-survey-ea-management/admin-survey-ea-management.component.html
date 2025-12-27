@@ -133,7 +133,7 @@
 						</p-dropdown>
 					</div>
 
-					<!-- Admin Zone Filter (Gewog/Thromde) -->
+					<!-- Gewog/Thromde Filter -->
 					<div class="flex flex-col gap-2">
 						<label class="text-sm font-medium text-gray-700">Filter by Gewog/Thromde</label>
 						<p-dropdown
@@ -153,7 +153,7 @@
 						</p-dropdown>
 					</div>
 
-					<!-- Sub Admin Zone Filter (Chiwog/LAP) -->
+					<!-- Chiwog/Lap Filter -->
 					<div class="flex flex-col gap-2">
 						<label class="text-sm font-medium text-gray-700">Filter by Chiwog/LAP</label>
 						<p-dropdown
@@ -699,8 +699,8 @@
 					<p class="font-semibold mb-1">How to add enumeration areas:</p>
 					<ol class="list-decimal list-inside space-y-1 ml-2">
 						<li>Select a Dzongkhag from the dropdown</li>
-						<li>Select an Administrative Zone</li>
-						<li>Select a Sub-Administrative Zone</li>
+						<li>Select a Gewog/Thromde</li>
+						<li>Select a Chiwog/Lap</li>
 						<li>Select one or more Enumeration Areas</li>
 						<li>Click "Add to Survey" to assign them</li>
 					</ol>
@@ -729,16 +729,16 @@
 				></p-dropdown>
 			</div>
 
-			<!-- Administrative Zone -->
+			<!-- Gewog/Thromde -->
 			<div class="flex flex-col">
 				<label class="text-sm font-medium text-gray-700 mb-1"
-					>Administrative Zone <span class="text-red-500">*</span></label
+					>Gewog/Thromde <span class="text-red-500">*</span></label
 				>
 				<p-dropdown
 					[(ngModel)]="selectedAdminZone"
 					[options]="administrativeZones"
 					optionLabel="name"
-					placeholder="Select Admin Zone"
+					placeholder="Select Gewog/Thromde"
 					[filter]="true"
 					filterBy="name"
 					[disabled]="!selectedDzongkhag"
@@ -749,16 +749,16 @@
 				></p-dropdown>
 			</div>
 
-			<!-- Sub-Administrative Zone -->
+			<!-- Chiwog/Lap -->
 			<div class="flex flex-col">
 				<label class="text-sm font-medium text-gray-700 mb-1"
-					>Sub-Administrative Zone <span class="text-red-500">*</span></label
+					>Chiwog/Lap <span class="text-red-500">*</span></label
 				>
 				<p-dropdown
 					[(ngModel)]="selectedSubAdminZone"
 					[options]="subAdministrativeZones"
 					optionLabel="name"
-					placeholder="Select Sub-Admin Zone"
+					placeholder="Select Chiwog/Lap"
 					[filter]="true"
 					filterBy="name"
 					[disabled]="!selectedAdminZone"
@@ -811,7 +811,7 @@
 			>
 				<i class="pi pi-info-circle"></i>
 				<p class="text-sm">
-					No available enumeration areas in this sub-administrative zone
+					No available enumeration areas in this chiwog/lap
 				</p>
 			</div>
 		</div>
@@ -859,7 +859,7 @@
 					<p class="font-semibold mb-2">How to use bulk upload:</p>
 					<ol class="list-decimal list-inside space-y-1 ml-2">
 						<li>Download the CSV template</li>
-						<li>Fill in the enumeration area codes (Dzongkhag, Admin Zone, Sub Admin Zone, Enumeration Code)</li>
+						<li>Fill in the enumeration area codes (Dzongkhag, Gewog/Thromde, Chiwog/Lap, Enumeration Code)</li>
 						<li>Upload the completed CSV file</li>
 						<li>Review the results below</li>
 					</ol>

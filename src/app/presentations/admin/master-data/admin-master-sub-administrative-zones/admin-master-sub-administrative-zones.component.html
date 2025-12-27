@@ -19,7 +19,7 @@
 					</span>
 				</h1>
 				<p class="text-sm text-slate-600 mt-1">
-					Manage chiwogs and laps by dzongkhag or administrative zone
+					Manage chiwogs and laps by dzongkhag or gewog/thromde
 				</p>
 			</div>
 
@@ -32,7 +32,7 @@
 					icon="pi pi-plus"
 					[disabled]="!selectedDzongkhag && !selectedAdministrativeZone"
 					(click)="openNew()"
-					pTooltip="Select a dzongkhag or administrative zone first"
+					pTooltip="Select a dzongkhag or gewog/thromde first"
 				></button>
 				<button
 					pButton
@@ -49,7 +49,7 @@
 
 		<p-divider></p-divider>
 
-		<!-- Dzongkhag and Administrative Zone Selectors and Statistics -->
+		<!-- Dzongkhag and Gewog/Thromde Selectors and Statistics -->
 		<div class="flex items-center justify-between gap-6">
 			<div class="flex items-center gap-4">
 				<div class="flex flex-col items-start gap-1">
@@ -76,14 +76,14 @@
 						for="administrative-zone-selector"
 						class=" font-medium text-slate-700 whitespace-nowrap"
 					>
-						Select Administrative Zone
+						Select Gewog/Thromde
 					</label>
 					<p-dropdown
 						id="administrative-zone-selector"
 						[(ngModel)]="selectedAdministrativeZone"
 						[options]="administrativeZones"
 						optionLabel="name"
-						placeholder="Choose an administrative zone"
+						placeholder="Choose a gewog/thromde"
 						styleClass="w-64"
 						(onChange)="onAdministrativeZoneChange()"
 						[showClear]="true"
@@ -93,7 +93,7 @@
 						*ngIf="selectedDzongkhag && noAdministrativeZones && !loading"
 						class="text-amber-600 text-xs mt-1"
 					>
-						No administrative zones found for this dzongkhag
+						No gewogs/thromdes found for this dzongkhag
 					</small>
 				</div>
 			</div>
@@ -102,7 +102,7 @@
 			<div class="flex items-center gap-6">
 				<div class="flex flex-col">
 					<p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
-						Total Zones
+						Total Chiwogs/Laps
 					</p>
 					<p class="text-2xl font-bold text-slate-900 leading-none">
 						{{ subAdministrativeZones.length }}
@@ -405,7 +405,7 @@
 						<p class="text-sm font-medium text-amber-900">No map data available</p>
 						<p class="text-xs text-amber-700 mt-1">
 							<span *ngIf="selectedAdministrativeZone">
-								No geographic data has been added for {{ selectedAdministrativeZone.name }}. Upload GeoJSON files for chiwogs/LAPs to view them on the map.
+								No geographic data has been added for {{ selectedAdministrativeZone.name }} (gewog/thromde). Upload GeoJSON files for chiwogs/LAPs to view them on the map.
 							</span>
 							<span *ngIf="!selectedAdministrativeZone && selectedDzongkhag">
 								No geographic data has been added for {{ selectedDzongkhag.name }}. Upload GeoJSON files for chiwogs/LAPs to view them on the map.
@@ -417,7 +417,7 @@
 		</div>
 	</div>
 
-	<!-- Empty State when no dzongkhag or administrative zone is selected -->
+	<!-- Empty State when no dzongkhag or gewog/thromde is selected -->
 	<div
 		*ngIf="!selectedDzongkhag && !selectedAdministrativeZone"
 		class="flex-1 flex items-center justify-center p-12"
@@ -429,10 +429,10 @@
 				<i class="pi pi-map text-primary-600 text-2xl"></i>
 			</div>
 			<h3 class="text-lg font-semibold text-slate-900 mb-2">
-				Select a Dzongkhag or Administrative Zone
+				Select a Dzongkhag or Gewog/Thromde
 			</h3>
 			<p class="text-sm text-slate-600">
-				Please select a dzongkhag or administrative zone from the dropdown above to view and manage
+				Please select a dzongkhag or gewog/thromde from the dropdown above to view and manage
 				chiwogs and LAPs.
 			</p>
 		</div>
@@ -490,13 +490,13 @@
 				</small>
 			</div>
 
-			<!-- Administrative Zone Field -->
+			<!-- Gewog/Thromde Field -->
 			<div>
 				<label
 					for="administrativeZoneId"
 					class="block text-sm font-medium text-gray-700 mb-2"
 				>
-					Administrative Zone *
+					Gewog/Thromde *
 				</label>
 				<p-dropdown
 					id="administrativeZoneId"
@@ -504,7 +504,7 @@
 					formControlName="administrativeZoneId"
 					optionLabel="name"
 					optionValue="id"
-					placeholder="Select administrative zone"
+					placeholder="Select gewog/thromde"
 					[class.ng-invalid]="hasFormError('administrativeZoneId')"
 					styleClass="w-full"
 				></p-dropdown>
@@ -743,13 +743,13 @@
 >
 	<div class="space-y-4">
 		<p class="text-sm text-gray-600">
-			Upload multiple chiwogs/LAPs from a GeoJSON FeatureCollection file for a specific Administrative Zone.
+			Upload multiple chiwogs/LAPs from a GeoJSON FeatureCollection file for a specific Gewog/Thromde.
 		</p>
 
-		<!-- Administrative Zone Selection -->
+		<!-- Gewog/Thromde Selection -->
 		<div class="flex flex-col gap-1.5">
 			<label class="text-xs font-medium text-gray-600"
-				>Administrative Zone
+				>Gewog/Thromde
 				<span *ngIf="!selectedAdministrativeZone" class="text-red-500">*</span>
 				<span *ngIf="selectedAdministrativeZone" class="text-slate-500 text-xs ml-1">(Optional - using selected: {{ selectedAdministrativeZone.name }})</span>
 			</label>
@@ -757,15 +757,15 @@
 				[(ngModel)]="selectedAdministrativeZoneForBulkUpload"
 				[options]="administrativeZones"
 				optionLabel="name"
-				placeholder="Select Administrative Zone (or use selected from main view)"
+				placeholder="Select Gewog/Thromde (or use selected from main view)"
 				styleClass="w-full"
 				[disabled]="!selectedDzongkhag"
 			></p-dropdown>
 			<small *ngIf="!selectedDzongkhag" class="text-amber-600 text-xs">
-				Please select a dzongkhag first to load administrative zones
+				Please select a dzongkhag first to load gewogs/thromdes
 			</small>
 			<small *ngIf="selectedAdministrativeZone && !selectedAdministrativeZoneForBulkUpload" class="text-blue-600 text-xs">
-				Using selected administrative zone: {{ selectedAdministrativeZone.name }}
+				Using selected gewog/thromde: {{ selectedAdministrativeZone.name }}
 			</small>
 		</div>
 
@@ -896,7 +896,7 @@
 						</li>
 						<li>Geometry type: Polygon or MultiPolygon</li>
 						<li>Coordinates must be in WGS84 (EPSG:4326)</li>
-						<li>All features will be assigned to the selected Administrative Zone</li>
+						<li>All features will be assigned to the selected Gewog/Thromde</li>
 					</ul>
 				</div>
 			</div>

@@ -488,15 +488,6 @@ export class PublicNationalDataViewerComponent
 					}
 				});
 			}
-
-			const downloadButton = document.getElementById(`download-kml-${props.id}`);
-			if (downloadButton) {
-				downloadButton.addEventListener('click', () => {
-					if (props.id) {
-						this.downloadDzongkhagKML(props.id, props.name);
-					}
-				});
-			}
 		});
 
 		// Add hover effects
@@ -579,16 +570,6 @@ export class PublicNationalDataViewerComponent
 						class="flex-1 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded transition shadow-sm"
 					>
 						View Details
-					</button>
-					<button 
-						id="download-kml-${props.id}" 
-						class="px-3 py-2 bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold rounded transition shadow-sm flex items-center justify-center"
-						title="Download KML"
-					>
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-						</svg>
-						KML
 					</button>
 				</div>
 			</div>

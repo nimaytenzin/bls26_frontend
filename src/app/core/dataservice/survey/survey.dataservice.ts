@@ -392,6 +392,30 @@ export class SurveyDataService {
 			);
 	}
 
+	/**
+	 * Download survey household counts CSV
+	 * Generates CSV with household counts per enumeration area including geographic hierarchy
+	 * @param surveyId Survey ID
+	 * @returns Observable of Blob (CSV file)
+	 * @requires Authentication (ADMIN role)
+	 */
+	downloadSurveyHouseholdCountCSV(surveyId: number): Observable<Blob> {
+		return this.http
+			.get(`${this.apiUrl}/${surveyId}/download/household-counts`, {
+				headers: this.getAuthHeaders(),
+				responseType: 'blob',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error downloading household counts CSV for survey ${surveyId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
 	// ============================================================
 	// UTILITY METHODS
 	// ============================================================

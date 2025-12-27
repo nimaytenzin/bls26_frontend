@@ -269,4 +269,58 @@ export class AdminMasterSurveyComponent implements OnInit {
 			.map((ea) => ea.name)
 			.join(', ')} and ${survey.enumerationAreas.length - 3} more`;
 	}
+
+	/**
+	 * Download household counts CSV for a survey
+	 * @param survey Survey object
+	 */
+	downloadHouseholdCountCSV(survey: Survey): void {
+		if (!survey || !survey.id) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Invalid Survey',
+				detail: 'Please select a valid survey',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.surveyService.downloadSurveyHouseholdCountCSV(survey.id).subscribe({
+			next: (blob: Blob) => {
+				// Create download link
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				
+				// Generate filename with timestamp
+				const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+				const filename = `survey_${survey.id}_household_counts_${timestamp}.csv`;
+				link.download = filename;
+				
+				// Trigger download
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				
+				// Clean up
+				window.URL.revokeObjectURL(url);
+				
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Download Successful',
+					detail: 'Household counts CSV downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error: any) => {
+				console.error('Error downloading household counts CSV:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: error?.error?.message || 'Failed to download household counts CSV',
+					life: 3000,
+				});
+			},
+		});
+	}
 }

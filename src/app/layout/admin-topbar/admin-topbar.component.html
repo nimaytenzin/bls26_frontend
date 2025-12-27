@@ -42,6 +42,24 @@
 			<p class="text-xs text-slate-500 m-0 leading-tight">
 				{{ userProfile.role ? (userProfile.role | titlecase) : '' }}
 			</p>
+			<p 
+				class="text-xs text-slate-600 m-0 leading-tight mt-0.5 font-medium"
+				*ngIf="isSupervisor() && assignedDzongkhags.length > 0"
+			>
+				{{ getDzongkhagNames() }}
+			</p>
+			<p 
+				class="text-xs text-slate-400 m-0 leading-tight mt-0.5 italic"
+				*ngIf="isSupervisor() && loadingDzongkhags"
+			>
+				Loading assignments...
+			</p>
+			<p 
+				class="text-xs text-slate-400 m-0 leading-tight mt-0.5 italic"
+				*ngIf="isSupervisor() && !loadingDzongkhags && assignedDzongkhags.length === 0"
+			>
+				No dzongkhag assignments
+			</p>
 		</div>
 		<p-popover
 			#profilePopover
@@ -65,6 +83,24 @@
 							</h3>
 							<p class="text-xs text-primary-600 font-medium m-0 mt-0.5">
 								{{ userProfile.role }}
+							</p>
+							<p 
+								class="text-xs text-slate-600 m-0 mt-1 font-medium"
+								*ngIf="isSupervisor() && assignedDzongkhags.length > 0"
+							>
+								{{ getDzongkhagNames() }}
+							</p>
+							<p 
+								class="text-xs text-slate-400 m-0 mt-1 italic"
+								*ngIf="isSupervisor() && loadingDzongkhags"
+							>
+								Loading assignments...
+							</p>
+							<p 
+								class="text-xs text-slate-400 m-0 mt-1 italic"
+								*ngIf="isSupervisor() && !loadingDzongkhags && assignedDzongkhags.length === 0"
+							>
+								No dzongkhag assignments
 							</p>
 						</div>
 					</div>

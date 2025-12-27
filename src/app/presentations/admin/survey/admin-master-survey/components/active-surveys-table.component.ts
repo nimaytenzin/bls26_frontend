@@ -25,6 +25,7 @@ export class ActiveSurveysTableComponent {
 	@Output() viewSurvey = new EventEmitter<Survey>();
 	@Output() editSurvey = new EventEmitter<Survey>();
 	@Output() deleteSurvey = new EventEmitter<Survey>();
+	@Output() downloadHouseholdCounts = new EventEmitter<Survey>();
 	@Output() globalFilterChange = new EventEmitter<string>();
 
 	constructor(private surveyService: SurveyDataService) {}
@@ -54,6 +55,10 @@ export class ActiveSurveysTableComponent {
 
 	onDelete(survey: Survey) {
 		this.deleteSurvey.emit(survey);
+	}
+
+	onDownloadHouseholdCounts(survey: Survey) {
+		this.downloadHouseholdCounts.emit(survey);
 	}
 
 	// Utility methods

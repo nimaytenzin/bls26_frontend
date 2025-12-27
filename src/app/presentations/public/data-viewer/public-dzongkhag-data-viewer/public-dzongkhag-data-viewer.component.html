@@ -646,21 +646,17 @@
 		[style]="{ width: '90vw', maxWidth: '600px' }"
 		[draggable]="false"
 		[resizable]="false"
-		header="Download Dzongkhag Data"
+		header="Download Dzongkhag Sampling Frame"
 		(onHide)="closeDownloadDialog()"
 	>
 		<div class="flex flex-col gap-4 p-2">
 			<!-- Statistics Downloads -->
 			<div>
-				<h3
-					class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b border-slate-200"
-				>
-					Statistics Data
-				</h3>
+			 
 				<table class="w-full mb-4">
 					<thead>
 						<tr class="text-left text-xs font-semibold text-slate-600 uppercase">
-							<th class="pb-2">Sampling Frame Data</th>
+							<th class="pb-2"></th>
 							<th class="pb-2 text-center">CSV Download</th>
 						</tr>
 					</thead>
@@ -669,7 +665,7 @@
 						<tr>
 							<td class="py-2.5 text-sm text-slate-700">
 								<div class="flex flex-col">
-									<span class="font-semibold">Dzongkhag Sampling Frame (Overall)</span>
+									<span class="font-semibold">Dzongkhag Sampling Frame </span>
 									<span class="text-xs text-slate-500 font-normal mt-0.5">
 										(Urban & Rural)
 									</span>
@@ -686,32 +682,11 @@
 								</button>
 							</td>
 						</tr>
-						<!-- Dzongkhag Rural Sampling Frame -->
-						<tr>
-							<td class="py-2.5 text-sm text-slate-700">
-								<div class="flex flex-col">
-									<span class="font-semibold">Dzongkhag Rural Sampling Frame</span>
-									<span class="text-xs text-slate-500 font-normal mt-0.5">
-										(Rural)
-									</span>
-								</div>
-							</td>
-							<td class="py-2.5 text-center">
-								<button
-									type="button"
-									(click)="downloadDzongkhagRuralSamplingFrame(); closeDownloadDialog()"
-									class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded transition-all"
-									title="Download Dzongkhag Rural Sampling Frame CSV"
-								>
-									Download
-								</button>
-							</td>
-						</tr>
 						<!-- Dzongkhag Urban Sampling Frame -->
 						<tr>
 							<td class="py-2.5 text-sm text-slate-700">
 								<div class="flex flex-col">
-									<span class="font-semibold">Dzongkhag Urban Sampling Frame</span>
+									<span class="font-semibold">Dzongkhag Urban Sampling Frame </span>
 									<span class="text-xs text-slate-500 font-normal mt-0.5">
 										(Urban)
 									</span>
@@ -723,6 +698,28 @@
 									(click)="downloadDzongkhagUrbanSamplingFrame(); closeDownloadDialog()"
 									class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded transition-all"
 									title="Download Dzongkhag Urban Sampling Frame CSV"
+								>
+									Download
+								</button>
+							</td>
+						</tr>
+						<!-- Dzongkhag Rural Sampling Frame -->
+						<tr>
+							<td class="py-2.5 text-sm text-slate-700">
+								<div class="flex flex-col">
+									<span class="font-semibold">Dzongkhag Rural Sampling Frame </span>
+									
+									<span class="text-xs text-slate-500 font-normal mt-0.5">
+										(Rural)
+									</span>
+								</div>
+							</td>
+							<td class="py-2.5 text-center">
+								<button
+									type="button"
+									(click)="downloadDzongkhagRuralSamplingFrame(); closeDownloadDialog()"
+									class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded transition-all"
+									title="Download Dzongkhag Rural Sampling Frame CSV"
 								>
 									Download
 								</button>
@@ -822,6 +819,8 @@
 					</tbody>
 				</table>
 			</div>
+
+			
 
 			<!-- Action Buttons -->
 			<div class="flex gap-3 pt-2 border-t border-slate-200">

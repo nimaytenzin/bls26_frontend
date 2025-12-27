@@ -7,12 +7,15 @@ import {
 	Survey,
 } from '../../../../core/dataservice/survey/survey.dto';
 import { MessageService } from 'primeng/api';
+import { SupervisorSurveyDataService } from '../../../../core/dataservice/supervisor/supervisor-survey.dataservice';
 import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
- import { SurveyStatus } from '../../../../core/constants/enums';
-import { SurveyOverviewComponent } from '../../../shared/survey-view/survey-overview/survey-overview.component';
-import { SurveyEaManagementComponent } from '../../../shared/survey-view/survey-ea-management/survey-ea-management.component';
-import { SurveyHouseholdListingsComponent } from '../../../shared/survey-view/survey-household-listings/survey-household-listings.component';
-import { SurveyUsersComponent } from '../../../shared/survey-view/survey-users/survey-users.component';
+import { SupervisorEaManagementComponent } from './components/supervisor-ea-management/supervisor-ea-management.component';
+import { SupervisorHouseholdListingComponent } from './components/supervisor-household-listing/supervisor-household-listing.component';
+import { SupervisorEnumeratorsComponent } from './components/supervisor-enumerators/supervisor-enumerators.component';
+import { SurveySamplingGlobalParametersComponent } from '../../../shared/survey-view/survey-sampling-global-parameters/survey-sampling-global-parameters.component';
+import { SupervisorSurveyEnumerationAreaHouseholdListingDataService } from '../../../../core/dataservice/supervisor/supervisor-survey-enumeration-area-household-listing.dataservice';
+import { DzongkhagHierarchicalResponse } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
 	selector: 'app-supervisor-survey-detailed-view',
@@ -23,14 +26,10 @@ import { SurveyUsersComponent } from '../../../shared/survey-view/survey-users/s
 		CommonModule,
 		FormsModule,
 		PrimeNgModules,
-   	
-		SurveyOverviewComponent,
-		SurveyEaManagementComponent,
-		SurveyHouseholdListingsComponent,
-		SurveyUsersComponent
-		
-
-
+		SupervisorEaManagementComponent,
+		SupervisorHouseholdListingComponent,
+		SupervisorEnumeratorsComponent,
+		SurveySamplingGlobalParametersComponent
 	],
 	providers: [MessageService],
 })
@@ -44,22 +43,39 @@ export class SupervisorSurveyDetailedViewComponent implements OnInit, OnDestroy 
 	// Tab state - Default to Enumeration Areas (index 0)
 	activeTabIndex = 0;
 
-	// Survey Status Enum for template
-	SurveyStatus = SurveyStatus;
+	// Export functionality
+	dzongkhagOptions: DzongkhagHierarchicalResponse[] = [];
+	selectedDzongkhagForExport: DzongkhagHierarchicalResponse | null = null;
+	downloadingExport = false;
+
+	// Subject for unsubscribing
+	private destroy$ = new Subject<void>();
 
 	constructor(
-		private surveyService: SurveyDataService,
+		private supervisorSurveyService: SupervisorSurveyDataService,
+		private surveyService: SurveyDataService, // Keep for utility methods
+		private householdService: SupervisorSurveyEnumerationAreaHouseholdListingDataService,
 		private messageService: MessageService,
 		private router: Router,
 		private route: ActivatedRoute
 	) {}
 
 	ngOnInit(): void {
-		// Get survey ID from route parameters
-		this.route.params.subscribe((params) => {
-			const id = params['surveyId'];
+		// Get survey ID from route parameters using paramMap
+		this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+			const id = params.get('surveyId');
 			if (id) {
 				this.surveyId = Number(id);
+				if (isNaN(this.surveyId)) {
+					this.notFound = true;
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Invalid survey ID',
+						life: 3000,
+					});
+					return;
+				}
 				this.loadSurvey();
 			} else {
 				this.notFound = true;
@@ -68,7 +84,9 @@ export class SupervisorSurveyDetailedViewComponent implements OnInit, OnDestroy 
 	}
 
 	ngOnDestroy(): void {
-		// Cleanup if needed
+		// Cleanup subscriptions
+		this.destroy$.next();
+		this.destroy$.complete();
 	}
 
 	loadSurvey(): void {
@@ -77,21 +95,47 @@ export class SupervisorSurveyDetailedViewComponent implements OnInit, OnDestroy 
 		this.loading = true;
 		this.notFound = false;
 
-		this.surveyService.findSurveyById(this.surveyId).subscribe({
-			next: (survey) => {
+		// Get survey details
+		this.supervisorSurveyService.getSurveyById(this.surveyId).subscribe({
+			next: (survey: Survey) => {
+				if (!survey || !survey.id) {
+					this.notFound = true;
+					this.loading = false;
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: 'Invalid survey data received',
+						life: 3000,
+					});
+					return;
+				}
+
 				this.survey = survey;
 				this.loading = false;
+				// Load hierarchy for export options
+				this.loadHierarchyForExport();
 			},
 			error: (error) => {
 				this.loading = false;
 				this.notFound = true;
 				console.error('Error loading survey:', error);
-				this.messageService.add({
-					severity: 'error',
-					summary: 'Error',
-					detail: 'Failed to load survey details',
-					life: 3000,
-				});
+				
+				// Handle 404 specifically
+				if (error?.status === 404) {
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Survey Not Found',
+						detail: 'The survey you\'re looking for doesn\'t exist or you don\'t have access to it.',
+						life: 3000,
+					});
+				} else {
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: error?.error?.message || error?.message || 'Failed to load survey details',
+						life: 3000,
+					});
+				}
 			},
 		});
 	}
@@ -110,10 +154,6 @@ export class SupervisorSurveyDetailedViewComponent implements OnInit, OnDestroy 
 		return this.survey
 			? this.surveyService.isSurveyEndingSoon(this.survey)
 			: false;
-	}
-
-	getStatusSeverity(status: SurveyStatus): string {
-		return status === SurveyStatus.ACTIVE ? 'success' : 'secondary';
 	}
 
 	getStatusColor(): string {
@@ -146,5 +186,68 @@ export class SupervisorSurveyDetailedViewComponent implements OnInit, OnDestroy 
 			month: 'short',
 			day: 'numeric',
 		});
+	}
+
+	/**
+	 * Load hierarchy for export options
+	 */
+	loadHierarchyForExport(): void {
+		if (!this.surveyId) return;
+		this.supervisorSurveyService.getSurveyEnumerationHierarchy(this.surveyId).subscribe({
+			next: (response) => {
+				this.dzongkhagOptions = response?.hierarchy ?? [];
+			},
+			error: (error) => {
+				console.error('Error loading hierarchy for export:', error);
+			},
+		});
+	}
+
+	/**
+	 * Download household count CSV for selected dzongkhag
+	 */
+	downloadHouseholdCountCSV(): void {
+		if (!this.selectedDzongkhagForExport || !this.selectedDzongkhagForExport.id) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Please select a dzongkhag to download',
+			});
+			return;
+		}
+
+		this.downloadingExport = true;
+		this.householdService
+			.exportHouseholdCountByDzongkhag(this.selectedDzongkhagForExport.id)
+			.subscribe({
+				next: (blob: Blob) => {
+					const url = window.URL.createObjectURL(blob);
+					const link = document.createElement('a');
+					link.href = url;
+					const timestamp = new Date().toISOString().split('T')[0];
+					link.download = `household_count_${this.selectedDzongkhagForExport?.name || 'dzongkhag'}_${timestamp}.csv`;
+					document.body.appendChild(link);
+					link.click();
+					document.body.removeChild(link);
+					window.URL.revokeObjectURL(url);
+					this.downloadingExport = false;
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Download Complete',
+						detail: `Household count CSV for ${this.selectedDzongkhagForExport?.name || 'dzongkhag'} downloaded successfully`,
+						life: 3000,
+					});
+				},
+				error: (error) => {
+					this.downloadingExport = false;
+					console.error('Error downloading household count CSV:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Download Failed',
+						detail: error?.error?.message || 'Failed to download household count CSV',
+						life: 3000,
+					});
+				},
+			});
 	}
 }

@@ -30,7 +30,7 @@
 					(click)="openNew()"
 					[disabled]="!selectedDzongkhag && !selectedAdministrativeZone && !selectedSubAdministrativeZone"
 					class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-					pTooltip="Select a dzongkhag, administrative zone, or sub-administrative zone first"
+					pTooltip="Select a dzongkhag, gewog/thromde, or chiwog/lap first"
 				>
 					<i class="pi pi-plus"></i>
 					Add Area
@@ -64,20 +64,20 @@
 					></p-dropdown>
 				</div>
 
-				<!-- Administrative Zone Dropdown -->
+				<!-- Gewog/Thromde Dropdown -->
 				<div class="flex flex-col items-start gap-1">
 					<label
 						for="administrativeZoneSelect"
 						class="font-medium text-slate-700 whitespace-nowrap"
 					>
-						Select Administrative Zone
+						Select Gewog/Thromde
 					</label>
 					<p-dropdown
 						id="administrativeZoneSelect"
 						[options]="administrativeZones"
 						[(ngModel)]="selectedAdministrativeZone"
 						optionLabel="name"
-						placeholder="Choose an administrative zone"
+						placeholder="Choose a gewog/thromde"
 						[showClear]="true"
 						[disabled]="!selectedDzongkhag"
 						(onChange)="onAdministrativeZoneChange()"
@@ -85,20 +85,20 @@
 					></p-dropdown>
 				</div>
 
-				<!-- Sub-Administrative Zone Dropdown -->
+				<!-- Chiwog/Lap Dropdown -->
 				<div class="flex flex-col items-start gap-1">
 					<label
 						for="subAdministrativeZoneSelect"
 						class="font-medium text-slate-700 whitespace-nowrap"
 					>
-						Select Sub-Administrative Zone
+						Select Chiwog/Lap
 					</label>
 					<p-dropdown
 						id="subAdministrativeZoneSelect"
 						[options]="subAdministrativeZones"
 						[(ngModel)]="selectedSubAdministrativeZone"
 						optionLabel="name"
-						placeholder="Choose a sub-administrative zone"
+						placeholder="Choose a chiwog/lap"
 						[showClear]="true"
 						[disabled]="!selectedAdministrativeZone"
 						(onChange)="onSubAdministrativeZoneChange()"
@@ -180,10 +180,10 @@
 					</ng-template>
 
 					<ng-template pTemplate="body" let-item>
-						<!-- Administrative Zone Row -->
+						<!-- Gewog/Thromde Row -->
 						<tr
 							*ngIf="item.type === 'admin-zone'"
- 						>
+						>
 							<td colspan="6" class="bg-amber-50">
 								<div class="flex items-center gap-2">
 									<p >
@@ -200,7 +200,7 @@
 							</td>
 						</tr>
 
-						<!-- Sub-Administrative Zone Row -->
+						<!-- Chiwog/Lap Row -->
 						<tr
 							*ngIf="item.type === 'sub-admin-zone'"
 							 
@@ -235,7 +235,7 @@
 								</p>
 								<i *ngIf="item.isShared" 
 									class="pi pi-link text-purple-600" 
-									pTooltip="Shared across multiple SAZs"
+									pTooltip="Shared across multiple Chiwogs/Laps"
 									tooltipPosition="top">
 								</i>
 							</div>
@@ -258,7 +258,7 @@
 								</p>
 								<p *ngIf="item.isShared && item.allSAZs && item.allSAZs.length > 1" 
 									class="text-xs text-purple-600 mt-1">
-									SAZs: {{ getAllSAZNamesForEA(item) }}
+									Chiwogs/Laps: {{ getAllSAZNamesForEA(item) }}
 								</p>
 							</td>
 							<td>
@@ -417,7 +417,7 @@
 				Select a Filter
 			</h3>
 			<p class="text-sm text-slate-600">
-				Please select a dzongkhag, administrative zone, or sub-administrative zone from the dropdowns above to view enumeration areas.
+				Please select a dzongkhag, gewog/thromde, or chiwog/lap from the dropdowns above to view enumeration areas.
 			</p>
 		</div>
 	</div>
@@ -499,13 +499,13 @@
 					</small>
 				</div>
 
-				<!-- Sub-Administrative Zone Field (Multi-Select) -->
+				<!-- Chiwog/Lap Field (Multi-Select) -->
 				<div>
 					<label
 						for="subAdministrativeZoneIds"
 						class="block text-sm font-medium text-gray-700 mb-2"
 					>
-						Sub-Administrative Zone(s) *
+						Chiwog/Lap(s) *
 						<span class="text-xs text-gray-500 ml-1">(Select at least one)</span>
 					</label>
 					<p-multiSelect
@@ -514,7 +514,7 @@
 						formControlName="subAdministrativeZoneIds"
 						optionLabel="name"
 						optionValue="id"
-						placeholder="Select sub-administrative zone(s)"
+						placeholder="Select chiwog/lap(s)"
 						[class.ng-invalid]="hasFormError('subAdministrativeZoneIds')"
 						styleClass="w-full"
 						[filter]="true"
@@ -530,7 +530,7 @@
 						{{ getFormError("subAdministrativeZoneIds") }}
 					</small>
 					<small class="text-gray-500 mt-1 block">
-						You can select multiple Sub-Administrative Zones to combine them into a single Enumeration Area.
+						You can select multiple chiwogs/laps to combine them into a single Enumeration Area.
 					</small>
 				</div>
 			</form>
@@ -763,6 +763,7 @@
 										>subAdministrativeZoneIds (array), name, areaCode,
 										description</strong
 									>
+									Note: subAdministrativeZoneIds refers to chiwog/lap IDs
 								</li>
 								<li>Projection: <strong>WGS84 (EPSG:4326)</strong></li>
 								<li>Supported geometry types: Polygon, MultiPolygon</li>

@@ -1,6 +1,6 @@
 <div
 	class="enumeration-area-map-view bg-gray-50"
-	style="height: 100vh; overflow: hidden"
+	style="height: 100vh; overflow: hidden; position: fixed; top: 0; left: 0; right: 0; bottom: 0;"
 >
 	<!-- Loading State -->
 	<div
@@ -50,92 +50,92 @@
 	</div>
 
 	<!-- Main View -->
-	<div class="z-50 shadow-lg bg-primary-600" *ngIf="!loading && !error">
-		<div class="flex flex-col gap-4 px-3 py-4">
-			<div class="flex-1 flex flex-col justify-center overflow-hidden">
-				<div class="flex items-center gap-2">
-					<h1 class="text-white font-bold leading-tight">
+	<div class="flex flex-col h-screen overflow-hidden w-full" *ngIf="!loading && !error">
+		<!-- Fixed Header -->
+		<div class="fixed top-0 left-0 right-0 z-50 shadow-lg bg-primary-600 header-container flex-shrink-0">
+			<div class="flex flex-col gap-2 px-3 py-2 relative">
+				<!-- Top Row: Title and Back Button -->
+				<div class="flex items-center justify-between gap-2">
+					<button
+						pButton
+						type="button"
+						icon="pi pi-arrow-left"
+						(click)="goBack()"
+						class="p-button-text p-button-plain !text-white flex-shrink-0"
+						styleClass="p-button-sm"
+					></button>
+					<h1 class="text-white font-bold text-sm sm:text-base leading-tight truncate flex-1 text-center px-2">
 						{{ getEnumerationAreaName() }}
 					</h1>
+					<div class="w-8 flex-shrink-0"></div>
 				</div>
-			</div>
-			<div class="flex items-center justify-between">
-				<button
-					pButton
-					type="button"
-					icon="pi pi-arrow-left"
-					(click)="goBack()"
-					class="p-button-text p-button-plain !text-white"
-				></button>
 
+				<!-- Middle Row: Action Buttons -->
 				<div class="flex items-center gap-2">
 					<button
 						*ngIf="!isEnumerated"
 						pButton
 						type="button"
-						label="Mark Complete"
-						size="small"
 						icon="pi pi-check-circle"
 						(click)="openCompleteEnumerationDialog()"
-						styleClass="p-button-sm"
-					></button>
-					<button
-						pButton
-						type="button"
-						icon="pi pi-list"
-						size="small"
-						label="Household List"
-						(click)="viewHouseholdListings()"
-						styleClass="p-button-secondary p-button-sm"
+						label="Complete"
+						styleClass="p-button-sm p-button-success"
+						class="w-full"
 					></button>
 				</div>
+
+				<!-- Status Indicators Row - Compact -->
+				<div class="flex items-center gap-2 justify-center flex-wrap" *ngIf="isEnumerated || surveyEnumerationArea?.isSampled">
+					<span
+						class="text-xs text-white flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded"
+						*ngIf="isEnumerated"
+					>
+						<i class="pi pi-check-circle text-xs"></i>
+						<span class="font-semibold">LISTING COMPLETED</span>
+					</span>
+					<span
+						class="text-xs text-white flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded"
+						*ngIf="surveyEnumerationArea?.isSampled"
+					>
+						<i class="pi pi-check-circle text-xs"></i>
+						<span>Sampled</span>
+					</span>
+				</div>
 			</div>
-
-			<div class="flex items-center gap-2 justify-end">
-				<p
-					*ngIf="locationError"
-					class="text-white text-xs flex items-center justify-center"
-				>
-					<i class="pi pi-exclamation-triangle mr-1 text-xs"></i>
-					<span class="truncate">{{ locationError }} | </span>
-				</p>
-				<span
-					class="text-xs text-white flex items-center gap-1"
-					*ngIf="isEnumerated"
-				>
-					Enumerated <i class="pi pi-check-circle text-xs"></i>
-				</span>
-
-				<span
-					class="text-xs text-white flex items-center gap-1"
-					*ngIf="surveyEnumerationArea?.isSampled"
-				>
-					Sampled <i class="pi pi-check-circle text-xs"></i>
-				</span>
+			
+			<!-- Location Error - Absolute Position at Bottom -->
+			<div
+				*ngIf="locationError"
+				class="absolute bottom-0 left-0 right-0 bg-amber-500 text-white px-3 py-1.5 flex items-center gap-2 text-xs z-10"
+			>
+				<i class="pi pi-exclamation-triangle text-sm flex-shrink-0"></i>
+				<span class="truncate">{{ locationError }}</span>
 			</div>
 		</div>
 
-		<!-- Map Container -->
-		<div class="relative">
-			<div #mapContainer class="w-full h-[90vh]" style="z-index: 1"></div>
+		<!-- Spacer for fixed header -->
+		<div class="header-spacer flex-shrink-0" [class.with-location-error]="locationError"></div>
+		
+		<!-- Map Container - Takes remaining space -->
+		<div class="relative flex-1 overflow-hidden map-wrapper">
+			<div #mapContainer class="w-full h-full" style="z-index: 1"></div>
 
 			<!-- Map Controls Overlay - Compact Mobile Design -->
-			<div class="absolute top-2 right-2 z-50 flex flex-col gap-1.5">
+			<div class="absolute top-2 right-2 z-50 flex flex-col gap-1.5 map-controls">
 				<!-- Edit Mode Toggle Button -->
 				<button
-					*ngIf="!isEnumerated"
 					pButton
 					type="button"
 					icon="pi pi-plus"
 					(click)="toggleEditMode()"
-					label="Structure"
 					[class]="editMode ? 'p-button-success' : 'p-button-secondary'"
-					styleClass="p-button-rounded p-button-text add-structure-btn"
+					styleClass="p-button-rounded p-button-text add-structure-btn map-control-btn"
 					size="small"
 					[style]="{
 						'background-color': editMode ? '#10b981' : 'white',
-
-						color: editMode ? 'white' : '#6b7280'
+						color: editMode ? 'white' : '#6b7280',
+						'min-width': '44px',
+						'height': '44px'
 					}"
 					[title]="
 						editMode
@@ -150,9 +150,12 @@
 					type="button"
 					[icon]="isSatelliteView ? 'pi pi-map' : 'pi pi-globe'"
 					(click)="toggleMapLayer()"
-					label="BaseMap"
-					styleClass="p-button-rounded p-button-text"
+					styleClass="p-button-rounded p-button-text map-control-btn"
 					size="small"
+					[style]="{
+						'min-width': '44px',
+						'height': '44px'
+					}"
 					[title]="
 						isSatelliteView ? 'Switch to Map View' : 'Switch to Satellite View'
 					"
@@ -164,9 +167,12 @@
 					type="button"
 					icon="pi pi-search-plus"
 					(click)="zoomToEnumerationArea()"
-					styleClass="p-button-rounded p-button-text"
-					label="Zoom to EA"
+					styleClass="p-button-rounded p-button-text map-control-btn"
 					size="small"
+					[style]="{
+						'min-width': '44px',
+						'height': '44px'
+					}"
 					title="Zoom to Enumeration Area"
 				></button>
 
@@ -176,13 +182,13 @@
 					type="button"
 					icon="pi pi-map-marker"
 					(click)="toggleLocationTracking()"
-					styleClass="p-button-rounded p-button-text"
+					styleClass="p-button-rounded p-button-text map-control-btn"
 					size="small"
-					label="Locate Me"
 					[style]="{
 						'background-color': isTrackingLocation ? '#22c55e' : 'white',
-
-						color: isTrackingLocation ? 'white' : '#6b7280'
+						color: isTrackingLocation ? 'white' : '#6b7280',
+						'min-width': '44px',
+						'height': '44px'
 					}"
 					[title]="
 						isTrackingLocation
@@ -192,16 +198,31 @@
 							: 'Start Tracking'
 					"
 				></button>
+
+				<!-- Household List Button -->
+				<button
+					pButton
+					type="button"
+					icon="pi pi-list"
+					(click)="viewHouseholdListings()"
+					styleClass="p-button-rounded p-button-text map-control-btn"
+					size="small"
+					[style]="{
+						'min-width': '44px',
+						'height': '44px'
+					}"
+					title="View Household Listings"
+				></button>
 			</div>
 
 			<!-- Edit Mode Instruction Overlay - Compact -->
 			<div
-				*ngIf="editMode && !isEnumerated"
-				class="absolute top-2 left-2 z-50 bg-blue-500 text-white rounded-lg shadow-lg px-3 py-2 max-w-[calc(100%-120px)]"
+				*ngIf="editMode"
+				class="absolute top-2 left-2 z-50 bg-blue-500 text-white rounded-lg shadow-lg px-2 py-1.5 max-w-[calc(100%-140px)] sm:max-w-[calc(100%-200px)]"
 			>
-				<div class="flex items-center gap-2">
-					<i class="pi pi-info-circle text-sm"></i>
-					<p class="text-xs font-medium">Click on map to add structure</p>
+				<div class="flex items-center gap-1.5">
+					<i class="pi pi-info-circle text-xs"></i>
+					<p class="text-xs font-medium">Click map to add structure</p>
 				</div>
 			</div>
 		</div>
@@ -412,7 +433,6 @@
 					<div class="text-sm space-y-1">
 						<div
 							class="flex justify-between items-center"
-							*ngIf="selectedStructure.latitude && selectedStructure.longitude"
 						>
 							<span class="text-gray-600">Location:</span>
 							<div class="flex items-center gap-2">

@@ -16,9 +16,9 @@ import { SurveyDataService } from '../../../../core/dataservice/survey/survey.da
  import { AdminSurveySamplingComponent } from './admin-survey-sampling/admin-survey-sampling.component';
 import { SurveyStatus } from '../../../../core/constants/enums';
 import { SurveyOverviewComponent } from '../../../shared/survey-view/survey-overview/survey-overview.component';
-import { SurveyEaManagementComponent } from '../../../shared/survey-view/survey-ea-management/survey-ea-management.component';
-import { SurveyHouseholdListingsComponent } from '../../../shared/survey-view/survey-household-listings/survey-household-listings.component';
-import { SurveyUsersComponent } from '../../../shared/survey-view/survey-users/survey-users.component';
+import { AdminSurveyEaManagementComponent } from './admin-survey-ea-management/admin-survey-ea-management.component';
+import { AdminSurveyHouseholdListingsComponent } from './admin-survey-household-listings/admin-survey-household-listings.component';
+import { AdminSurveyUsersComponent } from './admin-survey-users/admin-survey-users.component';
 
 @Component({
 	selector: 'app-admin-survey-viewer',
@@ -33,9 +33,9 @@ import { SurveyUsersComponent } from '../../../shared/survey-view/survey-users/s
 		AdminSurveySamplingComponent,
 		
 		SurveyOverviewComponent,
-		SurveyEaManagementComponent,
-		SurveyHouseholdListingsComponent,
-		SurveyUsersComponent
+		AdminSurveyEaManagementComponent,
+		AdminSurveyHouseholdListingsComponent,
+		AdminSurveyUsersComponent
 	],
 	providers: [MessageService, ConfirmationService, DialogService],
 })

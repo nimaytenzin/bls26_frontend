@@ -293,7 +293,7 @@ export class EnumerationAreaMapViewComponent
 		}
 
 		// Add click handler for map to add structures
-		if (this.map && !this.isEnumerated) {
+		if (this.map) {
 			this.map.on('click', (e: L.LeafletMouseEvent) => {
 				// Allow clicks when in edit mode
 				if (this.editMode) {
@@ -849,7 +849,7 @@ export class EnumerationAreaMapViewComponent
 	 */
 	private onMapClick(e: L.LeafletMouseEvent): void {
 		// Handle add structure mode
-		if (this.isEnumerated || !this.editMode) return;
+		if (!this.editMode) return;
 
 		this.clickedLatLng = { lat: e.latlng.lat, lng: e.latlng.lng };
 		// Automatically create structure with next number (no dialog)
@@ -860,10 +860,6 @@ export class EnumerationAreaMapViewComponent
 	 * Toggle edit mode
 	 */
 	toggleEditMode(): void {
-		if (this.isEnumerated) {
-			this.showToast('Cannot edit. Enumeration area is already completed.', 'error');
-			return;
-		}
 		this.editMode = !this.editMode;
 		if (this.editMode) {
 			this.showToast('Edit mode enabled. Click on map to add structures automatically.', 'info');
@@ -1142,10 +1138,7 @@ export class EnumerationAreaMapViewComponent
 				this.isEnumerated = true;
 				this.surveyEnumerationArea = { ...this.surveyEnumerationArea, ...updated };
 				this.showToast('Enumeration completed successfully', 'success');
-				// Disable edit mode if active
-				if (this.editMode) {
-					this.editMode = false;
-				}
+				// Keep edit mode enabled so users can continue adding structures/households
 			},
 			error: (error) => {
 				this.isCompletingEnumeration = false;
