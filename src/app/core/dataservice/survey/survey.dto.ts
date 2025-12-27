@@ -59,6 +59,25 @@ export interface UpdateSurveyDto {
 }
 
 /**
+ * Save Survey DTO
+ * Data Transfer Object for saving (creating or updating) a survey
+ * If id is provided and survey exists, it will be updated
+ * If id is not provided or doesn't exist, a new survey will be created
+ */
+export interface SaveSurveyDto {
+	id?: number; // Optional - If provided, updates existing survey
+	name: string; // Required - Survey name
+	description: string; // Required - Survey description
+	startDate: string; // Required - Start date (ISO date string: YYYY-MM-DD)
+	endDate: string; // Required - End date (ISO date string: YYYY-MM-DD)
+	year: number; // Required - Survey year
+	status?: SurveyStatus; // Optional - Survey status (default: 'ACTIVE')
+	isSubmitted?: boolean; // Optional - Whether survey is submitted
+	isVerified?: boolean; // Optional - Whether survey is verified
+	enumerationAreaIds?: number[]; // Optional - Array of enumeration area IDs to associate
+}
+
+/**
  * API Response Wrapper
  * Generic wrapper for API responses
  */

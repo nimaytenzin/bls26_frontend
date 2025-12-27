@@ -141,7 +141,7 @@ export class SurveyOverviewComponent
 	}
 
 	/**
-	 * Get enumerated but not sampled count
+	 * Get listing complete but not sampled count
 	 */
 	getEnumeratedNotSampledCount(): number {
 		if (!this.statistics) return 0;

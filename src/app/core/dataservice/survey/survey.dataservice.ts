@@ -7,6 +7,7 @@ import {
 	Survey,
 	CreateSurveyDto,
 	UpdateSurveyDto,
+	SaveSurveyDto,
 	ManageEnumerationAreasDto,
 	SurveyStatisticsResponseDto,
 	PaginationQueryDto,
@@ -143,6 +144,27 @@ export class SurveyDataService {
 			.pipe(
 				catchError((error) => {
 					console.error(`Error updating survey ${id}:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Save survey (create or update)
+	 * If id is provided and survey exists, it will be updated
+	 * If id is not provided or doesn't exist, a new survey will be created
+	 * @param dto Save survey data (with optional id)
+	 * @returns Observable of saved Survey
+	 * @requires Authentication (ADMIN role)
+	 */
+	saveSurvey(dto: SaveSurveyDto): Observable<Survey> {
+		return this.http
+			.post<Survey>(`${this.apiUrl}/save`, dto, {
+				headers: this.getAuthHeaders(),
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error saving survey:', error);
 					return throwError(() => error);
 				})
 			);

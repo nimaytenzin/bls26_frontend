@@ -54,7 +54,7 @@
 					pInputText
 					[(ngModel)]="searchQuery"
 					(ngModelChange)="filterHouseholds()"
-					placeholder="Search by household ID, name, phone, structure number..."
+					placeholder="Search by selection order, household ID, name, phone, structure number..."
 					class="w-full"
 				/>
 			</span>
@@ -89,6 +89,12 @@
 					<div class="flex items-center justify-between gap-4">
 						<div class="flex-1">
 							<div class="flex items-center gap-4 mb-2">
+								<div class="flex items-center gap-2">
+									<span class="text-xs text-gray-500">Selection Order:</span>
+									<span class="text-xs font-semibold px-2 py-1 rounded bg-blue-100 text-blue-800">
+										#{{ item.selectionOrder }}
+									</span>
+								</div>
 								<div class="flex items-center gap-2">
 									<span class="text-xs text-gray-500">Serial Number:</span>
 									<span class="text-xs  px-2 py-1 rounded">

@@ -10,8 +10,11 @@ import { PrimeNgModules } from '../../../../../primeng.modules';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import {
 	Survey,
+	SaveSurveyDto,
 } from '../../../../../core/dataservice/survey/survey.dto';
 import { SurveyStatus } from '../../../../../core/constants/enums';
+import { SurveyDataService } from '../../../../../core/dataservice/survey/survey.dataservice';
+import { MessageService } from 'primeng/api';
 
 @Component({
 	selector: 'app-admin-master-survey-edit',
@@ -24,6 +27,7 @@ export class AdminMasterSurveyEditComponent implements OnInit {
 	surveyForm!: FormGroup;
 	SurveyStatus = SurveyStatus;
 	survey: Survey | null = null;
+	saving = false;
 
 	statusOptions = [
 		{ label: 'Active', value: SurveyStatus.ACTIVE },
@@ -33,7 +37,9 @@ export class AdminMasterSurveyEditComponent implements OnInit {
 	constructor(
 		private fb: FormBuilder,
 		public ref: DynamicDialogRef,
-		public config: DynamicDialogConfig
+		public config: DynamicDialogConfig,
+		private surveyService: SurveyDataService,
+		private messageService: MessageService
 	) {}
 
 	ngOnInit() {
@@ -127,33 +133,60 @@ export class AdminMasterSurveyEditComponent implements OnInit {
 	}
 
 	save() {
-		if (this.surveyForm.valid) {
-			const formData = this.surveyForm.value;
-			// Convert date strings back to Date objects
-			formData.startDate = new Date(formData.startDate);
-			formData.endDate = new Date(formData.endDate);
-			this.ref.close(formData);
-		}
+		// if (this.surveyForm.invalid) {
+		// 	this.messageService.add({
+		// 		severity: 'warn',
+		// 		summary: 'Validation Error',
+		// 		detail: 'Please fill in all required fields correctly',
+		// 		life: 3000,
+		// 	});
+		// 	return;
+		// }
+
+		this.saving = true;
+		const formData = this.surveyForm.value;
+
+		// Prepare SaveSurveyDto
+		const saveDto: SaveSurveyDto = {
+			id: this.survey?.id, // Include id if editing existing survey
+			name: formData.name,
+			description: formData.description,
+			startDate: formData.startDate, // Already in YYYY-MM-DD format from date input
+			endDate: formData.endDate, // Already in YYYY-MM-DD format from date input
+			year: formData.year,
+			status: formData.status || SurveyStatus.ACTIVE,
+		};
+
+		this.surveyService.saveSurvey(saveDto).subscribe({
+			next: (savedSurvey) => {
+				this.saving = false;
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: this.survey?.id
+						? 'Survey updated successfully'
+						: 'Survey created successfully',
+					life: 3000,
+				});
+				this.ref.close(savedSurvey);
+			},
+			error: (error) => {
+				this.saving = false;
+				console.error('Error saving survey:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail:
+						error?.error?.message ||
+						error?.error?.error ||
+						'Failed to save survey',
+					life: 5000,
+				});
+			},
+		});
 	}
 
 	cancel() {
 		this.ref.close();
-	}
-
-	// Utility method to check if form has changed
-	hasFormChanged(): boolean {
-		if (!this.survey) return false;
-
-		const currentValues = this.surveyForm.value;
-		const originalValues = {
-			name: this.survey.name,
-			description: this.survey.description,
-			startDate: new Date(this.survey.startDate).toISOString().split('T')[0],
-			endDate: new Date(this.survey.endDate).toISOString().split('T')[0],
-			year: this.survey.year,
-			status: this.survey.status,
-		};
-
-		return JSON.stringify(currentValues) !== JSON.stringify(originalValues);
 	}
 }

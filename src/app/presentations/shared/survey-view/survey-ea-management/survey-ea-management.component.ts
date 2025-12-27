@@ -72,7 +72,7 @@ export class SurveyEaManagementComponent implements OnInit {
 	selectedStatus: string | null = null;
 	statusOptions = [
 		{ label: 'All', value: null },
-		{ label: 'Enumerated', value: 'enumerated' },
+		{ label: 'Listing Complete', value: 'enumerated' },
 		{ label: 'Sampled', value: 'sampled' },
 		{ label: 'Published', value: 'published' },
 	];

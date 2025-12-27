@@ -130,47 +130,7 @@
 				styleClass="w-full"
 			></p-dropdown>
 		</div>
-
-		<!-- Flags -->
-		<div class="grid grid-cols-2 gap-4">
-			<div class="flex items-center">
-				<p-checkbox
-					formControlName="isSubmitted"
-					[binary]="true"
-					inputId="isSubmitted"
-				></p-checkbox>
-				<label for="isSubmitted" class="ml-2 text-sm text-gray-700">
-					Is Submitted
-				</label>
-			</div>
-
-			<div class="flex items-center">
-				<p-checkbox
-					formControlName="isVerified"
-					[binary]="true"
-					inputId="isVerified"
-				></p-checkbox>
-				<label for="isVerified" class="ml-2 text-sm text-gray-700">
-					Is Verified
-				</label>
-			</div>
-		</div>
 	</form>
-
-	<!-- Changes Summary Card -->
-	<div
-		*ngIf="hasFormChanged()"
-		class="mt-6 bg-orange-50 border border-orange-200 rounded-lg p-4"
-	>
-		<h4 class="font-semibold text-orange-900 mb-2 flex items-center">
-			<i class="pi pi-exclamation-triangle mr-2"></i>
-			Unsaved Changes
-		</h4>
-		<p class="text-sm text-orange-800">
-			You have unsaved changes. Click "Save Changes" to apply them or "Cancel"
-			to discard.
-		</p>
-	</div>
 
 	<!-- Footer Buttons -->
 	<div class="flex justify-end gap-2 mt-6 pt-4 border-t">
@@ -185,10 +145,11 @@
 		<button
 			pButton
 			type="button"
-			label="Save Changes"
+			[label]="saving ? 'Saving...' : 'Save Changes'"
 			icon="pi pi-check"
 			class="p-button-primary"
-			[disabled]="surveyForm.invalid || !hasFormChanged()"
+			[disabled]="saving"
+			[loading]="saving"
 			(click)="save()"
 		></button>
 	</div>

@@ -86,7 +86,10 @@ export class EnumeratorSamplingResultsComponent implements OnInit {
 				next: (response: SamplingResultsResponseDto) => {
 					if (response.success && response.data) {
 						this.currentResult = response.data;
-						this.selectedHouseholds = response.data.selectedHouseholds;
+						// Sort by selection order
+						this.selectedHouseholds = response.data.selectedHouseholds.sort(
+							(a, b) => a.selectionOrder - b.selectionOrder
+						);
 						this.filteredHouseholds = [...this.selectedHouseholds];
 					}
 					this.resultLoading = false;
@@ -133,9 +136,12 @@ export class EnumeratorSamplingResultsComponent implements OnInit {
 				household.nameOfHOH?.toLowerCase().includes(query) ||
 				household.phoneNumber?.toLowerCase().includes(query) ||
 				household.householdSerialNumber?.toString().includes(query) ||
-				household.structure?.structureNumber?.toLowerCase().includes(query)
+				household.structure?.structureNumber?.toLowerCase().includes(query) ||
+				item.selectionOrder?.toString().includes(query)
 			);
 		});
+		// Maintain sort order after filtering
+		this.filteredHouseholds.sort((a, b) => a.selectionOrder - b.selectionOrder);
 	}
 
 	/**

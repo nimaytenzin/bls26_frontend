@@ -43,19 +43,21 @@
 
 	<!-- Main Content: Split Layout -->
 	<ng-container *ngIf="survey && !loading && !notFound">
-		<section class="flex gap-4 h-[calc(100vh-5rem)] bg-white">
+		<section class="flex gap-4 h-[calc(100vh-5rem)] bg-white overflow-hidden">
 			<!-- Left Pane: Survey Details & Metadata -->
 			<div
-				class="w-[25vw] flex flex-col overflow-y-auto p-6 bg-white border-r border-slate-200"
+				class="min-w-max w-[25vw] max-w-md flex flex-col h-full overflow-hidden p-6 bg-white border-r border-slate-200"
 			>
-				<app-survey-overview
-					[surveyId]="surveyId"
-					[survey]="survey"
-				></app-survey-overview>
+				<div class="flex-1 overflow-y-auto">
+					<app-survey-overview
+						[surveyId]="surveyId"
+						[survey]="survey"
+					></app-survey-overview>
+				</div>
 			</div>
 
 			<!-- Right Pane: Tabs Content -->
-			<div class="flex-1 relative bg-white">
+			<div class="flex-1 relative bg-white h-full overflow-hidden">
 				<p-tabView class="h-full">
 					<!-- PRIMARY: Enumeration Areas Tab (Default) -->
 					<p-tabPanel header="Enumeration Areas">

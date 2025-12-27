@@ -128,7 +128,7 @@
 								>{{ getSampledNotPublishedCount() }}</span
 							>
 						</div>
-						<!-- Enumerated but not Sampled Segment -->
+						<!-- Listing Complete but not Sampled Segment -->
 						<div
 							*ngIf="shouldShowSegment(getEnumeratedNotSampledCount())"
 							class="flex items-center justify-center text-white text-sm font-semibold px-2 transition-all"
@@ -182,7 +182,7 @@
 								style="background-color: #1a58af"
 							></div>
 							<span class="text-gray-600"
-								>Enumerated ({{
+								>Listing Complete ({{
 									statistics.enumeratedEnumerationAreas || 0
 								}})</span
 							>

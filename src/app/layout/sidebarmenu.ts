@@ -154,17 +154,17 @@ export const ADMINSIDEBARITEMS = [
 	// 		},
 	// 	],
 	// },
-	{
-		label: 'Download',
-		items: [
-			{
-				label: 'Download Data',
-				icon: 'pi pi-fw pi-download',
-				routerLink: ['/admin/reports/statistics'],
-				roles: [USERROLESENUM.ADMIN],
-			},
-		],
-	},
+	// {
+	// 	label: 'Download',
+	// 	items: [
+	// 		{
+	// 			label: 'Download Data',
+	// 			icon: 'pi pi-fw pi-download',
+	// 			routerLink: ['/admin/reports/statistics'],
+	// 			roles: [USERROLESENUM.ADMIN],
+	// 		},
+	// 	],
+	// },
 ];
 
 // Supervisor Menu - Survey field operations and data submission

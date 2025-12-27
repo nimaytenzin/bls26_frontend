@@ -230,9 +230,10 @@ export class HouseholdListingFormComponent implements OnInit {
 						this.messageService.add({
 							severity: 'success',
 							summary: 'Success',
-							detail: 'Household updated successfully',
+							detail: 'Household updated successfully. You can continue editing.',
 						});
-						setTimeout(() => this.goBack(), 1000);
+						this.submitting = false;
+						// Don't navigate away - allow continued editing
 					},
 					error: (error: any) => {
 						console.error('Error updating household:', error);
@@ -276,13 +277,19 @@ export class HouseholdListingFormComponent implements OnInit {
 				this.enumeratorService
 					.createHouseholdListing(createDto)
 					.subscribe({
-						next: () => {
+						next: (createdHousehold) => {
+							// Update to edit mode after creation
+							if (createdHousehold && createdHousehold.id) {
+								this.householdId = createdHousehold.id;
+								this.isEditMode = true;
+							}
 							this.messageService.add({
 								severity: 'success',
 								summary: 'Success',
-								detail: 'Household created successfully',
+								detail: 'Household created successfully. You can continue editing.',
 							});
-							setTimeout(() => this.goBack(), 1000);
+							this.submitting = false;
+							// Don't navigate away - allow continued editing
 						},
 						error: (error: any) => {
 							console.error('Error creating household:', error);
