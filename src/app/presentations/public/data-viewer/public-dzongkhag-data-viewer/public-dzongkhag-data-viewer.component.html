@@ -122,15 +122,29 @@
 								{{ dzongkhag?.name || "Dzongkhag" }} Dzongkhag
 							</h1>
 						</div>
-						<!-- Back Button -->
-						<button
-							type="button"
-							(click)="goBack()"
-							class="flex-shrink-0 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-						>
-							<i class="pi pi-arrow-left"></i>
-							<span class="hidden md:inline">Back</span>
-						</button>
+						<!-- Action Buttons -->
+						<div class="flex items-center gap-2">
+							<!-- Home Button -->
+							<button
+								type="button"
+								(click)="navigateToHome()"
+								class="flex-shrink-0 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow"
+								pTooltip="Go to Home"
+								tooltipPosition="bottom"
+							>
+								<i class="pi pi-home"></i>
+								<span class="hidden md:inline">Home</span>
+							</button>
+							<!-- Back Button -->
+							<button
+								type="button"
+								(click)="goBack()"
+								class="flex-shrink-0 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+							>
+								<i class="pi pi-arrow-left"></i>
+								<span class="hidden md:inline">Back</span>
+							</button>
+						</div>
 					</div>
 
 					<!-- No Data Found Message -->
@@ -475,6 +489,7 @@
 
 		<!-- Map Controls and Overlays -->
 		<div class="absolute inset-0 pointer-events-none z-[999]">
+
 			<!-- Mobile Download Button -->
 			<div *ngIf="!noDataFound" class="md:hidden fixed bottom-4 right-3 pointer-events-auto z-[1000]">
 				<button
@@ -490,6 +505,7 @@
 			<!-- Desktop Map Controls -->
 			<div
 				class="hidden md:block absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg border-2 border-slate-200 shadow-xl p-3 space-y-3 max-w-[280px] pointer-events-auto"
+				[style.margin-top]="'60px'"
 			>
 				<div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200">
 					<i class="pi pi-sliders-h text-primary-600 text-sm"></i>

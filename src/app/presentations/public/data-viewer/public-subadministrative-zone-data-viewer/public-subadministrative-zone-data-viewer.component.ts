@@ -96,6 +96,8 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	isMobileDrawerOpen: boolean = false;
 	isMobileControlsCollapsed: boolean = true;
 
+	// Quick Navigation Panel (for top-right panel, separate from sidebar location switcher)
+
 	// Map
 	private map?: L.Map;
 	private baseLayer?: L.TileLayer;
@@ -884,6 +886,13 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	}
 
 	/**
+	 * Navigate to home page
+	 */
+	navigateToHome(): void {
+		this.router.navigate(['/']);
+	}
+
+	/**
 	 * Navigate to dzongkhag viewer
 	 */
 	navigateToDzongkhag(): void {
@@ -1006,14 +1015,9 @@ export class PublicSubadministrativeZoneDataViewerComponent
 		if (selectedSubAdminZone && selectedSubAdminZone.id !== this.subAdministrativeZoneId) {
 			// Get the administrative zone ID from the selected sub-admin zone
 			const adminZoneId = selectedSubAdminZone.administrativeZoneId || this.administrativeZoneId;
-			// Get dzongkhag ID from the selected sub-admin zone or use current
-			const dzongkhagId = selectedSubAdminZone.administrativeZone?.dzongkhagId || 
-			                    selectedSubAdminZone.administrativeZone?.dzongkhag?.id || 
-			                    this.dzongkhagId;
 			
 			this.router.navigate([
 				'sub-administrative-zone',
-				dzongkhagId,
 				adminZoneId,
 				selectedSubAdminZone.id,
 			], {

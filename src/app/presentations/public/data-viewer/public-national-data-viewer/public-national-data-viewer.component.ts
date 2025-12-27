@@ -28,6 +28,9 @@ import {
 } from '../../../../core/utility/map-feature-color.service';
 import { PublicPageSettingsService } from '../../../../core/services/public-page-settings.service';
 import { DownloadService } from '../../../../core/utility/download.service';
+import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
+import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
+import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
 
 interface DzongkhagStats {
 	dzongkhagId: number;
@@ -120,6 +123,15 @@ export class PublicNationalDataViewerComponent
 	isMobileDrawerOpen: boolean = false;
 	isMobileControlsCollapsed: boolean = true;
 
+	// Quick Navigation Panel
+	allDzongkhags: any[] = [];
+	quickNavAdminZones: any[] = [];
+	quickNavSubAdminZones: any[] = [];
+	selectedDzongkhag: any = null;
+	selectedAdminZone: any = null;
+	selectedSubAdminZone: any = null;
+	loadingLocations = false;
+
 	// Map
 	private map?: L.Map;
 	private baseLayer?: L.TileLayer;
@@ -145,7 +157,10 @@ export class PublicNationalDataViewerComponent
 		private annualStatisticsDownloadService: AnnualStatisticsDownloadService,
 		private messageService: MessageService,
 		private publicPageSettingsService: PublicPageSettingsService,
-		private downloadService: DownloadService
+		private downloadService: DownloadService,
+		private dzongkhagService: DzongkhagDataService,
+		private administrativeZoneService: AdministrativeZoneDataService,
+		private subAdministrativeZoneService: SubAdministrativeZoneDataService
 	) {}
 
 	// Flags to track initialization state
@@ -157,6 +172,8 @@ export class PublicNationalDataViewerComponent
 		this.initializeSettings();
 		this.initializeResponsive();
 		this.loadDzongkhagStatistics();
+		// Load location lists for quick navigation
+		this.loadLocationLists();
 	}
 
 	ngAfterViewInit(): void {
@@ -670,6 +687,101 @@ export class PublicNationalDataViewerComponent
 		this.router.navigate(['dzongkhag', dzongkhagId], {
 			relativeTo: this.route.parent || this.route,
 		});
+	}
+
+	/**
+	 * Load location lists for quick navigation
+	 */
+	loadLocationLists(): void {
+		this.loadingLocations = true;
+		// Load all dzongkhags
+		this.dzongkhagService.findAllDzongkhags(false, false, false, false).subscribe({
+			next: (dzongkhags) => {
+				this.allDzongkhags = dzongkhags || [];
+				this.loadingLocations = false;
+			},
+			error: (error) => {
+				console.error('Error loading dzongkhags:', error);
+				this.loadingLocations = false;
+			},
+		});
+	}
+
+	/**
+	 * Load administrative zones for quick navigation
+	 */
+	loadAdminZonesForQuickNav(dzongkhagId: number): void {
+		this.administrativeZoneService.findAdministrativeZonesByDzongkhag(dzongkhagId).subscribe({
+			next: (adminZones) => {
+				this.quickNavAdminZones = adminZones || [];
+			},
+			error: (error) => {
+				console.error('Error loading administrative zones:', error);
+				this.quickNavAdminZones = [];
+			},
+		});
+	}
+
+	/**
+	 * Load sub-administrative zones for quick navigation
+	 */
+	loadSubAdminZonesForQuickNav(administrativeZoneId: number): void {
+		this.subAdministrativeZoneService.findSubAdministrativeZonesByAdministrativeZone(administrativeZoneId).subscribe({
+			next: (subAdminZones) => {
+				this.quickNavSubAdminZones = subAdminZones || [];
+			},
+			error: (error) => {
+				console.error('Error loading sub-administrative zones:', error);
+				this.quickNavSubAdminZones = [];
+			},
+		});
+	}
+
+	/**
+	 * Handle quick navigation dzongkhag change
+	 */
+	onQuickNavDzongkhagChange(event: any): void {
+		const selectedDzongkhag = event.value;
+		if (selectedDzongkhag) {
+			this.loadAdminZonesForQuickNav(selectedDzongkhag.id);
+			this.router.navigate(['dzongkhag', selectedDzongkhag.id], {
+				relativeTo: this.route,
+			});
+		}
+	}
+
+	/**
+	 * Handle quick navigation administrative zone change
+	 */
+	onQuickNavAdminZoneChange(event: any): void {
+		const selectedAdminZone = event.value;
+		if (selectedAdminZone && this.selectedDzongkhag) {
+			this.loadSubAdminZonesForQuickNav(selectedAdminZone.id);
+			this.router.navigate([
+				'administrative-zone',
+				this.selectedDzongkhag.id,
+				selectedAdminZone.id,
+			], {
+				relativeTo: this.route,
+			});
+		}
+	}
+
+	/**
+	 * Handle quick navigation sub-administrative zone change
+	 */
+	onQuickNavSubAdminZoneChange(event: any): void {
+		const selectedSubAdminZone = event.value;
+		if (selectedSubAdminZone && this.selectedAdminZone) {
+			const adminZoneId = selectedSubAdminZone.administrativeZoneId || this.selectedAdminZone.id;
+			this.router.navigate([
+				'sub-administrative-zone',
+				adminZoneId,
+				selectedSubAdminZone.id,
+			], {
+				relativeTo: this.route,
+			});
+		}
 	}
 
 	/**
