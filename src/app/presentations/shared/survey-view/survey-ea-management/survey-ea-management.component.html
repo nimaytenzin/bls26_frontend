@@ -3,11 +3,10 @@
 	<div class="flex justify-between items-center">
 		<div>
 			<h3 class="text-xl font-semibold text-gray-800">
-				 Enumeration Areas
+				Survey Enumeration Areas
+
 			</h3>
-			<p class="text-sm text-gray-500 mt-1">
-				View household listings and perform sampling by enumeration area
-			</p>
+			
 		</div>
 		<div class="flex gap-2" *ngIf="canAddEA()">
 			<button
@@ -114,18 +113,38 @@
 				</div>
 				
 				<!-- Filters -->
-				<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-					<!-- Admin Zone Filter -->
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+					<!-- Dzongkhag Filter -->
 					<div class="flex flex-col gap-2">
-						<label class="text-sm font-medium text-gray-700">Filter by Admin Zone</label>
+						<label class="text-sm font-medium text-gray-700">Filter by Dzongkhag</label>
+						<p-dropdown
+							[options]="availableDzongkhags"
+							[(ngModel)]="selectedDzongkhagId"
+							optionLabel="name"
+							optionValue="id"
+							placeholder="All Dzongkhags"
+							[showClear]="true"
+							styleClass="w-full"
+							(onChange)="onDzongkhagFilterChange()"
+						>
+							<ng-template let-dzongkhag pTemplate="item">
+								<div>{{ dzongkhag.name }}</div>
+							</ng-template>
+						</p-dropdown>
+					</div>
+
+					<!-- Admin Zone Filter (Gewog/Thromde) -->
+					<div class="flex flex-col gap-2">
+						<label class="text-sm font-medium text-gray-700">Filter by Gewog/Thromde</label>
 						<p-dropdown
 							[options]="availableAdminZones"
 							[(ngModel)]="selectedAdminZoneId"
 							optionLabel="name"
 							optionValue="id"
-							placeholder="All Admin Zones"
+							placeholder="All Gewog/Thromde"
 							[showClear]="true"
 							styleClass="w-full"
+							[disabled]="selectedDzongkhagId === null && availableAdminZones.length === 0"
 							(onChange)="onAdminZoneFilterChange()"
 						>
 							<ng-template let-adminZone pTemplate="item">
@@ -134,15 +153,15 @@
 						</p-dropdown>
 					</div>
 
-					<!-- Sub Admin Zone Filter -->
+					<!-- Sub Admin Zone Filter (Chiwog/LAP) -->
 					<div class="flex flex-col gap-2">
-						<label class="text-sm font-medium text-gray-700">Filter by Sub Admin Zone</label>
+						<label class="text-sm font-medium text-gray-700">Filter by Chiwog/LAP</label>
 						<p-dropdown
 							[options]="availableSubAdminZones"
 							[(ngModel)]="selectedSubAdminZoneId"
 							optionLabel="name"
 							optionValue="id"
-							placeholder="All Sub Admin Zones"
+							placeholder="All Chiwog/LAP"
 							[showClear]="true"
 							styleClass="w-full"
 							[disabled]="selectedAdminZoneId === null && availableSubAdminZones.length === 0"
@@ -179,7 +198,7 @@
 							class="p-button-outlined p-button-sm"
 							style="border-color: #6B7280; color: #6B7280;"
 							(click)="clearFilters()"
-							[disabled]="selectedAdminZoneId === null && selectedSubAdminZoneId === null && selectedStatus === null"
+							[disabled]="selectedDzongkhagId === null && selectedAdminZoneId === null && selectedSubAdminZoneId === null && selectedStatus === null"
 						></button>
 					</div>
 				</div>

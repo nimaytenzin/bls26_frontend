@@ -65,8 +65,10 @@ export class SurveyEaManagementComponent implements OnInit {
 	loadingSurveyEAs = false;
 
 	// Filter properties
+	availableDzongkhags: Dzongkhag[] = [];
 	availableAdminZones: AdministrativeZone[] = [];
 	availableSubAdminZones: SubAdministrativeZone[] = [];
+	selectedDzongkhagId: number | null = null;
 	selectedAdminZoneId: number | null = null;
 	selectedSubAdminZoneId: number | null = null;
 	selectedStatus: string | null = null;
@@ -232,6 +234,7 @@ export class SurveyEaManagementComponent implements OnInit {
 				// Extract survey enumeration areas from hierarchical structure
 				this.surveyEAs = this.extractSurveyEAs(hierarchy);
 				this.extractFilterOptions();
+				this.updateAdminZoneOptions();
 				this.updateSubAdminZoneOptions();
 				this.applyFilters();
 				this.groupEAs();
@@ -402,9 +405,10 @@ export class SurveyEaManagementComponent implements OnInit {
 	}
 
 	/**
-	 * Extract unique admin zones and sub admin zones from survey EAs
+	 * Extract unique dzongkhags, admin zones and sub admin zones from survey EAs
 	 */
 	extractFilterOptions() {
+		const dzongkhagMap = new Map<number, Dzongkhag>();
 		const adminZoneMap = new Map<number, AdministrativeZone>();
 		const subAdminZoneMap = new Map<number, SubAdministrativeZone>();
 
@@ -423,10 +427,19 @@ export class SurveyEaManagementComponent implements OnInit {
 					if (adminZone && !adminZoneMap.has(adminZone.id)) {
 						adminZoneMap.set(adminZone.id, adminZone);
 					}
+
+					// Extract dzongkhag from admin zone
+					const dzongkhag = adminZone?.dzongkhag;
+					if (dzongkhag && !dzongkhagMap.has(dzongkhag.id)) {
+						dzongkhagMap.set(dzongkhag.id, dzongkhag);
+					}
 				});
 			}
 		}
 
+		this.availableDzongkhags = Array.from(dzongkhagMap.values()).sort((a, b) =>
+			a.name.localeCompare(b.name)
+		);
 		this.availableAdminZones = Array.from(adminZoneMap.values()).sort((a, b) =>
 			a.name.localeCompare(b.name)
 		);
@@ -440,6 +453,16 @@ export class SurveyEaManagementComponent implements OnInit {
 	 */
 	applyFilters() {
 		let filtered = [...this.surveyEAs];
+
+		// Filter by dzongkhag
+		if (this.selectedDzongkhagId !== null) {
+			filtered = filtered.filter(
+				(ea) =>
+					ea.enumerationArea?.subAdministrativeZones?.some(
+						saz => saz.administrativeZone?.dzongkhag?.id === this.selectedDzongkhagId
+					) || false
+			);
+		}
 
 		// Filter by admin zone
 		if (this.selectedAdminZoneId !== null) {
@@ -482,6 +505,18 @@ export class SurveyEaManagementComponent implements OnInit {
 	}
 
 	/**
+	 * Handle dzongkhag filter change
+	 */
+	onDzongkhagFilterChange() {
+		// Reset admin zone and sub admin zone filters when dzongkhag changes
+		this.selectedAdminZoneId = null;
+		this.selectedSubAdminZoneId = null;
+		this.updateAdminZoneOptions();
+		this.updateSubAdminZoneOptions();
+		this.applyFilters();
+	}
+
+	/**
 	 * Handle admin zone filter change
 	 */
 	onAdminZoneFilterChange() {
@@ -506,54 +541,90 @@ export class SurveyEaManagementComponent implements OnInit {
 	}
 
 	/**
-	 * Update sub admin zone options based on selected admin zone
+	 * Update admin zone options based on selected dzongkhag
+	 */
+	updateAdminZoneOptions() {
+		let filteredEAs = [...this.surveyEAs];
+
+		// Filter by dzongkhag if selected
+		if (this.selectedDzongkhagId !== null) {
+			filteredEAs = filteredEAs.filter(
+				(ea) =>
+					ea.enumerationArea?.subAdministrativeZones?.some(
+						saz => saz.administrativeZone?.dzongkhag?.id === this.selectedDzongkhagId
+					) || false
+			);
+		}
+
+		const adminZoneMap = new Map<number, AdministrativeZone>();
+		for (const surveyEA of filteredEAs) {
+			const ea = surveyEA.enumerationArea;
+			if (ea?.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
+				ea.subAdministrativeZones.forEach((subAdminZone) => {
+					const adminZone = subAdminZone?.administrativeZone;
+					if (adminZone && !adminZoneMap.has(adminZone.id)) {
+						adminZoneMap.set(adminZone.id, adminZone);
+					}
+				});
+			}
+		}
+		this.availableAdminZones = Array.from(adminZoneMap.values()).sort((a, b) =>
+			a.name.localeCompare(b.name)
+		);
+	}
+
+	/**
+	 * Update sub admin zone options based on selected admin zone and dzongkhag
 	 */
 	updateSubAdminZoneOptions() {
-		if (this.selectedAdminZoneId === null) {
-			// Show all sub admin zones
-			const subAdminZoneMap = new Map<number, SubAdministrativeZone>();
-			for (const surveyEA of this.surveyEAs) {
-				const ea = surveyEA.enumerationArea;
-				if (ea?.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
-					ea.subAdministrativeZones.forEach((subAdminZone) => {
-						if (!subAdminZoneMap.has(subAdminZone.id)) {
-							subAdminZoneMap.set(subAdminZone.id, subAdminZone);
-						}
-					});
-				}
-			}
-			this.availableSubAdminZones = Array.from(subAdminZoneMap.values()).sort(
-				(a, b) => a.name.localeCompare(b.name)
+		let filteredEAs = [...this.surveyEAs];
+
+		// Filter by dzongkhag if selected
+		if (this.selectedDzongkhagId !== null) {
+			filteredEAs = filteredEAs.filter(
+				(ea) =>
+					ea.enumerationArea?.subAdministrativeZones?.some(
+						saz => saz.administrativeZone?.dzongkhag?.id === this.selectedDzongkhagId
+					) || false
 			);
-		} else {
-			// Show only sub admin zones for selected admin zone
-			const subAdminZoneMap = new Map<number, SubAdministrativeZone>();
-			for (const surveyEA of this.surveyEAs) {
-				const ea = surveyEA.enumerationArea;
-				if (ea?.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
-					ea.subAdministrativeZones.forEach((subAdminZone) => {
+		}
+
+		const subAdminZoneMap = new Map<number, SubAdministrativeZone>();
+		for (const surveyEA of filteredEAs) {
+			const ea = surveyEA.enumerationArea;
+			if (ea?.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
+				ea.subAdministrativeZones.forEach((subAdminZone) => {
+					// If admin zone is selected, only show sub admin zones for that admin zone
+					if (this.selectedAdminZoneId !== null) {
 						if (
 							subAdminZone.administrativeZone?.id === this.selectedAdminZoneId &&
 							!subAdminZoneMap.has(subAdminZone.id)
 						) {
 							subAdminZoneMap.set(subAdminZone.id, subAdminZone);
 						}
-					});
-				}
+					} else {
+						// Show all sub admin zones (filtered by dzongkhag if selected)
+						if (!subAdminZoneMap.has(subAdminZone.id)) {
+							subAdminZoneMap.set(subAdminZone.id, subAdminZone);
+						}
+					}
+				});
 			}
-			this.availableSubAdminZones = Array.from(subAdminZoneMap.values()).sort(
-				(a, b) => a.name.localeCompare(b.name)
-			);
 		}
+		this.availableSubAdminZones = Array.from(subAdminZoneMap.values()).sort(
+			(a, b) => a.name.localeCompare(b.name)
+		);
 	}
 
 	/**
 	 * Clear all filters
 	 */
 	clearFilters() {
+		this.selectedDzongkhagId = null;
 		this.selectedAdminZoneId = null;
 		this.selectedSubAdminZoneId = null;
 		this.selectedStatus = null;
+		this.updateAdminZoneOptions();
 		this.updateSubAdminZoneOptions();
 		this.applyFilters();
 	}
