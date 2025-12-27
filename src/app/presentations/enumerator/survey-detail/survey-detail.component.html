@@ -83,14 +83,7 @@
 
 				<!-- Survey Info -->
 				<div class="mb-3">
-					<div
-						class="inline-flex items-center bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 mb-2"
-					>
-						<i class="pi pi-calendar text-white/90 text-xs mr-1.5"></i>
-						<span class="text-white/90 text-xs font-medium"
-							>Year {{ survey.year }}</span
-						>
-					</div>
+					
 					<h1 class="text-white font-bold text-xl leading-tight mb-2">
 						{{ survey.name }}
 					</h1>
@@ -109,23 +102,14 @@
 		</div>
 
 		<!-- Spacing for fixed header -->
-		<div class="h-44"></div>
+		<div class="h-40"></div>
 
 		<!-- Location Selection Card -->
 		<div class="px-4 mb-4">
 			<div
-				class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
+				
 			>
-				<div class="px-5 py-3" style="background-color: #1a58af">
-					<div class="flex items-center">
-						<div
-							class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center mr-3"
-						>
-							<i class="pi pi-map-marker text-white text-sm"></i>
-						</div>
-						<h2 class="text-white font-bold text-base">Select Location</h2>
-					</div>
-				</div>
+				
 
 				<div class="p-4">
 					<p class="text-xs text-gray-600 mb-3">
@@ -144,11 +128,9 @@
 								[options]="dzongkhags"
 								optionLabel="name"
 								placeholder="Select"
-								[style]="{ width: '100%' }"
-								(onChange)="onDzongkhagChange()"
+ 								(onChange)="onDzongkhagChange()"
 								[appendTo]="'body'"
-								styleClass="w-full text-sm"
-							>
+ 							>
 							</p-dropdown>
 						</div>
 
@@ -162,14 +144,12 @@
 								[options]="adminZones"
 								optionLabel="name"
 								placeholder="Select"
-								[style]="{ width: '100%' }"
-								[filter]="true"
+ 								[filter]="true"
 								filterPlaceholder="Search"
 								[disabled]="!selectedDzongkhag"
 								(onChange)="onAdminZoneChange()"
 								[appendTo]="'body'"
-								styleClass="w-full text-sm"
-							>
+ 							>
 							</p-dropdown>
 						</div>
 
@@ -183,14 +163,12 @@
 								[options]="subAdminZones"
 								optionLabel="name"
 								placeholder="Select"
-								[style]="{ width: '100%' }"
-								[filter]="true"
+ 								[filter]="true"
 								filterPlaceholder="Search"
 								[disabled]="!selectedAdminZone"
 								(onChange)="onSubAdminZoneChange()"
 								[appendTo]="'body'"
-								styleClass="w-full text-sm"
-							>
+ 							>
 							</p-dropdown>
 							<p *ngIf="!selectedAdminZone" class="mt-1 text-xs text-gray-500">
 								<i class="pi pi-info-circle mr-1"></i>
@@ -298,14 +276,26 @@
 
 					<!-- Card Body -->
 					<div class="px-3 pb-3">
-						<div class="flex items-center justify-between py-1 gap-2  text-gray-600 text-xs  mb-2">
-							<p >
-								Listed <i *ngIf="surveyEa.isEnumerated " class="pi pi-check-circle text-xs text-green-300"></i>
-								<i *ngIf="!surveyEa.isEnumerated " class="pi pi-times text-xs text-red-300"></i>
+						<div class="flex items-center justify-between py-1 gap-2 text-gray-600 text-xs mb-2">
+							<p class="flex items-center gap-1">
+								<span *ngIf="surveyEa.isEnumerated" class="font-semibold text-green-600">
+									Listing Completed
+								</span>
+								<span *ngIf="!surveyEa.isEnumerated" class="font-semibold text-red-600">
+									Listing Incomplete
+								</span>
+								<i *ngIf="surveyEa.isEnumerated" class="pi pi-check-circle text-xs text-green-600"></i>
+								<i *ngIf="!surveyEa.isEnumerated" class="pi pi-times-circle text-xs text-red-600"></i>
 							</p>
-							<p >
-								Sampled <i *ngIf="surveyEa.isSampled " class="pi pi-check-circle text-xs text-green-300"></i>
-								<i *ngIf="!surveyEa.isSampled" class="pi pi-times text-xs text-red-300"></i>
+							<p class="flex items-center gap-1">
+								<span *ngIf="surveyEa.isSampled" class="font-semibold text-green-600">
+									Sampled
+								</span>
+								<span *ngIf="!surveyEa.isSampled" class="font-semibold text-gray-500">
+									Not sampled
+								</span>
+								<i *ngIf="surveyEa.isSampled" class="pi pi-check-circle text-xs text-green-600"></i>
+								<i *ngIf="!surveyEa.isSampled" class="pi pi-times-circle text-xs text-gray-400"></i>
 							</p>
 						</div>
 

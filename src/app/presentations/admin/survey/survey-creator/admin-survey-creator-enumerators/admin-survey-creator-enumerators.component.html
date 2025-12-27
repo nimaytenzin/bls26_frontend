@@ -27,10 +27,13 @@
 						<p class="font-semibold mb-1">Required Columns:</p>
 						<ul class="list-disc list-inside space-y-1">
 							<li>
-								<code class="bg-blue-100 px-1 rounded">name</code> - Full name
+								<code class="bg-blue-100 px-1 rounded">Name</code> - Full name
 							</li>
 							<li>
-								<code class="bg-blue-100 px-1 rounded">cid</code> - 11-digit CID
+								<code class="bg-blue-100 px-1 rounded">CID</code> - 11-digit CID
+							</li>
+							<li>
+								<code class="bg-blue-100 px-1 rounded">Dzongkhag Code</code> - Two-character dzongkhag code (e.g., "01", "02")
 							</li>
 						</ul>
 					</div>
@@ -38,15 +41,15 @@
 						<p class="font-semibold mb-1">Optional Columns:</p>
 						<ul class="list-disc list-inside space-y-1">
 							<li>
-								<code class="bg-blue-100 px-1 rounded">emailAddress</code> -
+								<code class="bg-blue-100 px-1 rounded">Email Address</code> -
 								Email
 							</li>
 							<li>
-								<code class="bg-blue-100 px-1 rounded">phoneNumber</code> -
+								<code class="bg-blue-100 px-1 rounded">Phone Number</code> -
 								8-digit phone
 							</li>
 							<li>
-								<code class="bg-blue-100 px-1 rounded">password</code> - User
+								<code class="bg-blue-100 px-1 rounded">Password</code> - User
 								password
 							</li>
 						</ul>
@@ -70,6 +73,8 @@
 			icon="pi pi-download"
 			(onClick)="downloadTemplate()"
 			styleClass="p-button-outlined p-button-sm"
+			[loading]="downloadingTemplate"
+			[disabled]="downloadingTemplate"
 		></p-button>
 	</div>
 
@@ -183,6 +188,7 @@
 						<th>CID</th>
 						<th>Email</th>
 						<th>Phone</th>
+						<th>Dzongkhag Code</th>
 					</tr>
 				</ng-template>
 				<ng-template pTemplate="body" let-item let-i="rowIndex">
@@ -193,12 +199,15 @@
 						<td>
 							<span *ngIf="item.emailAddress">{{ item.emailAddress }}</span>
 							<span *ngIf="!item.emailAddress" class="text-gray-400 text-sm">
-								{{ item.cid }}dummy.nsb.gov.bt
+								{{ item.cid }}&#64;dummy.nsb.gov.bt
 							</span>
 						</td>
 						<td>
 							<span *ngIf="item.phoneNumber">{{ item.phoneNumber }}</span>
 							<span *ngIf="!item.phoneNumber" class="text-gray-400">-</span>
+						</td>
+						<td>
+							<span class="font-semibold text-blue-600">{{ item.dzongkhagCode }}</span>
 						</td>
 					</tr>
 				</ng-template>

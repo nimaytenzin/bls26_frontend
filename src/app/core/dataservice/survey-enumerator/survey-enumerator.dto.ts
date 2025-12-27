@@ -69,6 +69,7 @@ export interface EnumeratorCSVData {
 	emailAddress?: string;
 	phoneNumber?: string;
 	password?: string;
+	dzongkhagCode: string; // Required - Two-character dzongkhag code (e.g., "01", "02")
 }
 
 /**

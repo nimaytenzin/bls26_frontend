@@ -7,6 +7,7 @@ import { EnumeratorMapStateService } from '../../../core/utility/enumerator-map-
 import { Survey } from '../../../core/dataservice/survey/survey.dto';
 import { EnumerationArea } from '../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 import { PrimeNgModules } from '../../../primeng.modules';
+import { DzongkhagDataService } from '../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
 
 
 @Component({
@@ -43,7 +44,8 @@ export class SurveyDetailComponent implements OnInit {
 		private route: ActivatedRoute,
 		private router: Router,
 		private enumeratorService: EnumeratorDataService,
-		private mapStateService: EnumeratorMapStateService
+		private mapStateService: EnumeratorMapStateService,
+		private dzongkhagService: DzongkhagDataService
 	) {}
 
 	ngOnInit() {
@@ -157,7 +159,8 @@ export class SurveyDetailComponent implements OnInit {
 	processEnumerationAreas() {
 		if (!this.survey?.surveyEnumerationAreas) return;
 
-		const dzongkhagMap = new Map<number, { id: number; name: string }>();
+		// Extract unique dzongkhag IDs from enumeration areas
+		const dzongkhagIdSet = new Set<number>();
 
 		this.survey.surveyEnumerationAreas.forEach((surveyEa) => {
 			const ea = surveyEa.enumerationArea;
@@ -165,20 +168,35 @@ export class SurveyDetailComponent implements OnInit {
 			const firstSaz = ea?.subAdministrativeZones && ea.subAdministrativeZones.length > 0
 				? ea.subAdministrativeZones[0]
 				: null;
-			const dzongkhag = firstSaz?.administrativeZone?.dzongkhag;
-			if (dzongkhag) {
-				if (!dzongkhagMap.has(dzongkhag.id)) {
-					dzongkhagMap.set(dzongkhag.id, {
-						id: dzongkhag.id,
-						name: dzongkhag.name,
-					});
-				}
+			const dzongkhagId = firstSaz?.administrativeZone?.dzongkhagId;
+			if (dzongkhagId) {
+				dzongkhagIdSet.add(dzongkhagId);
 			}
 		});
 
-		this.dzongkhags = Array.from(dzongkhagMap.values()).sort((a, b) =>
-			a.name.localeCompare(b.name)
-		);
+		// Load all dzongkhags and filter to only those that exist in the survey
+		this.dzongkhagService.findAllDzongkhags().subscribe({
+			next: (allDzongkhags) => {
+				this.dzongkhags = allDzongkhags
+					.filter((dz) => dzongkhagIdSet.has(dz.id))
+					.map((dz) => ({
+						id: dz.id,
+						name: dz.name,
+					}))
+					.sort((a, b) => a.name.localeCompare(b.name));
+				
+				// Restore selection after dzongkhags are loaded
+				this.restoreSelection();
+			},
+			error: (error) => {
+				console.error('Error loading dzongkhags:', error);
+				// Fallback: create dzongkhags from IDs only (without names)
+				this.dzongkhags = Array.from(dzongkhagIdSet)
+					.map((id) => ({ id, name: `Dzongkhag ${id}` }))
+					.sort((a, b) => a.id - b.id);
+				this.restoreSelection();
+			},
+		});
 	}
 
 	/**
@@ -343,8 +361,13 @@ export class SurveyDetailComponent implements OnInit {
 			? ea.subAdministrativeZones[0]
 			: null;
 		const parts: string[] = [];
-		if (firstSaz?.administrativeZone?.dzongkhag?.name) {
-			parts.push(firstSaz.administrativeZone.dzongkhag.name);
+		// Get dzongkhag name from loaded dzongkhags array
+		const dzongkhagId = firstSaz?.administrativeZone?.dzongkhagId;
+		if (dzongkhagId) {
+			const dzongkhag = this.dzongkhags.find((d) => d.id === dzongkhagId);
+			if (dzongkhag) {
+				parts.push(dzongkhag.name);
+			}
 		}
 		if (firstSaz?.administrativeZone?.name) {
 			parts.push(firstSaz.administrativeZone.name);
@@ -373,10 +396,7 @@ export class SurveyDetailComponent implements OnInit {
 			next: (survey) => {
 				this.survey = survey;
 				this.processEnumerationAreas();
-				// Restore saved selection after processing
-				setTimeout(() => {
-					this.restoreSelection();
-				}, 0);
+				// restoreSelection() is called in processEnumerationAreas() after dzongkhags are loaded
 				this.loading = false;
 			},
 			error: (error) => {

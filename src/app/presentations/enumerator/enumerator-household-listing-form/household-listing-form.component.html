@@ -81,6 +81,7 @@
 								[disabled]="submitting || !!structureId"
 								[readonly]="!!structureId"
 								placeholder="e.g., STR-001"
+								(blur)="onStructureNumberChange()"
 								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
 								[class.bg-gray-100]="!!structureId"
 								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
@@ -245,16 +246,31 @@
 									>(Optional)</span
 								>
 							</label>
-							<input
-								type="tel"
-								pInputText
-								[(ngModel)]="householdForm.phoneNumber"
-								name="phoneNumber"
-								[disabled]="submitting"
-								placeholder="+975 1234 5678"
-								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
-							/>
+							<p-inputGroup class="w-full">
+								<p-inputGroupAddon class="bg-gray-50 border border-gray-300 border-r-0 rounded-l-xl px-3 py-3">
+									+975
+								</p-inputGroupAddon>
+								<input
+									type="tel"
+									pInputText
+									[(ngModel)]="householdForm.phoneNumber"
+									name="phoneNumber"
+									[disabled]="submitting"
+									placeholder="12345678"
+									maxlength="8"
+									pattern="^[17689]\d{7}$"
+									(input)="validatePhoneNumber()"
+									[class.ng-invalid]="phoneNumberInvalid && householdForm.phoneNumber"
+									class="w-full px-4 py-3 border border-gray-300 rounded-r-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
+									style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
+								/>
+							</p-inputGroup>
+							<small *ngIf="phoneNumberInvalid && householdForm.phoneNumber" class="p-error block mt-1">
+								Phone number must be 8 digits starting with 1, 7, 6, 8, or 9
+							</small>
+							<small *ngIf="!phoneNumberInvalid || !householdForm.phoneNumber" class="text-gray-500 block mt-1">
+								8 digits starting with 1, 7, 6, 8, or 9 (e.g., 17123456)
+							</small>
 						</div>
 
 						<!-- Remarks -->
@@ -289,41 +305,42 @@
 					class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-30"
 				>
 					<div class="max-w-3xl mx-auto px-4 py-4">
-						<div class="flex gap-3">
-							<button
-								type="button"
-								(click)="goBack()"
+						<!-- Create Mode Buttons -->
+						<div *ngIf="!isEditMode" class="flex gap-3">
+							<p-button
+								(onClick)="saveAndNext()"
+								[disabled]="!isFormValid() || submitting"
+								[icon]="submitting ? 'pi pi-spin pi-spinner' : 'pi pi-save'"
+								[label]="submitting ? 'Saving...' : 'Save and Next'"
+								styleClass="flex-1"
+								[style]="{'background-color': '#1A58AF', 'border-color': '#1A58AF'}"
+							></p-button>
+							<p-button
+								(onClick)="nextStructure()"
 								[disabled]="submitting"
-								class="flex-1 bg-white border-2 border-gray-300 text-gray-700 py-4 px-6 rounded-xl font-bold hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 transition-all duration-200"
-							>
-								<i class="pi pi-times mr-2"></i>
-								Cancel
-							</button>
-							<button
+								icon="pi pi-arrow-right"
+								label="Next Structure"
+								styleClass="flex-1 p-button-outlined"
+							></p-button>
+						</div>
+						
+						<!-- Edit Mode Buttons -->
+						<div *ngIf="isEditMode" class="flex gap-3">
+							<p-button
+								(onClick)="goBack()"
+								[disabled]="submitting"
+								icon="pi pi-times"
+								label="Cancel"
+								styleClass="flex-1 p-button-outlined"
+							></p-button>
+							<p-button
 								type="submit"
 								[disabled]="!isFormValid() || submitting"
-								class="flex-[2] text-white py-4 px-6 rounded-xl font-bold hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center"
-								style="background-color: #1A58AF;"
-								onmouseover="this.style.backgroundColor='#103975'"
-								onmouseout="this.style.backgroundColor='#1A58AF'"
-							>
-								<i *ngIf="submitting" class="pi pi-spin pi-spinner mr-2"></i>
-								<i
-									*ngIf="!submitting && isEditMode"
-									class="pi pi-check mr-2"
-								></i>
-								<i
-									*ngIf="!submitting && !isEditMode"
-									class="pi pi-plus mr-2"
-								></i>
-								{{
-									submitting
-										? "Saving..."
-										: isEditMode
-										? "Save Changes"
-										: "Save Household"
-								}}
-							</button>
+								[icon]="submitting ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+								[label]="submitting ? 'Saving...' : 'Save Changes'"
+								styleClass="flex-[2]"
+								[style]="{'background-color': '#1A58AF', 'border-color': '#1A58AF'}"
+							></p-button>
 						</div>
 					</div>
 				</div>

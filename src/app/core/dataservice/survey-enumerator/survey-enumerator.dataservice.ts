@@ -277,4 +277,23 @@ export class SurveyEnumeratorDataService {
 			minute: '2-digit',
 		});
 	}
+
+	/**
+	 * Download CSV template for bulk enumerator assignment
+	 * @returns Observable of Blob (CSV file)
+	 * @requires Authentication (ADMIN or SUPERVISOR role)
+	 */
+	downloadTemplateCSV(): Observable<Blob> {
+		return this.http
+			.get(`${this.apiUrl}/template/csv`, {
+				headers: this.getAuthHeaders(),
+				responseType: 'blob',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error downloading CSV template:', error);
+					return throwError(() => error);
+				})
+			);
+	}
 }

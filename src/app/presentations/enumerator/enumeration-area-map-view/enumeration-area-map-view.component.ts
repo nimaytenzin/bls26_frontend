@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EnumerationAreaDataService } from '../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
+import { EnumerationArea } from '../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 import { EnumeratorDataService } from '../../../core/dataservice/enumerator-service/enumerator.dataservice';
 import { SurveyEnumerationAreaStructureDataService } from '../../../core/dataservice/survey-enumeration-area-structure/survey-enumeration-area-structure.dataservice';
 import { SurveyEnumerationAreaDataService } from '../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dataservice';
@@ -17,7 +18,7 @@ import { AuthService } from '../../../core/dataservice/auth/auth.service';
 import { PrimeNgModules } from '../../../primeng.modules';
 import { ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { CompleteEnumerationDto } from '../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
+import { CompleteEnumerationDto, SurveyEnumerationArea } from '../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
 import { EnumeratorMapStateService } from '../../../core/utility/enumerator-map-state.service';
 import * as L from 'leaflet';
 import {
@@ -47,7 +48,8 @@ export class EnumerationAreaMapViewComponent
 
 	surveyEnumerationAreaId!: number;
 	enumerationAreaId!: number;
-	surveyEnumerationArea: any = null;
+	surveyEnumerationArea: SurveyEnumerationArea | null = null;
+	enumerationArea: EnumerationArea | null = null;
 	loading = true;
 	error: string | null = null;
 
@@ -157,7 +159,17 @@ export class EnumerationAreaMapViewComponent
 					this.enumerationAreaId =
 						data?.enumerationArea?.id || data?.enumerationAreaId;
 					this.isEnumerated = data?.isEnumerated || false;
+					
+					// Set enumerationArea property if available
+					if (data?.enumerationArea) {
+						this.enumerationArea = data.enumerationArea;
+					}
+					
 					if (this.enumerationAreaId) {
+						// Load enumeration area details directly if not already set or to get full details
+						if (!this.enumerationArea || !this.enumerationArea.subAdministrativeZones) {
+							this.loadEnumerationAreaDetails();
+						}
 						this.loadEnumerationAreaGeoJSON();
 						this.loadStructures();
 					} else {
@@ -172,6 +184,26 @@ export class EnumerationAreaMapViewComponent
 					);
 					this.error = 'Failed to load enumeration area details';
 					this.loading = false;
+				},
+			});
+	}
+
+	/**
+	 * Load enumeration area details directly using EnumerationAreaDataService
+	 * This fetches full enumeration area details including sub-administrative zones
+	 */
+	loadEnumerationAreaDetails(): void {
+		if (!this.enumerationAreaId) return;
+
+		this.enumerationAreaService
+			.findEnumerationAreaById(this.enumerationAreaId, false, true)
+			.subscribe({
+				next: (ea: EnumerationArea) => {
+					this.enumerationArea = ea;
+				},
+				error: (error: any) => {
+					console.error('Error loading enumeration area details:', error);
+					// Don't set error state as this is optional - we may already have partial data
 				},
 			});
 	}
@@ -499,29 +531,6 @@ export class EnumerationAreaMapViewComponent
 		);
 	}
 
-	/**
-	 * Get location hierarchy string
-	 */
-	getLocationHierarchy(): string {
-		const ea = this.surveyEnumerationArea?.enumerationArea;
-		if (!ea) return '';
-
-		const parts = [];
-		if (ea.subAdministrativeZone?.administrativeZone?.dzongkhag?.name) {
-			parts.push(ea.subAdministrativeZone.administrativeZone.dzongkhag.name);
-		}
-		if (ea.subAdministrativeZone?.administrativeZone?.name) {
-			parts.push(ea.subAdministrativeZone.administrativeZone.name);
-		}
-		if (ea.subAdministrativeZone?.name) {
-			parts.push(ea.subAdministrativeZone.name);
-		}
-		if (ea.name) {
-			parts.push(ea.name);
-		}
-
-		return parts.join(' → ');
-	}
 
 	/**
 	 * Toggle location tracking and zoom to location
@@ -804,6 +813,38 @@ export class EnumerationAreaMapViewComponent
 	}
 
 	/**
+	 * Get the next structure number based on existing structures
+	 * Finds the highest numeric structure number and returns the next one
+	 */
+	private getNextStructureNumber(): string {
+		if (this.structures.length === 0) {
+			return '1';
+		}
+
+		// Extract numeric values from structure numbers
+		const structureNumbers: number[] = this.structures
+			.map((s) => {
+				const structureNum = s.structureNumber || '';
+				// Try to extract numeric value from the structure number
+				// Handle formats like "1", "STR-001", "001", etc.
+				const numericMatch = structureNum.match(/\d+/);
+				if (numericMatch) {
+					return parseInt(numericMatch[0], 10);
+				}
+				return 0;
+			})
+			.filter((num) => num > 0);
+
+		if (structureNumbers.length === 0) {
+			return '1';
+		}
+
+		// Find the highest number and add 1
+		const highestNumber = Math.max(...structureNumbers);
+		return String(highestNumber + 1);
+	}
+
+	/**
 	 * Handle map click to add structure
 	 */
 	private onMapClick(e: L.LeafletMouseEvent): void {
@@ -811,8 +852,8 @@ export class EnumerationAreaMapViewComponent
 		if (this.isEnumerated || !this.editMode) return;
 
 		this.clickedLatLng = { lat: e.latlng.lat, lng: e.latlng.lng };
-		this.newStructureNumber = '';
-		this.showAddStructureDialog = true;
+		// Automatically create structure with next number (no dialog)
+		this.createStructure();
 	}
 
 	/**
@@ -825,7 +866,7 @@ export class EnumerationAreaMapViewComponent
 		}
 		this.editMode = !this.editMode;
 		if (this.editMode) {
-			this.showToast('Edit mode enabled. Click on map to add structures.', 'info');
+			this.showToast('Edit mode enabled. Click on map to add structures automatically.', 'info');
 		} else {
 			this.showToast('Edit mode disabled.', 'info');
 		}
@@ -845,8 +886,8 @@ export class EnumerationAreaMapViewComponent
 	 * Create a new structure
 	 */
 	createStructure(): void {
-		if (!this.newStructureNumber.trim() || !this.clickedLatLng) {
-			this.showToast('Please enter a structure number', 'error');
+		if (!this.clickedLatLng) {
+			this.showToast('No location selected', 'error');
 			return;
 		}
 
@@ -856,11 +897,14 @@ export class EnumerationAreaMapViewComponent
 			return;
 		}
 
+		// Get the next structure number automatically
+		const nextStructureNumber = this.getNextStructureNumber();
+
 		this.isAddingStructure = true;
 
 		const createDto: CreateSurveyEnumerationAreaStructureDto = {
 			surveyEnumerationAreaId: this.surveyEnumerationAreaId,
-			structureNumber: this.newStructureNumber.trim(),
+			structureNumber: nextStructureNumber,
 			latitude: this.clickedLatLng.lat,
 			longitude: this.clickedLatLng.lng,
 			submittedBy: currentUser.id,
@@ -872,9 +916,8 @@ export class EnumerationAreaMapViewComponent
 				this.showAddStructureDialog = false;
 				this.newStructureNumber = '';
 				this.clickedLatLng = null;
-				// Disable edit mode after structure is added
-				this.editMode = false;
-				this.showToast('Structure added successfully', 'success');
+				// Keep edit mode enabled so user can continue adding structures
+				this.showToast(`Structure ${nextStructureNumber} added successfully`, 'success');
 				this.loadStructures();
 			},
 			error: (error) => {

@@ -16,6 +16,8 @@ import {
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ButtonModule } from 'primeng/button';
@@ -29,6 +31,8 @@ import { ButtonModule } from 'primeng/button';
 		ProgressSpinnerModule,
 		InputTextModule,
 		InputNumberModule,
+		InputGroupModule,
+		InputGroupAddonModule,
 		ToastModule,
 		ButtonModule,
 	],
@@ -58,6 +62,7 @@ export class HouseholdListingFormComponent implements OnInit {
 	
 	// Store structureNumber separately for display (read-only)
 	structureNumberDisplay: string = '';
+	phoneNumberInvalid = false;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -132,6 +137,8 @@ export class HouseholdListingFormComponent implements OnInit {
 						
 						// Set structureNumber display
 						this.structureNumberDisplay = this.householdForm.structureNumber;
+						// Validate phone number if it exists
+						this.validatePhoneNumber();
 					} else {
 						this.messageService.add({
 							severity: 'error',
@@ -158,20 +165,64 @@ export class HouseholdListingFormComponent implements OnInit {
 
 	/**
 	 * Load next serial number for new household
+	 * Serial numbers are unique per structure within a survey enumeration area
+	 * Each structure has its own running serial numbers starting from 1
 	 */
 	loadNextSerialNumber(): void {
+		// Need structureId to filter households by structure
+		if (!this.structureId) {
+			// If no structureId, try to resolve it first
+			if (this.householdForm.structureNumber) {
+				this.resolveStructureId().then((resolvedStructureId) => {
+					if (resolvedStructureId) {
+						this.structureId = resolvedStructureId;
+						this.loadNextSerialNumberForStructure();
+					} else {
+						// Can't resolve structureId, default to 1
+						this.householdForm.householdSerialNumber = 1;
+					}
+				});
+			} else {
+				this.householdForm.householdSerialNumber = 1;
+			}
+			return;
+		}
+
+		this.loadNextSerialNumberForStructure();
+	}
+
+	/**
+	 * Load next serial number for the current structure
+	 * Filters households by structureId to get running numbers per structure
+	 */
+	private loadNextSerialNumberForStructure(): void {
+		if (!this.structureId) {
+			this.householdForm.householdSerialNumber = 1;
+			return;
+		}
+
 		this.loading = true;
 
 		this.enumeratorService
 			.getHouseholdListings(this.surveyEnumerationAreaId)
 			.subscribe({
-				next: (households: HouseholdListing[]) => {
-					if (households.length > 0) {
+				next: (households: any[]) => {
+					// Filter households by structureId (not structureNumber)
+					// This ensures each structure has its own running serial numbers
+					const structureHouseholds = households.filter((h) => {
+						// Check both structureId and structure?.id to handle different response formats
+						const hStructureId = h.structureId || h.structure?.id;
+						return hStructureId === this.structureId;
+					});
+
+					if (structureHouseholds.length > 0) {
+						// Find max serial number for this structure
 						const maxSerial = Math.max(
-							...households.map((h) => h.householdSerialNumber)
+							...structureHouseholds.map((h) => h.householdSerialNumber)
 						);
 						this.householdForm.householdSerialNumber = maxSerial + 1;
 					} else {
+						// No households for this structure yet, start at 1
 						this.householdForm.householdSerialNumber = 1;
 					}
 					this.loading = false;
@@ -374,6 +425,10 @@ export class HouseholdListingFormComponent implements OnInit {
 			next: (structure) => {
 				this.householdForm.structureNumber = structure.structureNumber;
 				this.structureNumberDisplay = structure.structureNumber;
+				// Recalculate serial number for this structure
+				if (!this.isEditMode) {
+					this.loadNextSerialNumber();
+				}
 			},
 			error: (error) => {
 				console.error('Error loading structure:', error);
@@ -387,10 +442,159 @@ export class HouseholdListingFormComponent implements OnInit {
 	}
 
 	/**
+	 * Save and create new form for same structure
+	 */
+	saveAndNext(): void {
+		// Validate form
+		if (!this.isFormValid()) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Please fill all required fields',
+			});
+			return;
+		}
+
+		// Prevent double submission
+		if (this.submitting) return;
+
+		this.submitting = true;
+
+		// Create new household - need to include structureId
+		this.resolveStructureId().then((resolvedStructureId) => {
+			if (!resolvedStructureId) {
+				this.messageService.add({
+					severity: 'warn',
+					summary: 'Validation Error',
+					detail: 'Structure ID is required. Please select a structure from the map or ensure structure number is valid.',
+				});
+				this.submitting = false;
+				return;
+			}
+
+			// Build DTO with structureId
+			const createDto: CreateSurveyEnumerationAreaHouseholdListingDto = {
+				surveyEnumerationAreaId: this.householdForm.surveyEnumerationAreaId,
+				structureId: resolvedStructureId,
+				householdIdentification: this.householdForm.householdIdentification,
+				householdSerialNumber: this.householdForm.householdSerialNumber,
+				nameOfHOH: this.householdForm.nameOfHOH,
+				totalMale: this.householdForm.totalMale || 0,
+				totalFemale: this.householdForm.totalFemale || 0,
+				phoneNumber: this.householdForm.phoneNumber || undefined,
+				remarks: this.householdForm.remarks || undefined,
+			};
+
+			this.enumeratorService
+				.createHouseholdListing(createDto)
+				.subscribe({
+					next: () => {
+						this.messageService.add({
+							severity: 'success',
+							summary: 'Success',
+							detail: 'Household saved successfully. Creating new form...',
+						});
+						
+						// Reset form for new household in same structure
+						this.resetFormForNewHousehold();
+						this.submitting = false;
+					},
+					error: (error: any) => {
+						console.error('Error creating household:', error);
+						this.messageService.add({
+							severity: 'error',
+							summary: 'Error',
+							detail:
+								error.error?.message || 'Failed to create household listing',
+						});
+						this.submitting = false;
+					},
+				});
+		});
+	}
+
+	/**
+	 * Reset form for new household in same structure
+	 */
+	private resetFormForNewHousehold(): void {
+		// Keep structureId and structureNumber, reset everything else
+		const currentStructureNumber = this.householdForm.structureNumber;
+		
+		// Reset edit mode first
+		this.householdId = undefined;
+		this.isEditMode = false;
+		
+		// Reset form fields but keep structure info
+		this.householdForm = {
+			surveyEnumerationAreaId: this.surveyEnumerationAreaId,
+			structureNumber: currentStructureNumber,
+			householdIdentification: '',
+			householdSerialNumber: 1, // Will be updated by loadNextSerialNumber
+			nameOfHOH: '',
+			totalMale: 0,
+			totalFemale: 0,
+			phoneNumber: '',
+			remarks: '',
+		};
+		
+		// Load next serial number (this will update householdSerialNumber asynchronously)
+		this.loadNextSerialNumber();
+	}
+
+	/**
+	 * Navigate to map view (Next structure)
+	 */
+	nextStructure(): void {
+		this.router.navigate([
+			'/enumerator',
+			'survey-enumeration-area',
+			this.surveyEnumerationAreaId,
+			'map',
+		]);
+	}
+
+	/**
 	 * Navigate back to previous page
 	 */
 	goBack(): void {
 		// Use browser back - map state is already persisted in service
 		this.location.back();
+	}
+
+	/**
+	 * Validate phone number format (only if value is entered)
+	 * Valid format: 8 digits starting with 1, 7, 6, 8, or 9
+	 */
+	validatePhoneNumber(): void {
+		const phoneNumber = this.householdForm.phoneNumber?.trim() || '';
+		if (phoneNumber === '') {
+			// If empty, no validation needed (field is optional)
+			this.phoneNumberInvalid = false;
+			return;
+		}
+		// Validate format: 8 digits starting with 1, 7, 6, 8, or 9
+		const phonePattern = /^[17689]\d{7}$/;
+		this.phoneNumberInvalid = !phonePattern.test(phoneNumber);
+	}
+
+	/**
+	 * Handle structure number change - recalculate serial number for the new structure
+	 */
+	onStructureNumberChange(): void {
+		// Only recalculate if not in edit mode (to avoid changing serial number of existing household)
+		if (!this.isEditMode) {
+			// Reset structureId so it gets resolved from the new structureNumber
+			this.structureId = undefined;
+			// Resolve structureId and then load next serial number
+			this.resolveStructureId().then((resolvedStructureId) => {
+				if (resolvedStructureId) {
+					this.structureId = resolvedStructureId;
+					this.loadNextSerialNumber();
+				} else {
+					// If can't resolve, default to 1
+					this.householdForm.householdSerialNumber = 1;
+				}
+			});
+		}
 	}
 }

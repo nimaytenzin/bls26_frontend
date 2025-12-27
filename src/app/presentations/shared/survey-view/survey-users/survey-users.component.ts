@@ -223,17 +223,23 @@ export class SurveyUsersComponent implements OnInit {
 		const nameIndex = header.findIndex((h) => h.toLowerCase() === 'name');
 		const cidIndex = header.findIndex((h) => h.toLowerCase() === 'cid');
 		const emailIndex = header.findIndex(
-			(h) => h.toLowerCase() === 'emailaddress' || h.toLowerCase() === 'email'
+			(h) => h.toLowerCase() === 'emailaddress' || h.toLowerCase() === 'email' || h.toLowerCase().includes('email')
 		);
 		const phoneIndex = header.findIndex(
-			(h) => h.toLowerCase() === 'phonenumber' || h.toLowerCase() === 'phone'
+			(h) => h.toLowerCase() === 'phonenumber' || h.toLowerCase() === 'phone' || h.toLowerCase().includes('phone')
 		);
 		const passwordIndex = header.findIndex(
 			(h) => h.toLowerCase() === 'password'
 		);
+		const dzongkhagCodeIndex = header.findIndex(
+			(h) => h.toLowerCase().includes('dzongkhag') && h.toLowerCase().includes('code')
+		);
 
 		if (nameIndex === -1 || cidIndex === -1) {
 			throw new Error('CSV must have "name" and "cid" columns');
+		}
+		if (dzongkhagCodeIndex === -1) {
+			throw new Error('CSV must have "Dzongkhag Code" column');
 		}
 
 		const valid: EnumeratorCSVData[] = [];
@@ -253,6 +259,7 @@ export class SurveyUsersComponent implements OnInit {
 			const phoneNumber = phoneIndex !== -1 ? values[phoneIndex]?.trim() : '';
 			const password =
 				passwordIndex !== -1 ? values[passwordIndex]?.trim() : '';
+			const dzongkhagCode = values[dzongkhagCodeIndex]?.trim() || '';
 
 			// Validate required fields
 			if (!name) {
@@ -262,6 +269,9 @@ export class SurveyUsersComponent implements OnInit {
 				errors.push('CID is required');
 			} else if (!/^\d{11}$/.test(cid)) {
 				errors.push('CID must be 11 digits');
+			}
+			if (!dzongkhagCode) {
+				errors.push('Dzongkhag Code is required');
 			}
 
 			// Validate email format if provided
@@ -277,13 +287,14 @@ export class SurveyUsersComponent implements OnInit {
 			if (errors.length > 0) {
 				invalid.push({
 					row: i + 1,
-					data: { name, cid, emailAddress, phoneNumber },
+					data: { name, cid, emailAddress, phoneNumber, dzongkhagCode },
 					errors,
 				});
 			} else {
 				const enumerator: EnumeratorCSVData = {
 					name,
 					cid,
+					dzongkhagCode: this.normalizeDzongkhagCode(dzongkhagCode),
 				};
 				if (emailAddress) enumerator.emailAddress = emailAddress;
 				if (phoneNumber) enumerator.phoneNumber = phoneNumber;
@@ -331,15 +342,22 @@ export class SurveyUsersComponent implements OnInit {
 	}
 
 	/**
-	 * Download CSV template
+	 * Normalize dzongkhag code (pad single digits with leading zero)
+	 */
+	private normalizeDzongkhagCode(code: string): string {
+		// If it's a numeric string, pad with leading zero if single digit
+		if (/^\d+$/.test(code)) {
+			return code.length === 1 ? `0${code}` : code;
+		}
+		return code;
+	}
+
+	/**
+	 * Download CSV template from API
 	 */
 	downloadTemplate() {
-		const template = `name,cid,emailAddress,phoneNumber,password
-Tashi Dorji,11501002345,tashi.dorji@example.com,17123456,
-Pema Wangmo,11602001234,,17654321,
-Karma Tshering,11703005678,,,`;
-
-		const blob = new Blob([template], { type: 'text/csv' });
+		this.surveyEnumeratorService.downloadTemplateCSV().subscribe({
+			next: (blob: Blob) => {
 		const url = window.URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.href = url;
@@ -351,6 +369,16 @@ Karma Tshering,11703005678,,,`;
 			severity: 'success',
 			summary: 'Template Downloaded',
 			detail: 'CSV template downloaded successfully',
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading template:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Download Failed',
+					detail: 'Failed to download CSV template. Please try again.',
+				});
+			},
 		});
 	}
 
