@@ -10,6 +10,7 @@ import {
 	PublishSurveyEnumerationAreaDto,
 	BulkPublishDto,
 	BulkUploadResponse,
+	BulkMatchEaResponse,
 } from './survey-enumeration-area.dto';
 import { DzongkhagHierarchicalResponse } from '../location/dzongkhag/dzongkhag.interface';
 /**
@@ -287,6 +288,35 @@ export class SurveyEnumerationAreaDataService {
 			.pipe(
 				catchError((error: any) => {
 					console.error(`Error uploading CSV for survey ${surveyId}:`, error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Bulk match enumeration areas from CSV file (validation without survey ID)
+	 * This endpoint validates and matches enumeration areas without creating survey assignments
+	 * @param file CSV file to upload
+	 * @returns Observable of bulk match result
+	 * @requires Authentication (ADMIN role)
+	 */
+	bulkMatch(file: File): Observable<BulkMatchEaResponse> {
+		const formData = new FormData();
+		formData.append('file', file);
+
+		const token = localStorage.getItem('access_token');
+		const headers = new HttpHeaders({
+			Authorization: `Bearer ${token}`,
+			// Don't set Content-Type - let browser set it with boundary for multipart/form-data
+		});
+
+		return this.http
+			.post<BulkMatchEaResponse>(`${this.apiUrl}/bulk-match`, formData, {
+				headers: headers,
+			})
+			.pipe(
+				catchError((error: any) => {
+					console.error('Error matching enumeration areas from CSV:', error);
 					return throwError(() => error);
 				})
 			);

@@ -110,3 +110,50 @@ export interface BulkUploadResponse {
 	created: number;
 	skipped: number;
 }
+
+/**
+ * Bulk Match Error Interface
+ * Represents an error that occurred during bulk match
+ */
+export interface BulkMatchError {
+	row: number;
+	dzongkhagCode: string;
+	gewogThromdeCode: string;
+	chiwogLapCode: string;
+	eaCode: string;
+	error: string;
+}
+
+/**
+ * Bulk Match Match Interface
+ * Represents a successfully matched enumeration area
+ */
+export interface BulkMatchMatch {
+	row: number;
+	enumerationAreaId: number;
+	enumerationAreaName: string;
+	enumerationAreaCode: string;
+	subAdminZoneName: string;
+	adminZoneName: string;
+	dzongkhagName: string;
+	codes: {
+		dzongkhagCode: string;
+		adminZoneCode: string;
+		subAdminZoneCode: string;
+		enumerationCode: string;
+	};
+}
+
+/**
+ * Bulk Match Response Interface
+ * Response from bulk match operation (validation without survey ID)
+ */
+export interface BulkMatchEaResponse {
+	success: boolean;
+	totalRows: number;
+	matched: number;
+	failed: number;
+	errors: BulkMatchError[];
+	matches: BulkMatchMatch[];
+	matchedEnumerationAreaIds: number[];
+}
