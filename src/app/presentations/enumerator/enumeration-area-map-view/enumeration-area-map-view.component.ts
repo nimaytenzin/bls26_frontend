@@ -1163,6 +1163,21 @@ export class EnumerationAreaMapViewComponent
 	}
 
 	/**
+	 * Navigate to sampled households view
+	 */
+	viewSampledHouseholds(): void {
+		if (this.surveyEnumerationArea?.surveyId) {
+			this.router.navigate([
+				'/enumerator/survey',
+				this.surveyEnumerationArea.surveyId,
+				'enumeration-area',
+				this.surveyEnumerationAreaId,
+				'sampling-results',
+			]);
+		}
+	}
+
+	/**
 	 * Open dialog to view households by structure
 	 */
 	viewHouseholdsByStructure(): void {

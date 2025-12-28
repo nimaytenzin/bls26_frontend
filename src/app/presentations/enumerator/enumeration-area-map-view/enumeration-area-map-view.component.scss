@@ -52,44 +52,18 @@ body.map-view-active {
 	position: relative;
 }
 
-// Header container - fixed at top
+// Header container - absolutely positioned on top
 .header-container {
 	background-color: #1a58af;
 	width: 100%;
-	// Approximate header height - adjust based on content
-	min-height: 100px;
-	
-	@media (max-width: 639px) {
-		min-height: 110px;
-	}
+	// Auto-size to content
 }
 
-// Header spacer to prevent content from going under fixed header
-.header-spacer {
-	height: 100px;
-	
-	@media (max-width: 639px) {
-		height: 110px;
-	}
-	
-	// Add extra space when location error is shown
-	&.with-location-error {
-		height: 120px;
-		
-		@media (max-width: 639px) {
-			height: 130px;
-		}
-	}
-}
-
-// Map wrapper - takes remaining space after header
+// Map wrapper - relative, full width and height
 .map-wrapper {
 	position: relative;
 	width: 100%;
-	margin-top: 0;
-	padding-top: 0;
-	flex: 1 1 auto;
-	min-height: 0; // Important for flex children
+	height: 100%;
 	overflow: hidden;
 }
 
@@ -260,6 +234,29 @@ body.map-view-active {
 			opacity: 0.5;
 			cursor: not-allowed;
 		}
+	}
+}
+
+// Floating complete button
+::ng-deep .floating-complete-btn {
+	font-weight: 600;
+	padding: 0.75rem 1.5rem;
+	border-radius: 0.5rem;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	transition: all 0.3s ease;
+	
+	&:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+	}
+	
+	.p-button-icon {
+		margin-right: 0.5rem;
+	}
+	
+	@media (max-width: 639px) {
+		padding: 0.625rem 1.25rem;
+		font-size: 0.875rem;
 	}
 }
 

@@ -63,6 +63,9 @@ export class HouseholdListingFormComponent implements OnInit {
 	// Store structureNumber separately for display (read-only)
 	structureNumberDisplay: string = '';
 	phoneNumberInvalid = false;
+	
+	// Store original household data to detect changes
+	private originalHouseholdData: CreateHouseholdListingDto | null = null;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -88,6 +91,7 @@ export class HouseholdListingFormComponent implements OnInit {
 				this.isEditMode = true;
 				this.loadHouseholdDetails();
 			} else {
+				this.originalHouseholdData = null;
 				this.loadNextSerialNumber();
 			}
 		});
@@ -134,6 +138,9 @@ export class HouseholdListingFormComponent implements OnInit {
 							phoneNumber: household.phoneNumber || '',
 							remarks: household.remarks || '',
 						};
+						
+						// Store original data to detect changes
+						this.originalHouseholdData = { ...this.householdForm };
 						
 						// Set structureNumber display
 						this.structureNumberDisplay = this.householdForm.structureNumber;
@@ -460,6 +467,9 @@ export class HouseholdListingFormComponent implements OnInit {
 
 		this.submitting = true;
 
+		// Check if there are changes before saving
+		const hasChanges = this.hasChanges();
+
 		// Create new household - need to include structureId
 		this.resolveStructureId().then((resolvedStructureId) => {
 			if (!resolvedStructureId) {
@@ -489,11 +499,19 @@ export class HouseholdListingFormComponent implements OnInit {
 				.createHouseholdListing(createDto)
 				.subscribe({
 					next: () => {
-						this.messageService.add({
-							severity: 'success',
-							summary: 'Success',
-							detail: 'Household saved successfully. Creating new form...',
-						});
+						if (hasChanges) {
+							this.messageService.add({
+								severity: 'success',
+								summary: 'Success',
+								detail: 'Details saved, moving to next household',
+							});
+						} else {
+							this.messageService.add({
+								severity: 'info',
+								summary: 'Info',
+								detail: 'Moving to next household',
+							});
+						}
 						
 						// Reset form for new household in same structure
 						this.resetFormForNewHousehold();
@@ -523,6 +541,7 @@ export class HouseholdListingFormComponent implements OnInit {
 		// Reset edit mode first
 		this.householdId = undefined;
 		this.isEditMode = false;
+		this.originalHouseholdData = null;
 		
 		// Reset form fields but keep structure info
 		this.householdForm = {
@@ -542,15 +561,201 @@ export class HouseholdListingFormComponent implements OnInit {
 	}
 
 	/**
-	 * Navigate to map view (Next structure)
+	 * Save current household and navigate to map view for next structure
 	 */
 	nextStructure(): void {
+		// Validate form if there's data to save
+		if (this.hasFormData() && !this.isFormValid()) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Validation Error',
+				detail: 'Please fill all required fields before saving',
+			});
+			return;
+		}
+
+		// Prevent double submission
+		if (this.submitting) return;
+
+		// If no data to save, just navigate
+		if (!this.hasFormData()) {
+			this.messageService.add({
+				severity: 'info',
+				summary: 'Info',
+				detail: 'Moving to next structure',
+			});
+			// Add delay to allow toast to display before navigation
+			setTimeout(() => {
+				this.navigateToMapView();
+			}, 300);
+			return;
+		}
+
+		this.submitting = true;
+
+		// Check if there are changes before saving
+		const hasChanges = this.hasChanges();
+
+		if (this.isEditMode && this.householdId) {
+			// Update existing household
+			this.resolveStructureId().then((resolvedStructureId) => {
+				const updateDto: any = {
+					structureNumber: this.householdForm.structureNumber,
+					householdIdentification: this.householdForm.householdIdentification,
+					householdSerialNumber: this.householdForm.householdSerialNumber,
+					nameOfHOH: this.householdForm.nameOfHOH,
+					totalMale: this.householdForm.totalMale,
+					totalFemale: this.householdForm.totalFemale,
+					phoneNumber: this.householdForm.phoneNumber,
+					remarks: this.householdForm.remarks,
+				};
+				
+				if (resolvedStructureId) {
+					updateDto.structureId = resolvedStructureId;
+				}
+
+				this.enumeratorService
+					.updateHouseholdListing(this.householdId!, updateDto)
+					.subscribe({
+						next: () => {
+							if (hasChanges) {
+								this.messageService.add({
+									severity: 'success',
+									summary: 'Success',
+									detail: 'Details saved, moving to next structure',
+								});
+							} else {
+								this.messageService.add({
+									severity: 'info',
+									summary: 'Info',
+									detail: 'Moving to next structure',
+								});
+							}
+							this.submitting = false;
+							// Add delay to allow toast to display before navigation
+							setTimeout(() => {
+								this.navigateToMapView();
+							}, 300);
+						},
+						error: (error: any) => {
+							console.error('Error updating household:', error);
+							this.messageService.add({
+								severity: 'error',
+								summary: 'Error',
+								detail: error.error?.message || 'Failed to save household listing',
+							});
+							this.submitting = false;
+						},
+					});
+			});
+		} else {
+			// Create new household
+			this.resolveStructureId().then((resolvedStructureId) => {
+				if (!resolvedStructureId) {
+					this.messageService.add({
+						severity: 'warn',
+						summary: 'Validation Error',
+						detail: 'Structure ID is required. Please select a structure from the map or ensure structure number is valid.',
+					});
+					this.submitting = false;
+					return;
+				}
+
+				const createDto: CreateSurveyEnumerationAreaHouseholdListingDto = {
+					surveyEnumerationAreaId: this.householdForm.surveyEnumerationAreaId,
+					structureId: resolvedStructureId,
+					householdIdentification: this.householdForm.householdIdentification,
+					householdSerialNumber: this.householdForm.householdSerialNumber,
+					nameOfHOH: this.householdForm.nameOfHOH,
+					totalMale: this.householdForm.totalMale || 0,
+					totalFemale: this.householdForm.totalFemale || 0,
+					phoneNumber: this.householdForm.phoneNumber || undefined,
+					remarks: this.householdForm.remarks || undefined,
+				};
+
+				this.enumeratorService
+					.createHouseholdListing(createDto)
+					.subscribe({
+						next: () => {
+							if (hasChanges) {
+								this.messageService.add({
+									severity: 'success',
+									summary: 'Success',
+									detail: 'Details saved, moving to next structure',
+								});
+							} else {
+								this.messageService.add({
+									severity: 'info',
+									summary: 'Info',
+									detail: 'Moving to next structure',
+								});
+							}
+							this.submitting = false;
+							// Add delay to allow toast to display before navigation
+							setTimeout(() => {
+								this.navigateToMapView();
+							}, 300);
+						},
+						error: (error: any) => {
+							console.error('Error creating household:', error);
+							this.messageService.add({
+								severity: 'error',
+								summary: 'Error',
+								detail: error.error?.message || 'Failed to save household listing',
+							});
+							this.submitting = false;
+						},
+					});
+			});
+		}
+	}
+
+	/**
+	 * Navigate to map view
+	 */
+	private navigateToMapView(): void {
 		this.router.navigate([
 			'/enumerator',
 			'survey-enumeration-area',
 			this.surveyEnumerationAreaId,
 			'map',
 		]);
+	}
+
+	/**
+	 * Check if form has any data entered
+	 */
+	private hasFormData(): boolean {
+		return !!(
+			this.householdForm.householdIdentification?.trim() ||
+			this.householdForm.nameOfHOH?.trim() ||
+			this.householdForm.totalMale ||
+			this.householdForm.totalFemale ||
+			this.householdForm.phoneNumber?.trim() ||
+			this.householdForm.remarks?.trim()
+		);
+	}
+
+	/**
+	 * Check if there are any changes from the original data
+	 */
+	private hasChanges(): boolean {
+		if (!this.originalHouseholdData) {
+			// For new households, check if there's any data entered
+			return this.hasFormData();
+		}
+
+		// Compare current form with original data
+		return !!(
+			this.householdForm.structureNumber !== this.originalHouseholdData.structureNumber ||
+			this.householdForm.householdIdentification !== this.originalHouseholdData.householdIdentification ||
+			this.householdForm.householdSerialNumber !== this.originalHouseholdData.householdSerialNumber ||
+			this.householdForm.nameOfHOH !== this.originalHouseholdData.nameOfHOH ||
+			this.householdForm.totalMale !== this.originalHouseholdData.totalMale ||
+			this.householdForm.totalFemale !== this.originalHouseholdData.totalFemale ||
+			(this.householdForm.phoneNumber || '') !== (this.originalHouseholdData.phoneNumber || '') ||
+			(this.householdForm.remarks || '') !== (this.originalHouseholdData.remarks || '')
+		);
 	}
 
 	/**

@@ -129,7 +129,7 @@
 								[(ngModel)]="householdForm.householdIdentification"
 								name="householdIdentification"
 								[disabled]="submitting"
-								placeholder="e.g., HH-2024-001"
+								placeholder="e.g. Building Name, Flat Number, Landmarks..."
 								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
 								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
 								required
@@ -311,15 +311,17 @@
 								(onClick)="saveAndNext()"
 								[disabled]="!isFormValid() || submitting"
 								[icon]="submitting ? 'pi pi-spin pi-spinner' : 'pi pi-save'"
-								[label]="submitting ? 'Saving...' : 'Save and Next'"
+								[label]="submitting ? 'Saving...' : 'Save and Next Household'"
 								styleClass="flex-1"
+								size="small"
 								[style]="{'background-color': '#1A58AF', 'border-color': '#1A58AF'}"
 							></p-button>
 							<p-button
 								(onClick)="nextStructure()"
 								[disabled]="submitting"
-								icon="pi pi-arrow-right"
-								label="Next Structure"
+								size="small"
+								[icon]="submitting ? 'pi pi-spin pi-spinner' : 'pi pi-arrow-right'"
+								[label]="submitting ? 'Saving...' : 'Save and Next Structure'"
 								styleClass="flex-1 p-button-outlined"
 							></p-button>
 						</div>

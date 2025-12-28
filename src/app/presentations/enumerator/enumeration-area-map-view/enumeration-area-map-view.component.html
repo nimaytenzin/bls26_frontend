@@ -49,79 +49,69 @@
 		</div>
 	</div>
 
-	<!-- Main View -->
-	<div class="flex flex-col h-screen overflow-hidden w-full" *ngIf="!loading && !error">
-		<!-- Fixed Header -->
-		<div class="fixed top-0 left-0 right-0 z-50 shadow-lg bg-primary-600 header-container flex-shrink-0">
-			<div class="flex flex-col gap-2 px-3 py-2 relative">
-				<!-- Top Row: Title and Back Button -->
-				<div class="flex items-center justify-between gap-2">
-					<button
-						pButton
-						type="button"
-						icon="pi pi-arrow-left"
-						(click)="goBack()"
-						class="p-button-text p-button-plain !text-white flex-shrink-0"
-						styleClass="p-button-sm"
-					></button>
-					<h1 class="text-white font-bold text-sm sm:text-base leading-tight truncate flex-1 text-center px-2">
-						{{ getEnumerationAreaName() }}
-					</h1>
-					<div class="w-8 flex-shrink-0"></div>
-				</div>
+	<!-- Main View - Relative, Full Screen -->
+	<div class="relative w-full h-screen overflow-hidden" *ngIf="!loading && !error">
+		<!-- Map Container - Full width and height, relative -->
+		<div class="relative w-full h-full map-wrapper z-10" #mapContainer>
+			<!-- <div  class="absolute inset-0 w-full h-full" style="z-index: 1"></div> -->
 
-				<!-- Middle Row: Action Buttons -->
-				<div class="flex items-center gap-2">
-					<button
-						*ngIf="!isEnumerated"
-						pButton
-						type="button"
-						icon="pi pi-check-circle"
-						(click)="openCompleteEnumerationDialog()"
-						label="Complete"
-						styleClass="p-button-sm p-button-success"
-						class="w-full"
-					></button>
+ 			<div class="absolute top-0 left-0 right-0 z-[9999] shadow-lg bg-primary-600 header-container">
+				<div class="flex flex-col px-3 py-2 relative">
+					<!-- Top Row: Back Button, Title, and Status Tag -->
+					<div class="flex items-center justify-between gap-2">
+						<button
+							pButton
+							type="button"
+							icon="pi pi-arrow-left"
+							(click)="goBack()"
+							class="p-button-text p-button-plain !text-white flex-shrink-0"
+							styleClass="p-button-sm"
+						></button>
+						<h1 class="text-white font-bold text-sm sm:text-base leading-tight text-wrap flex-1 text-center px-2">
+							{{ getEnumerationAreaName() }}
+						</h1>
+						<div class="flex-shrink-0">
+							<p-tag 
+								*ngIf="surveyEnumerationArea?.isPublished"
+								severity="success" 
+								value="PUBLISHED" 
+								size="small"
+							></p-tag>
+							<p-tag 
+								*ngIf="surveyEnumerationArea?.isSampled && !surveyEnumerationArea?.isPublished"
+								severity="info" 
+								value="SAMPLED" 
+								size="small"
+							></p-tag>
+							<p-tag 
+								*ngIf="isEnumerated && !surveyEnumerationArea?.isSampled && !surveyEnumerationArea?.isPublished"
+								severity="info" 
+								value="LISTING COMPLETED" 
+								size="small"
+							></p-tag>
+							<p-tag 
+								*ngIf="!isEnumerated && !surveyEnumerationArea?.isSampled && !surveyEnumerationArea?.isPublished"
+								severity="warning" 
+								value="PENDING" 
+								size="small"
+							></p-tag>
+						</div>
+					</div>
+					<div
+					*ngIf="locationError"
+					class="text-xs text-red-50"
+ 				>
+					<i class="pi pi-exclamation-triangle text-xs flex-shrink-0"></i>
+ 					<span class="truncate">{{ locationError }}</span>
+ 				</div>
 				</div>
-
-				<!-- Status Indicators Row - Compact -->
-				<div class="flex items-center gap-2 justify-center flex-wrap" *ngIf="isEnumerated || surveyEnumerationArea?.isSampled">
-					<span
-						class="text-xs text-white flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded"
-						*ngIf="isEnumerated"
-					>
-						<i class="pi pi-check-circle text-xs"></i>
-						<span class="font-semibold">LISTING COMPLETED</span>
-					</span>
-					<span
-						class="text-xs text-white flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded"
-						*ngIf="surveyEnumerationArea?.isSampled"
-					>
-						<i class="pi pi-check-circle text-xs"></i>
-						<span>Sampled</span>
-					</span>
-				</div>
-			</div>
+				
+				<!-- Location Error - Absolute Position at Bottom of Header -->
 			
-			<!-- Location Error - Absolute Position at Bottom -->
-			<div
-				*ngIf="locationError"
-				class="absolute bottom-0 left-0 right-0 bg-amber-500 text-white px-3 py-1.5 flex items-center gap-2 text-xs z-10"
-			>
-				<i class="pi pi-exclamation-triangle text-sm flex-shrink-0"></i>
-				<span class="truncate">{{ locationError }}</span>
 			</div>
-		</div>
-
-		<!-- Spacer for fixed header -->
-		<div class="header-spacer flex-shrink-0" [class.with-location-error]="locationError"></div>
-		
-		<!-- Map Container - Takes remaining space -->
-		<div class="relative flex-1 overflow-hidden map-wrapper">
-			<div #mapContainer class="w-full h-full" style="z-index: 1"></div>
 
 			<!-- Map Controls Overlay - Compact Mobile Design -->
-			<div class="absolute top-2 right-2 z-50 flex flex-col gap-1.5 map-controls">
+			<div class="absolute bottom-10 right-2 z-[9999] flex flex-col gap-1.5 map-controls">
 				<!-- Edit Mode Toggle Button -->
 				<button
 					pButton
@@ -225,8 +215,39 @@
 					<p class="text-xs font-medium">Click map to add structure</p>
 				</div>
 			</div>
-		</div>
+
+
+
+			<!-- Floating Action Button - Absolutely positioned at bottom relative to map container -->
+			<div class="absolute bottom-4 left-3 z-[9999]">
+				<!-- Show "Mark as complete" if status is PENDING -->
+				<button
+					*ngIf="!isEnumerated && !loading && !error"
+					pButton
+					type="button"
+					icon="pi pi-check-circle"
+					(click)="openCompleteEnumerationDialog()"
+					size="small"
+					label="Mark as complete"
+					styleClass="p-button-success floating-complete-btn"
+				></button>
+				
+				<!-- Show "View sampled households" if status is not PENDING -->
+				<button
+					*ngIf="isEnumerated && !loading && !error"
+					pButton
+					type="button"
+					icon="pi pi-eye"
+					(click)="viewSampledHouseholds()"
+					size="small"
+					label="View sampled households"
+					styleClass="p-button-info floating-complete-btn"
+				></button>
+			</div>
+
 	</div>
+
+	
 
 	<!-- Custom Toast Notification -->
 	<div

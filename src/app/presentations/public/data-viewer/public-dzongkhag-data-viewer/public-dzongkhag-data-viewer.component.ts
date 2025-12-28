@@ -9,6 +9,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import * as L from 'leaflet';
 import {
@@ -114,6 +115,7 @@ export class PublicDzongkhagDataViewerComponent
 	private isViewReady = false;
 	private isDataReady = false;
 	private resizeListener?: () => void;
+	private routeParamsSubscription?: Subscription;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -132,8 +134,6 @@ export class PublicDzongkhagDataViewerComponent
 	) {}
 
 	ngOnInit() {
-		this.dzongkhagId = Number(this.route.snapshot.paramMap.get('id'));
-
 		// Initialize basemap categories from service
 		this.basemapCategories = this.basemapService.getBasemapCategories();
 
@@ -162,6 +162,50 @@ export class PublicDzongkhagDataViewerComponent
 			},
 		});
 
+		// Subscribe to route parameter changes
+		this.routeParamsSubscription = this.route.paramMap.subscribe((params) => {
+			const newDzongkhagId = Number(params.get('id'));
+			
+			// Only reload if the dzongkhag ID actually changed
+			if (newDzongkhagId !== this.dzongkhagId) {
+				this.dzongkhagId = newDzongkhagId;
+				this.onRouteParamsChanged();
+			} else if (!this.dzongkhagId) {
+				// Initial load
+				this.dzongkhagId = newDzongkhagId;
+				this.onRouteParamsChanged();
+			}
+		});
+	}
+
+	/**
+	 * Handle route parameter changes
+	 */
+	private onRouteParamsChanged(): void {
+		// Reset map state
+		if (this.map) {
+			this.map.remove();
+			this.map = undefined;
+		}
+		if (this.currentGeoJSONLayer) {
+			this.currentGeoJSONLayer = undefined;
+		}
+		
+		// Reset data flags
+		this.isDataReady = false;
+		this.dzongkhag = null;
+		this.adminZones = [];
+		this.adminZoneBoundaries = null;
+		this.dzongkhagBoundary = null;
+		this.error = null;
+		this.noDataFound = false;
+		
+		// Reset quick navigation selections
+		this.selectedAdminZone = null;
+		this.selectedSubAdminZone = null;
+		this.quickNavAdminZones = [];
+		this.quickNavSubAdminZones = [];
+		
 		// Load dzongkhag info
 		this.loadDzongkhagInfo();
 		this.loadData();
@@ -177,6 +221,9 @@ export class PublicDzongkhagDataViewerComponent
 	}
 
 	ngOnDestroy() {
+		if (this.routeParamsSubscription) {
+			this.routeParamsSubscription.unsubscribe();
+		}
 		this.cleanup();
 	}
 
@@ -208,10 +255,13 @@ export class PublicDzongkhagDataViewerComponent
 		this.dzongkhagService.getDzongkhagById(this.dzongkhagId, false).subscribe({
 			next: (dzongkhag) => {
 				this.dzongkhag = dzongkhag;
-				// Update quick nav selection
+				// Update quick nav selection - find in allDzongkhags or use the loaded dzongkhag
 				if (this.allDzongkhags.length > 0) {
 					this.selectedDzongkhag = this.allDzongkhags.find(d => d.id === dzongkhag.id) || dzongkhag;
 					this.loadAdminZonesForQuickNav(dzongkhag.id);
+				} else {
+					// If allDzongkhags not loaded yet, set directly (will be updated when loadLocationLists completes)
+					this.selectedDzongkhag = dzongkhag;
 				}
 			},
 			error: (error) => {
@@ -727,11 +777,26 @@ export class PublicDzongkhagDataViewerComponent
 		// Load all dzongkhags
 		this.dzongkhagService.findAllDzongkhags(false, false, false, false).subscribe({
 			next: (dzongkhags) => {
-				this.allDzongkhags = dzongkhags || [];
-				// Set current dzongkhag as selected
+				// Sort dzongkhags alphabetically by name (ascending)
+				this.allDzongkhags = (dzongkhags || []).sort((a, b) => {
+					const nameA = (a.name || '').toLowerCase();
+					const nameB = (b.name || '').toLowerCase();
+					return nameA.localeCompare(nameB);
+				});
+				// Set current dzongkhag as selected - find it in the list or use the loaded dzongkhag
 				if (this.dzongkhag) {
-					this.selectedDzongkhag = this.dzongkhag;
-					this.loadAdminZonesForQuickNav(this.dzongkhag.id);
+					this.selectedDzongkhag = this.allDzongkhags.find(d => d.id === this.dzongkhag.id) || this.dzongkhag;
+					// Load admin zones for quick nav if not already loaded
+					if (this.quickNavAdminZones.length === 0) {
+						this.loadAdminZonesForQuickNav(this.dzongkhag.id);
+					}
+				} else if (this.dzongkhagId) {
+					// If dzongkhag not loaded yet, find it by ID
+					const currentDzongkhag = this.allDzongkhags.find(d => d.id === this.dzongkhagId);
+					if (currentDzongkhag) {
+						this.selectedDzongkhag = currentDzongkhag;
+						this.loadAdminZonesForQuickNav(this.dzongkhagId);
+					}
 				}
 				this.loadingLocations = false;
 			},
@@ -749,16 +814,7 @@ export class PublicDzongkhagDataViewerComponent
 		this.administrativeZoneService.findAdministrativeZonesByDzongkhag(dzongkhagId).subscribe({
 			next: (adminZones) => {
 				this.quickNavAdminZones = adminZones || [];
-				// Set current admin zone if available
-				if (this.adminZones && this.adminZones.length > 0) {
-					const currentAdminZone = this.quickNavAdminZones.find(az => 
-						this.adminZones.some(a => a.id === az.id)
-					);
-					if (currentAdminZone) {
-						this.selectedAdminZone = currentAdminZone;
-						this.loadSubAdminZonesForQuickNav(currentAdminZone.id);
-					}
-				}
+				// Do not auto-select admin zone - let user choose manually
 			},
 			error: (error) => {
 				console.error('Error loading administrative zones:', error);
@@ -824,6 +880,127 @@ export class PublicDzongkhagDataViewerComponent
 				selectedSubAdminZone.id,
 			], {
 				relativeTo: this.route.parent || this.route,
+			});
+		}
+	}
+
+	/**
+	 * Handle dzongkhag dropdown change
+	 */
+	onDzongkhagDropdownChange(): void {
+		if (this.selectedDzongkhag) {
+			this.loadAdminZonesForQuickNav(this.selectedDzongkhag.id);
+			// Reset admin zone and sub-admin zone selections
+			this.selectedAdminZone = null;
+			this.selectedSubAdminZone = null;
+			this.quickNavSubAdminZones = [];
+		} else {
+			this.selectedAdminZone = null;
+			this.selectedSubAdminZone = null;
+			this.quickNavAdminZones = [];
+			this.quickNavSubAdminZones = [];
+		}
+	}
+
+	/**
+	 * Handle admin zone dropdown change
+	 */
+	onAdminZoneDropdownChange(): void {
+		if (this.selectedAdminZone) {
+			this.loadSubAdminZonesForQuickNav(this.selectedAdminZone.id);
+			// Reset sub-admin zone selection
+			this.selectedSubAdminZone = null;
+		} else {
+			this.selectedSubAdminZone = null;
+			this.quickNavSubAdminZones = [];
+		}
+	}
+
+	/**
+	 * Check if navigation is possible
+	 */
+	canNavigate(): boolean {
+		return !!(this.selectedDzongkhag || this.selectedAdminZone || this.selectedSubAdminZone);
+	}
+
+	/**
+	 * Navigate to the selected location
+	 */
+	navigateToSelection(): void {
+		// Priority: Chiwog/LAP > Gewog/Thromde > Dzongkhag
+		if (this.selectedSubAdminZone && this.selectedAdminZone) {
+			// Navigate to sub-administrative zone
+			const adminZoneId = this.selectedSubAdminZone.administrativeZoneId || this.selectedAdminZone.id;
+			const navPath = ['sub-administrative-zone', adminZoneId, this.selectedSubAdminZone.id];
+			this.messageService.add({
+				severity: 'info',
+				summary: 'Navigating',
+				detail: `Navigating to ${this.selectedSubAdminZone.name} (${this.selectedSubAdminZone.type})`,
+				life: 2000,
+			});
+			this.router.navigate(navPath, {
+				relativeTo: this.route.parent || this.route,
+			}).catch((error) => {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Navigation Failed',
+					detail: `Failed to navigate to ${this.selectedSubAdminZone.name}`,
+					life: 3000,
+				});
+			});
+		} else if (this.selectedAdminZone && this.selectedDzongkhag) {
+			// Navigate to administrative zone
+			const navPath = ['administrative-zone', this.selectedDzongkhag.id, this.selectedAdminZone.id];
+			this.messageService.add({
+				severity: 'info',
+				summary: 'Navigating',
+				detail: `Navigating to ${this.selectedAdminZone.name} (${this.selectedAdminZone.type})`,
+				life: 2000,
+			});
+			this.router.navigate(navPath, {
+				relativeTo: this.route.parent || this.route,
+			}).catch((error) => {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Navigation Failed',
+					detail: `Failed to navigate to ${this.selectedAdminZone.name}`,
+					life: 3000,
+				});
+			});
+		} else if (this.selectedDzongkhag) {
+			// Navigate to dzongkhag
+			const navPath = ['dzongkhag', this.selectedDzongkhag.id];
+			// Check if already on this dzongkhag
+			if (this.selectedDzongkhag.id === this.dzongkhagId) {
+				this.messageService.add({
+					severity: 'info',
+					summary: 'Already Viewing',
+					detail: `You are already viewing ${this.selectedDzongkhag.name} Dzongkhag`,
+					life: 2000,
+				});
+				return;
+			}
+			this.messageService.add({
+				severity: 'info',
+				summary: 'Navigating',
+				detail: `Navigating to ${this.selectedDzongkhag.name} Dzongkhag`,
+				life: 2000,
+			});
+			this.router.navigate(navPath).catch((error) => {
+				console.error('Error navigating to dzongkhag:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Navigation Failed',
+					detail: `Failed to navigate to ${this.selectedDzongkhag.name}`,
+					life: 3000,
+				});
+			});
+		} else {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Selection',
+				detail: 'Please select a location to navigate to',
+				life: 2000,
 			});
 		}
 	}
