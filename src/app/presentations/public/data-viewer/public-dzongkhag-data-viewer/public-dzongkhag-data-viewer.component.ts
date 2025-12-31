@@ -205,7 +205,7 @@ export class PublicDzongkhagDataViewerComponent
 		this.selectedSubAdminZone = null;
 		this.quickNavAdminZones = [];
 		this.quickNavSubAdminZones = [];
-		
+
 		// Load dzongkhag info
 		this.loadDzongkhagInfo();
 		this.loadData();

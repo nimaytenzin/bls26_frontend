@@ -68,6 +68,13 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	allSubAdministrativeZones: any[] = [];
 	loadingLocations = false;
 
+	// Quick Navigation Panel
+	quickNavAdminZones: any[] = [];
+	quickNavSubAdminZones: any[] = [];
+	selectedDzongkhag: any = null;
+	selectedAdminZone: any = null;
+	selectedSubAdminZone: any = null;
+
 	// Data
 	enumerationAreas: EnumerationAreaStats[] = [];
 	enumerationAreaBoundaries: any = null;
@@ -383,9 +390,6 @@ export class PublicSubadministrativeZoneDataViewerComponent
 				zoom: 8,
 				zoomControl: false,
 			});
-
-			// Add zoom control to bottom right
-			L.control.zoom({ position: 'bottomright' }).addTo(this.map);
 
 			// Set basemap
 			this.switchBasemap();
@@ -923,7 +927,25 @@ export class PublicSubadministrativeZoneDataViewerComponent
 		// Load all dzongkhags
 		this.dzongkhagService.findAllDzongkhags(false, false, false, false).subscribe({
 			next: (dzongkhags) => {
-				this.allDzongkhags = dzongkhags || [];
+				// Sort dzongkhags alphabetically by name (ascending)
+				this.allDzongkhags = (dzongkhags || []).sort((a, b) => {
+					const nameA = (a.name || '').toLowerCase();
+					const nameB = (b.name || '').toLowerCase();
+					return nameA.localeCompare(nameB);
+				});
+				// Set current dzongkhag as selected
+				if (this.dzongkhag) {
+					this.selectedDzongkhag = this.allDzongkhags.find(d => d.id === this.dzongkhag.id) || this.dzongkhag;
+					if (this.dzongkhagId) {
+						this.loadAdminZonesForQuickNav(this.dzongkhagId);
+					}
+				} else if (this.dzongkhagId) {
+					const currentDzongkhag = this.allDzongkhags.find(d => d.id === this.dzongkhagId);
+					if (currentDzongkhag) {
+						this.selectedDzongkhag = currentDzongkhag;
+						this.loadAdminZonesForQuickNav(this.dzongkhagId);
+					}
+				}
 				this.loadingLocations = false;
 			},
 			error: (error) => {
@@ -1022,6 +1044,170 @@ export class PublicSubadministrativeZoneDataViewerComponent
 				selectedSubAdminZone.id,
 			], {
 				relativeTo: this.route.parent || this.route,
+			});
+		}
+	}
+
+	/**
+	 * Load administrative zones for quick navigation
+	 */
+	loadAdminZonesForQuickNav(dzongkhagId: number): void {
+		this.administrativeZoneService.findAdministrativeZonesByDzongkhag(dzongkhagId).subscribe({
+			next: (adminZones) => {
+				this.quickNavAdminZones = adminZones || [];
+				// Set current admin zone as selected if available
+				if (this.administrativeZoneId) {
+					this.selectedAdminZone = this.quickNavAdminZones.find(az => az.id === this.administrativeZoneId);
+					if (this.selectedAdminZone) {
+						this.loadSubAdminZonesForQuickNav(this.administrativeZoneId);
+					}
+				}
+			},
+			error: (error) => {
+				console.error('Error loading administrative zones:', error);
+				this.quickNavAdminZones = [];
+			},
+		});
+	}
+
+	/**
+	 * Load sub-administrative zones for quick navigation
+	 */
+	loadSubAdminZonesForQuickNav(administrativeZoneId: number): void {
+		this.subAdministrativeZoneService.findSubAdministrativeZonesByAdministrativeZone(administrativeZoneId).subscribe({
+			next: (subAdminZones) => {
+				this.quickNavSubAdminZones = subAdminZones || [];
+				// Set current sub-admin zone as selected if available
+				if (this.subAdministrativeZoneId) {
+					this.selectedSubAdminZone = this.quickNavSubAdminZones.find(saz => saz.id === this.subAdministrativeZoneId);
+				}
+			},
+			error: (error) => {
+				console.error('Error loading sub-administrative zones:', error);
+				this.quickNavSubAdminZones = [];
+			},
+		});
+	}
+
+	/**
+	 * Handle dzongkhag dropdown change
+	 */
+	onDzongkhagDropdownChange(): void {
+		if (this.selectedDzongkhag) {
+			this.loadAdminZonesForQuickNav(this.selectedDzongkhag.id);
+			// Reset admin zone and sub-admin zone selections
+			this.selectedAdminZone = null;
+			this.selectedSubAdminZone = null;
+			this.quickNavSubAdminZones = [];
+		} else {
+			this.selectedAdminZone = null;
+			this.selectedSubAdminZone = null;
+			this.quickNavAdminZones = [];
+			this.quickNavSubAdminZones = [];
+		}
+	}
+
+	/**
+	 * Handle admin zone dropdown change
+	 */
+	onAdminZoneDropdownChange(): void {
+		if (this.selectedAdminZone) {
+			this.loadSubAdminZonesForQuickNav(this.selectedAdminZone.id);
+			// Reset sub-admin zone selection
+			this.selectedSubAdminZone = null;
+		} else {
+			this.selectedSubAdminZone = null;
+			this.quickNavSubAdminZones = [];
+		}
+	}
+
+	/**
+	 * Check if navigation is possible
+	 */
+	canNavigate(): boolean {
+		return !!(this.selectedDzongkhag || this.selectedAdminZone || this.selectedSubAdminZone);
+	}
+
+	/**
+	 * Navigate to the selected location
+	 */
+	navigateToSelection(): void {
+		// Priority: Chiwog/LAP > Gewog/Thromde > Dzongkhag
+		if (this.selectedSubAdminZone && this.selectedAdminZone) {
+			// Navigate to sub-administrative zone
+			const adminZoneId = this.selectedSubAdminZone.administrativeZoneId || this.selectedAdminZone.id;
+			const navPath = ['sub-administrative-zone', adminZoneId, this.selectedSubAdminZone.id];
+			this.messageService.add({
+				severity: 'info',
+				summary: 'Navigating',
+				detail: `Navigating to ${this.selectedSubAdminZone.name} (${this.selectedSubAdminZone.type})`,
+				life: 2000,
+			});
+			this.router.navigate(navPath, {
+				relativeTo: this.route.parent || this.route,
+			}).catch((error) => {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Navigation Failed',
+					detail: `Failed to navigate to ${this.selectedSubAdminZone.name}`,
+					life: 3000,
+				});
+			});
+		} else if (this.selectedAdminZone && this.selectedDzongkhag) {
+			// Navigate to administrative zone
+			const navPath = ['administrative-zone', this.selectedDzongkhag.id, this.selectedAdminZone.id];
+			this.messageService.add({
+				severity: 'info',
+				summary: 'Navigating',
+				detail: `Navigating to ${this.selectedAdminZone.name} (${this.selectedAdminZone.type})`,
+				life: 2000,
+			});
+			this.router.navigate(navPath, {
+				relativeTo: this.route.parent || this.route,
+			}).catch((error) => {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Navigation Failed',
+					detail: `Failed to navigate to ${this.selectedAdminZone.name}`,
+					life: 3000,
+				});
+			});
+		} else if (this.selectedDzongkhag) {
+			// Navigate to dzongkhag
+			const navPath = ['dzongkhag', this.selectedDzongkhag.id];
+			// Check if already on this dzongkhag
+			if (this.selectedDzongkhag.id === this.dzongkhagId) {
+				this.messageService.add({
+					severity: 'info',
+					summary: 'Already Viewing',
+					detail: `You are already viewing ${this.selectedDzongkhag.name} Dzongkhag`,
+					life: 2000,
+				});
+				return;
+			}
+			this.messageService.add({
+				severity: 'info',
+				summary: 'Navigating',
+				detail: `Navigating to ${this.selectedDzongkhag.name} Dzongkhag`,
+				life: 2000,
+			});
+			this.router.navigate(navPath, {
+				relativeTo: this.route.parent || this.route,
+			}).catch((error) => {
+				console.error('Error navigating to dzongkhag:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Navigation Failed',
+					detail: `Failed to navigate to ${this.selectedDzongkhag.name}`,
+					life: 3000,
+				});
+			});
+		} else {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Selection',
+				detail: 'Please select a location to navigate to',
+				life: 2000,
 			});
 		}
 	}

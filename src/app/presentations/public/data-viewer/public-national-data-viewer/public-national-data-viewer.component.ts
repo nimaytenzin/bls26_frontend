@@ -697,7 +697,12 @@ export class PublicNationalDataViewerComponent
 		// Load all dzongkhags
 		this.dzongkhagService.findAllDzongkhags(false, false, false, false).subscribe({
 			next: (dzongkhags) => {
-				this.allDzongkhags = dzongkhags || [];
+				// Sort dzongkhags alphabetically by name (ascending)
+				this.allDzongkhags = (dzongkhags || []).sort((a, b) => {
+					const nameA = (a.name || '').toLowerCase();
+					const nameB = (b.name || '').toLowerCase();
+					return nameA.localeCompare(nameB);
+				});
 				this.loadingLocations = false;
 			},
 			error: (error) => {
@@ -780,6 +785,119 @@ export class PublicNationalDataViewerComponent
 				selectedSubAdminZone.id,
 			], {
 				relativeTo: this.route,
+			});
+		}
+	}
+
+	/**
+	 * Handle dzongkhag dropdown change
+	 */
+	onDzongkhagDropdownChange(): void {
+		if (this.selectedDzongkhag) {
+			this.loadAdminZonesForQuickNav(this.selectedDzongkhag.id);
+			// Reset admin zone and sub-admin zone selections
+			this.selectedAdminZone = null;
+			this.selectedSubAdminZone = null;
+			this.quickNavSubAdminZones = [];
+		} else {
+			this.selectedAdminZone = null;
+			this.selectedSubAdminZone = null;
+			this.quickNavAdminZones = [];
+			this.quickNavSubAdminZones = [];
+		}
+	}
+
+	/**
+	 * Handle admin zone dropdown change
+	 */
+	onAdminZoneDropdownChange(): void {
+		if (this.selectedAdminZone) {
+			this.loadSubAdminZonesForQuickNav(this.selectedAdminZone.id);
+			// Reset sub-admin zone selection
+			this.selectedSubAdminZone = null;
+		} else {
+			this.selectedSubAdminZone = null;
+			this.quickNavSubAdminZones = [];
+		}
+	}
+
+	/**
+	 * Check if navigation is possible
+	 */
+	canNavigate(): boolean {
+		return !!(this.selectedDzongkhag || this.selectedAdminZone || this.selectedSubAdminZone);
+	}
+
+	/**
+	 * Navigate to the selected location
+	 */
+	navigateToSelection(): void {
+		// Priority: Chiwog/LAP > Gewog/Thromde > Dzongkhag
+		if (this.selectedSubAdminZone && this.selectedAdminZone) {
+			// Navigate to sub-administrative zone
+			const adminZoneId = this.selectedSubAdminZone.administrativeZoneId || this.selectedAdminZone.id;
+			const navPath = ['sub-administrative-zone', adminZoneId, this.selectedSubAdminZone.id];
+			this.messageService.add({
+				severity: 'info',
+				summary: 'Navigating',
+				detail: `Navigating to ${this.selectedSubAdminZone.name} (${this.selectedSubAdminZone.type})`,
+				life: 2000,
+			});
+			this.router.navigate(navPath, {
+				relativeTo: this.route,
+			}).catch((error) => {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Navigation Failed',
+					detail: `Failed to navigate to ${this.selectedSubAdminZone.name}`,
+					life: 3000,
+				});
+			});
+		} else if (this.selectedAdminZone && this.selectedDzongkhag) {
+			// Navigate to administrative zone
+			const navPath = ['administrative-zone', this.selectedDzongkhag.id, this.selectedAdminZone.id];
+			this.messageService.add({
+				severity: 'info',
+				summary: 'Navigating',
+				detail: `Navigating to ${this.selectedAdminZone.name} (${this.selectedAdminZone.type})`,
+				life: 2000,
+			});
+			this.router.navigate(navPath, {
+				relativeTo: this.route,
+			}).catch((error) => {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Navigation Failed',
+					detail: `Failed to navigate to ${this.selectedAdminZone.name}`,
+					life: 3000,
+				});
+			});
+		} else if (this.selectedDzongkhag) {
+			// Navigate to dzongkhag
+			const navPath = ['dzongkhag', this.selectedDzongkhag.id];
+			this.messageService.add({
+				severity: 'info',
+				summary: 'Navigating',
+				detail: `Navigating to ${this.selectedDzongkhag.name} Dzongkhag`,
+				life: 2000,
+			});
+			this.router.navigate(navPath, {
+				relativeTo: this.route,
+			}).catch((error) => {
+				console.error('Error navigating to dzongkhag:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Navigation Failed',
+					detail: `Failed to navigate to ${this.selectedDzongkhag.name}`,
+					life: 3000,
+				});
+			});
+		} else {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'No Selection',
+				detail: 'Please select a location to navigate to',
+				life: 2000,
 			});
 		}
 	}
