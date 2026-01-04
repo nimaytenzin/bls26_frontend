@@ -1,16 +1,23 @@
-<div class="h-[calc(100vh-5rem)]">
+<div class="min-h-screen bg-gray-50">
 	<!-- Loading State -->
 	<section
 		*ngIf="loading"
-		class="h-[calc(100vh-5rem)] flex items-center justify-center"
+		class="h-screen flex items-center justify-center bg-white"
 	>
-		<div class="flex flex-col items-center gap-4 text-slate-600">
-			<p-progressSpinner styleClass="w-12 h-12"></p-progressSpinner>
+		<div class="flex flex-col items-center gap-4 text-gray-600">
+			<div class="relative w-20 h-20">
+				<div
+					class="absolute inset-0 border-4 rounded-full border-[#E8F0FF]"
+				></div>
+				<div
+					class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin border-[#1A58AF]"
+				></div>
+			</div>
 			<div class="text-center">
-				<p class="text-lg font-semibold text-slate-900">
+				<p class="text-lg font-semibold text-gray-900">
 					Loading survey details
 				</p>
-				<p class="text-sm text-slate-500">Please wait...</p>
+				<p class="text-sm text-gray-500">Please wait...</p>
 			</div>
 		</div>
 	</section>
@@ -18,10 +25,10 @@
 	<!-- Not Found State -->
 	<section
 		*ngIf="notFound && !loading"
-		class="h-[calc(100vh-5rem)] flex items-center justify-center"
+		class="h-screen flex items-center justify-center"
 	>
 		<div
-			class="rounded-lg border border-red-200 bg-red-50 p-8 text-center text-red-700 shadow-sm max-w-md"
+			class="rounded-2xl border border-red-200 bg-red-50 p-8 text-center text-red-700 shadow-sm max-w-md"
 		>
 			<i class="pi pi-exclamation-triangle text-4xl mb-3 block"></i>
 			<h2 class="text-lg font-semibold mb-2">Survey Not Found</h2>
@@ -32,7 +39,7 @@
 				<button
 					type="button"
 					(click)="navigateToMasterSurvey()"
-					class="inline-flex items-center justify-center rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 transition hover:border-red-300"
+					class="inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 transition hover:border-red-300"
 				>
 					<i class="pi pi-arrow-left mr-2"></i>
 					Back to Survey List
@@ -41,43 +48,50 @@
 		</div>
 	</section>
 
-	<!-- Main Content: Split Layout -->
+	<!-- Main Content: Column Flow Layout -->
 	<ng-container *ngIf="survey && !loading && !notFound">
-		<section class="flex flex-col gap-4 h-[calc(100vh-5rem)] bg-white ">
-			<app-survey-overview
-						[surveyId]="surveyId"
-						[survey]="survey"
-					></app-survey-overview>
-			<!-- Right Pane: Tabs Content -->
-			<div class="flex-1 relative bg-white h-full ">
-				<p-tabView class="h-full">
-					<!-- PRIMARY: Enumeration Areas Tab (Default) -->
-					<p-tabPanel header="Enumeration Areas">
-						<app-admin-survey-ea-management
-							[surveyId]="survey.id"
-						></app-admin-survey-ea-management>
-					</p-tabPanel>
+		<section class="flex flex-col gap-4 px-4 py-6">
+			<app-admin-survey-overview
+				[surveyId]="surveyId"
+				[survey]="survey"
+			></app-admin-survey-overview>
 
-					<!-- Secondary: Household Listings (All EAs view) -->
-					<p-tabPanel header="Household Listings">
-						<app-admin-survey-household-listings
-							[surveyId]="survey.id"
-							[surveyName]="survey.name"
-						></app-admin-survey-household-listings>
-					</p-tabPanel>
+			<!-- Tabs Content Section -->
+			<div
+				class="w-full flex flex-col bg-white rounded-2xl shadow-sm border border-gray-200"
+			>
+				<div class="p-6">
+					<p-tabView class="h-full" [(activeIndex)]="activeTabIndex">
+						<!-- PRIMARY: Enumeration Areas Tab (Default) -->
+						<p-tabPanel header="Enumeration Areas">
+							<app-admin-survey-ea-management
+								[surveyId]="survey.id"
+							></app-admin-survey-ea-management>
+						</p-tabPanel>
 
-					<!-- Keep: Enumerators -->
-					<p-tabPanel header="Enumerators">
-						<app-admin-survey-users [surveyId]="survey.id"></app-admin-survey-users>
-					</p-tabPanel>
+						<!-- Secondary: Household Listings (All EAs view) -->
+						<p-tabPanel header="Household Listings">
+							<app-admin-survey-household-listings
+								[surveyId]="survey.id"
+								[surveyName]="survey.name"
+							></app-admin-survey-household-listings>
+						</p-tabPanel>
 
-					<!-- <p-tabPanel header="Sampling">
-						<app-admin-survey-sampling
-							[surveyId]="survey.id"
-							[surveyName]="survey.name"
-						></app-admin-survey-sampling>
-					</p-tabPanel> -->
-				</p-tabView>
+						<!-- Keep: Enumerators -->
+						<p-tabPanel header="Enumerators">
+							<app-admin-survey-users
+								[surveyId]="survey.id"
+							></app-admin-survey-users>
+						</p-tabPanel>
+
+						<!-- <p-tabPanel header="Sampling">
+							<app-admin-survey-sampling
+								[surveyId]="survey.id"
+								[surveyName]="survey.name"
+							></app-admin-survey-sampling>
+						</p-tabPanel> -->
+					</p-tabView>
+				</div>
 			</div>
 		</section>
 	</ng-container>

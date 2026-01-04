@@ -261,27 +261,20 @@
 					<ng-template pTemplate="header">
 						<tr>
 							<th class="w-10">Select</th>
-							<th>
-								Dzongkhag
-							</th>
-							<th>
-								Gewog/Thromde	
-							</th>
-							<th>
-								Chiwog/Lap	
-							</th>
+							<th>Dzongkhag</th>
+							<th>Dzongkhag Code</th>
+							<th>Gewog/Thromde</th>
+							<th>Gewog/Thromde Code</th>
+							<th>Chiwog/Lap</th>
+							<th>Chiwog/Lap Code</th>
 							<th pSortableColumn="enumerationArea.name">
-								EA  <p-sortIcon field="enumerationArea.name"></p-sortIcon>
+								EA <p-sortIcon field="enumerationArea.name"></p-sortIcon>
 							</th>
-							<th pSortableColumn="enumerationArea.name">
-								Households   
-							</th>
-							
+							<th>EA Code</th>		
+							<th>Households</th>
 							<th pSortableColumn="isPublished">
 								Status <p-sortIcon field="isPublished"></p-sortIcon>
 							</th>
-							<th>Sampling</th>
-							<th>Enumeration Date</th>
 							<th style="width: 180px">Actions</th>
 						</tr>
 					</ng-template>
@@ -297,162 +290,145 @@
 								></p-checkbox>
 							</td>
 							<td>
-								<span class="text-sm">{{
-									ea.enumerationArea?.subAdministrativeZones && ea.enumerationArea.subAdministrativeZones.length > 0
-										? ea.enumerationArea.subAdministrativeZones[0].administrativeZone?.dzongkhag?.name
-										: 'N/A'
-								}}</span>
+								{{ getDzongkhag(ea.enumerationArea) }}
 							</td>
 							<td>
-								<span class="text-sm">{{
-									ea.enumerationArea?.subAdministrativeZones && ea.enumerationArea.subAdministrativeZones.length > 0
-										? ea.enumerationArea.subAdministrativeZones[0].administrativeZone?.name
-										: 'N/A'
-								}}</span>
+								{{ getDzongkhagCode(ea.enumerationArea) }}
 							</td>
 							<td>
-								<span class="text-sm">{{
-									ea.enumerationArea?.subAdministrativeZones && ea.enumerationArea.subAdministrativeZones.length > 0
-										? ea.enumerationArea.subAdministrativeZones[0].name
-										: 'N/A'
-								}}</span>
+								{{ getGewog(ea.enumerationArea) }}
 							</td>
 							<td>
-								 
- 									<p class="font-medium">{{
-										ea.enumerationArea?.name
-									}} |  <span class=" text-gray-600">{{
-									ea.enumerationArea?.areaCode
-								}}</span></p>
-								 
+								{{ getGewogCode(ea.enumerationArea) }}
 							</td>
 							<td>
-								<p>
-									{{ getHouseholdCount(ea) | number }}
-								</p>
+								{{ getChiwog(ea.enumerationArea) }}
 							</td>
 							<td>
-								<p-tag
+								{{ getChiwogCode(ea.enumerationArea) }}
+							</td>
+							<td>
+								<div class="font-semibold">{{ ea.enumerationArea?.name || 'N/A' }}</div>
+							</td>
+							<td>
+								<span class="text-sm text-gray-600">{{ ea.enumerationArea?.areaCode || 'N/A' }}</span>
+							</td>
+							<td>
+								<span class="font-medium">{{ getHouseholdCount(ea) }}</span>
+							</td>
+							<td>
+								<span
 									*ngIf="ea.isPublished"
-									value="Published"
-									severity="success"
-									styleClass="text-xs"
-								></p-tag>
-								<p-tag
-									*ngIf="!ea.isPublished && ea.isSampled"
-									value="Sampled"
-									severity="warning"
-									styleClass="text-xs"
-								></p-tag>
-								<p-tag
-									*ngIf="!ea.isSampled && ea.isEnumerated"
-									value="Listing Complete"
-									severity="info"
-									styleClass="text-xs"
-								></p-tag>
-								<p-tag
+									class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
+								>
+									Published
+								</span>
+								<span
+									*ngIf="ea.isSampled && !ea.isPublished"
+									class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800"
+								>
+									Sampled
+								</span>
+								<span
+									*ngIf="ea.isEnumerated && !ea.isPublished && !ea.isSampled"
+									class="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800"
+								>
+									Sampling Required
+								</span>
+								<span
 									*ngIf="!ea.isEnumerated"
-									value="Pending"
-									severity="secondary"
-									styleClass="text-xs"
-								></p-tag>
-								<p-progressSpinner
-									*ngIf="isEAProcessing(ea)"
-									styleClass="w-4 h-4 mt-1"
-									strokeWidth="4"
-								></p-progressSpinner>
-								<p class="text-xs text-green-600 mt-1" *ngIf="isEACompleted(ea) && !isEAFailed(ea)">
-									✓ Completed
-								</p>
-								<p class="text-xs text-red-500 mt-1" *ngIf="isEAFailed(ea)">
-									{{ getEAErrorMessage(ea) }}
-								</p>
-							</td>
-							<td>
-								<div class="text-sm text-gray-600" *ngIf="ea.isSampled">
-									<span class="text-xs text-gray-500 font-normal">type: CSS </span>
-									<span class="text-xs text-gray-500 font-normal">n: {{ ea.sampleSize }}</span>
- 								</div>
-								<div class="text-xs text-gray-500" *ngIf="!ea.isSampled">
-									Not sampled
-								</div>
-							</td>
-							<td>
-								<span class="text-sm text-gray-600">
-									{{ ea.enumerationDate ? (ea.enumerationDate | date: 'MMM d, y') : '-' }}
+									class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800"
+								>
+									Pending
 								</span>
 							</td>
 							<td>
-								<div class="flex gap-2">
-
-									<!-- View Results - Show for sampled EAs -->
-									<button
-										
-										pButton
-										icon="pi pi-list"
- 										styleClass="p-button-sm p-button-text"
-										pTooltip="View Listings"
-										tooltipPosition="top"
-										size="small"
-										[disabled]="isEAProcessing(ea)"
-										(click)="openResultDialog(ea)"
-									></button>
-									
-									<!-- Sample Households - Show only for enumerated, not sampled, not published -->
-									<button
-										*ngIf="isReadyForSampling(ea)"
-										pButton
-										icon="pi pi-filter"
-										severity="info"
-										styleClass="p-button-sm p-button-text"
-										pTooltip="Sample Households"
-										tooltipPosition="top"
-										size="small"
-										[disabled]="isEAProcessing(ea)"
-										(click)="openSamplingDialog(ea)"
-									></button>
-
-									<!-- Publish Data - Admin only, show if enumerated and not published -->
-									<button
-										*ngIf="canPublish(ea) && !ea.isPublished"
-										pButton
-										icon="pi pi-send"
-										severity="success"
-										styleClass="p-button-sm p-button-text"
-										pTooltip="Publish Data"
-										tooltipPosition="top"
-										size="small"
-										[disabled]="publishing"
-										(click)="openPublishDialog(ea)"
-									></button>
-									
-								</div>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-ellipsis-v"
+									class="p-button-text p-button-sm"
+									pTooltip="Actions"
+									(click)="actionMenu.toggle($event)"
+								></button>
+								<p-popover 
+									#actionMenu
+									[style]="{ width: '220px' }"
+								>
+									<div class="flex flex-col gap-1">
+										<button
+											pButton
+											type="button"
+											label="View Households"
+											icon="pi pi-eye"
+											size="small"
+											[disabled]="!canViewHouseholds(ea)"
+											(click)="openResultDialog(ea); actionMenu.hide()"
+										></button>
+										<button
+											pButton
+											type="button"
+											label="View Sampled HH"
+											icon="pi pi-eye"
+											size="small"
+											[disabled]="!isSampled(ea)"
+											(click)="openSampledHouseholdsDialog(ea); actionMenu.hide()"
+										></button>
+										<button
+											pButton
+											type="button"
+											size="small"
+											[disabled]="!canViewHouseholds(ea) || isDownloadingCSV(ea)"
+											(click)="downloadHouseholdListingCSV(ea); actionMenu.hide()"
+										>
+											<i *ngIf="!isDownloadingCSV(ea)" class="pi pi-download mr-2"></i>
+											<p-progressSpinner *ngIf="isDownloadingCSV(ea)" styleClass="w-3 h-3 mr-2" strokeWidth="4"></p-progressSpinner>
+											<span>{{ isDownloadingCSV(ea) ? 'Downloading...' : 'Download Listing' }}</span>
+										</button>
+										<button
+											pButton
+											type="button"
+											label="Sample EA"
+											icon="pi pi-filter"
+											size="small"
+											[disabled]="!isReadyForSampling(ea)"
+											(click)="openSamplingDialog(ea); actionMenu.hide()"
+										></button>
+										<button
+											pButton
+											type="button"
+											label="Remove EA"
+											icon="pi pi-trash"
+											size="small"
+											severity="danger"
+											(click)="removeEAFromSurvey(ea); actionMenu.hide()"
+										></button>
+									</div>
+								</p-popover>
 							</td>
 						</tr>
 					</ng-template>
 
 					<ng-template pTemplate="emptymessage">
 						<tr>
-							<td colspan="10" class="text-center text-gray-500 py-8">
-								No enumeration areas found
+							<td colspan="12" class="text-center py-8">
+								<div class="text-gray-400">
+									<i class="pi pi-inbox text-4xl mb-3 block"></i>
+									<p class="text-sm">No enumeration areas found</p>
+								</div>
 							</td>
 						</tr>
 					</ng-template>
 				</p-table>
 			</div>
 
-			<!-- Empty State -->
-			<div
-				*ngIf="!loadingSurveyEAs && filteredSurveyEAs.length === 0"
-				class="text-center py-12"
-			>
-				<i class="pi pi-map text-4xl text-gray-300 mb-3"></i>
-				<p class="text-gray-500">
-					{{ surveyEAs.length === 0 
-						? 'No enumeration areas assigned to this survey' 
-						: 'No enumeration areas match the selected filters' }}
-				</p>
-			</div>
+				<!-- Empty State -->
+				<div *ngIf="!loadingSurveyEAs && filteredSurveyEAs.length === 0" class="text-center py-12">
+					<div class="text-gray-400">
+						<i class="pi pi-inbox text-4xl mb-3 block"></i>
+						<p class="text-sm">No enumeration areas found</p>
+					</div>
+				</div>
 			</div>
 		</div>
 

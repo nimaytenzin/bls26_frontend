@@ -7,20 +7,22 @@ import { forkJoin, of, Observable } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
   
 import { PrimeNgModules } from '../../../../../../primeng.modules';
-import { SupervisorSurveyEnumerationAreaDataService } from '../../../../../../core/dataservice/supervisor/supervisor-survey-enumeration-area.dataservice';
-import { SupervisorSurveyEnumerationAreaHouseholdListingDataService } from '../../../../../../core/dataservice/supervisor/supervisor-survey-enumeration-area-household-listing.dataservice';
-import { SupervisorSamplingDataService } from '../../../../../../core/dataservice/supervisor/supervisor-sampling.dataservice';
-import { SupervisorSurveyDataService } from '../../../../../../core/dataservice/supervisor/supervisor-survey.dataservice';
+import { SupervisorSurveyEnumerationAreaHouseholdListingDataService } from '../../../../../../core/dataservice/survey-enumeration-area-household-listing/supervisor-survey-enumeration-area-household-listing.dataservice';
+import { SupervisorSamplingDataService } from '../../../../../../core/dataservice/sampling/supervisor-sampling.dataservice';
 import { SurveyEnumerationArea } from '../../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
 import { AdministrativeZone, AdministrativeZoneType } from '../../../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
 import { SubAdministrativeZone } from '../../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
-import { Dzongkhag, DzongkhagHierarchicalResponse } from '../../../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
+import { Dzongkhag } from '../../../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
+import { DzongkhagHierarchyDto } from '../../../../../../core/dataservice/survey/survey-enumeration-hierarchy.dto';
 import { SurveyEnumerationAreaHouseholdListing, CreateBlankHouseholdListingsResponseDto } from '../../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
 import { RunEnumerationAreaSamplingDto, SamplingExistsCheckDto, SamplingMethod, SurveySamplingConfigDto } from '../../../../../../core/dataservice/sampling/sampling.dto';
 import { AuthService } from '../../../../../../core/dataservice/auth/auth.service';
 import { User, UserRole } from '../../../../../../core/dataservice/auth/auth.interface';
 import { SurveyListingViewerComponent } from '../../../../../shared/survey-view/survey-enumeration-result-viewer/survey-listing-viewer.component';
 import { finalize } from 'rxjs/operators';
+import { SupervisorSurveyEnumerationAreaDataService } from '../../../../../../core/dataservice/survey-enumeration-area/supervisor-survey-enumeration-area.dataservice';
+import { SupervisorSurveyDataService } from '../../../../../../core/dataservice/survey/supervisor-survey.dataservice';
+import { SupervisorDzongkhagAssignment } from '../../../../../../core/dataservice/auth/auth.interface';
 
 interface GroupedEA {
 	dzongkhag: Dzongkhag;
@@ -43,7 +45,7 @@ interface GroupedEA {
 })
 export class SupervisorEaManagementComponent implements OnInit {
 	@Input() surveyId!: number;
-	@Input() hierarchy: DzongkhagHierarchicalResponse[] | null = null; // Optional: hierarchy data from parent
+	@Input() hierarchy: DzongkhagHierarchyDto[] | null = null; // Optional: hierarchy data from parent
 
 	// Authenticated user for role-based access
 	authenticatedUser: User | null = null;
@@ -165,17 +167,20 @@ export class SupervisorEaManagementComponent implements OnInit {
 				this.loadSurveyEAs();
 			}
 			this.loadSurveyConfigForSampling();
+			this.loadScopedDzongkhags();
 		}
 	}
 
 	/**
 	 * Process hierarchy data (used when passed from parent component)
 	 */
-	private processHierarchyData(hierarchy: DzongkhagHierarchicalResponse[]) {
+	private processHierarchyData(hierarchy: DzongkhagHierarchyDto[]) {
 		this.loadingSurveyEAs = true;
 		// Extract survey enumeration areas from hierarchical structure
 		this.surveyEAs = this.extractSurveyEAs(hierarchy);
 		this.extractFilterOptions();
+		// Scope dzongkhags after extracting filter options
+		this.scopeDzongkhagsBySupervisor();
 		this.updateAdminZoneOptions();
 		this.updateSubAdminZoneOptions();
 		this.applyFilters();
@@ -400,6 +405,83 @@ export class SupervisorEaManagementComponent implements OnInit {
 		this.availableSubAdminZones = Array.from(subAdminZoneMap.values()).sort(
 			(a, b) => a.name.localeCompare(b.name)
 		);
+	}
+
+	/**
+	 * Load scoped dzongkhags for current supervisor
+	 * This ensures only dzongkhags assigned to the current supervisor are available in filters
+	 */
+	loadScopedDzongkhags() {
+		// This method is called from ngOnInit, but we need to scope after extractFilterOptions
+		// So we'll use scopeDzongkhagsBySupervisor instead
+		this.scopeDzongkhagsBySupervisor();
+	}
+
+	/**
+	 * Scope dzongkhags by current supervisor's assignments
+	 * This filters availableDzongkhags to only show dzongkhags assigned to the current supervisor
+	 */
+	private scopeDzongkhagsBySupervisor() {
+		const currentUser = this.authService.getCurrentUser();
+		if (!currentUser) {
+			console.warn('No current user found, cannot scope dzongkhags');
+			return;
+		}
+
+		this.authService.getMyDzongkhagAssignments().subscribe({
+			next: (assignments: SupervisorDzongkhagAssignment[]) => {
+				// Extract dzongkhag IDs from assignments
+				const scopedDzongkhagIds = new Set<number>();
+				const scopedDzongkhags: Dzongkhag[] = [];
+
+				assignments.forEach((assignment: any) => {
+					// Handle different response shapes
+					if (assignment.dzongkhagId) {
+						scopedDzongkhagIds.add(assignment.dzongkhagId);
+					}
+					// If assignment includes dzongkhag object (checking for typo in interface)
+					if (assignment.dzonkghags && Array.isArray(assignment.dzonkghags)) {
+						assignment.dzonkghags.forEach((dz: Dzongkhag) => {
+							if (!scopedDzongkhagIds.has(dz.id)) {
+								scopedDzongkhagIds.add(dz.id);
+								scopedDzongkhags.push(dz);
+							}
+						});
+					}
+					// Also check for correct spelling
+					if (assignment.dzongkhags && Array.isArray(assignment.dzongkhags)) {
+						assignment.dzongkhags.forEach((dz: Dzongkhag) => {
+							if (!scopedDzongkhagIds.has(dz.id)) {
+								scopedDzongkhagIds.add(dz.id);
+								scopedDzongkhags.push(dz);
+							}
+						});
+					}
+					// If assignment has dzongkhag object directly
+					if (assignment.dzongkhag && !scopedDzongkhagIds.has(assignment.dzongkhag.id)) {
+						scopedDzongkhagIds.add(assignment.dzongkhag.id);
+						scopedDzongkhags.push(assignment.dzongkhag);
+					}
+				});
+
+				// Filter available dzongkhags by scoped IDs
+				if (scopedDzongkhagIds.size > 0) {
+					this.availableDzongkhags = this.availableDzongkhags.filter((dz: Dzongkhag) =>
+						scopedDzongkhagIds.has(dz.id)
+					);
+				}
+			},
+			error: (error) => {
+				console.error('Error loading scoped dzongkhags:', error);
+				// Fallback to using all available dzongkhags if API fails
+				this.messageService.add({
+					severity: 'warn',
+					summary: 'Warning',
+					detail: 'Could not load supervisor dzongkhag assignments. Showing all available dzongkhags.',
+					life: 3000,
+				});
+			},
+		});
 	}
 
 	/**

@@ -3,28 +3,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { BASEAPI_URL } from '../../constants/constants';
-import { Survey } from '../survey/survey.dto';
-import { DzongkhagHierarchicalResponse } from '../location/dzongkhag/dzongkhag.interface';
-
-/**
- * Supervisor Survey Summary Interface
- */
-export interface SupervisorSurveySummary {
-	totalDzongkhags: number;
-	totalAdministrativeZones: number;
-	totalSubAdministrativeZones: number;
-	totalEnumerationAreas: number;
-}
-
-/**
- * Supervisor Survey Response Interface
- * Response from /supervisor/survey/:surveyId/enumeration-hierarchy endpoint
- */
-export interface SupervisorSurveyResponse {
-	survey: Survey;
-	summary: SupervisorSurveySummary;
-	hierarchy: DzongkhagHierarchicalResponse[];
-}
+import { Survey } from './survey.dto';
+import { SurveyEnumerationHierarchyDto } from './survey-enumeration-hierarchy.dto';
 
 /**
  * Supervisor Survey Data Service
@@ -73,11 +53,11 @@ export class SupervisorSurveyDataService {
 	 * Returns: Dzongkhag → Administrative Zone → Sub-Administrative Zone → Enumeration Areas
 	 * Only includes dzongkhags assigned to the supervisor
 	 * @param surveyId Survey ID
-	 * @returns Observable of supervisor survey response with survey, summary, and hierarchy
+	 * @returns Observable of survey enumeration hierarchy response with survey, summary, and hierarchy
 	 */
-	getSurveyEnumerationHierarchy(surveyId: number): Observable<SupervisorSurveyResponse> {
+	getSurveyEnumerationHierarchy(surveyId: number): Observable<SurveyEnumerationHierarchyDto> {
 		return this.http
-			.get<SupervisorSurveyResponse>(`${this.apiUrl}/${surveyId}/enumeration-hierarchy`, {
+			.get<SurveyEnumerationHierarchyDto>(`${this.apiUrl}/${surveyId}/enumeration-hierarchy`, {
 				headers: this.getAuthHeaders(),
 			})
 			.pipe(

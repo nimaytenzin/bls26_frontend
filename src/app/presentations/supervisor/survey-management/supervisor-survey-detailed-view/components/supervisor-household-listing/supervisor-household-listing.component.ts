@@ -11,11 +11,8 @@ import { MessageService } from 'primeng/api';
 import { TableLazyLoadEvent } from 'primeng/table';
 import { PrimeNgModules } from '../../../../../../primeng.modules';
 import { HouseholdListingStatisticsResponseDto, SurveyEnumerationAreaHouseholdListing, CreateSurveyEnumerationAreaHouseholdListingDto, BulkUploadResponse } from '../../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
-import { SupervisorSurveyEnumerationAreaHouseholdListingDataService } from '../../../../../../core/dataservice/supervisor/supervisor-survey-enumeration-area-household-listing.dataservice';
-import { SupervisorSurveyDataService } from '../../../../../../core/dataservice/supervisor/supervisor-survey.dataservice';
-import { DzongkhagHierarchicalResponse } from '../../../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
-import { AdministrativeZone } from '../../../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
-import { SubAdministrativeZone } from '../../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
+import { SupervisorSurveyEnumerationAreaHouseholdListingDataService } from '../../../../../../core/dataservice/survey-enumeration-area-household-listing/supervisor-survey-enumeration-area-household-listing.dataservice';
+import { DzongkhagHierarchyDto, AdministrativeZoneHierarchyDto, SubAdministrativeZoneHierarchyDto } from '../../../../../../core/dataservice/survey/survey-enumeration-hierarchy.dto';
 import { EnumerationArea } from '../../../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 
 // Extended types for enumeration areas with surveyEnumerationAreaId (flattened structure from supervisor API)
@@ -27,6 +24,7 @@ interface EnumerationAreaWithSurveyId extends EnumerationArea {
 }
 import { PaginationQueryDto, PaginatedResponse } from '../../../../../../core/utility/pagination.utility.service';
 import * as Papa from 'papaparse';
+import { SupervisorSurveyDataService } from '../../../../../../core/dataservice/survey/supervisor-survey.dataservice';
 
 @Component({
 	selector: 'app-supervisor-household-listing',
@@ -54,14 +52,14 @@ export class SupervisorHouseholdListingComponent
 	allHouseholdListings: SurveyEnumerationAreaHouseholdListing[] = []; // Store all data for frontend sorting
 
 	// Filters (using supervisor hierarchy response)
-	dzongkhagFilters: DzongkhagHierarchicalResponse[] = [];
-	adminZoneFilters: AdministrativeZone[] = [];
-	subAdminZoneFilters: SubAdministrativeZone[] = [];
+	dzongkhagFilters: DzongkhagHierarchyDto[] = [];
+	adminZoneFilters: AdministrativeZoneHierarchyDto[] = [];
+	subAdminZoneFilters: SubAdministrativeZoneHierarchyDto[] = [];
 	enumerationAreaOptions: EnumerationAreaWithSurveyId[] = [];
 
-	selectedDzongkhagFilter: DzongkhagHierarchicalResponse | null = null;
-	selectedAdminZoneFilter: AdministrativeZone | null = null;
-	selectedSubAdminZoneFilter: SubAdministrativeZone | null = null;
+	selectedDzongkhagFilter: DzongkhagHierarchyDto | null = null;
+	selectedAdminZoneFilter: AdministrativeZoneHierarchyDto | null = null;
+	selectedSubAdminZoneFilter: SubAdministrativeZoneHierarchyDto | null = null;
 	selectedEnumerationArea: EnumerationAreaWithSurveyId | null = null;
 
 	// UI State
@@ -69,13 +67,13 @@ export class SupervisorHouseholdListingComponent
 	loadingStatistics = false;
 
 	// Dialog-specific filters (separate from main filters)
-	dialogDzongkhagFilters: DzongkhagHierarchicalResponse[] = [];
-	dialogAdminZoneFilters: AdministrativeZone[] = [];
-	dialogSubAdminZoneFilters: SubAdministrativeZone[] = [];
+	dialogDzongkhagFilters: DzongkhagHierarchyDto[] = [];
+	dialogAdminZoneFilters: AdministrativeZoneHierarchyDto[] = [];
+	dialogSubAdminZoneFilters: SubAdministrativeZoneHierarchyDto[] = [];
 	dialogEnumerationAreaOptions: EnumerationAreaWithSurveyId[] = [];
-	selectedDialogDzongkhag: DzongkhagHierarchicalResponse | null = null;
-	selectedDialogAdminZone: AdministrativeZone | null = null;
-	selectedDialogSubAdminZone: SubAdministrativeZone | null = null;
+	selectedDialogDzongkhag: DzongkhagHierarchyDto | null = null;
+	selectedDialogAdminZone: AdministrativeZoneHierarchyDto | null = null;
+	selectedDialogSubAdminZone: SubAdministrativeZoneHierarchyDto | null = null;
 
 	// Bulk Upload Dialog
 	showBulkUploadDialog = false;

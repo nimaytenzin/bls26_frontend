@@ -10,9 +10,11 @@ import {
 import { PrimeNgModules } from '../../../../primeng.modules';
 import { Table } from 'primeng/table';
 import { MessageService } from 'primeng/api';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
 import { ActiveSurveysTableComponent } from './components/active-surveys-table.component';
 import { AllSurveysTableComponent } from './components/all-surveys-table.component';
+import { AdminMasterSurveyEditComponent } from '../shared/admin-master-survey-edit/admin-master-survey-edit.component';
 import { SurveyStatus } from '../../../../core/constants/enums';
 
 @Component({
@@ -21,7 +23,7 @@ import { SurveyStatus } from '../../../../core/constants/enums';
 	styleUrls: ['./admin-master-survey.component.css'],
 	standalone: true,
 	imports: [CommonModule, FormsModule, PrimeNgModules, ActiveSurveysTableComponent, AllSurveysTableComponent],
-	providers: [MessageService],
+	providers: [MessageService, DialogService],
 })
 export class AdminMasterSurveyComponent implements OnInit {
 	// Table references (kept for backward compatibility if needed)
@@ -45,6 +47,7 @@ export class AdminMasterSurveyComponent implements OnInit {
 
 	// Dialog states
 	deleteDialog = false;
+	editDialogRef: DynamicDialogRef | undefined;
 
 	// Table properties
 	globalFilterValue = '';
@@ -55,7 +58,8 @@ export class AdminMasterSurveyComponent implements OnInit {
 	constructor(
 		private surveyService: SurveyDataService,
 		private messageService: MessageService,
-		private router: Router
+		private router: Router,
+		private dialogService: DialogService
 	) {}
 
 	ngOnInit() {
@@ -133,12 +137,40 @@ export class AdminMasterSurveyComponent implements OnInit {
 	}
 
 	editSurvey(survey: Survey) {
-		// TODO: Implement edit with dynamic dialogs if needed
-		this.messageService.add({
-			severity: 'info',
-			summary: 'Edit Not Implemented',
-			detail: 'Edit functionality with dynamic dialogs coming soon',
-			life: 3000,
+		if (!survey) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Invalid Survey',
+				detail: 'Please select a valid survey',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.editDialogRef = this.dialogService.open(
+			AdminMasterSurveyEditComponent,
+			{
+				header: 'Edit Survey Details',
+				width: '700px',
+				modal: true,
+				closable: true,
+				data: {
+					survey: survey,
+				},
+			}
+		);
+
+		this.editDialogRef.onClose.subscribe((result) => {
+			if (result) {
+				// Refresh the current tab after successful edit
+				this.refreshCurrentTab();
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: 'Survey updated successfully',
+					life: 3000,
+				});
+			}
 		});
 	}
 

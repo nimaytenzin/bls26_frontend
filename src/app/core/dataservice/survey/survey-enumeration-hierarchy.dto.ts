@@ -7,14 +7,18 @@ export interface EnumerationAreaHierarchyDto {
   areaCode: string;
   surveyEnumerationAreaId: number;
   totalHouseholdCount: number;
-  // Submission status
-  isSubmitted: boolean;
-  submittedBy: number | null;
-  submissionDate: string | null;
-  // Validation status
-  isValidated: boolean;
-  validatedBy: number | null;
-  validationDate: string | null;
+  // Enumeration status
+  isEnumerated: boolean;
+  enumeratedBy: number | null;
+  enumerationDate: Date | null;
+  // Sampling status
+  isSampled: boolean;
+  sampledBy: number | null;
+  sampledDate: Date | null;
+  // Publishing status
+  isPublished: boolean;
+  publishedBy: number | null;
+  publishedDate: Date | null;
 }
 
 export interface SubAdministrativeZoneHierarchyDto {
@@ -37,7 +41,6 @@ export interface DzongkhagHierarchyDto {
   id: number;
   name: string;
   areaCode: string;
-  areaSqKm: number;
   administrativeZones: AdministrativeZoneHierarchyDto[];
 }
 

@@ -9,7 +9,7 @@ import {
 	CreateBlankHouseholdListingsResponseDto,
 	BulkUploadResponse,
 	HouseholdListingStatisticsResponseDto,
-} from '../survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
+} from './survey-enumeration-area-household-listing.dto';
 import {
 	PaginationQueryDto,
 	PaginatedResponse,

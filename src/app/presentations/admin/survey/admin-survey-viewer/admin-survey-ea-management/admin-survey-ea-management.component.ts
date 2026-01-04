@@ -82,6 +82,9 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 	householdCounts: Map<number, number> = new Map();
 	loadingHouseholdCounts = false;
 
+	// Download state tracking
+	downloadingEAExport: Map<number, boolean> = new Map();
+
 	// Submission Dialog
 	showSubmitDialog = false;
 	submitting = false;
@@ -1439,6 +1442,123 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 	}
 
 	/**
+	 * Open sampled households dialog
+	 */
+	openSampledHouseholdsDialog(ea: SurveyEnumerationArea): void {
+		if (!this.surveyId) {
+			return;
+		}
+
+		this.resultDialogRef = this.dialogService.open(
+			SurveyListingViewerComponent,
+			{
+				header: 'Sampled Households',
+				width: '90vw',
+				style: { 'max-width': '1200px' },
+				modal: true,
+				closable: true,
+				data: {
+					surveyId: this.surveyId,
+					enumerationArea: ea,
+					showSampledOnly: true,
+				},
+			}
+		);
+
+		// Handle dialog close
+		this.resultDialogRef.onClose.subscribe(() => {
+			this.resultDialogRef = undefined;
+		});
+	}
+
+	/**
+	 * Remove EA from survey (Admin only)
+	 */
+	removeEAFromSurvey(ea: SurveyEnumerationArea): void {
+		if (!this.surveyId || !ea || !ea.id) {
+			return;
+		}
+
+		this.confirmationService.confirm({
+			message: `Are you sure you want to remove "${ea.enumerationArea?.name || 'this enumeration area'}" from this survey?`,
+			header: 'Confirm Removal',
+			icon: 'pi pi-exclamation-triangle',
+			acceptButtonStyleClass: 'p-button-danger',
+			accept: () => {
+				this.surveyService.removeEnumerationAreas(this.surveyId, [ea.enumerationAreaId]).subscribe({
+					next: () => {
+						this.messageService.add({
+							severity: 'success',
+							summary: 'Success',
+							detail: 'Enumeration area removed from survey successfully',
+							life: 3000,
+						});
+						// Reload survey EAs
+						this.loadSurveyEAs();
+					},
+					error: (error) => {
+						console.error('Error removing EA from survey:', error);
+						this.messageService.add({
+							severity: 'error',
+							summary: 'Error',
+							detail: error?.error?.message || 'Failed to remove enumeration area from survey',
+							life: 3000,
+						});
+					},
+				});
+			},
+		});
+	}
+
+	/**
+	 * Download household listing CSV for an enumeration area (Admin only)
+	 */
+	downloadHouseholdListingCSV(ea: SurveyEnumerationArea): void {
+		if (!ea || !ea.id) {
+			return;
+		}
+
+		this.downloadingEAExport.set(ea.id, true);
+
+		this.householdService.exportEnumerationAreaHouseholdListingsCSV(ea.id).subscribe({
+			next: (blob: Blob) => {
+				const url = window.URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = `household_listings_ea_${ea.id}_${Date.now()}.csv`;
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				window.URL.revokeObjectURL(url);
+				this.downloadingEAExport.set(ea.id, false);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: 'Household listing CSV downloaded successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error downloading household listing CSV:', error);
+				this.downloadingEAExport.set(ea.id, false);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: error?.error?.message || 'Failed to download household listing CSV',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
+	 * Check if CSV download is in progress for an EA
+	 */
+	isDownloadingCSV(ea: SurveyEnumerationArea): boolean {
+		return this.downloadingEAExport.get(ea.id) || false;
+	}
+
+	/**
 	 * Check if EA is enumerated (can view households)
 	 */
 	canViewHouseholds(ea: SurveyEnumerationArea): boolean {
@@ -1457,6 +1577,54 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 	 */
 	isSampled(ea: SurveyEnumerationArea): boolean {
 		return ea.isSampled === true;
+	}
+
+	/**
+	 * Get Dzongkhag name from enumeration area
+	 */
+	getDzongkhag(ea: any): string {
+		if (!ea?.subAdministrativeZones?.length) return 'N/A';
+		return ea.subAdministrativeZones[0]?.administrativeZone?.dzongkhag?.name || 'N/A';
+	}
+
+	/**
+	 * Get Gewog/Thromde name from enumeration area
+	 */
+	getGewog(ea: any): string {
+		if (!ea?.subAdministrativeZones?.length) return 'N/A';
+		return ea.subAdministrativeZones[0]?.administrativeZone?.name || 'N/A';
+	}
+
+	/**
+	 * Get Chiwog/Lap name from enumeration area
+	 */
+	getChiwog(ea: any): string {
+		if (!ea?.subAdministrativeZones?.length) return 'N/A';
+		return ea.subAdministrativeZones[0]?.name || 'N/A';
+	}
+
+	/**
+	 * Get Dzongkhag code from enumeration area
+	 */
+	getDzongkhagCode(ea: any): string {
+		if (!ea?.subAdministrativeZones?.length) return 'N/A';
+		return ea.subAdministrativeZones[0]?.administrativeZone?.dzongkhag?.areaCode || 'N/A';
+	}
+
+	/**
+	 * Get Gewog/Thromde code from enumeration area
+	 */
+	getGewogCode(ea: any): string {
+		if (!ea?.subAdministrativeZones?.length) return 'N/A';
+		return ea.subAdministrativeZones[0]?.administrativeZone?.areaCode || 'N/A';
+	}
+
+	/**
+	 * Get Chiwog/Lap code from enumeration area
+	 */
+	getChiwogCode(ea: any): string {
+		if (!ea?.subAdministrativeZones?.length) return 'N/A';
+		return ea.subAdministrativeZones[0]?.areaCode || 'N/A';
 	}
 
 	// ==================== Add EA (Admin Only) ====================

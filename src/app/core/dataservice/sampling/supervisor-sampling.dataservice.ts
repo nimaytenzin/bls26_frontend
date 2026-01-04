@@ -8,113 +8,10 @@ import {
 	RunEnumerationAreaSamplingDto,
 	SurveyEnumerationAreaSamplingDto,
 	SurveySamplingConfigDto,
-} from '../sampling/sampling.dto';
-import { SurveyEnumerationAreaHouseholdListing } from '../survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
-
-/**
- * Run Sampling DTO for supervisor routes
- */
-export interface RunSamplingDto {
-	method?: SamplingMethod;
-	sampleSize?: number;
-	randomStart?: number;
-	overwriteExisting?: boolean;
-}
-
-/**
- * Run Sampling Response
- */
-export interface RunSamplingResponse {
-	success: boolean;
-	message: string;
-	data: {
-		samplingId: number;
-		surveyEnumerationAreaId: number;
-		method: SamplingMethod;
-		sampleSize: number;
-		populationSize: number;
-		isFullSelection: boolean;
-		executedAt: string;
-	};
-}
-
-/**
- * Sampling Results Response
- */
-export interface SamplingResults {
-	success: boolean;
-	message: string;
-	data: {
-		sampling: {
-			id: number;
-			method: SamplingMethod;
-			sampleSize: number;
-			populationSize: number;
-			samplingInterval: number | null;
-			randomStart: number | null;
-			wrapAroundCount: number;
-			isFullSelection: boolean;
-			selectedIndices: number[];
-			metadata: Record<string, any>;
-			executedAt: string;
-			executedBy: number | null;
-		};
-		surveyEnumerationArea: {
-			id: number;
-			surveyId: number;
-			enumerationAreaId: number;
-			isEnumerated: boolean;
-			isSampled: boolean;
-			isPublished: boolean;
-		};
-		enumerationArea: {
-			id: number;
-			name: string;
-			areaCode: string;
-			subAdminZone: {
-				name: string;
-				areaCode: string;
-				type: 'chiwog' | 'lap';
-			} | null;
-			adminZone: {
-				name: string;
-				areaCode: string;
-				type: 'Gewog' | 'Thromde';
-			} | null;
-		};
-		selectedHouseholds: Array<{
-			selectionOrder: number;
-			isReplacement: boolean;
-			household: SurveyEnumerationAreaHouseholdListing;
-		}>;
-	};
-}
-
-/**
- * Bulk Run Sampling DTO
- */
-export interface BulkRunSamplingDto {
-	surveyEnumerationAreaIds: number[];
-	method?: SamplingMethod;
-	sampleSize?: number;
-	randomStart?: number;
-}
-
-/**
- * Bulk Run Sampling Response
- */
-export interface BulkRunSamplingResponse {
-	success: number;
-	failed: number;
-	results: Array<{
-		surveyEnumerationAreaId: number;
-		result: RunSamplingResponse;
-	}>;
-	errors: Array<{
-		surveyEnumerationAreaId: number;
-		error: string;
-	}>;
-}
+	BulkRunSamplingDto,
+	BulkRunSamplingResponse,
+	SamplingResultsResponseDto,
+} from './sampling.dto';
 
 /**
  * Supervisor Sampling Data Service
@@ -150,10 +47,10 @@ export class SupervisorSamplingDataService {
 	runSampling(
 		surveyId: number,
 		seaId: number,
-		options: RunSamplingDto
-	): Observable<RunSamplingResponse> {
+		options: RunEnumerationAreaSamplingDto
+	): Observable<SurveyEnumerationAreaSamplingDto> {
 		return this.http
-			.post<RunSamplingResponse>(
+			.post<SurveyEnumerationAreaSamplingDto>(
 				`${this.apiUrl}/surveys/${surveyId}/enumeration-areas/${seaId}/run`,
 				options,
 				{
@@ -177,9 +74,9 @@ export class SupervisorSamplingDataService {
 	 * @param seaId Survey enumeration area ID
 	 * @returns Observable of sampling results
 	 */
-	getSamplingResults(surveyId: number, seaId: number): Observable<SamplingResults> {
+	getSamplingResults(surveyId: number, seaId: number): Observable<SamplingResultsResponseDto> {
 		return this.http
-			.get<SamplingResults>(
+			.get<SamplingResultsResponseDto>(
 				`${this.apiUrl}/surveys/${surveyId}/enumeration-areas/${seaId}/results`,
 				{
 					headers: this.getAuthHeaders(),
@@ -232,10 +129,10 @@ export class SupervisorSamplingDataService {
 	resampleEA(
 		surveyId: number,
 		seaId: number,
-		options: Omit<RunSamplingDto, 'overwriteExisting'>
-	): Observable<RunSamplingResponse> {
+		options: Omit<RunEnumerationAreaSamplingDto, 'overwriteExisting'>
+	): Observable<SurveyEnumerationAreaSamplingDto> {
 		return this.http
-			.post<RunSamplingResponse>(
+			.post<SurveyEnumerationAreaSamplingDto>(
 				`${this.apiUrl}/surveys/${surveyId}/enumeration-areas/${seaId}/resample`,
 				options,
 				{

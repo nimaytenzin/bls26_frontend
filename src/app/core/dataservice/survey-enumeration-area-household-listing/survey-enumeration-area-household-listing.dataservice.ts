@@ -323,6 +323,35 @@ export class SurveyEnumerationAreaHouseholdListingDataService {
 	}
 
 	/**
+	 * Export all household listings for a survey enumeration area as CSV (Admin only)
+	 * Downloads CSV for a specific enumeration area
+	 * @param surveyEnumerationAreaId - Survey Enumeration Area ID
+	 * @returns Observable of Blob (CSV file)
+	 * @requires Authentication (ADMIN role)
+	 */
+	exportEnumerationAreaHouseholdListingsCSV(
+		surveyEnumerationAreaId: number
+	): Observable<Blob> {
+		return this.http
+			.get(
+				`${this.apiUrl}/by-survey-ea/${surveyEnumerationAreaId}/export/csv`,
+				{
+					headers: this.getAuthHeaders(),
+					responseType: 'blob',
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error exporting enumeration area household listings CSV for EA ${surveyEnumerationAreaId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
 	 * Create blank household listing entries for a survey enumeration area
 	 * @param surveyEnumerationAreaId - Survey Enumeration Area ID
 	 * @param dto - Request DTO with count and optional remarks

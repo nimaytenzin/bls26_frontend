@@ -4,10 +4,12 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, A
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { forkJoin } from 'rxjs';
 import { BulkAssignCSVDto, EnumeratorCSVData, SurveyEnumerator } from '../../../../../../core/dataservice/survey-enumerator/survey-enumerator.dto';
-import { SupervisorSurveyEnumerator, UpdateEnumeratorDto, ResetPasswordDto } from '../../../../../../core/dataservice/supervisor/supervisor-survey-enumerator.dataservice';
+import {  UpdateEnumeratorDto, ResetPasswordDto, CreateSingleEnumeratorDto, CreateSingleEnumeratorResponse } from '../../../../../../core/dataservice/survey-enumerator/supervisor-survey-enumerator.dataservice';
 import { PrimeNgModules } from '../../../../../../primeng.modules';
 import { SurveyDataService } from '../../../../../../core/dataservice/survey/survey.dataservice';
-import { SupervisorSurveyEnumeratorDataService } from '../../../../../../core/dataservice/supervisor/supervisor-survey-enumerator.dataservice';
+import { SupervisorSurveyEnumeratorDataService } from '../../../../../../core/dataservice/survey-enumerator/supervisor-survey-enumerator.dataservice';
+import { AuthService } from '../../../../../../core/dataservice/auth/auth.service';
+import { SupervisorDzongkhagAssignment } from '../../../../../../core/dataservice/auth/auth.interface';
 
 interface ParsedCSVResult {
 	valid: EnumeratorCSVData[];
@@ -30,9 +32,17 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 	loadingSupervisors = false;
 
 	// Enumerators
-	enumerators: SupervisorSurveyEnumerator[] = [];
+	surveyEnumerators: SurveyEnumerator[] = [];
+	groupedEnumerators: Map<number, SurveyEnumerator[]> = new Map();
 	loadingEnumerators = false;
-	selectedEnumerators: SupervisorSurveyEnumerator[] = [];
+	selectedEnumerators: SurveyEnumerator[] = [];
+
+	/**
+	 * Get assignments for a specific enumerator
+	 */
+	getAssignmentsForEnumerator(userId: number): SurveyEnumerator[] {
+		return this.groupedEnumerators.get(userId) || [];
+	}
 
 	// Upload dialog
 	showUploadDialog = false;
@@ -45,14 +55,20 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 	// Edit dialog
 	showEditDialog = false;
 	editForm!: FormGroup;
-	editingEnumerator: SupervisorSurveyEnumerator | null = null;
+	editingEnumerator: SurveyEnumerator | null = null;
 	saving = false;
 
 	// Reset password dialog
 	showResetPasswordDialog = false;
 	resetPasswordForm!: FormGroup;
-	resettingPasswordEnumerator: SupervisorSurveyEnumerator | null = null;
+	resettingPasswordEnumerator: SurveyEnumerator | null = null;
 	resettingPassword = false;
+
+	// Create dialog
+	showCreateDialog = false;
+	createForm!: FormGroup;
+	creating = false;
+	availableDzongkhags: any[] = [];
 
 	// Table columns
 	enumeratorColumns = [
@@ -60,6 +76,7 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 		{ field: 'user.cid', header: 'CID' },
 		{ field: 'user.emailAddress', header: 'Email' },
 		{ field: 'user.phoneNumber', header: 'Phone' },
+		{ field: 'dzongkhags', header: 'Assigned Dzongkhags' },
 		{ field: 'assignedAt', header: 'Assigned Date' },
 	];
 
@@ -74,7 +91,8 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 		private surveyEnumeratorService: SupervisorSurveyEnumeratorDataService,
 		private messageService: MessageService,
 		private confirmationService: ConfirmationService,
-		private fb: FormBuilder
+		private fb: FormBuilder,
+		private authService: AuthService
 	) {}
 
 	ngOnInit() {
@@ -91,8 +109,10 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 		// Edit form
 		this.editForm = this.fb.group({
 			name: ['', [Validators.required, Validators.minLength(3)]],
+			cid: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
 			emailAddress: ['', [Validators.required, Validators.email]],
 			phoneNumber: ['', [Validators.pattern(/^$|^[17689]\d{7}$/)]],
+			dzongkhagIds: [[]],
 		});
 
 		// Reset password form
@@ -107,6 +127,16 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 			],
 			confirmPassword: ['', [Validators.required]],
 		}, { validators: this.passwordMatchValidator });
+
+		// Create form
+		this.createForm = this.fb.group({
+			name: ['', [Validators.required, Validators.minLength(3)]],
+			cid: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
+			emailAddress: ['', [Validators.email]],
+			phoneNumber: ['', [Validators.pattern(/^$|^[17689]\d{7}$/)]],
+			password: [''],
+			dzongkhagIds: [[], [Validators.required, Validators.minLength(1)]],
+		});
 	}
 
 	/**
@@ -157,6 +187,7 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 	loadData() {
 		this.loadSupervisors();
 		this.loadEnumerators();
+		// Note: loadScopedDzongkhags() is called from loadSupervisors() after supervisors are loaded
 	}
 
 	/**
@@ -168,6 +199,8 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 			next: (data) => {
 				this.supervisors = data;
 				this.loadingSupervisors = false;
+				// After supervisors are loaded, load scoped dzongkhags
+				this.loadScopedDzongkhags();
 			},
 			error: (error) => {
 				console.error('Error loading supervisors:', error);
@@ -183,6 +216,118 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 	}
 
 	/**
+	 * Load scoped dzongkhags for current supervisor
+	 * This ensures only dzongkhags assigned to the current supervisor are available
+	 */
+	loadScopedDzongkhags() {
+		const currentUser = this.authService.getCurrentUser();
+		if (!currentUser) {
+			console.warn('No current user found, cannot scope dzongkhags');
+			this.availableDzongkhags = [];
+			return;
+		}
+
+		this.authService.getMyDzongkhagAssignments().subscribe({
+			next: (assignments: SupervisorDzongkhagAssignment[]) => {
+				// Extract dzongkhags from assignments
+				const scopedDzongkhagIds = new Set<number>();
+				const scopedDzongkhags: any[] = [];
+
+				assignments.forEach((assignment: any) => {
+					// Handle different response shapes
+					if (assignment.dzongkhagId) {
+						scopedDzongkhagIds.add(assignment.dzongkhagId);
+					}
+					// If assignment includes dzongkhag object (checking for typo in interface)
+					if (assignment.dzonkghags && Array.isArray(assignment.dzonkghags)) {
+						assignment.dzonkghags.forEach((dz: any) => {
+							if (dz && dz.id) {
+								if (!scopedDzongkhagIds.has(dz.id)) {
+									scopedDzongkhagIds.add(dz.id);
+									scopedDzongkhags.push(dz);
+								}
+							}
+						});
+					}
+					// Also check for correct spelling
+					if (assignment.dzongkhags && Array.isArray(assignment.dzongkhags)) {
+						assignment.dzongkhags.forEach((dz: any) => {
+							if (dz && dz.id) {
+								if (!scopedDzongkhagIds.has(dz.id)) {
+									scopedDzongkhagIds.add(dz.id);
+									scopedDzongkhags.push(dz);
+								}
+							}
+						});
+					}
+					// If assignment has dzongkhag object directly
+					if (assignment.dzongkhag && assignment.dzongkhag.id) {
+						if (!scopedDzongkhagIds.has(assignment.dzongkhag.id)) {
+							scopedDzongkhagIds.add(assignment.dzongkhag.id);
+							scopedDzongkhags.push(assignment.dzongkhag);
+						}
+					}
+				});
+
+				// Set available dzongkhags to only the scoped ones
+				if (scopedDzongkhags.length > 0) {
+					// Use dzongkhag objects directly if available
+					this.availableDzongkhags = scopedDzongkhags;
+				} else if (scopedDzongkhagIds.size > 0) {
+					// If we only have IDs, extract dzongkhag objects from supervisors data
+					const dzongkhagMap = new Map<number, any>();
+					// First, try to find current supervisor and use their dzongkhags
+					const currentSupervisor = this.supervisors.find(s => s.id === currentUser.id);
+					if (currentSupervisor && currentSupervisor.dzongkhags && Array.isArray(currentSupervisor.dzongkhags)) {
+						currentSupervisor.dzongkhags.forEach((dz: any) => {
+							if (dz && dz.id && scopedDzongkhagIds.has(dz.id) && !dzongkhagMap.has(dz.id)) {
+								dzongkhagMap.set(dz.id, dz);
+							}
+						});
+					}
+					// If still empty, check all supervisors (fallback)
+					if (dzongkhagMap.size === 0) {
+						this.supervisors.forEach((supervisor) => {
+							if (supervisor.dzongkhags && Array.isArray(supervisor.dzongkhags)) {
+								supervisor.dzongkhags.forEach((dz: any) => {
+									if (dz && dz.id && scopedDzongkhagIds.has(dz.id) && !dzongkhagMap.has(dz.id)) {
+										dzongkhagMap.set(dz.id, dz);
+									}
+								});
+							}
+						});
+					}
+					this.availableDzongkhags = Array.from(dzongkhagMap.values());
+				} else {
+					// No assignments found - try fallback to current supervisor's dzongkhags from supervisors list
+					const currentSupervisor = this.supervisors.find(s => s.id === currentUser.id);
+					if (currentSupervisor && currentSupervisor.dzongkhags && Array.isArray(currentSupervisor.dzongkhags)) {
+						this.availableDzongkhags = currentSupervisor.dzongkhags;
+					} else {
+						this.availableDzongkhags = [];
+					}
+				}
+			},
+			error: (error) => {
+				console.error('Error loading scoped dzongkhags:', error);
+				// Fallback: extract from supervisors but only for current user
+				const currentSupervisor = this.supervisors.find(s => s.id === currentUser.id);
+				if (currentSupervisor && currentSupervisor.dzongkhags && Array.isArray(currentSupervisor.dzongkhags)) {
+					this.availableDzongkhags = currentSupervisor.dzongkhags;
+				} else {
+					this.availableDzongkhags = [];
+				}
+				this.messageService.add({
+					severity: 'warn',
+					summary: 'Warning',
+					detail: 'Could not load supervisor dzongkhag assignments. Using fallback.',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	/**
 	 * Load enumerators for this survey
 	 */
 	loadEnumerators() {
@@ -191,9 +336,12 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 			.getEnumeratorsBySurvey(this.surveyId)
 			.subscribe({
 				next: (data) => {
-					this.enumerators = data;
+					this.surveyEnumerators = data;
+					this.groupEnumeratorsByUser(data);
 					this.loadingEnumerators = false;
-				},
+
+
+ 				},
 				error: (error) => {
 					console.error('Error loading enumerators:', error);
 					this.messageService.add({
@@ -205,6 +353,65 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 					this.loadingEnumerators = false;
 				},
 			});
+	}
+
+	/**
+	 * Group enumerators by userId to handle multiple dzongkhag assignments
+	 */
+	groupEnumeratorsByUser(assignments: SurveyEnumerator[]) {
+		this.groupedEnumerators.clear();
+		assignments.forEach((assignment) => {
+			const userId = assignment.userId;
+			if (!this.groupedEnumerators.has(userId)) {
+				this.groupedEnumerators.set(userId, []);
+			}
+			this.groupedEnumerators.get(userId)!.push(assignment);
+		});
+	}
+
+	/**
+	 * Get grouped enumerators as array for table display
+	 */
+	getGroupedEnumeratorsArray(): SurveyEnumerator[] {
+		return Array.from(this.groupedEnumerators.values()).map(
+			(assignments) => assignments[0] // Return first assignment as representative
+		);
+	}
+
+	/**
+	 * Get all dzongkhags for an enumerator
+	 */
+	getDzongkhagsForEnumerator(enumerator: SurveyEnumerator): string {
+		const assignments = this.groupedEnumerators.get(enumerator.userId) || [];
+		const dzongkhags = assignments
+			.map((a) => a.dzongkhag?.name || `Dzongkhag ${a.dzongkhagId}`)
+			.filter((name) => name);
+		
+		if (dzongkhags.length === 0) {
+			return 'N/A';
+		}
+		return dzongkhags.join(', ');
+	}
+
+	/**
+	 * Get all dzongkhag IDs for an enumerator
+	 */
+	getDzongkhagIdsForEnumerator(enumerator: SurveyEnumerator): number[] {
+		const assignments = this.groupedEnumerators.get(enumerator.userId) || [];
+		return assignments
+			.map((a) => a.dzongkhagId)
+			.filter((id): id is number => id !== null);
+	}
+
+	/**
+	 * Check if enumerator is active (has at least one active assignment)
+	 */
+	isEnumeratorActive(enumerator: SurveyEnumerator): boolean {
+		const assignments = this.groupedEnumerators.get(enumerator.userId) || [];
+		if (assignments.length === 0) return false;
+		// Consider active if at least one assignment is active
+		// If isActive is undefined, treat as active (backward compatibility)
+		return assignments.some(a => a.isActive !== false);
 	}
 
 	/**
@@ -315,14 +522,19 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 			(h) => h.toLowerCase() === 'password'
 		);
 		const dzongkhagCodeIndex = header.findIndex(
-			(h) => h.toLowerCase().includes('dzongkhag') && h.toLowerCase().includes('code')
+			(h) => h.toLowerCase().includes('dzongkhag') && 
+				   h.toLowerCase().includes('code') &&
+				   !h.toLowerCase().includes('codes')
+		);
+		const dzongkhagCodesIndex = header.findIndex(
+			(h) => h.toLowerCase().includes('dzongkhag') && h.toLowerCase().includes('codes')
 		);
 
 		if (nameIndex === -1 || cidIndex === -1) {
 			throw new Error('CSV must have "name" and "cid" columns');
 		}
-		if (dzongkhagCodeIndex === -1) {
-			throw new Error('CSV must have "Dzongkhag Code" column');
+		if (dzongkhagCodeIndex === -1 && dzongkhagCodesIndex === -1) {
+			throw new Error('CSV must have "Dzongkhag Code" or "Dzongkhag Codes" column');
 		}
 
 		const valid: EnumeratorCSVData[] = [];
@@ -342,7 +554,18 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 			const phoneNumber = phoneIndex !== -1 ? values[phoneIndex]?.trim() : '';
 			const password =
 				passwordIndex !== -1 ? values[passwordIndex]?.trim() : '';
-			const dzongkhagCode = values[dzongkhagCodeIndex]?.trim() || '';
+			
+			// Support both single code and multiple codes (comma-separated)
+			const dzongkhagCodesRaw = dzongkhagCodesIndex !== -1 
+				? values[dzongkhagCodesIndex]?.trim() || ''
+				: dzongkhagCodeIndex !== -1 
+					? values[dzongkhagCodeIndex]?.trim() || ''
+					: '';
+			
+			const dzongkhagCodes = dzongkhagCodesRaw
+				.split(',')
+				.map((code) => code.trim())
+				.filter((code) => code.length > 0);
 
 			// Validate required fields
 			if (!name) {
@@ -353,8 +576,8 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 			} else if (!/^\d{11}$/.test(cid)) {
 				errors.push('CID must be 11 digits');
 			}
-			if (!dzongkhagCode) {
-				errors.push('Dzongkhag Code is required');
+			if (dzongkhagCodes.length === 0) {
+				errors.push('At least one Dzongkhag Code is required');
 			}
 
 			// Validate email format if provided
@@ -370,20 +593,24 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 			if (errors.length > 0) {
 				invalid.push({
 					row: i + 1,
-					data: { name, cid, emailAddress, phoneNumber, dzongkhagCode },
+					data: { name, cid, emailAddress, phoneNumber, dzongkhagCodes: dzongkhagCodes.join(', ') },
 					errors,
 				});
 			} else {
-				const enumerator: EnumeratorCSVData = {
-					name,
-					cid,
-					dzongkhagCode: this.normalizeDzongkhagCode(dzongkhagCode),
-				};
-				if (emailAddress) enumerator.emailAddress = emailAddress;
-				if (phoneNumber) enumerator.phoneNumber = phoneNumber;
-				if (password) enumerator.password = password;
+				// Create one entry per dzongkhag code for preview
+				// The backend will parse the original CSV file with comma-separated codes
+				dzongkhagCodes.forEach((code) => {
+					const enumerator: EnumeratorCSVData = {
+						name,
+						cid,
+						dzongkhagCode: this.normalizeDzongkhagCode(code),
+					};
+					if (emailAddress) enumerator.emailAddress = emailAddress;
+					if (phoneNumber) enumerator.phoneNumber = phoneNumber;
+					if (password) enumerator.password = password;
 
-				valid.push(enumerator);
+					valid.push(enumerator);
+				});
 			}
 		}
 
@@ -521,35 +748,45 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 
 	/**
 	 * Delete selected enumerators
+	 * Removes all assignments for selected enumerators (all dzongkhags)
 	 */
 	deleteSelectedEnumerators() {
-		if (this.selectedEnumerators.length === 0) {
+		// Filter out inactive enumerators
+		const activeEnumerators = this.selectedEnumerators.filter(e => this.isEnumeratorActive(e));
+		
+		if (activeEnumerators.length === 0) {
 			this.messageService.add({
 				severity: 'warn',
 				summary: 'No Selection',
-				detail: 'Please select enumerators to delete',
+				detail: 'Please select active enumerators to delete',
 				life: 3000,
 			});
 			return;
 		}
 
+		const uniqueUserIds = [...new Set(activeEnumerators.map((e) => e.userId))];
+		const totalAssignments = activeEnumerators.reduce((sum, e) => {
+			const assignments = this.groupedEnumerators.get(e.userId) || [];
+			return sum + assignments.length;
+		}, 0);
+
 		this.confirmationService.confirm({
-			message: `Are you sure you want to remove ${this.selectedEnumerators.length} enumerator(s) from this survey?`,
+			message: `Are you sure you want to remove ${uniqueUserIds.length} enumerator(s) with ${totalAssignments} total assignment(s) from this survey? This will remove all dzongkhag assignments for these enumerators.`,
 			header: 'Confirm Deletion',
 			icon: 'pi pi-exclamation-triangle',
 			accept: () => {
-				const userIds = this.selectedEnumerators.map((e) => e.userId);
-				// Delete enumerators one by one (supervisor API doesn't have bulk delete)
-				const deleteObservables = userIds.map(userId => 
-					this.surveyEnumeratorService.deleteEnumerator(userId, this.surveyId)
+				// Soft delete all assignments for each enumerator
+				const deleteObservables = uniqueUserIds.map(userId => 
+					this.surveyEnumeratorService.softDeleteAllAssignments(userId, this.surveyId)
 				);
 				
 				forkJoin(deleteObservables).subscribe({
-					next: () => {
+					next: (responses) => {
+						const totalDeleted = responses.reduce((sum, r) => sum + (r.deletedCount || 0), 0);
 						this.messageService.add({
 							severity: 'success',
 							summary: 'Deleted',
-							detail: `Removed ${userIds.length} enumerator(s)`,
+							detail: `Removed ${uniqueUserIds.length} enumerator(s) with ${totalDeleted} assignment(s)`,
 							life: 3000,
 						});
 						this.selectedEnumerators = [];
@@ -571,21 +808,28 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 
 	/**
 	 * Delete single enumerator
+	 * Removes all assignments for this enumerator (all dzongkhags)
 	 */
-	deleteEnumerator(enumerator: SupervisorSurveyEnumerator) {
+	deleteEnumerator(enumerator: SurveyEnumerator) {
+		const assignments = this.groupedEnumerators.get(enumerator.userId) || [];
+		const dzongkhagCount = assignments.length;
+		const dzongkhagsText = dzongkhagCount > 1 
+			? `all ${dzongkhagCount} dzongkhag assignments` 
+			: 'this survey';
+
 		this.confirmationService.confirm({
-			message: `Are you sure you want to remove ${enumerator.user?.name} from this survey?`,
+			message: `Are you sure you want to remove ${enumerator.user?.name} from ${dzongkhagsText}?`,
 			header: 'Confirm Deletion',
 			icon: 'pi pi-exclamation-triangle',
 			accept: () => {
 				this.surveyEnumeratorService
-					.deleteEnumerator(enumerator.userId, this.surveyId)
+					.softDeleteAllAssignments(enumerator.userId, this.surveyId)
 					.subscribe({
-						next: () => {
+						next: (response) => {
 							this.messageService.add({
 								severity: 'success',
 								summary: 'Deleted',
-								detail: 'Enumerator removed successfully',
+								detail: `Enumerator removed successfully (${response.deletedCount} assignment(s) removed)`,
 								life: 3000,
 							});
 							this.loadEnumerators();
@@ -607,12 +851,19 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 	/**
 	 * Open edit dialog
 	 */
-	openEditDialog(enumerator: SupervisorSurveyEnumerator) {
+	openEditDialog(enumerator: SurveyEnumerator) {
 		this.editingEnumerator = enumerator;
+		const assignments = this.groupedEnumerators.get(enumerator.userId) || [];
+		const currentDzongkhagIds = assignments
+			.map((a) => a.dzongkhagId)
+			.filter((id): id is number => id !== null && id !== undefined);
+		
 		this.editForm.patchValue({
 			name: enumerator.user?.name || '',
+			cid: enumerator.user?.cid || '',
 			emailAddress: enumerator.user?.emailAddress || '',
 			phoneNumber: enumerator.user?.phoneNumber || '',
+			dzongkhagIds: currentDzongkhagIds,
 		});
 		this.showEditDialog = true;
 	}
@@ -636,11 +887,20 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 		}
 
 		this.saving = true;
+		const formValue = this.editForm.value;
 		const updateData: UpdateEnumeratorDto = {
-			name: this.editForm.value.name,
-			emailAddress: this.editForm.value.emailAddress,
-			phoneNumber: this.editForm.value.phoneNumber || null,
+			name: formValue.name,
+			cid: formValue.cid,
+			emailAddress: formValue.emailAddress,
+			phoneNumber: formValue.phoneNumber || null,
 		};
+
+		// Include dzongkhag assignments if dzongkhagIds are provided and not empty
+		// If empty, assignments won't be updated (only user details will be updated)
+		if (formValue.dzongkhagIds && Array.isArray(formValue.dzongkhagIds) && formValue.dzongkhagIds.length > 0) {
+			updateData.surveyId = this.surveyId;
+			updateData.dzongkhagIds = formValue.dzongkhagIds;
+		}
 
 		this.surveyEnumeratorService
 			.updateEnumerator(this.editingEnumerator.userId, updateData)
@@ -649,7 +909,9 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 					this.messageService.add({
 						severity: 'success',
 						summary: 'Success',
-						detail: 'Enumerator updated successfully',
+						detail: updateData.dzongkhagIds 
+							? `Enumerator updated successfully (${updateData.dzongkhagIds.length} dzongkhag assignment(s) updated)`
+							: 'Enumerator updated successfully',
 						life: 3000,
 					});
 					this.closeEditDialog();
@@ -698,6 +960,9 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 			if (field === 'phoneNumber') {
 				return 'Phone number must be 8 digits starting with 1, 7, 6, 8, or 9';
 			}
+			if (field === 'cid') {
+				return 'CID must be exactly 11 digits';
+			}
 			return 'Invalid format';
 		}
 		if (control.hasError('passwordMismatch')) {
@@ -722,11 +987,14 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 	/**
 	 * Get field label
 	 */
-	getFieldLabel(field: string): string {
+		getFieldLabel(field: string): string {
 		const labels: { [key: string]: string } = {
 			name: 'Name',
+			cid: 'CID',
 			emailAddress: 'Email Address',
 			phoneNumber: 'Phone Number',
+			password: 'Password',
+			dzongkhagIds: 'Dzongkhags',
 			newPassword: 'New Password',
 			confirmPassword: 'Confirm Password',
 		};
@@ -736,7 +1004,7 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 	/**
 	 * Open reset password dialog
 	 */
-	openResetPasswordDialog(enumerator: SupervisorSurveyEnumerator) {
+		openResetPasswordDialog(enumerator: SurveyEnumerator) {
 		this.resettingPasswordEnumerator = enumerator;
 		this.resetPasswordForm.reset();
 		this.showResetPasswordDialog = true;
@@ -800,6 +1068,55 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 	}
 
 	/**
+	 * Reactivate enumerator (restore all inactive assignments)
+	 */
+	reactivateEnumerator(enumerator: SurveyEnumerator) {
+		const assignments = this.groupedEnumerators.get(enumerator.userId) || [];
+		const inactiveAssignments = assignments.filter(a => a.isActive === false);
+		
+		if (inactiveAssignments.length === 0) {
+			this.messageService.add({
+				severity: 'info',
+				summary: 'No Action Needed',
+				detail: 'This enumerator is already active',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.confirmationService.confirm({
+			message: `Are you sure you want to reactivate ${enumerator.user?.name}? This will restore all inactive assignment(s).`,
+			header: 'Confirm Reactivation',
+			icon: 'pi pi-check-circle',
+			accept: () => {
+				// Restore all assignments for user-survey combination
+				this.surveyEnumeratorService
+					.restoreAllAssignments(enumerator.userId, this.surveyId)
+					.subscribe({
+						next: (response) => {
+							this.messageService.add({
+								severity: 'success',
+								summary: 'Reactivated',
+								detail: `Enumerator reactivated successfully (${response.restoredCount} assignment(s) restored)`,
+								life: 3000,
+							});
+							this.loadEnumerators();
+						},
+						error: (error: any) => {
+							console.error('Error reactivating enumerator:', error);
+							this.messageService.add({
+								severity: 'error',
+								summary: 'Error',
+								detail: error?.error?.message || 'Failed to reactivate enumerator',
+								life: 3000,
+							});
+						}
+					});
+			},
+		});
+	}
+
+	/**
 	 * Reset enumerator password
 	 */
 	resetPassword() {
@@ -845,6 +1162,86 @@ export class SupervisorEnumeratorsComponent implements OnInit {
 					this.resettingPassword = false;
 				},
 			});
+	}
+
+	/**
+	 * Open create dialog
+	 */
+	openCreateDialog() {
+		this.createForm.reset();
+		this.createForm.patchValue({
+			dzongkhagIds: [],
+		});
+		this.showCreateDialog = true;
+	}
+
+	/**
+	 * Close create dialog
+	 */
+	closeCreateDialog() {
+		this.showCreateDialog = false;
+		this.createForm.reset();
+	}
+
+	/**
+	 * Create enumerator
+	 */
+	createEnumerator() {
+		if (this.createForm.invalid) {
+			this.createForm.markAllAsTouched();
+			this.messageService.add({
+				severity: 'error',
+				summary: 'Validation Error',
+				detail: 'Please fix all form errors before submitting',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.creating = true;
+		const formValue = this.createForm.value;
+		const createDto: CreateSingleEnumeratorDto = {
+			name: formValue.name,
+			cid: formValue.cid,
+			surveyId: this.surveyId,
+			dzongkhagIds: formValue.dzongkhagIds,
+		};
+
+		if (formValue.emailAddress) {
+			createDto.emailAddress = formValue.emailAddress;
+		}
+		if (formValue.phoneNumber) {
+			createDto.phoneNumber = formValue.phoneNumber;
+		}
+		if (formValue.password) {
+			createDto.password = formValue.password;
+		}
+
+		this.surveyEnumeratorService.createSingleEnumerator(createDto).subscribe({
+			next: (response: CreateSingleEnumeratorResponse) => {
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: response.created 
+						? `Enumerator ${response.user.name} created and assigned successfully (${response.assignments.length} assignment(s))`
+						: `Enumerator ${response.user.name} assigned successfully (${response.assignments.length} assignment(s))`,
+					life: 5000,
+				});
+				this.closeCreateDialog();
+				this.loadEnumerators();
+				this.creating = false;
+			},
+			error: (error: any) => {
+				console.error('Error creating enumerator:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: error?.error?.message || 'Failed to create enumerator',
+					life: 3000,
+				});
+				this.creating = false;
+			},
+		});
 	}
 }
 

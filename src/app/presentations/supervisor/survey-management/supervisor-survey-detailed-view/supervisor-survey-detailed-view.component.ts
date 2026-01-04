@@ -7,15 +7,15 @@ import {
 	Survey,
 } from '../../../../core/dataservice/survey/survey.dto';
 import { MessageService } from 'primeng/api';
-import { SupervisorSurveyDataService } from '../../../../core/dataservice/supervisor/supervisor-survey.dataservice';
 import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
 import { SupervisorEaManagementComponent } from './components/supervisor-ea-management/supervisor-ea-management.component';
 import { SupervisorHouseholdListingComponent } from './components/supervisor-household-listing/supervisor-household-listing.component';
 import { SupervisorEnumeratorsComponent } from './components/supervisor-enumerators/supervisor-enumerators.component';
 import { SurveySamplingGlobalParametersComponent } from '../../../shared/survey-view/survey-sampling-global-parameters/survey-sampling-global-parameters.component';
-import { SupervisorSurveyEnumerationAreaHouseholdListingDataService } from '../../../../core/dataservice/supervisor/supervisor-survey-enumeration-area-household-listing.dataservice';
-import { DzongkhagHierarchicalResponse } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
+import { SupervisorSurveyEnumerationAreaHouseholdListingDataService } from '../../../../core/dataservice/survey-enumeration-area-household-listing/supervisor-survey-enumeration-area-household-listing.dataservice';
 import { Subject, takeUntil } from 'rxjs';
+import { SupervisorSurveyDataService } from '../../../../core/dataservice/survey/supervisor-survey.dataservice';
+import { DzongkhagHierarchyDto } from '../../../../core/dataservice/survey/survey-enumeration-hierarchy.dto';
 
 @Component({
 	selector: 'app-supervisor-survey-detailed-view',
@@ -44,8 +44,8 @@ export class SupervisorSurveyDetailedViewComponent implements OnInit, OnDestroy 
 	activeTabIndex = 0;
 
 	// Export functionality
-	dzongkhagOptions: DzongkhagHierarchicalResponse[] = [];
-	selectedDzongkhagForExport: DzongkhagHierarchicalResponse | null = null;
+	dzongkhagOptions: DzongkhagHierarchyDto[] = [];
+	selectedDzongkhagForExport: DzongkhagHierarchyDto | null = null;
 	downloadingExport = false;
 
 	// Subject for unsubscribing

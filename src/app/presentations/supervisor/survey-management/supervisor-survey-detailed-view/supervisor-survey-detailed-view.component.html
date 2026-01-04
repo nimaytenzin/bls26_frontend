@@ -181,34 +181,36 @@
 			<div
 				class="w-full flex flex-col bg-white rounded-2xl shadow-sm border border-gray-200"
 			>
-				<p-tabView
-					class="h-full"
-					styleClass="supervisor-tabview"
-					[(activeIndex)]="activeTabIndex"
-				>
-					<!-- PRIMARY: Enumeration Areas Tab (Default) -->
-					<p-tabPanel header="Enumeration Areas">
-						<app-supervisor-ea-management
-							[surveyId]="survey.id"
-						></app-supervisor-ea-management>
-					</p-tabPanel>
+				<div class="p-6">
+					<p-tabView
+						class="h-full"
+						styleClass="supervisor-tabview"
+						[(activeIndex)]="activeTabIndex"
+					>
+						<!-- PRIMARY: Enumeration Areas Tab (Default) -->
+						<p-tabPanel header="Enumeration Areas">
+							<app-supervisor-ea-management
+								[surveyId]="survey.id"
+							></app-supervisor-ea-management>
+						</p-tabPanel>
 
-					<!-- Secondary: Household Listings (All EAs view) -->
-					<p-tabPanel header="Household Listings">
-						<app-supervisor-household-listing
-							[surveyId]="survey.id"
-							[surveyName]="survey.name"
-						></app-supervisor-household-listing>
-					</p-tabPanel>
+						<!-- Secondary: Household Listings (All EAs view) -->
+						<p-tabPanel header="Household Listings">
+							<app-supervisor-household-listing
+								[surveyId]="survey.id"
+								[surveyName]="survey.name"
+							></app-supervisor-household-listing>
+						</p-tabPanel>
 
-					
-					<!-- Keep: Enumerators -->
-					<p-tabPanel header="Enumerators">
-						<app-supervisor-enumerators
-							[surveyId]="survey.id"
-						></app-supervisor-enumerators>
-					</p-tabPanel>
-				</p-tabView>
+						
+						<!-- Keep: Enumerators -->
+						<p-tabPanel header="Enumerators">
+							<app-supervisor-enumerators
+								[surveyId]="survey.id"
+							></app-supervisor-enumerators>
+						</p-tabPanel>
+					</p-tabView>
+				</div>
 			</div>
 		</section>
 	</ng-container>

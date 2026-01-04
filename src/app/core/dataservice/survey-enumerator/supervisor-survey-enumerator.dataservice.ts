@@ -4,36 +4,9 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { BASEAPI_URL } from '../../constants/constants';
 import { User } from '../auth/auth.interface';
+import { SurveyEnumerator } from './survey-enumerator.dto';
 
-/**
- * Supervisor Survey Enumerator Interface
- * Extended interface for supervisor routes
- */
-export interface SupervisorSurveyEnumerator {
-	userId: number;
-	surveyId: number;
-	dzongkhagId: number | null;
-	user: {
-		id: number;
-		name: string;
-		emailAddress: string;
-		cid: string;
-		phoneNumber: string | null;
-		role: 'ENUMERATOR';
-	};
-	survey: {
-		id: number;
-		name: string;
-		year: number;
-		status: string;
-	};
-	dzongkhag?: {
-		id: number;
-		name: string;
-		areaCode: string;
-	};
-}
-
+ 
 /**
  * Bulk Assign Response for Supervisor Routes
  */
@@ -58,10 +31,11 @@ export interface SupervisorBulkAssignResponse {
  */
 export interface UpdateEnumeratorDto {
 	name?: string;
+	cid?: string;
 	emailAddress?: string;
 	phoneNumber?: string;
 	surveyId?: number;
-	dzongkhagId?: number;
+	dzongkhagIds?: number[]; // Array of dzongkhag IDs to replace assignments
 }
 
 /**
@@ -77,6 +51,28 @@ export interface ResetPasswordDto {
 export interface ResetPasswordResponse {
 	message: string;
 	user: User;
+}
+
+/**
+ * Create Single Enumerator DTO
+ */
+export interface CreateSingleEnumeratorDto {
+	name: string;
+	cid: string;
+	emailAddress?: string;
+	phoneNumber?: string;
+	password?: string;
+	surveyId: number;
+	dzongkhagIds: number[];
+}
+
+/**
+ * Create Single Enumerator Response
+ */
+export interface CreateSingleEnumeratorResponse {
+	user: User;
+	created: boolean;
+	assignments: SurveyEnumerator[];
 }
 
 /**
@@ -119,9 +115,9 @@ export class SupervisorSurveyEnumeratorDataService {
 	 * @param surveyId Survey ID
 	 * @returns Observable of supervisor survey enumerator array
 	 */
-	getEnumeratorsBySurvey(surveyId: number): Observable<SupervisorSurveyEnumerator[]> {
+	getEnumeratorsBySurvey(surveyId: number): Observable<SurveyEnumerator[]> {
 		return this.http
-			.get<SupervisorSurveyEnumerator[]>(`${this.apiUrl}/by-survey/${surveyId}`, {
+			.get<SurveyEnumerator[]>(`${this.apiUrl}/by-survey/${surveyId}`, {
 				headers: this.getAuthHeaders(),
 			})
 			.pipe(
@@ -221,7 +217,65 @@ export class SupervisorSurveyEnumeratorDataService {
 	}
 
 	/**
-	 * Delete enumerator from survey
+	 * Soft delete all enumerator assignments for a user-survey combination
+	 * @param userId User ID
+	 * @param surveyId Survey ID
+	 * @returns Observable of soft delete response
+	 */
+	softDeleteAllAssignments(
+		userId: number,
+		surveyId: number
+	): Observable<{ message: string; deletedCount: number }> {
+		return this.http
+			.delete<{ message: string; deletedCount: number }>(
+				`${this.apiUrl}/${userId}/${surveyId}/soft`,
+				{
+					headers: this.getAuthHeaders(),
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error soft deleting all assignments for ${userId}/${surveyId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Restore all soft-deleted enumerator assignments for a user-survey combination
+	 * @param userId User ID
+	 * @param surveyId Survey ID
+	 * @returns Observable of restore response
+	 */
+	restoreAllAssignments(
+		userId: number,
+		surveyId: number
+	): Observable<{ message: string; restoredCount: number }> {
+		return this.http
+			.post<{ message: string; restoredCount: number }>(
+				`${this.apiUrl}/${userId}/${surveyId}/restore`,
+				{},
+				{
+					headers: this.getAuthHeaders(),
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error restoring all assignments for ${userId}/${surveyId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Delete enumerator from survey (legacy method - kept for backward compatibility)
+	 * @deprecated Use softDeleteAllAssignments instead
 	 * @param userId User ID
 	 * @param surveyId Survey ID
 	 * @returns Observable of delete response
@@ -237,6 +291,57 @@ export class SupervisorSurveyEnumeratorDataService {
 						`Error deleting enumerator ${userId} from survey ${surveyId}:`,
 						error
 					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Restore a soft-deleted enumerator assignment (single assignment)
+	 * @param userId User ID
+	 * @param surveyId Survey ID
+	 * @param dzongkhagId Dzongkhag ID
+	 * @returns Observable of restore response
+	 */
+	restoreAssignment(
+		userId: number,
+		surveyId: number,
+		dzongkhagId: number
+	): Observable<{ message: string }> {
+		return this.http
+			.post<{ message: string }>(
+				`${this.apiUrl}/${userId}/${surveyId}/${dzongkhagId}/restore`,
+				{},
+				{
+					headers: this.getAuthHeaders(),
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						`Error restoring assignment ${userId}/${surveyId}/${dzongkhagId}:`,
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Create a single enumerator with dzongkhag assignments
+	 * @param dto Create single enumerator data
+	 * @returns Observable of create response
+	 */
+	createSingleEnumerator(
+		dto: CreateSingleEnumeratorDto
+	): Observable<CreateSingleEnumeratorResponse> {
+		return this.http
+			.post<CreateSingleEnumeratorResponse>(`${this.apiUrl}/single`, dto, {
+				headers: this.getAuthHeaders(),
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error creating single enumerator:', error);
 					return throwError(() => error);
 				})
 			);

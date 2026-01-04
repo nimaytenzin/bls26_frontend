@@ -1,14 +1,15 @@
-import { User } from '../auth/auth.interface';
+import { Dzongkhag, User } from '../auth/auth.interface';
+import { Survey } from '../survey/survey.dto';
 
-/**
- * Survey Enumerator Assignment Interface
- * Represents the many-to-many relationship between surveys and enumerators
- */
+
 export interface SurveyEnumerator {
 	userId: number;
 	surveyId: number;
-	assignedAt?: Date;
-	user?: User;
+	dzongkhagId: number | null;
+	isActive?: boolean;
+	user:User;
+	survey:Survey;
+	dzongkhag?:Dzongkhag
 }
 
 /**
@@ -95,4 +96,59 @@ export interface BulkCSVAssignmentResponse {
 		enumerator: EnumeratorCSVData;
 		error: string;
 	}>;
+}
+
+/**
+ * Create Single Enumerator DTO
+ * Data Transfer Object for creating a single enumerator with dzongkhag assignments
+ */
+export interface CreateSingleEnumeratorDto {
+	name: string;
+	cid: string;
+	emailAddress?: string;
+	phoneNumber?: string;
+	password?: string;
+	surveyId: number;
+	dzongkhagIds: number[];
+}
+
+/**
+ * Create Single Enumerator Response
+ * Response from creating a single enumerator
+ */
+export interface CreateSingleEnumeratorResponse {
+	user: User;
+	created: boolean;
+	assignments: SurveyEnumerator[];
+}
+
+/**
+ * Update Enumerator DTO
+ * Data Transfer Object for updating enumerator details and/or assignments
+ */
+export interface UpdateEnumeratorDto {
+	name?: string;
+	cid?: string;
+	emailAddress?: string;
+	phoneNumber?: string;
+	surveyId?: number;
+	dzongkhagIds?: number[]; // Array of dzongkhag IDs to replace assignments
+}
+
+/**
+ * Reset Password DTO
+ * Data Transfer Object for resetting enumerator password
+ */
+export interface ResetPasswordDto {
+	newPassword: string;
+	confirmPassword: string;
+}
+
+/**
+ * Restore All Assignments Response
+ * Response from restoring all assignments
+ */
+export interface RestoreAllAssignmentsResponse {
+	message: string;
+	restoredCount: number;
 }

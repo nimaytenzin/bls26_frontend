@@ -15,7 +15,7 @@ import { AdminMasterSurveyEditComponent } from '../shared/admin-master-survey-ed
 import { SurveyDataService } from '../../../../core/dataservice/survey/survey.dataservice';
  import { AdminSurveySamplingComponent } from './admin-survey-sampling/admin-survey-sampling.component';
 import { SurveyStatus } from '../../../../core/constants/enums';
-import { SurveyOverviewComponent } from '../../../shared/survey-view/survey-overview/survey-overview.component';
+import { AdminSurveyOverviewComponent } from './admin-survey-overview/admin-survey-overview.component';
 import { AdminSurveyEaManagementComponent } from './admin-survey-ea-management/admin-survey-ea-management.component';
 import { AdminSurveyHouseholdListingsComponent } from './admin-survey-household-listings/admin-survey-household-listings.component';
 import { AdminSurveyUsersComponent } from './admin-survey-users/admin-survey-users.component';
@@ -32,7 +32,7 @@ import { AdminSurveyUsersComponent } from './admin-survey-users/admin-survey-use
 		
 		AdminSurveySamplingComponent,
 		
-		SurveyOverviewComponent,
+		AdminSurveyOverviewComponent,
 		AdminSurveyEaManagementComponent,
 		AdminSurveyHouseholdListingsComponent,
 		AdminSurveyUsersComponent
@@ -53,6 +53,9 @@ export class AdminSurveyViewerComponent implements OnInit, OnDestroy {
 	// Enumeration Areas
 	enumerationAreas: EnumerationArea[] = [];
 	loadingEAs = false;
+
+	// Tab state - Default to Enumeration Areas (index 0)
+	activeTabIndex = 0;
 
 	// Survey Status Enum for template
 	SurveyStatus = SurveyStatus;

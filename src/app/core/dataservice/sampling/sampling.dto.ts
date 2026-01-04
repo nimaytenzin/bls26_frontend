@@ -164,6 +164,22 @@ export interface BulkRunSamplingDto {
 	overwriteExisting?: boolean;
 }
 
+/**
+ * Bulk Run Sampling Response
+ */
+export interface BulkRunSamplingResponse {
+	success: number;
+	failed: number;
+	results: Array<{
+		surveyEnumerationAreaId: number;
+		result: SurveyEnumerationAreaSamplingDto;
+	}>;
+	errors: Array<{
+		surveyEnumerationAreaId: number;
+		error: string;
+	}>;
+}
+
 export interface SamplingJobDto {
 	id: number;
 	surveyId: number;
