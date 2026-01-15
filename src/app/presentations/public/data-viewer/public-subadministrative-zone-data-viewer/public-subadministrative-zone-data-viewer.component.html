@@ -776,7 +776,7 @@
 		[style]="{ width: '90vw', maxWidth: '600px' }"
 		[draggable]="false"
 		[resizable]="false"
-		[header]="'Download ' + (subAdministrativeZone?.type === 'Chiwog' ? 'Chiwog' : 'LAP') + ' Sampling Frame'"
+		[header]="'Download ' + (subAdministrativeZone?.type === 'LAP' ? 'LAP' : 'Chiwog') + ' Sampling Frame'"
 		(onHide)="closeDownloadDialog()"
 	>
 		<div class="flex flex-col gap-4 p-2">
