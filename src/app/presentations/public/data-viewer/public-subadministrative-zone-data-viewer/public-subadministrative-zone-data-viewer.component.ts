@@ -718,34 +718,32 @@ export class PublicSubadministrativeZoneDataViewerComponent
 		// Build popup content with name, code, description, and stats
 		// Popup title: EA Code
 		const titleSection = `
-			<div class="mb-2 pb-2 border-b border-slate-200">
+			<div class="mb-1 pb-1 border-b border-slate-200">
 				<h3 class="font-bold text-lg text-slate-900">EA ${props.areaCode || props.code || 'N/A'}</h3>
 			</div>
 		`;
 
 		// Name section
 		const nameSection = `
-			 				<p class="text-sm text-slate-900">Name: ${props.name || 'Unknown'}</p>
-
+			<p class="text-sm text-slate-900 mb-1">Name: ${props.name || 'Unknown'}</p>
 		`;
 
 		// Description section
 		const descriptionSection = props.description
 			? `
-				<p class="text-sm text-slate-900 leading-relaxed">Description: ${props.description}</p>
-
+				<p class="text-sm text-slate-900 leading-relaxed mb-1">Description: ${props.description}</p>
 			`
 			: '';
 
 		// Household count section
 		const dataSection = props.hasData
 			? `
-				<div class="py-1 border-t border-slate-200">
+				<div class="pt-1 border-t border-slate-200">
 					<span class="text-sm font-semibold text-slate-700">Households: </span>
 					<span class="text-sm font-bold" style="color: #67A4CA">${(props.totalHouseholds || 0).toLocaleString()}</span>
 				</div>
 			`
-			: '<div class="mt-2 pt-2 border-t border-slate-200"><p class="text-sm text-gray-500">No data available for this enumeration area.</p></div>';
+			: '<div class="pt-1 border-t border-slate-200"><p class="text-sm text-gray-500">No data available for this enumeration area.</p></div>';
 
 		const popupContent = `
 			<div class="p-2 min-w-[280px]">
