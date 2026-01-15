@@ -725,26 +725,22 @@ export class PublicSubadministrativeZoneDataViewerComponent
 
 		// Name section
 		const nameSection = `
-			<div class="mb-2">
-				<p class="text-sm font-semibold text-slate-700">Name:</p>
-				<p class="text-sm text-slate-900">${props.name || 'Unknown'}</p>
-			</div>
+			 				<p class="text-sm text-slate-900">Name: ${props.name || 'Unknown'}</p>
+
 		`;
 
 		// Description section
 		const descriptionSection = props.description
 			? `
-				<div class="mb-2">
-					<p class="text-sm font-semibold text-slate-700">Description:</p>
-					<p class="text-xs text-slate-600 leading-relaxed">${props.description}</p>
-				</div>
+				<p class="text-sm text-slate-900 leading-relaxed">Description: ${props.description}</p>
+
 			`
 			: '';
 
 		// Household count section
 		const dataSection = props.hasData
 			? `
-				<div class="mt-2 pt-2 border-t border-slate-200">
+				<div class="py-1 border-t border-slate-200">
 					<span class="text-sm font-semibold text-slate-700">Households: </span>
 					<span class="text-sm font-bold" style="color: #67A4CA">${(props.totalHouseholds || 0).toLocaleString()}</span>
 				</div>
