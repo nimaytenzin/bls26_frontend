@@ -583,13 +583,7 @@ export class PublicNationalDataViewerComponent
 						</div>
 					</div>
 					
-					<!-- Population Section -->
-					<div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
-						<div class="flex justify-between items-center">
-							<span class="text-xs font-semibold text-slate-700 uppercase tracking-wide">Total Population:</span>
-							<span class="text-sm font-bold" style="color: #67A4CA">${props.totalPopulation.toLocaleString()}</span>
-						</div>
-					</div>
+				
 				</div>
 			`
 			: '<p class="text-sm text-gray-500 mb-3">No data available for this dzongkhag.</p>';
