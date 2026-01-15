@@ -42,17 +42,7 @@
 		<section class="flex gap-4 h-[calc(100vh-5rem)] bg-white">
 			<!-- Left Pane: Data and Statistics -->
 			<div class="w-[25vw] flex flex-col gap-4 overflow-y-auto p-6">
-				<div class="">
-					<div>
-						<h1 class="text-3xl font-semibold text-slate-900">
-							National Sampling Frame Dashboard
-						</h1>
-						<p class="mt-2 text-sm text-slate-600">
-							Comprehensive overview of dzongkhags with household and population
-							statistics
-						</p>
-					</div>
-				</div>
+				
 
 				<div class="p-4">
 					<div class="space-y-4">
@@ -80,12 +70,141 @@
 										: 'border-transparent text-slate-600 hover:text-slate-900'
 								"
 							>
-								Dzongkhag Distribution
+								Dzongkhag 
 							</button>
 						</div>
 						<!-- Frame Insights Tab Content -->
 						<div *ngIf="activeMainTab === 'insights'" class="space-y-4">
 							<div class="space-y-4 text-base text-slate-600">
+
+									<!-- Total Enumeration Areas Card -->
+							<div
+							(click)="switchVisualizationMode('enumerationAreas')"
+							class="p-4 rounded-lg border border-slate-200 bg-white transition-all duration-200 cursor-pointer relative"
+							[style.border-color]="
+								mapVisualizationMode === 'enumerationAreas' ? '#67A4CA' : ''
+							"
+						>
+							<div class="space-y-2">
+								<div class="flex items-center justify-between">
+									<p class="text-base font-semibold text-slate-800">
+										Total Enumeration Areas
+									</p>
+									<i
+										*ngIf="mapVisualizationMode === 'enumerationAreas'"
+										class="pi pi-bookmark-fill text-2xl"
+										style="color: #67a4ca"
+									></i>
+								</div>
+								<div class="mb-3">
+									<p class="text-3xl font-bold text-primary-600">
+										{{ stats.totalEnumerationAreas | number }}
+									</p>
+								</div>
+								<div class="space-y-3">
+									<!-- Urban/Rural proportional bar -->
+									<div>
+										<div
+											class="flex h-10 rounded-lg overflow-hidden border border-slate-200"
+										>
+											<div
+												class="flex items-center justify-center bg-primary-600 text-white text-sm font-semibold px-2 transition-all"
+												[style.width.%]="
+													getPercentageValue(
+														stats.urbanEnumerationAreas,
+														stats.totalEnumerationAreas
+													)
+												"
+											>
+												<span
+													*ngIf="
+														getPercentageValue(
+															stats.urbanEnumerationAreas,
+															stats.totalEnumerationAreas
+														) > 15
+													"
+													>{{
+														getPercentage(
+															stats.urbanEnumerationAreas,
+															stats.totalEnumerationAreas
+														)
+													}}%</span
+												>
+											</div>
+											<div
+												class="flex items-center justify-center text-slate-800 text-sm font-semibold px-2 transition-all"
+												[style.width.%]="
+													getPercentageValue(
+														stats.ruralEnumerationAreas,
+														stats.totalEnumerationAreas
+													)
+												"
+												style="background-color: #cbe7f8"
+											>
+												<span
+													*ngIf="
+														getPercentageValue(
+															stats.ruralEnumerationAreas,
+															stats.totalEnumerationAreas
+														) > 15
+													"
+													>{{
+														getPercentage(
+															stats.ruralEnumerationAreas,
+															stats.totalEnumerationAreas
+														)
+													}}%</span
+												>
+											</div>
+										</div>
+										<!-- Percentages below bar -->
+										<div
+											class="flex justify-between text-xs text-slate-600 mt-1"
+										>
+											<span
+												>Urban:
+												{{
+													getPercentage(
+														stats.urbanEnumerationAreas,
+														stats.totalEnumerationAreas
+													)
+												}}%</span
+											>
+											<span
+												>Rural:
+												{{
+													getPercentage(
+														stats.ruralEnumerationAreas,
+														stats.totalEnumerationAreas
+													)
+												}}%</span
+											>
+										</div>
+									</div>
+									<!-- Average Stats -->
+									<div class="space-y-1 text-sm text-slate-600">
+										<div class="flex items-center justify-between">
+											<span>Households per EA (avg):</span>
+											<span class="font-semibold text-slate-900">{{
+												(
+													stats.totalHouseholds / stats.totalEnumerationAreas
+												).toFixed(1)
+											}}</span>
+										</div>
+										<div class="flex items-center justify-between">
+											<span>Population per EA (avg):</span>
+											<span class="font-semibold text-slate-900">{{
+												(
+													stats.totalPopulation / stats.totalEnumerationAreas
+												).toFixed(1)
+											}}</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						
 								<!-- Total Households Card -->
 								<div
 									class="space-y-3 rounded-lg border border-slate-200 bg-white p-4 cursor-pointer transition-all relative"
@@ -438,132 +557,7 @@
 								</div>
 							</div>
 
-							<!-- Total Enumeration Areas Card -->
-							<div
-								(click)="switchVisualizationMode('enumerationAreas')"
-								class="p-4 rounded-lg border border-slate-200 bg-white transition-all duration-200 cursor-pointer relative"
-								[style.border-color]="
-									mapVisualizationMode === 'enumerationAreas' ? '#67A4CA' : ''
-								"
-							>
-								<div class="space-y-2">
-									<div class="flex items-center justify-between">
-										<p class="text-base font-semibold text-slate-800">
-											Total Enumeration Areas
-										</p>
-										<i
-											*ngIf="mapVisualizationMode === 'enumerationAreas'"
-											class="pi pi-bookmark-fill text-2xl"
-											style="color: #67a4ca"
-										></i>
-									</div>
-									<div class="mb-3">
-										<p class="text-3xl font-bold text-primary-600">
-											{{ stats.totalEnumerationAreas | number }}
-										</p>
-									</div>
-									<div class="space-y-3">
-										<!-- Urban/Rural proportional bar -->
-										<div>
-											<div
-												class="flex h-10 rounded-lg overflow-hidden border border-slate-200"
-											>
-												<div
-													class="flex items-center justify-center bg-primary-600 text-white text-sm font-semibold px-2 transition-all"
-													[style.width.%]="
-														getPercentageValue(
-															stats.urbanEnumerationAreas,
-															stats.totalEnumerationAreas
-														)
-													"
-												>
-													<span
-														*ngIf="
-															getPercentageValue(
-																stats.urbanEnumerationAreas,
-																stats.totalEnumerationAreas
-															) > 15
-														"
-														>{{
-															getPercentage(
-																stats.urbanEnumerationAreas,
-																stats.totalEnumerationAreas
-															)
-														}}%</span
-													>
-												</div>
-												<div
-													class="flex items-center justify-center text-slate-800 text-sm font-semibold px-2 transition-all"
-													[style.width.%]="
-														getPercentageValue(
-															stats.ruralEnumerationAreas,
-															stats.totalEnumerationAreas
-														)
-													"
-													style="background-color: #cbe7f8"
-												>
-													<span
-														*ngIf="
-															getPercentageValue(
-																stats.ruralEnumerationAreas,
-																stats.totalEnumerationAreas
-															) > 15
-														"
-														>{{
-															getPercentage(
-																stats.ruralEnumerationAreas,
-																stats.totalEnumerationAreas
-															)
-														}}%</span
-													>
-												</div>
-											</div>
-											<!-- Percentages below bar -->
-											<div
-												class="flex justify-between text-xs text-slate-600 mt-1"
-											>
-												<span
-													>Urban:
-													{{
-														getPercentage(
-															stats.urbanEnumerationAreas,
-															stats.totalEnumerationAreas
-														)
-													}}%</span
-												>
-												<span
-													>Rural:
-													{{
-														getPercentage(
-															stats.ruralEnumerationAreas,
-															stats.totalEnumerationAreas
-														)
-													}}%</span
-												>
-											</div>
-										</div>
-										<!-- Average Stats -->
-										<div class="space-y-1 text-sm text-slate-600">
-											<div class="flex items-center justify-between">
-												<span>Households per EA (avg):</span>
-												<span class="font-semibold text-slate-900">{{
-													(
-														stats.totalHouseholds / stats.totalEnumerationAreas
-													).toFixed(1)
-												}}</span>
-											</div>
-											<div class="flex items-center justify-between">
-												<span>Population per EA (avg):</span>
-												<span class="font-semibold text-slate-900">{{
-													(
-														stats.totalPopulation / stats.totalEnumerationAreas
-													).toFixed(1)
-												}}</span>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
+						
 						</div>
 
 						<!-- Dzongkhag List Tab Content -->

@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import * as L from 'leaflet';
 import {
@@ -19,6 +19,7 @@ import { MapFeatureColorService } from '../../../../core/utility/map-feature-col
 import { DownloadService } from '../../../../core/utility/download.service';
 import { DzongkhagAnnualStatsDataService } from '../../../../core/dataservice/annual-statistics/dzongkhag-annual-stats/dzongkhag-annual-stats.dataservice';
 import { AdminZoneAnnualStatsDataService } from '../../../../core/dataservice/annual-statistics/admin-zone-annual-stats/admin-zone-annual-stats.dataservice';
+import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
 import { EnumerationAreaDataService } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
@@ -28,7 +29,7 @@ import { MessageService } from 'primeng/api';
 @Component({
 	selector: 'app-admin-dzongkhag-data-viewer',
 	standalone: true,
-	imports: [CommonModule, FormsModule, PrimeNgModules],
+	imports: [CommonModule, FormsModule, RouterModule, PrimeNgModules],
 	templateUrl: './admin-dzongkhag-data-viewer.component.html',
 	styleUrls: ['./admin-dzongkhag-data-viewer.component.css'],
 	providers: [MessageService],
@@ -106,6 +107,7 @@ export class AdminDzongkhagDataViewerComponent
 		private basemapService: BasemapService,
 		private colorScaleService: MapFeatureColorService,
 		private downloadService: DownloadService,
+		private dzongkhagService: DzongkhagDataService,
 		private adminZoneAnnualStatsDataService: AdminZoneAnnualStatsDataService,
 		private administrativeZoneService: AdministrativeZoneDataService,
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
@@ -138,11 +140,29 @@ export class AdminDzongkhagDataViewerComponent
 	}
 
 	/**
+	 * Load dzongkhag basic information
+	 */
+	loadDzongkhagInfo() {
+		this.dzongkhagService.getDzongkhagById(this.dzongkhagId, false).subscribe({
+			next: (dzongkhag) => {
+				this.dzongkhag = dzongkhag;
+			},
+			error: (error) => {
+				console.error('Error loading dzongkhag info:', error);
+				// Don't set error here, just log it - the main data load will handle errors
+			},
+		});
+	}
+
+	/**
 	 * Load all dzongkhag data
 	 */
 	loadData() {
 		this.loading = true;
 		this.error = null;
+
+		// Load dzongkhag basic information first
+		this.loadDzongkhagInfo();
 
 		// Only load admin zone stats GeoJSON - contains boundaries and statistics
 		this.adminZoneAnnualStatsDataService

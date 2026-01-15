@@ -7,7 +7,7 @@ import {
 	ElementRef,
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { SubAdminZoneAnnualStatsDataService } from '../../../../core/dataservice/annual-statistics/sub-admin-zone-annual-stats/sub-admin-zone-annual-stats.dataservice';
@@ -25,7 +25,7 @@ type BaseMapType = 'streets' | 'satellite';
 @Component({
 	selector: 'app-admin-adminstrative-zone-data-viewer',
 	standalone: true,
-	imports: [CommonModule, PrimeNgModules, FormsModule],
+	imports: [CommonModule, PrimeNgModules, FormsModule, RouterModule],
 	templateUrl: './admin-adminstrative-zone-data-viewer.component.html',
 	styleUrls: ['./admin-adminstrative-zone-data-viewer.component.css'],
 	providers: [MessageService],

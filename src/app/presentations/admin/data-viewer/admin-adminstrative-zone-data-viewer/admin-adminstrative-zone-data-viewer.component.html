@@ -57,14 +57,35 @@
 			<div class="w-[25vw] flex flex-col gap-4 overflow-y-auto p-6">
 				
 				<div>
-					<div class="flex-1">
-						<h1 class="text-2xl font-semibold text-slate-900">
-							{{ adminZone?.name || "Administrative Zone Data Viewer" }}
-						</h1>
-						<p class="mt-1 text-sm text-slate-600">
-							Comprehensive sampling frame data and geographic layers
-						</p>
+					<!-- Header Content -->
+					<p class="text-slate-800 text-xl font-bold"> 
+						{{ adminZone?.name || "Gewog/Thromde" }} {{ adminZone?.type || "" }}
+					</p>
+
+					<!-- Breadcrumb Navigation -->
+					<div class="my-2 text-xs">
+						<div class="flex flex-wrap items-center gap-1 min-w-0">
+							<a
+								class="cursor-pointer text-slate-600 hover:text-primary-600 hover:underline"
+								[routerLink]="['/admin']"
+							>
+								Home
+							</a>
+							<span class="text-slate-400"> / </span>
+							<a 
+								class="cursor-pointer text-slate-600 hover:text-primary-600 hover:underline"
+								[routerLink]="['/admin/data-view/dzongkhag', adminZone?.dzongkhagId]"
+								*ngIf="adminZone?.dzongkhagId"
+							>
+								{{ adminZone?.dzongkhagName || "Dzongkhag" }} Dzongkhag
+							</a>
+							<span class="text-slate-400" *ngIf="adminZone?.dzongkhagId"> / </span>
+							<span class="text-slate-900 font-bold">
+								{{ adminZone?.name || "Gewog/Thromde" }} {{ adminZone?.type || "" }}
+							</span>
+						</div>
 					</div>
+					<p-divider type="dashed" />
 				</div>
 				<div class="">
 					<div class="space-y-4">

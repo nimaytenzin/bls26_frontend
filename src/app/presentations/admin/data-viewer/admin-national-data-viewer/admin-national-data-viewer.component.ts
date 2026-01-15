@@ -502,6 +502,80 @@ export class AdminNationalDataViewerComponent
 	}
 
 	/**
+	 * Create popup content for a dzongkhag feature
+	 */
+	private createPopupContent(props: DzongkhagStatsFeature['properties']): string {
+		const detailedProps = props as DzongkhagStatsDetailedProperties;
+		const totalEA = detailedProps.eaCount || detailedProps.totalEA || 0;
+		const urbanEA = detailedProps.urbanEACount || detailedProps.urbanEA || 0;
+		const ruralEA = detailedProps.ruralEACount || detailedProps.ruralEA || 0;
+		const totalHousehold = detailedProps.totalHouseholds || detailedProps.totalHousehold || 0;
+		const urbanHousehold = detailedProps.urbanHouseholdCount || detailedProps.urbanHousehold || 0;
+		const ruralHousehold = detailedProps.ruralHouseholdCount || detailedProps.ruralHousehold || 0;
+
+		const dataSection = props.hasData
+			? `
+				<div class="space-y-2 text-sm mb-3">
+					<!-- Enumeration Areas Section -->
+					<div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
+						<p class="text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">Enumeration Areas</p>
+						<div class="space-y-1">
+							<div class="flex justify-between items-center">
+								<span class="text-xs text-slate-600">Total:</span>
+								<span class="text-sm font-bold text-slate-900">${totalEA.toLocaleString()}</span>
+							</div>
+							<div class="flex justify-between items-center">
+								<span class="text-xs text-slate-600">Urban:</span>
+								<span class="text-sm font-semibold text-slate-700">${urbanEA.toLocaleString()}</span>
+							</div>
+							<div class="flex justify-between items-center">
+								<span class="text-xs text-slate-600">Rural:</span>
+								<span class="text-sm font-semibold text-slate-700">${ruralEA.toLocaleString()}</span>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Households Section -->
+					<div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
+						<p class="text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">Households</p>
+						<div class="space-y-1">
+							<div class="flex justify-between items-center">
+								<span class="text-xs text-slate-600">Total:</span>
+								<span class="text-sm font-bold" style="color: #67A4CA">${totalHousehold.toLocaleString()}</span>
+							</div>
+							<div class="flex justify-between items-center">
+								<span class="text-xs text-slate-600">Urban:</span>
+								<span class="text-sm font-semibold text-slate-700">${urbanHousehold.toLocaleString()}</span>
+							</div>
+							<div class="flex justify-between items-center">
+								<span class="text-xs text-slate-600">Rural:</span>
+								<span class="text-sm font-semibold text-slate-700">${ruralHousehold.toLocaleString()}</span>
+							</div>
+						</div>
+					</div>
+					
+				
+				</div>
+			`
+			: '<p class="text-sm text-gray-500 mb-3">No data available for this dzongkhag.</p>';
+
+		return `
+			<div class="p-3 min-w-[280px]">
+				<h3 class="font-bold text-lg mb-3 text-slate-900 pb-2 border-b border-slate-200">${props.name} Dzongkhag</h3>
+				${dataSection}
+				<div class="flex gap-2 pt-2">
+					<button 
+						id="view-dzongkhag-${props.id}" 
+						class="flex-1 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded transition shadow-sm"
+					>
+						View Details
+					</button>
+				</div>
+			</div>
+		`;
+	}
+
+	/**
 	 * Add popup and interactions to each feature
 	 */
 	private onEachFeature(feature: DzongkhagStatsFeature, layer: L.Layer): void {
@@ -543,67 +617,8 @@ export class AdminNationalDataViewerComponent
 			layer.bindTooltip(label);
 		}
 
-		const detailedProps = props as DzongkhagStatsDetailedProperties;
-		// Calculate percentages
-		const totalHH = detailedProps.totalHouseholds || detailedProps.totalHousehold || 0;
-		const urbanHH = detailedProps.urbanHouseholdCount || detailedProps.urbanHousehold || 0;
-		const totalEA = detailedProps.eaCount || detailedProps.totalEA || 0;
-		const urbanEA = detailedProps.urbanEACount || detailedProps.urbanEA || 0;
-		
-		const urbanPopPct =
-			detailedProps.totalPopulation > 0
-				? ((detailedProps.urbanPopulation / detailedProps.totalPopulation) * 100).toFixed(1)
-				: '0.0';
-		const urbanHHPct =
-			totalHH > 0
-				? ((urbanHH / totalHH) * 100).toFixed(1)
-				: '0.0';
-		const urbanEAPct =
-			totalEA > 0
-				? ((urbanEA / totalEA) * 100).toFixed(1)
-				: '0.0';
-
-		const popupContent = `
-			<div class="p-2 min-w-[280px]">
-				<h3 class="font-bold text-lg mb-3 text-slate-900">${props.name} Dzongkhag</h3>
-				${
-					props.hasData
-						? `
-				<div class="space-y-0 text-sm mb-3">
-					<!-- Population -->
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Population: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.totalPopulation.toLocaleString()}</span>
-						<span class="text-slate-600"> (${urbanPopPct}% Urban)</span>
-					</div>
-
-					<!-- Households -->
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Households: </span>
-						<span class="font-bold" style="color: #67A4CA">${totalHH.toLocaleString()}</span>
-						<span class="text-slate-600"> (${urbanHHPct}% Urban)</span>
-					</div>
-
-					<!-- Enumeration Areas -->
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Enumeration Areas: </span>
-						<span class="font-bold" style="color: #67A4CA">${totalEA}</span>
-						<span class="text-slate-600"> (${urbanEAPct}% Urban)</span>
-					</div>
-				</div>
-				`
-						: '<p class="text-sm text-gray-500 mb-3">No data available for this dzongkhag.</p>'
-				}
-				<button 
-					id="view-dzongkhag-${props.id}" 
-					class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded transition shadow-sm"
-				>
-					View Details
-				</button>
-			</div>
-		`;
-
-		const popup = L.popup().setContent(popupContent);
+		// Add popup
+		const popup = L.popup().setContent(this.createPopupContent(props));
 		layer.bindPopup(popup);
 
 		// Add click listener for the button after popup opens
