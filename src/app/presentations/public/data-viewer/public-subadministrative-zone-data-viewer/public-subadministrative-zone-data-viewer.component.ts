@@ -679,7 +679,7 @@ export class PublicSubadministrativeZoneDataViewerComponent
 			<div style="
 				color: black;
 				font-weight: 700;
-				font-size: 10px;
+				font-size: 12px;
 				text-shadow: 
 					-2px -2px 0 #fff,
 					2px -2px 0 #fff,
@@ -687,8 +687,13 @@ export class PublicSubadministrativeZoneDataViewerComponent
 					2px 2px 0 #fff;
 				text-align: center;
 				white-space: nowrap;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 100%;
+				height: 100%;
 			">
-				${props.areaCode || props.code || 'N/A'}
+				EA-${props.areaCode || props.code || 'N/A'}
 			</div>
 		`;
 
@@ -701,6 +706,8 @@ export class PublicSubadministrativeZoneDataViewerComponent
 				direction: 'center',
 				className: 'enumeration-area-label',
 				opacity: 1,
+				offset: [0, 0],
+				interactive: false,
 			})
 				.setLatLng(center)
 				.setContent(labelContent);
@@ -709,38 +716,47 @@ export class PublicSubadministrativeZoneDataViewerComponent
 		}
 
 		// Build popup content with name, code, description, and stats
-		const nameSection = `
-			<div class="mb-2">
-				<h3 class="font-bold text-lg text-slate-900">${props.name || 'Unknown'}</h3>
-				${props.areaCode || props.code ? `<p class="text-xs text-slate-500 mt-1">Code: ${props.areaCode || props.code}</p>` : ''}
+		// Popup title: EA Code
+		const titleSection = `
+			<div class="mb-2 pb-2 border-b border-slate-200">
+				<h3 class="font-bold text-lg text-slate-900">EA ${props.areaCode || props.code || 'N/A'}</h3>
 			</div>
 		`;
 
-		const dataSection = props.hasData
-			? `
-				<div class="space-y-0 text-sm">
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Households: </span>
-						<span class="font-bold" style="color: #67A4CA">${(props.totalHouseholds || 0).toLocaleString()}</span>
-					</div>
-				</div>
-			`
-			: '<p class="text-sm text-gray-500">No data available for this enumeration area.</p>';
+		// Name section
+		const nameSection = `
+			<div class="mb-2">
+				<p class="text-sm font-semibold text-slate-700">Name:</p>
+				<p class="text-sm text-slate-900">${props.name || 'Unknown'}</p>
+			</div>
+		`;
 
-		// Add description if available
+		// Description section
 		const descriptionSection = props.description
 			? `
-				<div class="mt-2 pt-2 border-t border-slate-200">
+				<div class="mb-2">
+					<p class="text-sm font-semibold text-slate-700">Description:</p>
 					<p class="text-xs text-slate-600 leading-relaxed">${props.description}</p>
 				</div>
 			`
 			: '';
 
+		// Household count section
+		const dataSection = props.hasData
+			? `
+				<div class="mt-2 pt-2 border-t border-slate-200">
+					<span class="text-sm font-semibold text-slate-700">Households: </span>
+					<span class="text-sm font-bold" style="color: #67A4CA">${(props.totalHouseholds || 0).toLocaleString()}</span>
+				</div>
+			`
+			: '<div class="mt-2 pt-2 border-t border-slate-200"><p class="text-sm text-gray-500">No data available for this enumeration area.</p></div>';
+
 		const popupContent = `
 			<div class="p-2 min-w-[280px]">
+				${titleSection}
 				${nameSection}
-				${dataSection}
 				${descriptionSection}
+				${dataSection}
 			</div>
 		`;
 
