@@ -544,44 +544,61 @@ export class PublicNationalDataViewerComponent
 	private createPopupContent(props: DzongkhagStatsFeature['properties']): string {
 		const dataSection = props.hasData
 			? `
-				<div class="space-y-0 text-sm mb-3">
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Total Households: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.totalHousehold.toLocaleString()}</span>
+				<div class="space-y-2 text-sm mb-3">
+					<!-- Enumeration Areas Section -->
+					<div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
+						<p class="text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">Enumeration Areas</p>
+						<div class="space-y-1">
+							<div class="flex justify-between items-center">
+								<span class="text-xs text-slate-600">Total:</span>
+								<span class="text-sm font-bold text-slate-900">${props.totalEA.toLocaleString()}</span>
+							</div>
+							<div class="flex justify-between items-center">
+								<span class="text-xs text-slate-600">Urban:</span>
+								<span class="text-sm font-semibold text-slate-700">${props.urbanEA.toLocaleString()}</span>
+							</div>
+							<div class="flex justify-between items-center">
+								<span class="text-xs text-slate-600">Rural:</span>
+								<span class="text-sm font-semibold text-slate-700">${props.ruralEA.toLocaleString()}</span>
+							</div>
+						</div>
 					</div>
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Urban Households: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.urbanHousehold.toLocaleString()}</span>
+					
+					<!-- Households Section -->
+					<div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
+						<p class="text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">Households</p>
+						<div class="space-y-1">
+							<div class="flex justify-between items-center">
+								<span class="text-xs text-slate-600">Total:</span>
+								<span class="text-sm font-bold" style="color: #67A4CA">${props.totalHousehold.toLocaleString()}</span>
+							</div>
+							<div class="flex justify-between items-center">
+								<span class="text-xs text-slate-600">Urban:</span>
+								<span class="text-sm font-semibold text-slate-700">${props.urbanHousehold.toLocaleString()}</span>
+							</div>
+							<div class="flex justify-between items-center">
+								<span class="text-xs text-slate-600">Rural:</span>
+								<span class="text-sm font-semibold text-slate-700">${props.ruralHousehold.toLocaleString()}</span>
+							</div>
+						</div>
 					</div>
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Rural Households: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.ruralHousehold.toLocaleString()}</span>
-					</div>
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Total EA: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.totalEA}</span>
-					</div>
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Urban EA: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.urbanEA}</span>
-					</div>
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Rural EA: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.ruralEA}</span>
-					</div>
-					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Total Population: </span>
-						<span class="font-bold" style="color: #67A4CA">${props.totalPopulation.toLocaleString()}</span>
+					
+					<!-- Population Section -->
+					<div class="bg-slate-50 rounded-lg p-2 border border-slate-200">
+						<div class="flex justify-between items-center">
+							<span class="text-xs font-semibold text-slate-700 uppercase tracking-wide">Total Population:</span>
+							<span class="text-sm font-bold" style="color: #67A4CA">${props.totalPopulation.toLocaleString()}</span>
+						</div>
 					</div>
 				</div>
 			`
 			: '<p class="text-sm text-gray-500 mb-3">No data available for this dzongkhag.</p>';
 
 		return `
-			<div class="p-2 min-w-[280px]">
-				<h3 class="font-bold text-lg mb-3 text-slate-900">${props.name} Dzongkhag</h3>
+			<div class="p-3 min-w-[280px]">
+				<h3 class="font-bold text-lg mb-3 text-slate-900 pb-2 border-b border-slate-200">${props.name} Dzongkhag</h3>
 				${dataSection}
-				<div class="flex gap-2">
+				<div class="flex gap-2 pt-2">
 					<button 
 						id="view-dzongkhag-${props.id}" 
 						class="flex-1 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded transition shadow-sm"
