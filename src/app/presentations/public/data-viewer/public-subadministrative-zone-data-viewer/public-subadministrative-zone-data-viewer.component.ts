@@ -674,7 +674,7 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	private onEachFeature(feature: any, layer: L.Layer): void {
 		const props = feature.properties;
 
-		// Add permanent label
+		// Add permanent label - show EA code instead of name
 		const labelContent = `
 			<div style="
 				color: black;
@@ -688,7 +688,7 @@ export class PublicSubadministrativeZoneDataViewerComponent
 				text-align: center;
 				white-space: nowrap;
 			">
-				${props.name || 'Unknown'}
+				${props.areaCode || props.code || 'N/A'}
 			</div>
 		`;
 
@@ -708,7 +708,14 @@ export class PublicSubadministrativeZoneDataViewerComponent
 			layer.bindTooltip(label);
 		}
 
-		// Build popup content with stats from GeoJSON properties (no population, no download KML)
+		// Build popup content with name, code, description, and stats
+		const nameSection = `
+			<div class="mb-2">
+				<h3 class="font-bold text-lg text-slate-900">${props.name || 'Unknown'}</h3>
+				${props.areaCode || props.code ? `<p class="text-xs text-slate-500 mt-1">Code: ${props.areaCode || props.code}</p>` : ''}
+			</div>
+		`;
+
 		const dataSection = props.hasData
 			? `
 				<div class="space-y-0 text-sm">
@@ -731,7 +738,7 @@ export class PublicSubadministrativeZoneDataViewerComponent
 
 		const popupContent = `
 			<div class="p-2 min-w-[280px]">
-				<h3 class="font-bold text-lg mb-3 text-slate-900">${props.name || 'Unknown'}</h3>
+				${nameSection}
 				${dataSection}
 				${descriptionSection}
 			</div>
