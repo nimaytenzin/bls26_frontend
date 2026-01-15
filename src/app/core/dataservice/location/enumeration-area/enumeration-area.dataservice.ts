@@ -298,6 +298,33 @@ export class EnumerationAreaDataService {
 	}
 
 	/**
+	 * Bulk upload enumeration areas by Sub-Administrative Zone
+	 * Uploads a GeoJSON file and automatically assigns all EAs to the specified SAZ
+	 * @param subAdministrativeZoneId The ID of the Sub-Administrative Zone to assign to all uploaded EAs
+	 * @param file GeoJSON FeatureCollection file containing enumeration areas
+	 * @returns Observable with bulk upload results including success count, skipped items, and errors
+	 */
+	bulkUploadEAsBySubAdministrativeZone(
+		subAdministrativeZoneId: number,
+		file: File
+	): Observable<BulkUploadResponse> {
+		const formData = new FormData();
+		formData.append('file', file);
+
+		return this.http
+			.post<BulkUploadResponse>(
+				`${this.apiUrl}/by-sub-administrative-zone/${subAdministrativeZoneId}/bulk-upload-geojson`,
+				formData
+			)
+			.pipe(
+				catchError((error) => {
+					console.error('Error bulk uploading EAs by SAZ:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
 	 * Create two SAZs from GeoJSON files and a single EA that links to both
 	 * @param saz1File - GeoJSON file for SAZ1
 	 * @param saz2File - GeoJSON file for SAZ2

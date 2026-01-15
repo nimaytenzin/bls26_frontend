@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import * as L from 'leaflet';
 import {
@@ -41,7 +41,7 @@ interface SubAdminZoneStats {
 @Component({
 	selector: 'app-public-administrative-zone-data-viewer',
 	standalone: true,
-	imports: [CommonModule, FormsModule, PrimeNgModules],
+	imports: [CommonModule, FormsModule, RouterModule, PrimeNgModules],
 	templateUrl: './public-administrative-zone-data-viewer.component.html',
 	styleUrls: ['./public-administrative-zone-data-viewer.component.css'],
 	providers: [MessageService],
@@ -87,6 +87,13 @@ export class PublicAdministrativeZoneDataViewerComponent
 	isMobile: boolean = false;
 	isMobileDrawerOpen: boolean = false;
 	isMobileControlsCollapsed: boolean = true;
+
+	// Breadcrumb
+	home: any = {
+		label: 'Home',
+		url: '/'
+	};
+	items: any[] = [];
 
 	// Quick Navigation Panel
 	allDzongkhags: any[] = [];
@@ -214,6 +221,8 @@ export class PublicAdministrativeZoneDataViewerComponent
 					if (adminZone.dzongkhag) {
 						this.dzongkhag = adminZone.dzongkhag;
 					}
+					// Update breadcrumb items
+					this.updateBreadcrumbItems();
 				},
 				error: (error) => {
 					console.error('Error loading administrative zone info:', error);
@@ -735,6 +744,21 @@ export class PublicAdministrativeZoneDataViewerComponent
 				this.map.invalidateSize();
 			}
 		}, 300);
+	}
+
+	/**
+	 * Update breadcrumb items
+	 */
+	updateBreadcrumbItems(): void {
+		this.items = [
+			{
+				label: (this.dzongkhag?.name || 'Dzongkhag') + ' Dzongkhag',
+				url: '/dzongkhag/' + this.dzongkhagId
+			},
+			{
+				label: (this.administrativeZone?.name || 'Gewog/Thromde') + ' (' + (this.administrativeZone?.type || '') + ')',
+			}
+		];
 	}
 
 	/**

@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import * as L from 'leaflet';
 import {
@@ -41,7 +41,7 @@ interface EnumerationAreaStats {
 @Component({
 	selector: 'app-public-subadministrative-zone-data-viewer',
 	standalone: true,
-	imports: [CommonModule, FormsModule, PrimeNgModules],
+	imports: [CommonModule, FormsModule, RouterModule, PrimeNgModules],
 	templateUrl: './public-subadministrative-zone-data-viewer.component.html',
 	styleUrls: ['./public-subadministrative-zone-data-viewer.component.css'],
 	providers: [MessageService],
@@ -102,6 +102,13 @@ export class PublicSubadministrativeZoneDataViewerComponent
 	isMobile: boolean = false;
 	isMobileDrawerOpen: boolean = false;
 	isMobileControlsCollapsed: boolean = true;
+
+	// Breadcrumb
+	home: any = {
+		label: 'Home',
+		url: '/'
+	};
+	items: any[] = [];
 
 	// Quick Navigation Panel (for top-right panel, separate from sidebar location switcher)
 
@@ -239,6 +246,8 @@ export class PublicSubadministrativeZoneDataViewerComponent
 							this.dzongkhagId = subAdminZone.administrativeZone.dzongkhag.id;
 						}
 					}
+					// Update breadcrumb items
+					this.updateBreadcrumbItems();
 					// Load location lists after parent info is loaded
 					this.loadLocationLists();
 				},
@@ -711,10 +720,20 @@ export class PublicSubadministrativeZoneDataViewerComponent
 			`
 			: '<p class="text-sm text-gray-500">No data available for this enumeration area.</p>';
 
+		// Add description if available
+		const descriptionSection = props.description
+			? `
+				<div class="mt-2 pt-2 border-t border-slate-200">
+					<p class="text-xs text-slate-600 leading-relaxed">${props.description}</p>
+				</div>
+			`
+			: '';
+
 		const popupContent = `
 			<div class="p-2 min-w-[280px]">
 				<h3 class="font-bold text-lg mb-3 text-slate-900">${props.name || 'Unknown'}</h3>
 				${dataSection}
+				${descriptionSection}
 			</div>
 		`;
 
@@ -874,6 +893,25 @@ export class PublicSubadministrativeZoneDataViewerComponent
 		this.router.navigate(['geographic-statistical-code'], {
 			relativeTo: parentRoute,
 		});
+	}
+
+	/**
+	 * Update breadcrumb items
+	 */
+	updateBreadcrumbItems(): void {
+		this.items = [
+			{
+				label: (this.dzongkhag?.name || 'Dzongkhag') + ' Dzongkhag',
+				url: '/dzongkhag/' + this.dzongkhagId
+			},
+			{
+				label: (this.administrativeZone?.name || 'Gewog/Thromde') + ' (' + (this.administrativeZone?.type || '') + ')',
+				url: '/administrative-zone/' + this.dzongkhagId + '/' + this.administrativeZoneId
+			},
+			{
+				label: (this.subAdministrativeZone?.name || 'Chiwog/LAP') + ' (' + (this.subAdministrativeZone?.type || '') + ')',
+			}
+		];
 	}
 
 	/**

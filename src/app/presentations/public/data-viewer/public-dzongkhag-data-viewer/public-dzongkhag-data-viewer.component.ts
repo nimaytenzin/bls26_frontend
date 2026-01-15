@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import * as L from 'leaflet';
@@ -42,7 +42,7 @@ interface AdminZoneStats {
 @Component({
 	selector: 'app-public-dzongkhag-data-viewer',
 	standalone: true,
-	imports: [CommonModule, FormsModule, PrimeNgModules],
+	imports: [CommonModule, FormsModule, RouterModule, PrimeNgModules],
 	templateUrl: './public-dzongkhag-data-viewer.component.html',
 	styleUrls: ['./public-dzongkhag-data-viewer.component.css'],
 	providers: [MessageService],
@@ -90,6 +90,13 @@ export class PublicDzongkhagDataViewerComponent
 	isMobile: boolean = false;
 	isMobileDrawerOpen: boolean = false;
 	isMobileControlsCollapsed: boolean = true;
+
+	// Breadcrumb
+	home: any = {
+		label: 'Home',
+		url: '/'
+	};
+	items: any[] = [];
 
 	// Quick Navigation Panel
 	allDzongkhags: any[] = [];
@@ -255,6 +262,8 @@ export class PublicDzongkhagDataViewerComponent
 		this.dzongkhagService.getDzongkhagById(this.dzongkhagId, false).subscribe({
 			next: (dzongkhag) => {
 				this.dzongkhag = dzongkhag;
+				// Update breadcrumb items
+				this.updateBreadcrumbItems();
 				// Update quick nav selection - find in allDzongkhags or use the loaded dzongkhag
 				if (this.allDzongkhags.length > 0) {
 					this.selectedDzongkhag = this.allDzongkhags.find(d => d.id === dzongkhag.id) || dzongkhag;
@@ -752,6 +761,17 @@ export class PublicDzongkhagDataViewerComponent
 		], {
 			relativeTo: this.route.parent || this.route,
 		});
+	}
+
+	/**
+	 * Update breadcrumb items
+	 */
+	updateBreadcrumbItems(): void {
+		this.items = [
+			{
+				label: (this.dzongkhag?.name || 'Dzongkhag') + ' Dzongkhag',
+			}
+		];
 	}
 
 	/**

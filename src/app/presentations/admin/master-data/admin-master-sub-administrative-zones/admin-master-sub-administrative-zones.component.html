@@ -264,7 +264,14 @@
 									(click)="openUploadGeojson(zone)"
 									pTooltip="Upload GeoJSON"
 								></button>
-								
+								<button
+									pButton
+									type="button"
+									icon="pi pi-upload"
+									class="p-button-outlined p-button-sm p-button-success"
+									(click)="openUploadEAs(zone)"
+									pTooltip="Upload EAs"
+								></button>
 								<button
 									pButton
 									type="button"
@@ -927,6 +934,141 @@
 				"
 				[loading]="bulkUploadLoading"
 				(click)="uploadBulkSubAdministrativeZones()"
+			></button>
+		</div>
+	</ng-template>
+</p-dialog>
+
+<!-- Upload EAs Dialog -->
+<p-dialog
+	[(visible)]="uploadEAsDialog"
+	[modal]="true"
+	[closable]="!uploadEAsLoading"
+	[closeOnEscape]="!uploadEAsLoading"
+	styleClass="w-[90vw] max-w-3xl"
+	[header]="'Upload Enumeration Areas - ' + (selectedSubAdministrativeZoneForUploadEAs?.name || '')"
+>
+	<div class="space-y-4">
+		<!-- Instructions -->
+		<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+			<h4 class="font-semibold text-blue-900 mb-2">Instructions:</h4>
+			<ul class="list-disc list-inside text-sm text-blue-800 space-y-1">
+				<li>Upload a GeoJSON FeatureCollection file (.json or .geojson)</li>
+				<li>Maximum file size: 50MB</li>
+				<li>Each feature must include the following properties:</li>
+				<ul class="list-disc list-inside ml-4 mt-1 space-y-1">
+					<li><code class="bg-blue-100 px-1 rounded">name</code> (string, required)</li>
+					<li><code class="bg-blue-100 px-1 rounded">description</code> (string, required)</li>
+					<li><code class="bg-blue-100 px-1 rounded">areaCode</code> (string, required)</li>
+				</ul>
+				<li>All enumeration areas will be automatically assigned to: <strong>{{ selectedSubAdministrativeZoneForUploadEAs?.name }}</strong></li>
+				<li>Supported geometry types: Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon, GeometryCollection</li>
+			</ul>
+		</div>
+
+		<!-- File Upload -->
+		<div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
+			<p-fileUpload
+				mode="basic"
+				chooseLabel="Choose GeoJSON File"
+				accept=".json,.geojson"
+				[auto]="false"
+				[disabled]="uploadEAsLoading"
+				(onSelect)="onUploadEAsFileSelect($event)"
+				(onClear)="uploadEAsFile = null"
+			></p-fileUpload>
+
+			<div *ngIf="uploadEAsFile" class="mt-4">
+				<div class="flex items-center justify-between bg-gray-50 p-3 rounded">
+					<div class="flex items-center gap-2">
+						<i class="pi pi-file text-blue-600"></i>
+						<span class="text-sm text-gray-700 font-medium">{{ uploadEAsFile.name }}</span>
+						<span class="text-xs text-gray-500">({{ (uploadEAsFile.size / 1024 / 1024).toFixed(2) }} MB)</span>
+					</div>
+					<button
+						pButton
+						icon="pi pi-times"
+						severity="secondary"
+						styleClass="p-button-sm p-button-text"
+						[disabled]="uploadEAsLoading"
+						(click)="uploadEAsFile = null"
+					></button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Upload Results -->
+		<div *ngIf="uploadEAsResults" class="space-y-3">
+			<div class="bg-green-50 border border-green-200 rounded-lg p-4">
+				<h4 class="font-semibold text-green-900 mb-2">Upload Results:</h4>
+				<div class="grid grid-cols-2 gap-4 text-sm">
+					<div>
+						<span class="text-green-700 font-medium">Successfully Created:</span>
+						<span class="text-green-900 font-bold ml-2">{{ uploadEAsResults.success || 0 }}</span>
+					</div>
+					<div>
+						<span class="text-amber-700 font-medium">Skipped:</span>
+						<span class="text-amber-900 font-bold ml-2">{{ uploadEAsResults.skipped || 0 }}</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Skipped Items -->
+			<div *ngIf="uploadEAsResults.skippedItems && uploadEAsResults.skippedItems.length > 0" class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+				<h4 class="font-semibold text-amber-900 mb-2">Skipped Items ({{ uploadEAsResults.skippedItems.length }}):</h4>
+				<div class="max-h-48 overflow-auto">
+					<ul class="list-disc list-inside text-sm text-amber-800 space-y-1">
+						<li *ngFor="let item of uploadEAsResults.skippedItems">
+							<strong>{{ item.areaCode }}</strong>: {{ item.reason }}
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			<!-- Errors -->
+			<div *ngIf="uploadEAsResults.errors && uploadEAsResults.errors.length > 0" class="bg-red-50 border border-red-200 rounded-lg p-4">
+				<h4 class="font-semibold text-red-900 mb-2">Errors ({{ uploadEAsResults.errors.length }}):</h4>
+				<div class="max-h-48 overflow-auto">
+					<ul class="list-disc list-inside text-sm text-red-800 space-y-1">
+						<li *ngFor="let error of uploadEAsResults.errors">{{ error }}</li>
+					</ul>
+				</div>
+			</div>
+
+			<!-- Created Items Preview -->
+			<div *ngIf="uploadEAsResults.created && uploadEAsResults.created.length > 0" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+				<h4 class="font-semibold text-blue-900 mb-2">Created Enumeration Areas ({{ uploadEAsResults.created.length }}):</h4>
+				<div class="max-h-48 overflow-auto">
+					<ul class="list-disc list-inside text-sm text-blue-800 space-y-1">
+						<li *ngFor="let item of uploadEAsResults.created">
+							<strong>{{ item.name }}</strong> ({{ item.areaCode }})
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<button
+				pButton
+				type="button"
+				label="Close"
+				icon="pi pi-times"
+				class="p-button-text"
+				[disabled]="uploadEAsLoading"
+				(click)="closeUploadEAsDialog()"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Upload"
+				icon="pi pi-upload"
+				class="p-button-primary"
+				[disabled]="uploadEAsLoading || !uploadEAsFile"
+				[loading]="uploadEAsLoading"
+				(click)="uploadEAs()"
 			></button>
 		</div>
 	</ng-template>

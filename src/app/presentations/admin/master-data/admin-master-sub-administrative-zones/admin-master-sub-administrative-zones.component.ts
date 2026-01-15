@@ -18,6 +18,7 @@ import { Observable } from 'rxjs';
 import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
+import { EnumerationAreaDataService } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
 import {
 	SubAdministrativeZone,
 	CreateSubAdministrativeZoneDto,
@@ -113,6 +114,13 @@ export class AdminMasterSubAdministrativeZonesComponent
 	// Bulk Upload EA Dialog
 	bulkUploadEADialog = false;
 	selectedSubAdministrativeZoneForBulkUploadEA: SubAdministrativeZone | null = null;
+	
+	// Upload EAs Dialog (new API endpoint)
+	uploadEAsDialog = false;
+	selectedSubAdministrativeZoneForUploadEAs: SubAdministrativeZone | null = null;
+	uploadEAsFile: File | null = null;
+	uploadEAsLoading = false;
+	uploadEAsResults: EABulkUploadResponse | null = null;
 
 	// Enum for template access
 	SubAdministrativeZoneType = SubAdministrativeZoneType;
@@ -125,6 +133,7 @@ export class AdminMasterSubAdministrativeZonesComponent
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
 		private administrativeZoneService: AdministrativeZoneDataService,
 		private dzongkhagService: DzongkhagDataService,
+		private enumerationAreaService: EnumerationAreaDataService,
 		private fb: FormBuilder,
 		private messageService: MessageService,
 		private router: Router,
@@ -1540,6 +1549,104 @@ export class AdminMasterSubAdministrativeZonesComponent
 
 	onBulkUploadEACancel() {
 		this.closeBulkUploadEADialog();
+	}
+
+	// Upload EAs functionality (new API endpoint)
+	openUploadEAs(zone: SubAdministrativeZone) {
+		this.selectedSubAdministrativeZoneForUploadEAs = zone;
+		this.uploadEAsFile = null;
+		this.uploadEAsResults = null;
+		this.uploadEAsDialog = true;
+	}
+
+	closeUploadEAsDialog() {
+		this.uploadEAsDialog = false;
+		this.selectedSubAdministrativeZoneForUploadEAs = null;
+		this.uploadEAsFile = null;
+		this.uploadEAsResults = null;
+	}
+
+	onUploadEAsFileSelect(event: any) {
+		const files = event.files;
+		if (files && files.length > 0) {
+			const file = files[0];
+			// Validate file type
+			const validExtensions = ['.json', '.geojson'];
+			const fileName = file.name.toLowerCase();
+			const isValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+			
+			if (!isValidExtension) {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Invalid File Type',
+					detail: 'Please select a .json or .geojson file',
+					life: 3000,
+				});
+				return;
+			}
+			
+			// Validate file size (50MB max)
+			const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+			if (file.size > maxSize) {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'File Too Large',
+					detail: 'File size must be less than 50MB',
+					life: 3000,
+				});
+				return;
+			}
+			
+			this.uploadEAsFile = file;
+		}
+	}
+
+	uploadEAs() {
+		if (!this.selectedSubAdministrativeZoneForUploadEAs || !this.uploadEAsFile) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Warning',
+				detail: 'Please select a file to upload',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.uploadEAsLoading = true;
+		this.uploadEAsResults = null;
+
+		this.enumerationAreaService
+			.bulkUploadEAsBySubAdministrativeZone(
+				this.selectedSubAdministrativeZoneForUploadEAs.id,
+				this.uploadEAsFile
+			)
+			.subscribe({
+				next: (response) => {
+					this.uploadEAsLoading = false;
+					this.uploadEAsResults = response;
+					
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Upload Complete',
+						detail: `Successfully created ${response.success} enumeration area(s). ${response.skipped || 0} skipped.`,
+						life: 5000,
+					});
+					
+					// Optionally refresh data if needed
+					// this.loadSubAdministrativeZones();
+				},
+				error: (error) => {
+					this.uploadEAsLoading = false;
+					console.error('Error uploading EAs:', error);
+					const errorMessage = error?.error?.message || 'Failed to upload enumeration areas';
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Upload Failed',
+						detail: errorMessage,
+						life: 5000,
+					});
+				},
+			});
 	}
 
 	onFileSelect(event: any) {

@@ -122,39 +122,43 @@
 
 				<!-- Header Content -->
 				<div class="p-3 md:p-4">
-					<div class="flex items-start justify-between gap-3 mb-3">
-						<div class="flex-1">
-							<h1 class="text-base md:text-lg font-bold text-slate-900 mb-1 leading-tight">
-								{{ subAdministrativeZone?.name || "Chiwog/LAP" }} ({{ subAdministrativeZone?.type || "" }})
-							</h1> 
-							<p class="text-xs text-slate-500 mb-1">
-								{{ administrativeZone?.name || "Gewog/Thromde" }} ({{ administrativeZone?.type || "" }}) , <br> {{ dzongkhag?.name || "Dzongkhag" }} Dzongkhag
-							</p>
-						</div>
-						<!-- Action Buttons -->
-						<div class="flex items-center gap-2">
-							<!-- Home Button -->
-							<button
-								type="button"
-								(click)="navigateToHome()"
-								class="flex-shrink-0 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow"
-								pTooltip="Go to Home"
-								tooltipPosition="bottom"
+
+					<!-- Header Content -->
+					<p class="text-slate-800 text-xl font-bold"> 
+						{{ subAdministrativeZone?.name || "Chiwog/LAP" }} {{ subAdministrativeZone?.type || "" }}
+					</p>
+
+					<!-- Breadcrumb Navigation -->
+					<div class="my-2 text-xs">
+						<div class="flex flex-wrap items-center gap-1 min-w-0">
+							<a 
+								class="cursor-pointer text-slate-600 hover:text-primary-600 hover:underline"
+								[routerLink]="['/']"
 							>
-								<i class="pi pi-home"></i>
-							</button>
-							<!-- Back Button -->
-							<button
-								type="button"
-								(click)="goBackToAdministrativeZone()"
-								class="flex-shrink-0 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+								Home
+							</a>
+							<span class="text-slate-400"> / </span>
+							<a 
+								class="cursor-pointer text-slate-600 hover:text-primary-600 hover:underline"
+								[routerLink]="['/dzongkhag', dzongkhagId]"
 							>
-								<i class="pi pi-arrow-left"></i>
-								<span class="hidden md:inline">Back</span>
-							</button>
+								{{ dzongkhag?.name || "Dzongkhag" }} Dzongkhag
+							</a>
+							<span class="text-slate-400"> / </span>
+							<a 
+								class="cursor-pointer text-slate-600 hover:text-primary-600 hover:underline"
+								[routerLink]="['/administrative-zone', dzongkhagId, administrativeZoneId]"
+							>
+								{{ administrativeZone?.name || "Gewog/Thromde" }} {{ administrativeZone?.type || "" }}
+							</a>
+							<span class="text-slate-400"> / </span>
+							<span class="text-slate-900 font-bold">
+								{{ subAdministrativeZone?.name || "Chiwog/LAP" }} {{ subAdministrativeZone?.type || "" }}
+							</span>
 						</div>
 					</div>
-
+					<p-divider type="dashed" />
+					
 				
 
 					<!-- No Data Found Message -->

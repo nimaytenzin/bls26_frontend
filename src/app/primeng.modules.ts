@@ -54,6 +54,7 @@ import { TreeModule } from 'primeng/tree';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SidebarModule } from 'primeng/sidebar';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
 
 const PRIME_NG_MODULES = [
 	CardModule,
@@ -113,6 +114,7 @@ const PRIME_NG_MODULES = [
 	RadioButtonModule,
 	SidebarModule,
 	OverlayPanelModule,
+	BreadcrumbModule,
 ];
 
 @NgModule({
