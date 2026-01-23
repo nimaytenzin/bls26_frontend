@@ -17,13 +17,14 @@ import { PrimeNgModules } from '../../../../../primeng.modules';
 import * as L from 'leaflet';
 
 import { EnumerationArea } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
-import { SubAdministrativeZone } from '../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
-import { AdministrativeZone } from '../../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import { SubAdministrativeZone, SubAdministrativeZoneType } from '../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
+import { AdministrativeZone, AdministrativeZoneType } from '../../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
 import { Dzongkhag } from '../../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
 import { EnumerationAreaDataService } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
 import { SubAdministrativeZoneDataService } from '../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
 import { SurveyEnumerationAreaStructureDataService } from '../../../../../core/dataservice/survey-enumeration-area-structure/survey-enumeration-area-structure.dataservice';
 import { SurveyEnumerationAreaStructure } from '../../../../../core/dataservice/survey-enumeration-area-structure/survey-enumeration-area-structure.dto';
+import { BuildingDataService } from '../../../../../core/dataservice/buildings/buildings.dataservice';
 import { BasemapService } from '../../../../../core/utility/basemap.service';
 import { MapFeatureColorService } from '../../../../../core/utility/map-feature-color.service';
 import { GenerateFullEACode } from '../../../../../core/utility/utility.service';
@@ -78,6 +79,7 @@ export class EnumerationAreaMapComponent
 	openStreetMapLayer: L.TileLayer | null = null;
 	eaLayer: L.GeoJSON | null = null;
 	subAdminLayer: L.GeoJSON | null = null;
+	buildingsLayer: L.GeoJSON | null = null;
 	structureMarkers: L.Marker[] = [];
 	structureLayerGroup: L.LayerGroup | null = null;
 
@@ -89,6 +91,9 @@ export class EnumerationAreaMapComponent
 	showEALayer = true;
 	showSubAdminLayer = true;
 	showStructures = true;
+	showBuildings = true; // Load buildings by default
+	loadingBuildings = false;
+	buildingsData: any = null;
 
 	// Structures data
 	structures: SurveyEnumerationAreaStructure[] = [];
@@ -114,7 +119,8 @@ export class EnumerationAreaMapComponent
 		private mapFeatureColorService: MapFeatureColorService,
 		private enumerationAreaService: EnumerationAreaDataService,
 		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
-		private structureDataService: SurveyEnumerationAreaStructureDataService
+		private structureDataService: SurveyEnumerationAreaStructureDataService,
+		private buildingDataService: BuildingDataService
 	) {}
 
 	ngOnInit() {
@@ -301,6 +307,9 @@ export class EnumerationAreaMapComponent
 					
 					// Load structures
 					this.loadStructures();
+					
+					// Load buildings
+					this.loadBuildings();
 				},
 				error: (error) => {
 					console.error('Error loading hierarchy:', error);
@@ -571,6 +580,11 @@ export class EnumerationAreaMapComponent
 			if (this.structures.length > 0) {
 				this.renderStructures();
 			}
+			
+			// Load buildings if enabled
+			if (this.showBuildings && this.enumerationArea) {
+				this.loadBuildings();
+			}
 
 			// Force map to invalidate size after initialization to ensure it renders correctly
 			setTimeout(() => {
@@ -656,6 +670,9 @@ export class EnumerationAreaMapComponent
 		if (this.subAdminLayer && this.enumerationAreaMap) {
 			this.enumerationAreaMap.removeLayer(this.subAdminLayer);
 		}
+		if (this.buildingsLayer && this.enumerationAreaMap) {
+			this.enumerationAreaMap.removeLayer(this.buildingsLayer);
+		}
 
 		// Add updated layers
 		this.addLayers();
@@ -663,6 +680,11 @@ export class EnumerationAreaMapComponent
 		// Re-render structures
 		if (this.structures.length > 0) {
 			this.renderStructures();
+		}
+		
+		// Re-load buildings if enabled
+		if (this.showBuildings && this.enumerationArea) {
+			this.loadBuildings();
 		}
 	}
 
@@ -714,10 +736,14 @@ export class EnumerationAreaMapComponent
 
 		this.subAdminLayer.bindTooltip(label);
 
+		// Get labels based on type
+		const adminZoneLabel = this.getAdminZoneLabel();
+		const subAdminZoneLabel = this.getSubAdminZoneLabel();
+
 		// Add popup
 		const popupContent = `
 			<div class="p-2 min-w-[240px]">
-				<h3 class="font-bold text-base mb-2 text-slate-900">Sub-Administrative Zone</h3>
+				<h3 class="font-bold text-base mb-2 text-slate-900">${subAdminZoneLabel}</h3>
 				<div class="space-y-0 text-sm">
 					<div class="py-2 border-b border-slate-200">
 						<span class="font-semibold text-slate-700">Name: </span>
@@ -726,7 +752,7 @@ export class EnumerationAreaMapComponent
 						}</span>
 					</div>
 					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Admin Zone: </span>
+						<span class="font-semibold text-slate-700">${adminZoneLabel}: </span>
 						<span class="text-slate-600">${this.administrativeZone?.name || 'N/A'}</span>
 					</div>
 					<div class="py-2">
@@ -807,6 +833,10 @@ export class EnumerationAreaMapComponent
 
 		this.eaLayer.bindTooltip(label);
 
+		// Get labels based on type
+		const adminZoneLabel = this.getAdminZoneLabel();
+		const subAdminZoneLabel = this.getSubAdminZoneLabel();
+
 		// Add improved popup
 		const popupContent = `
 			<div class="p-2 min-w-[280px]">
@@ -815,17 +845,17 @@ export class EnumerationAreaMapComponent
 				}</h3>
 				<div class="space-y-0 text-sm mb-3">
 					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Area Code: </span>
+						<span class="font-semibold text-slate-700">EA Code: </span>
 						<span class="font-bold" style="color: #67A4CA">${
 							this.enumerationArea.areaCode || 'N/A'
 						}</span>
 					</div>
 					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Sub-Admin Zone: </span>
+						<span class="font-semibold text-slate-700">${subAdminZoneLabel}: </span>
 						<span class="text-slate-600">${this.subAdministrativeZone?.name || 'N/A'}</span>
 					</div>
 					<div class="py-2 border-b border-slate-200">
-						<span class="font-semibold text-slate-700">Admin Zone: </span>
+						<span class="font-semibold text-slate-700">${adminZoneLabel}: </span>
 						<span class="text-slate-600">${this.administrativeZone?.name || 'N/A'}</span>
 					</div>
 					<div class="py-2">
@@ -890,12 +920,236 @@ export class EnumerationAreaMapComponent
 		}
 	}
 
+	/**
+	 * Load buildings for the enumeration area
+	 */
+	loadBuildings(): void {
+		if (!this.enumerationAreaMap || !this.enumerationArea) return;
+
+		const enumerationAreaId = this.enumerationArea.id || this.enumerationAreaId;
+		if (!enumerationAreaId) return;
+
+		this.loadingBuildings = true;
+
+		// Fetch buildings for the enumeration area
+		this.buildingDataService
+			.findAsGeoJsonByEnumerationAreas([enumerationAreaId])
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (geojson) => {
+					this.buildingsData = geojson;
+					this.loadingBuildings = false;
+
+					// Add buildings layer to map
+					if (geojson && geojson.features && geojson.features.length > 0) {
+						this.addBuildingsLayer(geojson);
+					} else {
+						this.messageService.add({
+							severity: 'info',
+							summary: 'No Buildings',
+							detail: 'No buildings found for this enumeration area.',
+							life: 3000,
+						});
+					}
+				},
+				error: (error) => {
+					console.error('Error loading buildings:', error);
+					this.loadingBuildings = false;
+					this.messageService.add({
+						severity: 'warn',
+						summary: 'Buildings',
+						detail: 'Failed to load buildings. Please try again.',
+						life: 3000,
+					});
+				},
+			});
+	}
+
+	/**
+	 * Parse building floors into configuration string (e.g., "B+S+G+1+A+J")
+	 */
+	private parseBuildingFloors(props: any): string {
+		const basementCount = props.basementcount || 0;
+		const stiltCount = props.stiltcount || 0;
+		const floorCount = props.floorcount || 0;
+		const atticCount = props.atticcount || 0;
+		const jamthogCount = props.jamthogcount || 0;
+
+		// Regular floors (ground + upper floors)
+		const regularFloorCount = floorCount;
+
+		const basementLabel = basementCount
+			? basementCount === 1
+				? 'B+'
+				: `${basementCount}B+`
+			: '';
+		
+		const stiltLabel = stiltCount
+			? stiltCount === 1
+				? 'S+'
+				: `${stiltCount}S+`
+			: '';
+		
+		const regularFloorLabel =
+			regularFloorCount > 0
+				? regularFloorCount - 1 === 0
+					? `G`
+					: `G+${regularFloorCount - 1}`
+				: 'G';
+
+		const atticLabel = atticCount
+			? atticCount === 1
+				? 'A'
+				: `${atticCount}A`
+			: '';
+		
+		const jamthogLabel = jamthogCount
+			? jamthogCount === 1
+				? 'J'
+				: `${jamthogCount}J`
+			: '';
+
+		return `${basementLabel}${stiltLabel}${regularFloorLabel}${
+			atticLabel ? `+${atticLabel}` : ''
+		}${jamthogLabel ? `+${jamthogLabel}` : ''}`;
+	}
+
+	/**
+	 * Add buildings layer to map
+	 */
+	private addBuildingsLayer(geojson: any): void {
+		if (!this.enumerationAreaMap) return;
+
+		// Remove existing buildings layer if any
+		if (this.buildingsLayer) {
+			this.enumerationAreaMap.removeLayer(this.buildingsLayer);
+		}
+
+		// Create buildings layer with styling
+		this.buildingsLayer = L.geoJSON(geojson, {
+			style: () => ({
+				fillColor: '#f59e0b', // Amber color for buildings
+				fillOpacity: 0.6,
+				color: '#d97706', // Darker amber for borders
+				weight: 1,
+				opacity: 0.8,
+			}),
+			onEachFeature: (feature: any, layer: L.Layer) => {
+				// Store properties in a local variable to ensure proper closure capture
+				const props = { ...feature.properties };
+				const buildingId = props.buildingid;
+				const buildingNameAlt = props.buildingname;
+				const use = props.use;
+				const areaCode = props.areacode;
+				const floorConfig = this.parseBuildingFloors(props);
+				
+				// Bind popup using a function to ensure each building shows its own data
+				layer.bindPopup(() => {
+					// Create popup content with building information
+					return `
+						<div class="p-4 min-w-[280px]">
+							<h3 class="font-bold text-lg mb-3 text-slate-900">Building</h3>
+							<div class="space-y-0 text-sm">
+								${buildingNameAlt ? `
+									<div class="py-2 border-b border-slate-200">
+										<span class="font-semibold text-slate-700">Building Name: </span>
+										<span class="text-slate-900">${buildingNameAlt}</span>
+									</div>
+								` : ''}
+								${buildingId ? `
+									<div class="py-2 border-b border-slate-200">
+										<span class="font-semibold text-slate-700">Building ID: </span>
+										<span class="font-bold" style="color: #67A4CA">${buildingId}</span>
+									</div>
+								` : ''}
+								${use ? `
+									<div class="py-2 border-b border-slate-200">
+										<span class="font-semibold text-slate-700">Use: </span>
+										<span class="text-slate-900">${use}</span>
+									</div>
+								` : ''}
+								${floorConfig ? `
+									<div class="py-2">
+										<span class="font-semibold text-slate-700">Floor Configuration: </span>
+										<span class="font-bold text-slate-900">${floorConfig}</span>
+									</div>
+								` : ''}
+							</div>
+						</div>
+					`;
+				});
+
+				// Hover effects
+				layer.on('mouseover', () => {
+					if (layer instanceof L.Path) {
+						layer.setStyle({
+							weight: 2,
+							fillOpacity: 0.8,
+						});
+					}
+				});
+
+				layer.on('mouseout', () => {
+					if (layer instanceof L.Path) {
+						layer.setStyle({
+							weight: 1,
+							fillOpacity: 0.6,
+						});
+					}
+				});
+			},
+		});
+
+		// Add to map if buildings are enabled
+		if (this.showBuildings) {
+			this.buildingsLayer.addTo(this.enumerationAreaMap);
+		}
+	}
+
+	/**
+	 * Toggle buildings layer visibility
+	 */
+	toggleBuildings(): void {
+		if (!this.enumerationAreaMap) return;
+
+		// Note: showBuildings is already updated by ngModel binding before this method is called
+		if (this.showBuildings) {
+			// Show buildings layer
+			if (this.buildingsLayer) {
+				// Layer exists, just add it to map if not already there
+				if (!this.enumerationAreaMap.hasLayer(this.buildingsLayer)) {
+					this.buildingsLayer.addTo(this.enumerationAreaMap);
+				}
+			} else if (this.buildingsData) {
+				// Data exists but layer doesn't, recreate it
+				if (this.buildingsData.features && this.buildingsData.features.length > 0) {
+					this.addBuildingsLayer(this.buildingsData);
+				}
+			} else {
+				// No data, load it
+				this.loadBuildings();
+			}
+		} else {
+			// Hide buildings layer
+			if (this.buildingsLayer && this.enumerationAreaMap.hasLayer(this.buildingsLayer)) {
+				this.enumerationAreaMap.removeLayer(this.buildingsLayer);
+			}
+		}
+	}
+
 	destroyMaps() {
 		// Clear structures
 		this.clearStructures();
 		if (this.structureLayerGroup) {
 			this.structureLayerGroup = null;
 		}
+
+		// Clear buildings layer
+		if (this.buildingsLayer && this.enumerationAreaMap) {
+			this.enumerationAreaMap.removeLayer(this.buildingsLayer);
+			this.buildingsLayer = null;
+		}
+		this.buildingsData = null;
 
 		if (this.enumerationAreaMap) {
 			this.enumerationAreaMap.remove();
@@ -968,6 +1222,34 @@ export class EnumerationAreaMapComponent
 		// Reset dependent selections
 		this.selectedEAFilter = null;
 		this.subAdminZoneChange.emit(this.selectedSubAdminZone);
+	}
+
+	/**
+	 * Get admin zone label based on type
+	 */
+	getAdminZoneLabel(): string {
+		if (!this.administrativeZone) return 'Admin Zone';
+		if (this.administrativeZone.type === AdministrativeZoneType.Thromde) {
+			return 'Thromde';
+		} else if (this.administrativeZone.type === AdministrativeZoneType.Gewog) {
+			return 'Gewog';
+		}
+		return 'Admin Zone';
+	}
+
+	/**
+	 * Get sub admin zone label based on type
+	 * For rural: Chiwog
+	 * For urban: LAP
+	 */
+	getSubAdminZoneLabel(): string {
+		if (!this.subAdministrativeZone) return 'Sub-Admin Zone';
+		if (this.subAdministrativeZone.type === SubAdministrativeZoneType.LAP) {
+			return 'LAP';
+		} else if (this.subAdministrativeZone.type === SubAdministrativeZoneType.CHIWOG) {
+			return 'Chiwog';
+		}
+		return 'Sub-Admin Zone';
 	}
 }
 

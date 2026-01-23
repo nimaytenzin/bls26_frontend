@@ -127,7 +127,7 @@
 								class="flex justify-between"
 								*ngIf="subAdministrativeZone.areaCode"
 							>
-								<span class="text-slate-500">Area Code:</span>
+								<span class="text-slate-500">Chiwog/LAP Code:</span>
 								<span class="font-semibold text-slate-900">{{
 									subAdministrativeZone.areaCode
 								}}</span>
@@ -153,8 +153,14 @@
 							Location Hierarchy
 						</h3>
 						<div class="space-y-2 text-sm">
+							<div class="flex justify-between" *ngIf="subAdministrativeZone">
+								<span class="text-slate-500">{{ getSubAdminZoneLabel() }}:</span>
+								<span class="font-semibold text-slate-900">
+									{{ subAdministrativeZone.name }}
+								</span>
+							</div>
 							<div class="flex justify-between">
-								<span class="text-slate-500">Administrative Zone:</span>
+								<span class="text-slate-500">{{ getAdminZoneLabel() }}:</span>
 								<span
 									class="font-semibold text-primary-600 cursor-pointer hover:text-primary-700"
 									(click)="navigateTo('adminzone', administrativeZone!.id)"

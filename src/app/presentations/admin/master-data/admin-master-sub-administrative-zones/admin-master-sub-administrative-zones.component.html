@@ -201,7 +201,7 @@
 							Name <p-sortIcon field="name"></p-sortIcon>
 						</th>
 						<th pSortableColumn="areaCode" *ngIf="selectedDzongkhag">
-							Area Code <p-sortIcon field="areaCode"></p-sortIcon>
+							Chiwog/LAP Code <p-sortIcon field="areaCode"></p-sortIcon>
 						</th>
 						<th pSortableColumn="type">Type</th>
 						<th>Actions</th>
@@ -520,13 +520,13 @@
 				</small>
 			</div>
 
-			<!-- Area Code Field -->
+			<!-- Chiwog/LAP Code Field -->
 			<div>
 				<label
 					for="areaCode"
 					class="block text-sm font-medium text-gray-700 mb-2"
 				>
-					Area Code
+					Chiwog/LAP Code
 				</label>
 				<input
 					id="areaCode"
@@ -668,7 +668,7 @@
 						class="text-right"
 						*ngIf="selectedSubAdministrativeZone?.areaCode"
 					>
-						<p class="text-sm text-gray-600">Area Code:</p>
+						<p class="text-sm text-gray-600">Chiwog/LAP Code:</p>
 						<p class="font-mono font-semibold text-gray-900">
 							{{ selectedSubAdministrativeZone?.areaCode }}
 						</p>

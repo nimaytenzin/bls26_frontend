@@ -522,7 +522,6 @@ export class AdminMasterEnumerationAreasComponent
 										eaId: ea.id,
 										name: ea.name,
 										areaCode: ea.areaCode,
-										fullEACode: this.getFullEACode(ea, primarySAZ, primaryAdminZone),
 										description: ea.description,
 										level: 2,
 										isHeader: false,
@@ -761,7 +760,6 @@ export class AdminMasterEnumerationAreasComponent
 						eaId: ea.id,
 						name: ea.name,
 						areaCode: ea.areaCode,
-						fullEACode: this.getFullEACode(ea),
 						description: ea.description,
 						level: 2,
 						data: ea,
@@ -926,7 +924,6 @@ export class AdminMasterEnumerationAreasComponent
 							eaId: ea.id,
 							name: ea.name,
 							areaCode: ea.areaCode,
-							fullEACode: this.getFullEACode(ea, saz),
 							description: ea.description,
 							level: 2,
 							data: ea,
@@ -1922,51 +1919,6 @@ export class AdminMasterEnumerationAreasComponent
 		return this.subAdministrativeZones.length;
 	}
 
-	/**
-	 * Generate full EA code from hierarchy: DZ-AZ-SAZ-EA
-	 */
-	getFullEACode(
-		ea: EnumerationArea,
-		subAdminZone?: HierarchicalSubAdministrativeZone | SubAdministrativeZone,
-		adminZone?: HierarchicalAdministrativeZone | AdministrativeZone
-	): string {
-		const parts: string[] = [];
-		
-		// Try to get from EA's relationship data first
-		if (ea.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
-			const firstSaz = ea.subAdministrativeZones[0];
-			if (firstSaz.administrativeZone?.dzongkhag?.areaCode) {
-				parts.push(firstSaz.administrativeZone.dzongkhag.areaCode);
-			} else if (this.selectedDzongkhag?.areaCode) {
-				parts.push(this.selectedDzongkhag.areaCode);
-			}
-			
-			// Get administrative zone code
-			if (firstSaz.administrativeZone?.areaCode) {
-				parts.push(firstSaz.administrativeZone.areaCode);
-			} else if (adminZone?.areaCode) {
-				parts.push(adminZone.areaCode);
-			} else if (this.selectedAdministrativeZone?.areaCode) {
-				parts.push(this.selectedAdministrativeZone.areaCode);
-			}
-			
-			// Get sub-administrative zone code (use first SAZ if multiple)
-			parts.push(firstSaz.areaCode || '');
-		} else if (subAdminZone?.areaCode) {
-			parts.push(subAdminZone.areaCode);
-		} else if (this.selectedSubAdministrativeZone?.areaCode) {
-			parts.push(this.selectedSubAdministrativeZone.areaCode);
-		} else if (this.selectedDzongkhag?.areaCode) {
-			parts.push(this.selectedDzongkhag.areaCode);
-		}
-		
-		// Get EA code
-		if (ea.areaCode) {
-			parts.push(ea.areaCode);
-		}
-		
-		return parts.length > 0 ? parts.join('') : ea.areaCode || 'N/A';
-	}
 
 	switchBasemap(): void {
 		if (!this.map || !this.basemapService.hasBasemap(this.selectedBasemapId)) {

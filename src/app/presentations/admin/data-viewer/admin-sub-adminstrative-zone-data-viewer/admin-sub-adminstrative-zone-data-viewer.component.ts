@@ -24,7 +24,8 @@ import {
 	EnumerationAreaGeoJSON,
 	BulkUploadResponse,
 } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
-import { AdministrativeZone } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import { AdministrativeZone, AdministrativeZoneType } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import { SubAdministrativeZoneType } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
 import { Dzongkhag } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
 
 // Import the new components
@@ -969,5 +970,33 @@ export class AdminSubAdminstrativeZoneDataViewerComponent
 				});
 			},
 		});
+	}
+
+	/**
+	 * Get admin zone label based on type
+	 */
+	getAdminZoneLabel(): string {
+		if (!this.administrativeZone) return 'Administrative Zone';
+		if (this.administrativeZone.type === AdministrativeZoneType.Thromde) {
+			return 'Thromde';
+		} else if (this.administrativeZone.type === AdministrativeZoneType.Gewog) {
+			return 'Gewog';
+		}
+		return 'Administrative Zone';
+	}
+
+	/**
+	 * Get sub admin zone label based on type
+	 * For rural: Chiwog
+	 * For urban: LAP
+	 */
+	getSubAdminZoneLabel(): string {
+		if (!this.subAdministrativeZone) return 'Sub-Admin Zone';
+		if (this.subAdministrativeZone.type === SubAdministrativeZoneType.LAP) {
+			return 'LAP';
+		} else if (this.subAdministrativeZone.type === SubAdministrativeZoneType.CHIWOG) {
+			return 'Chiwog';
+		}
+		return 'Sub-Admin Zone';
 	}
 }

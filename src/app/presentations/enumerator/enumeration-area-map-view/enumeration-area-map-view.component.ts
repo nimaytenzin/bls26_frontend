@@ -293,12 +293,26 @@ export class EnumerationAreaMapViewComponent
 		}
 
 		// Add click handler for map to add structures
+		// Only processes clicks when edit mode is enabled
 		if (this.map) {
 			this.map.on('click', (e: L.LeafletMouseEvent) => {
-				// Allow clicks when in edit mode
+				// Check if click originated from a map control button (prevent dialog from opening)
+				const originalEvent = e.originalEvent as MouseEvent;
+				const target = originalEvent?.target as HTMLElement;
+				if (target && (
+					target.closest('.map-control-btn') || 
+					target.closest('.map-controls') ||
+					target.closest('.header-container')
+				)) {
+					// Click came from a control button or header, ignore it
+					return;
+				}
+				
+				// Only allow structure addition when in edit mode
 				if (this.editMode) {
 					this.onMapClick(e);
 				}
+				// If not in edit mode, nothing happens (requirement: user must click + button first)
 			});
 		}
 
@@ -726,8 +740,12 @@ export class EnumerationAreaMapViewComponent
 			icon: structureIcon,
 		}).addTo(this.map);
 
-		// Add click handler
-		marker.on('click', () => {
+		// Add click handler for structure marker
+		// Note: Marker clicks stop event propagation, so they won't trigger map click events
+		// This allows users to click on empty map areas to add structures even when markers are present
+		marker.on('click', (e: L.LeafletMouseEvent) => {
+			// Stop event propagation to prevent triggering map click
+			L.DomEvent.stopPropagation(e);
 			this.onStructureClick(structure);
 		});
 
@@ -846,23 +864,32 @@ export class EnumerationAreaMapViewComponent
 
 	/**
 	 * Handle map click to add structure
+	 * This is only called when edit mode is enabled (checked in map click handler)
 	 */
 	private onMapClick(e: L.LeafletMouseEvent): void {
-		// Handle add structure mode
+		// Double-check edit mode is enabled
 		if (!this.editMode) return;
 
+		// Store the clicked location
 		this.clickedLatLng = { lat: e.latlng.lat, lng: e.latlng.lng };
-		// Automatically create structure with next number (no dialog)
-		this.createStructure();
+		// Get the next structure number and set it
+		this.newStructureNumber = this.getNextStructureNumber();
+		// Show popup dialog for user to confirm adding structure
+		this.showAddStructureDialog = true;
 	}
 
 	/**
 	 * Toggle edit mode
 	 */
-	toggleEditMode(): void {
+	toggleEditMode(event?: Event): void {
+		// Prevent event propagation to map to avoid triggering map click
+		if (event) {
+			event.stopPropagation();
+		}
+		
 		this.editMode = !this.editMode;
 		if (this.editMode) {
-			this.showToast('Edit mode enabled. Click on map to add structures automatically.', 'info');
+			this.showToast('Edit mode enabled. Click on the map to add a structure.', 'info');
 		} else {
 			this.showToast('Edit mode disabled.', 'info');
 		}
@@ -893,14 +920,20 @@ export class EnumerationAreaMapViewComponent
 			return;
 		}
 
-		// Get the next structure number automatically
-		const nextStructureNumber = this.getNextStructureNumber();
+		// Use the structure number from dialog input, or auto-generate if empty
+		const trimmedNumber = this.newStructureNumber?.trim();
+		const structureNumber = trimmedNumber || this.getNextStructureNumber();
+
+		if (!structureNumber) {
+			this.showToast('Please enter a structure number', 'error');
+			return;
+		}
 
 		this.isAddingStructure = true;
 
 		const createDto: CreateSurveyEnumerationAreaStructureDto = {
 			surveyEnumerationAreaId: this.surveyEnumerationAreaId,
-			structureNumber: nextStructureNumber,
+			structureNumber: structureNumber,
 			latitude: this.clickedLatLng.lat,
 			longitude: this.clickedLatLng.lng,
 			submittedBy: currentUser.id,
@@ -912,8 +945,9 @@ export class EnumerationAreaMapViewComponent
 				this.showAddStructureDialog = false;
 				this.newStructureNumber = '';
 				this.clickedLatLng = null;
-				// Keep edit mode enabled so user can continue adding structures
-				this.showToast(`Structure ${nextStructureNumber} added successfully`, 'success');
+				// Disable edit mode after structure is successfully added
+				this.editMode = false;
+				this.showToast(`Structure ${structureNumber} added successfully`, 'success');
 				this.loadStructures();
 			},
 			error: (error) => {

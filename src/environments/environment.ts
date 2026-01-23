@@ -4,5 +4,5 @@ export const environment = {
 	// BASEAPI_URL: 'https://nsfd-bsds.nsb.gov.bt/api',
 	KMLPARSER_URL: 'http://localhost:8000',
 	APPNAME: 'NSFD',
-	APPSLOGAN: 'National Sampling and Frame Dashboard',
+	APPSLOGAN: 'National Sampling Frame Dashboard',
 };

@@ -116,7 +116,7 @@
 											}}</span>
 										</div>
 										<div class="flex justify-between">
-											<span class="text-slate-500">Area Code:</span>
+											<span class="text-slate-500">EA Code:</span>
 											<span class="font-semibold text-slate-900">{{
 												enumerationArea.areaCode || "—"
 											}}</span>
@@ -182,7 +182,7 @@
 											class="flex justify-between items-center"
 											*ngIf="subAdministrativeZone"
 										>
-											<span class="text-slate-500">Sub-Admin Zone:</span>
+											<span class="text-slate-500">{{ getSubAdminZoneLabel() }}:</span>
 											<span
 												class="font-semibold text-primary-600 cursor-pointer hover:text-primary-700"
 												(click)="
@@ -196,7 +196,7 @@
 											class="flex justify-between items-center"
 											*ngIf="administrativeZone"
 										>
-											<span class="text-slate-500">Admin Zone:</span>
+											<span class="text-slate-500">{{ getAdminZoneLabel() }}:</span>
 											<span
 												class="font-semibold text-primary-600 cursor-pointer hover:text-primary-700"
 												(click)="

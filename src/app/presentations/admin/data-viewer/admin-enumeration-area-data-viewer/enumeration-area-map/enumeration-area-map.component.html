@@ -242,10 +242,19 @@
 
 				<!-- Structures Layer -->
 				<div class="flex items-center justify-between gap-2">
-					<span class="text-xs text-slate-600">Structures</span>
+					<span class="text-xs text-slate-600">Structure (Survey Structure points)</span>
 					<p-inputSwitch
 						[(ngModel)]="showStructures"
 						(onChange)="toggleStructuresLayer()"
+					/>
+				</div>
+
+				<!-- Buildings Layer -->
+				<div class="flex items-center justify-between gap-2">
+					<span class="text-xs text-slate-600">Zhichar Building</span>
+					<p-inputSwitch
+						[(ngModel)]="showBuildings"
+						(onChange)="toggleBuildings()"
 					/>
 				</div>
 			</div>

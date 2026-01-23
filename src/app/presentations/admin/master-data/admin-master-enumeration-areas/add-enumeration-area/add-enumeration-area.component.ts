@@ -224,7 +224,7 @@ export class AddEnumerationAreaComponent implements OnInit {
 		const displayNames: { [key: string]: string } = {
 			name: 'Area Name',
 			description: 'Description',
-			areaCode: 'Area Code',
+			areaCode: 'EA Code',
 			subAdministrativeZoneIds: 'Sub-Administrative Zone(s)',
 		};
 		return displayNames[field] || field;

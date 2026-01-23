@@ -10,7 +10,8 @@ import { AdministrativeZoneDataService } from '../../../../core/dataservice/loca
 import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
 import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
 import { EnumerationArea } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
-import { AdministrativeZone } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import { AdministrativeZone, AdministrativeZoneType } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import { SubAdministrativeZone, SubAdministrativeZoneType } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
 import { Dzongkhag } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
 // Import child components
 import { CurrentHouseholdListingComponent } from './current-household-listing/current-household-listing.component';
@@ -351,6 +352,34 @@ export class AdminEnumerationAreaDataViewerComponent
 			month: 'long',
 			day: 'numeric',
 		});
+	}
+
+	/**
+	 * Get admin zone label based on type
+	 */
+	getAdminZoneLabel(): string {
+		if (!this.administrativeZone) return '';
+		if (this.administrativeZone.type === AdministrativeZoneType.Thromde) {
+			return 'Thromde';
+		} else if (this.administrativeZone.type === AdministrativeZoneType.Gewog) {
+			return 'Gewog';
+		}
+		return 'Admin Zone';
+	}
+
+	/**
+	 * Get sub admin zone label based on type
+	 * For rural: Chiwog
+	 * For urban: LAP
+	 */
+	getSubAdminZoneLabel(): string {
+		if (!this.subAdministrativeZone) return '';
+		if (this.subAdministrativeZone.type === SubAdministrativeZoneType.LAP) {
+			return 'LAP';
+		} else if (this.subAdministrativeZone.type === SubAdministrativeZoneType.CHIWOG) {
+			return 'Chiwog';
+		}
+		return 'Sub-Admin Zone';
 	}
 
 }
