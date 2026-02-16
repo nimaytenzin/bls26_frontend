@@ -55,16 +55,22 @@
 						id="dzongkhagSelect"
 						[options]="dzongkhags"
 						[(ngModel)]="selectedDzongkhag"
-						optionLabel="name"
 						placeholder="Choose a dzongkhag"
 						[loading]="loading"
 						[showClear]="true"
 						(onChange)="onDzongkhagChange()"
 						styleClass="w-64"
-					></p-dropdown>
+					>
+						<ng-template let-dzongkhag pTemplate="item">
+							<span>{{ dzongkhag.areaCode }} | {{ dzongkhag.name }}</span>
+						</ng-template>
+						<ng-template let-dzongkhag pTemplate="selectedItem">
+							<span>{{ dzongkhag?.areaCode }} | {{ dzongkhag?.name }}</span>
+						</ng-template>
+					</p-dropdown>
 				</div>
 
-				<!-- Gewog/Thromde Dropdown -->
+				<!-- Gewog/Thromde Dropdown: grouped Urban (Thromde) first, then Rural (Gewog); label areaCode | name -->
 				<div class="flex flex-col items-start gap-1">
 					<label
 						for="administrativeZoneSelect"
@@ -74,18 +80,28 @@
 					</label>
 					<p-dropdown
 						id="administrativeZoneSelect"
-						[options]="administrativeZones"
+						[options]="groupedAdministrativeZones"
+						[group]="true"
+						optionGroupLabel="label"
+						optionGroupChildren="items"
+						dataKey="id"
 						[(ngModel)]="selectedAdministrativeZone"
-						optionLabel="name"
 						placeholder="Choose a gewog/thromde"
 						[showClear]="true"
 						[disabled]="!selectedDzongkhag"
 						(onChange)="onAdministrativeZoneChange()"
 						styleClass="w-64"
-					></p-dropdown>
+					>
+						<ng-template let-az pTemplate="item">
+							<span>{{ az.areaCode }} | {{ az.name }}</span>
+						</ng-template>
+						<ng-template let-az pTemplate="selectedItem">
+							<span>{{ az?.areaCode }} | {{ az?.name }}</span>
+						</ng-template>
+					</p-dropdown>
 				</div>
 
-				<!-- Chiwog/Lap Dropdown -->
+				<!-- Chiwog/Lap Dropdown: areaCode | name, ordered by areaCode -->
 				<div class="flex flex-col items-start gap-1">
 					<label
 						for="subAdministrativeZoneSelect"
@@ -95,15 +111,22 @@
 					</label>
 					<p-dropdown
 						id="subAdministrativeZoneSelect"
-						[options]="subAdministrativeZones"
+						[options]="subAdministrativeZonesSortedByCode"
 						[(ngModel)]="selectedSubAdministrativeZone"
-						optionLabel="name"
+						dataKey="id"
 						placeholder="Choose a chiwog/lap"
 						[showClear]="true"
 						[disabled]="!selectedAdministrativeZone"
 						(onChange)="onSubAdministrativeZoneChange()"
 						styleClass="w-64"
-					></p-dropdown>
+					>
+						<ng-template let-saz pTemplate="item">
+							<span>{{ saz.areaCode }} | {{ saz.name }}</span>
+						</ng-template>
+						<ng-template let-saz pTemplate="selectedItem">
+							<span>{{ saz?.areaCode }} | {{ saz?.name }}</span>
+						</ng-template>
+					</p-dropdown>
 				</div>
 
 				<!-- Loading Indicator -->
@@ -123,7 +146,7 @@
 			<div class="p-4 border-b border-slate-200 flex-shrink-0">
 				<div class="flex justify-between items-center">
 					<h2 class="text-lg font-semibold text-slate-900">
-						Enumeration Areas List
+						{{ selectedDzongkhag ? ('Showing EA for '+selectedDzongkhag.name + ' | Dzongkhag code: ' + selectedDzongkhag.areaCode) : 'Enumeration Areas List' }}
 					</h2>
 					<div class="flex items-center gap-3">
 						<p-inputGroup class="w-auto">

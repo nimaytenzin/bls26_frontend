@@ -29,7 +29,10 @@ import {
 	DzongkhagHierarchicalResponse,
 	DzongkhagEnumerationAreasResponse,
 } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
-import { AdministrativeZone } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import {
+	AdministrativeZone,
+	AdministrativeZoneType,
+} from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
 import {
 	SubAdministrativeZone,
 	SubAdministrativeZoneType,
@@ -595,6 +598,30 @@ export class AdminMasterEnumerationAreasComponent
 			this.subAdministrativeZoneGeoJSON = null;
 			this.removeSubAdministrativeZonesLayer();
 		}
+	}
+
+	/** Gewog/Thromde options grouped by Urban (Thromde) first, then Rural (Gewog), each item shown as areaCode | name. */
+	get groupedAdministrativeZones(): { label: string; items: AdministrativeZone[] }[] {
+		const thromde = (this.administrativeZones || []).filter(
+			(az) => az.type === AdministrativeZoneType.Thromde
+		);
+		const gewog = (this.administrativeZones || []).filter(
+			(az) => az.type === AdministrativeZoneType.Gewog
+		);
+		const sortByName = (a: AdministrativeZone, b: AdministrativeZone) =>
+			(a.name || '').localeCompare(b.name || '');
+		const groups: { label: string; items: AdministrativeZone[] }[] = [
+			{ label: 'Urban (Thromde)', items: thromde.slice().sort(sortByName) },
+			{ label: 'Rural (Gewog)', items: gewog.slice().sort(sortByName) },
+		];
+		return groups.filter((g) => g.items.length > 0);
+	}
+
+	/** Chiwog/LAP options sorted by areaCode for dropdown (display as areaCode | name). */
+	get subAdministrativeZonesSortedByCode(): SubAdministrativeZone[] {
+		return [...(this.subAdministrativeZones || [])].sort((a, b) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
+		);
 	}
 
 	loadAdministrativeZones() {
