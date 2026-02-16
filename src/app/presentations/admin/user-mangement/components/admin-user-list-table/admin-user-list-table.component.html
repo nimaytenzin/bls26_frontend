@@ -1,0 +1,169 @@
+<div class="flex flex-col h-full">
+	<!-- Table Header -->
+	<div class="p-5 border-b border-slate-200 bg-slate-50 flex-shrink-0">
+		<div class="flex justify-between items-center gap-4 mb-4">
+			<div class="flex items-center gap-3 flex-shrink-0">
+				<div class="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center">
+					<i [class]="'pi ' + icon + ' text-slate-700'"></i>
+				</div>
+				<div>
+					<h2 class="text-lg font-bold text-slate-900 m-0">{{ listTitle }}</h2>
+					<p class="text-xs text-slate-500 m-0 mt-0.5">{{ users.length }} total</p>
+				</div>
+			</div>
+			<div class="flex items-center gap-3 flex-shrink-0">
+				<button
+					*ngIf="showAddButton"
+					pButton
+					type="button"
+					[label]="addButtonLabel"
+					icon="pi pi-plus"
+					size="small"
+					(click)="add.emit()"
+				></button>
+				<button
+					pButton
+					type="button"
+					label="Download CSV"
+					icon="pi pi-download"
+					size="small"
+					class="p-button-outlined"
+					(click)="downloadCsv.emit()"
+				></button>
+			</div>
+		</div>
+		<div class="flex justify-end">
+			<p-inputGroup class="w-auto">
+				<p-inputGroupAddon>
+					<i class="pi pi-search text-slate-500"></i>
+				</p-inputGroupAddon>
+				<input
+					pInputText
+					type="text"
+					[ngModel]="searchValue"
+					(input)="onSearchInput($event)"
+					placeholder="Search by name, CID, email, or phone..."
+					class="w-80 border-slate-300 focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
+				/>
+				<p-inputGroupAddon *ngIf="searchValue">
+					<button
+						pButton
+						type="button"
+						icon="pi pi-times"
+						class="p-button-text p-button-sm"
+						(click)="clearSearch()"
+						pTooltip="Clear search"
+					></button>
+				</p-inputGroupAddon>
+			</p-inputGroup>
+		</div>
+	</div>
+
+	<!-- Table Content -->
+	<div class="flex-1 overflow-auto">
+		<p-table
+			#table
+			[value]="users"
+			[paginator]="false"
+			responsiveLayout="scroll"
+			[loading]="loading"
+			selectionMode="single"
+			[(selection)]="selectedUser"
+			(selectionChange)="onSelectionChange($event)"
+			styleClass="p-datatable-sm"
+			[globalFilterFields]="globalFilterFields"
+			[filterDelay]="0"
+			[scrollable]="true"
+			scrollHeight="100%"
+		>
+			<ng-template pTemplate="header">
+				<tr>
+					<th class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">ID</th>
+					<th pSortableColumn="name" class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">
+						Name <p-sortIcon field="name"></p-sortIcon>
+					</th>
+					<th class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">CID</th>
+					<th class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">Email</th>
+					<th class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">Phone</th>
+					<th *ngIf="showAssignDzongkhag" class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">Assigned Dzongkhags</th>
+					<th pSortableColumn="createdAt" class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">
+						Created <p-sortIcon field="createdAt"></p-sortIcon>
+					</th>
+					<th class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">Status</th>
+					<th class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">Actions</th>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="body" let-user>
+				<tr
+					class="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+					[class.bg-slate-100]="selectedUser?.id === user.id"
+				>
+					<td><div class="text-xs text-slate-500 font-mono">{{ user.id }}</div></td>
+					<td>
+						<div class="flex items-center gap-3 py-2">
+							<p-avatar
+								[label]="getAvatarInitial(user.name)"
+								[style]="{ 'background-color': '#475569', color: '#ffffff' }"
+								shape="circle"
+								size="normal"
+								styleClass="flex-shrink-0"
+							></p-avatar>
+							<div class="font-semibold text-slate-900">{{ user.name }}</div>
+						</div>
+					</td>
+					<td><span class="font-mono text-sm text-slate-700">{{ user.cid }}</span></td>
+					<td>
+						<div class="flex items-center gap-2">
+							<i class="pi pi-envelope text-slate-400 text-xs"></i>
+							<span class="text-sm text-slate-700">{{ user.emailAddress }}</span>
+						</div>
+					</td>
+					<td>
+						<div class="flex items-center gap-2">
+							<i class="pi pi-phone text-slate-400 text-xs"></i>
+							<span class="text-sm text-slate-700">{{ user.phoneNumber || '—' }}</span>
+						</div>
+					</td>
+					<td *ngIf="showAssignDzongkhag">
+						<p class="text-sm text-slate-700">{{ isSupervisor(user) ? getDzongkhagNames(user) : '—' }}</p>
+					</td>
+					<td><span class="text-sm text-slate-600">{{ formatDate(user.createdAt) }}</span></td>
+					<td>
+						<span
+							class="px-2 py-1 text-xs font-semibold rounded-full"
+							[class.bg-green-100]="user.isActive !== false"
+							[class.text-green-800]="user.isActive !== false"
+							[class.bg-red-100]="user.isActive === false"
+							[class.text-red-800]="user.isActive === false"
+						>
+							{{ user.isActive !== false ? 'Active' : 'Inactive' }}
+						</span>
+					</td>
+					<td>
+						<div class="flex items-center gap-1.5">
+							<button pButton type="button" icon="pi pi-eye" class="p-button-text p-button-sm" (click)="viewProfile.emit(user)" pTooltip="View Profile"></button>
+							<button *ngIf="showAssignDzongkhag && isSupervisor(user)" pButton type="button" icon="pi pi-map-marker" class="p-button-text p-button-sm" (click)="assignDzongkhag.emit(user)" pTooltip="Assign Dzongkhags"></button>
+							<button pButton type="button" icon="pi pi-pencil" class="p-button-text p-button-sm" (click)="edit.emit(user)" pTooltip="Edit"></button>
+							<button pButton type="button" icon="pi pi-key" class="p-button-text p-button-sm" (click)="resetPassword.emit(user)" pTooltip="Reset Password"></button>
+							<button *ngIf="user.isActive !== false" pButton type="button" icon="pi pi-ban" class="p-button-text p-button-sm p-button-danger" (click)="deactivate.emit({ user, event: $event })" pTooltip="Deactivate User"></button>
+							<button *ngIf="user.isActive === false" pButton type="button" icon="pi pi-check" class="p-button-text p-button-sm p-button-success" (click)="activate.emit({ user, event: $event })" pTooltip="Activate User"></button>
+							<button *ngIf="showDeleteButton" pButton type="button" icon="pi pi-trash" class="p-button-text p-button-sm" (click)="deleteUser.emit({ user, event: $event })" pTooltip="Delete"></button>
+						</div>
+					</td>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="emptymessage">
+				<tr>
+					<td [attr.colspan]="showAssignDzongkhag ? 9 : 8" class="text-center py-12">
+						<div class="text-slate-400">
+							<i class="pi pi-inbox text-4xl mb-3 block"></i>
+							<p class="text-sm font-medium text-slate-600 mb-3">{{ emptyMessage }}</p>
+							<p *ngIf="extraEmptyNote" class="text-xs text-slate-500 mt-2">{{ extraEmptyNote }}</p>
+							<button *ngIf="showAddButton" pButton type="button" [label]="emptyButtonLabel" icon="pi pi-plus" [iconPos]="'left'" class="p-button-sm mt-2" (click)="add.emit()"></button>
+						</div>
+					</td>
+				</tr>
+			</ng-template>
+		</p-table>
+	</div>
+</div>

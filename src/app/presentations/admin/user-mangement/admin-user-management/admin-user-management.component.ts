@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { Table } from 'primeng/table';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 
@@ -21,43 +20,50 @@ import { AdminUserCreateComponent } from '../components/admin-user-create/admin-
 import { AdminUserUpdateComponent } from '../components/admin-user-update/admin-user-update.component';
 import { AdminUserResetPasswordComponent } from '../components/admin-user-reset-password/admin-user-reset-password.component';
 import { AdminUserProfileViewComponent } from '../components/admin-user-profile-view/admin-user-profile-view.component';
+import { AdminUserAdminListComponent } from '../components/admin-user-admin-list/admin-user-admin-list.component';
+import { AdminUserSupervisorListComponent } from '../components/admin-user-supervisor-list/admin-user-supervisor-list.component';
+import { AdminUserEnumeratorListComponent } from '../components/admin-user-enumerator-list/admin-user-enumerator-list.component';
+import { AdminUserGeneralListComponent } from '../components/admin-user-general-list/admin-user-general-list.component';
 
 @Component({
 	selector: 'app-admin-user-management',
 	templateUrl: './admin-user-management.component.html',
 	styleUrls: ['./admin-user-management.component.css'],
 	standalone: true,
-	imports: [CommonModule, FormsModule, PrimeNgModules],
+	imports: [
+		CommonModule,
+		FormsModule,
+		PrimeNgModules,
+		AdminUserAdminListComponent,
+		AdminUserSupervisorListComponent,
+		AdminUserEnumeratorListComponent,
+		AdminUserGeneralListComponent,
+	],
 	providers: [MessageService, ConfirmationService, DialogService],
 })
 export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterViewInit {
 	private destroy$ = new Subject<void>();
 
-	// Table references
-	@ViewChild('adminTable') adminTable!: Table;
-	@ViewChild('supervisorTable') supervisorTable!: Table;
-	@ViewChild('enumeratorTable') enumeratorTable!: Table;
+	@ViewChild(AdminUserAdminListComponent) adminListRef!: AdminUserAdminListComponent;
+	@ViewChild(AdminUserSupervisorListComponent) supervisorListRef!: AdminUserSupervisorListComponent;
+	@ViewChild(AdminUserEnumeratorListComponent) enumeratorListRef!: AdminUserEnumeratorListComponent;
+	@ViewChild(AdminUserGeneralListComponent) generalListRef!: AdminUserGeneralListComponent;
 
-	// Data properties
-	admins: User[] = [];
-	supervisors: Supervisor[] = [];
-	enumerators: User[] = [];
 	selectedUser: User | Supervisor | null = null;
 
-	// Loading states
+	// Counts and loading from child components (for header stats and Refresh button)
+	adminsCount = 0;
+	supervisorsCount = 0;
+	enumeratorsCount = 0;
+	generalUsersCount = 0;
 	loadingAdmins = false;
 	loadingSupervisors = false;
 	loadingEnumerators = false;
+	loadingGeneralUsers = false;
 
 	// Search and filter
 	searchValue = '';
 	selectedRole: UserRole | null = null;
-
-	// Table properties
-	firstAdmins = 0;
-	firstSupervisors = 0;
-	firstEnumerators = 0;
-	rows = 10;
 
 	// Active tab
 	activeTabIndex = 0;
@@ -86,122 +92,47 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 	}
 
 	/**
-	 * Load all users for all roles
+	 * Refresh all role lists (each component loads its own data)
 	 */
 	loadAllUsers(): void {
-		this.loadAdmins();
-		this.loadSupervisors();
-		this.loadEnumerators();
+		this.adminListRef?.refresh();
+		this.supervisorListRef?.refresh();
+		this.enumeratorListRef?.refresh();
+		this.generalListRef?.refresh();
 	}
 
 	/**
-	 * Load all admins
+	 * Open dialog to create a new general user
 	 */
-	loadAdmins(): void {
-		this.loadingAdmins = true;
-		this.authService
-			.getAllUsers(UserRole.ADMIN)
-			.pipe(
-				takeUntil(this.destroy$),
-				finalize(() => (this.loadingAdmins = false))
-			)
-			.subscribe({
-				next: (admins) => {
-					this.admins = admins;
+	openCreateGeneralUserDialog(): void {
+		const ref: DynamicDialogRef = this.dialogService.open(
+			AdminUserCreateComponent,
+			{
+				header: 'Create New General User',
+				modal: true,
+				dismissableMask: true,
+				styleClass: 'p-fluid',
+				contentStyle: { overflow: 'auto' },
+				baseZIndex: 10000,
+				data: {
+					userType: UserRole.GENERAL_USER,
 				},
-				error: (error) => {
-					console.error('Error loading admins:', error);
+			}
+		);
+
+		ref.onClose
+			.pipe(takeUntil(this.destroy$))
+			.subscribe((result) => {
+				if (result) {
+					this.generalListRef?.refresh();
 					this.messageService.add({
-						severity: 'error',
-						summary: 'Error',
-						detail: 'Failed to load admins',
+						severity: 'success',
+						summary: 'Success',
+						detail: 'General user created successfully',
+						life: 3000,
 					});
-				},
+				}
 			});
-	}
-
-	/**
-	 * Load all supervisors with their assigned dzongkhags
-	 */
-	loadSupervisors(): void {
-		this.loadingSupervisors = true;
-		this.authService
-			.getAllSupervisorsWithDzongkhags()
-			.pipe(
-				takeUntil(this.destroy$),
-				finalize(() => (this.loadingSupervisors = false))
-			)
-			.subscribe({
-				next: (supervisors) => {
-					this.supervisors = supervisors;
-				},
-				error: (error) => {
-					console.error('Error loading supervisors:', error);
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Error',
-						detail: 'Failed to load supervisors',
-					});
-				},
-			});
-	}
-
-	/**
-	 * Load all enumerators
-	 */
-	loadEnumerators(): void {
-		this.loadingEnumerators = true;
-		this.authService
-			.getAllEnumerators()
-			.pipe(
-				takeUntil(this.destroy$),
-				finalize(() => (this.loadingEnumerators = false))
-			)
-			.subscribe({
-				next: (enumerators) => {
-					this.enumerators = enumerators;
-				},
-				error: (error) => {
-					console.error('Error loading enumerators:', error);
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Error',
-						detail: 'Failed to load enumerators',
-					});
-				},
-			});
-	}
-
-	/**
-	 * Get current users based on active tab
-	 */
-	getCurrentUsers(): User[] | Supervisor[] {
-		switch (this.activeTabIndex) {
-			case 0:
-				return this.admins;
-			case 1:
-				return this.supervisors;
-			case 2:
-				return this.enumerators;
-			default:
-				return [];
-		}
-	}
-
-	/**
-	 * Get loading state for current tab
-	 */
-	getCurrentLoading(): boolean {
-		switch (this.activeTabIndex) {
-			case 0:
-				return this.loadingAdmins;
-			case 1:
-				return this.loadingSupervisors;
-			case 2:
-				return this.loadingEnumerators;
-			default:
-				return false;
-		}
 	}
 
 	/**
@@ -230,7 +161,7 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 			.pipe(takeUntil(this.destroy$))
 			.subscribe((result) => {
 				if (result) {
-					this.loadAdmins();
+					this.adminListRef?.refresh();
 					this.messageService.add({
 						severity: 'success',
 						summary: 'Success',
@@ -264,7 +195,7 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 			.pipe(takeUntil(this.destroy$))
 			.subscribe((result) => {
 				if (result) {
-					this.loadSupervisors();
+					this.supervisorListRef?.refresh();
 					this.messageService.add({
 						severity: 'success',
 						summary: 'Success',
@@ -334,7 +265,7 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 			.pipe(takeUntil(this.destroy$))
 			.subscribe((result) => {
 				if (result) {
-					this.loadSupervisors();
+					this.supervisorListRef?.refresh();
 					this.messageService.add({
 						severity: 'success',
 						summary: 'Success',
@@ -421,9 +352,7 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 					.pipe(takeUntil(this.destroy$))
 					.subscribe({
 						next: () => {
-							this.supervisors = this.supervisors.filter(
-								(s) => s.id !== supervisor.id
-							);
+							this.supervisorListRef?.refresh();
 							this.messageService.add({
 								severity: 'success',
 								summary: 'Success',
@@ -478,6 +407,8 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 				return 'Supervisor';
 			case UserRole.ENUMERATOR:
 				return 'Enumerator';
+			case UserRole.GENERAL_USER:
+				return 'General User';
 			default:
 				return 'User';
 		}
@@ -488,42 +419,6 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 	 */
 	isSupervisor(user: User | Supervisor): user is Supervisor {
 		return user.role === UserRole.SUPERVISOR;
-	}
-
-	/**
-	 * Handle global filter for tables
-	 */
-	onGlobalFilter(event: Event): void {
-		const target = event.target as HTMLInputElement;
-		const value = target.value;
-
-		// Apply filter to all tables
-		if (this.adminTable) {
-			this.adminTable.filterGlobal(value, 'contains');
-		}
-		if (this.supervisorTable) {
-			this.supervisorTable.filterGlobal(value, 'contains');
-		}
-		if (this.enumeratorTable) {
-			this.enumeratorTable.filterGlobal(value, 'contains');
-		}
-	}
-
-	/**
-	 * Clear search and reset filters
-	 */
-	clearSearch(): void {
-		this.searchValue = '';
-		// Clear filters on all tables
-		if (this.adminTable) {
-			this.adminTable.filterGlobal('', 'contains');
-		}
-		if (this.supervisorTable) {
-			this.supervisorTable.filterGlobal('', 'contains');
-		}
-		if (this.enumeratorTable) {
-			this.enumeratorTable.filterGlobal('', 'contains');
-		}
 	}
 
 	/**
@@ -563,153 +458,6 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 	}
 
 	/**
-	 * Download admins data as CSV
-	 */
-	downloadAdminsCSV(): void {
-		if (this.admins.length === 0) {
-			this.messageService.add({
-				severity: 'warn',
-				summary: 'No Data',
-				detail: 'No admins available to export',
-				life: 3000,
-			});
-			return;
-		}
-
-		// Create CSV header
-		const headers = ['Role', 'Name', 'CID', 'Email', 'Phone Number'];
-		const csvRows = [headers.join(',')];
-
-		// Add data rows with proper escaping
-		this.admins.forEach((admin) => {
-			const row = [
-				'"Admin"',
-				`"${(admin.name || '').replace(/"/g, '""')}"`,
-				`"${(admin.cid || '').replace(/"/g, '""')}"`,
-				`"${(admin.emailAddress || '').replace(/"/g, '""')}"`,
-				`"${(admin.phoneNumber || '').replace(/"/g, '""')}"`,
-			];
-			csvRows.push(row.join(','));
-		});
-
-		// Create and download file
-		const csvContent = csvRows.join('\n');
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-		const url = window.URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = url;
-		const dateStr = new Date().toISOString().split('T')[0];
-		link.download = `admins_export_${dateStr}.csv`;
-		link.click();
-		window.URL.revokeObjectURL(url);
-
-		this.messageService.add({
-			severity: 'success',
-			summary: 'Download Complete',
-			detail: `Admins CSV downloaded successfully (${this.admins.length} admins)`,
-			life: 3000,
-		});
-	}
-
-	/**
-	 * Download supervisors data as CSV
-	 */
-	downloadSupervisorsCSV(): void {
-		if (this.supervisors.length === 0) {
-			this.messageService.add({
-				severity: 'warn',
-				summary: 'No Data',
-				detail: 'No supervisors available to export',
-				life: 3000,
-			});
-			return;
-		}
-
-		// Create CSV header
-		const headers = ['Role', 'Name', 'CID', 'Email', 'Phone Number'];
-		const csvRows = [headers.join(',')];
-
-		// Add data rows with proper escaping
-		this.supervisors.forEach((supervisor) => {
-			const row = [
-				'"Supervisor"',
-				`"${(supervisor.name || '').replace(/"/g, '""')}"`,
-				`"${(supervisor.cid || '').replace(/"/g, '""')}"`,
-				`"${(supervisor.emailAddress || '').replace(/"/g, '""')}"`,
-				`"${(supervisor.phoneNumber || '').replace(/"/g, '""')}"`,
-			];
-			csvRows.push(row.join(','));
-		});
-
-		// Create and download file
-		const csvContent = csvRows.join('\n');
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-		const url = window.URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = url;
-		const dateStr = new Date().toISOString().split('T')[0];
-		link.download = `supervisors_export_${dateStr}.csv`;
-		link.click();
-		window.URL.revokeObjectURL(url);
-
-		this.messageService.add({
-			severity: 'success',
-			summary: 'Download Complete',
-			detail: `Supervisors CSV downloaded successfully (${this.supervisors.length} supervisors)`,
-			life: 3000,
-		});
-	}
-
-	/**
-	 * Download enumerators data as CSV
-	 */
-	downloadEnumeratorsCSV(): void {
-		if (this.enumerators.length === 0) {
-			this.messageService.add({
-				severity: 'warn',
-				summary: 'No Data',
-				detail: 'No enumerators available to export',
-				life: 3000,
-			});
-			return;
-		}
-
-		// Create CSV header
-		const headers = ['Role', 'Name', 'CID', 'Email', 'Phone Number'];
-		const csvRows = [headers.join(',')];
-
-		// Add data rows with proper escaping
-		this.enumerators.forEach((enumerator) => {
-			const row = [
-				'"Enumerator"',
-				`"${(enumerator.name || '').replace(/"/g, '""')}"`,
-				`"${(enumerator.cid || '').replace(/"/g, '""')}"`,
-				`"${(enumerator.emailAddress || '').replace(/"/g, '""')}"`,
-				`"${(enumerator.phoneNumber || '').replace(/"/g, '""')}"`,
-			];
-			csvRows.push(row.join(','));
-		});
-
-		// Create and download file
-		const csvContent = csvRows.join('\n');
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-		const url = window.URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = url;
-		const dateStr = new Date().toISOString().split('T')[0];
-		link.download = `enumerators_export_${dateStr}.csv`;
-		link.click();
-		window.URL.revokeObjectURL(url);
-
-		this.messageService.add({
-			severity: 'success',
-			summary: 'Download Complete',
-			detail: `Enumerators CSV downloaded successfully (${this.enumerators.length} enumerators)`,
-			life: 3000,
-		});
-	}
-
-	/**
 	 * Activate user account
 	 * @param user - User to activate
 	 * @param event - Event object for confirmation dialog
@@ -727,8 +475,7 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 					.pipe(takeUntil(this.destroy$))
 					.subscribe({
 						next: (response) => {
-							// Update the user in the appropriate array
-							this.updateUserInArray(response.user);
+							this.refreshListByRole(response.user.role);
 							this.messageService.add({
 								severity: 'success',
 								summary: 'Success',
@@ -768,8 +515,7 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 					.pipe(takeUntil(this.destroy$))
 					.subscribe({
 						next: (response) => {
-							// Update the user in the appropriate array
-							this.updateUserInArray(response.user);
+							this.refreshListByRole(response.user.role);
 							this.messageService.add({
 								severity: 'success',
 								summary: 'Success',
@@ -792,32 +538,22 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 	}
 
 	/**
-	 * Update user in the appropriate array after activation/deactivation
-	 * @param updatedUser - Updated user object
+	 * Refresh the list component for the given role after activate/deactivate
 	 */
-	private updateUserInArray(updatedUser: User): void {
-		// Update in admins array
-		const adminIndex = this.admins.findIndex((u) => u.id === updatedUser.id);
-		if (adminIndex !== -1) {
-			this.admins[adminIndex] = { ...this.admins[adminIndex], ...updatedUser };
-		}
-
-		// Update in supervisors array
-		const supervisorIndex = this.supervisors.findIndex((u) => u.id === updatedUser.id);
-		if (supervisorIndex !== -1) {
-			this.supervisors[supervisorIndex] = {
-				...this.supervisors[supervisorIndex],
-				...updatedUser,
-			};
-		}
-
-		// Update in enumerators array
-		const enumeratorIndex = this.enumerators.findIndex((u) => u.id === updatedUser.id);
-		if (enumeratorIndex !== -1) {
-			this.enumerators[enumeratorIndex] = {
-				...this.enumerators[enumeratorIndex],
-				...updatedUser,
-			};
+	private refreshListByRole(role: UserRole): void {
+		switch (role) {
+			case UserRole.ADMIN:
+				this.adminListRef?.refresh();
+				break;
+			case UserRole.SUPERVISOR:
+				this.supervisorListRef?.refresh();
+				break;
+			case UserRole.ENUMERATOR:
+				this.enumeratorListRef?.refresh();
+				break;
+			case UserRole.GENERAL_USER:
+				this.generalListRef?.refresh();
+				break;
 		}
 	}
 }

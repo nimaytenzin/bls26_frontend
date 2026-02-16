@@ -14,7 +14,12 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin'],
 				roles: [USERROLESENUM.ADMIN],
 			},
-
+			{
+				label: 'Data Explorer',
+				icon: 'pi pi-fw pi-globe',
+				routerLink: ['/'],
+				roles: [USERROLESENUM.ADMIN],
+			},
 		],
 	},
 	 
@@ -61,6 +66,12 @@ export const ADMINSIDEBARITEMS = [
 					label: 'Enumeration Areas',
 					icon: 'pi pi-fw pi-sitemap',
 					routerLink: ['/admin/master/enumeration-areas'],
+					roles: [USERROLESENUM.ADMIN],
+				},
+				{
+					label: 'RBA EAs',
+					icon: 'pi pi-fw pi-sitemap',
+					routerLink: ['/admin/master/rba-eas'],
 					roles: [USERROLESENUM.ADMIN],
 				},
 				{
@@ -177,6 +188,12 @@ export const SUPERVISORMENUSIDEBARITEMS = [
 				label: 'Overview',
 				icon: 'pi pi-fw pi-chart-bar',
 				routerLink: ['/supervisor'],
+				roles: [USERROLESENUM.SUPERVISOR],
+			},
+			{
+				label: 'Data Explorer',
+				icon: 'pi pi-fw pi-globe',
+				routerLink: ['/'],
 				roles: [USERROLESENUM.SUPERVISOR],
 			},
 		],

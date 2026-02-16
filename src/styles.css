@@ -15,10 +15,14 @@
 /* Force light mode - disable dark mode */
 :root {
 	color-scheme: light !important;
+	/* Base font size for PrimeNG + Tailwind (rem). 14px keeps proportions consistent. */
+	font-size: 14px !important;
 }
 
 html {
 	color-scheme: light !important;
+	/* Match :root so PrimeNG and Tailwind share the same rem base. */
+	font-size: 14px !important;
 }
 
 /* Override any dark mode media queries */

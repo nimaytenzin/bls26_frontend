@@ -44,6 +44,7 @@ export class AdminUserCreateComponent implements OnInit, OnDestroy {
 		{ label: 'Admin', value: UserRole.ADMIN },
 		{ label: 'Supervisor', value: UserRole.SUPERVISOR },
 		{ label: 'Enumerator', value: UserRole.ENUMERATOR },
+		{ label: 'General User', value: UserRole.GENERAL_USER },
 	];
 
 	constructor(
@@ -100,6 +101,8 @@ export class AdminUserCreateComponent implements OnInit, OnDestroy {
 				return UserRole.SUPERVISOR;
 			case UserRole.ENUMERATOR:
 				return UserRole.ENUMERATOR;
+			case UserRole.GENERAL_USER:
+				return UserRole.GENERAL_USER;
 			default:
 				return UserRole.SUPERVISOR;
 		}
@@ -197,6 +200,8 @@ export class AdminUserCreateComponent implements OnInit, OnDestroy {
 				return 'Supervisor';
 			case UserRole.ENUMERATOR:
 				return 'Enumerator';
+			case UserRole.GENERAL_USER:
+				return 'General User';
 			default:
 				return 'User';
 		}
@@ -233,6 +238,9 @@ export class AdminUserCreateComponent implements OnInit, OnDestroy {
 				break;
 			case UserRole.ADMIN:
 				this.createAdmin(userData as AdminSignupDto);
+				break;
+			case UserRole.GENERAL_USER:
+				this.createGeneralUser(userData);
 				break;
 		}
 	}
@@ -322,6 +330,37 @@ export class AdminUserCreateComponent implements OnInit, OnDestroy {
 						severity: 'error',
 						summary: 'Error',
 						detail: error.error?.message || 'Failed to create admin user',
+					});
+				},
+			});
+	}
+
+	/**
+	 * Create general user (uses admin signup with role GENERAL_USER)
+	 */
+	private createGeneralUser(data: Record<string, unknown>): void {
+		const payload = { ...data, role: UserRole.GENERAL_USER } as AdminSignupDto;
+		this.authService
+			.adminSignup(payload)
+			.pipe(
+				takeUntil(this.destroy$),
+				finalize(() => (this.saving = false))
+			)
+			.subscribe({
+				next: () => {
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Success',
+						detail: 'General user created successfully',
+					});
+					this.ref.close(true);
+				},
+				error: (error) => {
+					console.error('Error creating general user:', error);
+					this.messageService.add({
+						severity: 'error',
+						summary: 'Error',
+						detail: error.error?.message || 'Failed to create general user',
 					});
 				},
 			});

@@ -57,6 +57,8 @@ export class AdminLayoutService {
 			this._config.colorScheme = 'light';
 			this.config.set({ ...this._config });
 		}
+		// Apply default scale so PrimeNG and Tailwind share the same root font size (avoids "zoom" look)
+		this.changeScale(this._config.scale);
 	}
 
 	updateStyle(config: AppConfig) {

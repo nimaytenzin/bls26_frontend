@@ -85,3 +85,41 @@ export class AdminGuard implements CanActivate {
 		);
 	}
 }
+
+/**
+ * Guard for public routes. Enumerators are not allowed to access public dashboard;
+ * they are redirected to their enumerator dashboard.
+ */
+@Injectable({
+	providedIn: 'root',
+})
+export class PublicRouteGuard implements CanActivate, CanActivateChild {
+	constructor(private authService: AuthService, private router: Router) {}
+
+	canActivate(
+		_route: ActivatedRouteSnapshot,
+		_state: RouterStateSnapshot
+	): Observable<boolean> | Promise<boolean> | boolean {
+		return this.checkPublicAccess();
+	}
+
+	canActivateChild(
+		_route: ActivatedRouteSnapshot,
+		_state: RouterStateSnapshot
+	): Observable<boolean> | Promise<boolean> | boolean {
+		return this.checkPublicAccess();
+	}
+
+	private checkPublicAccess(): Observable<boolean> {
+		return this.authService.authState$.pipe(
+			take(1),
+			map((authState) => {
+				if (authState.isAuthenticated && this.authService.isEnumerator()) {
+					this.router.navigate(['/enumerator']);
+					return false;
+				}
+				return true;
+			})
+		);
+	}
+}

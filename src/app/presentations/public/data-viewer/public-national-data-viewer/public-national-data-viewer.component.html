@@ -131,15 +131,27 @@
 							class="h-8 w-8 object-contain"
 						/>
 					</div>
-					<!-- Login Button -->
-					<button
-						type="button"
-						(click)="navigateToLogin()"
-						class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1.5  "
-					>
-						<i class="pi pi-sign-in text-xs"></i>
-						<span>Login</span>
-					</button>
+					<!-- Login / Dashboard: show Login when not logged in; hide for general user; show Go to dashboard for admin/supervisor -->
+					@if (!isLoggedIn()) {
+						<button
+							type="button"
+							(click)="navigateToLogin()"
+							class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1.5  "
+						>
+							<i class="pi pi-sign-in text-xs"></i>
+							<span>Login</span>
+						</button>
+					}
+					@if (isAdminOrSupervisor()) {
+						<button
+							type="button"
+							(click)="navigateToDashboard()"
+							class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1.5"
+						>
+							<i class="pi pi-home text-xs"></i>
+							<span>Go to dashboard</span>
+						</button>
+					}
 				</div>
 				<div class="p-3 md:p-4">
 					<!-- Title and Description -->
@@ -215,14 +227,26 @@
 								{{ pageDescription }}
 							</p>
 						</div>
-						<!-- Login Button -->
-						<button
-							type="button"
-							(click)="navigateToLogin()"
-							class="flex-shrink-0 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-						>
-							<i class="pi pi-sign-in"></i>
-						</button>
+						<!-- Login / Dashboard: same logic as header -->
+						@if (!isLoggedIn()) {
+							<button
+								type="button"
+								(click)="navigateToLogin()"
+								class="flex-shrink-0 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+							>
+								<i class="pi pi-sign-in"></i>
+							</button>
+						}
+						@if (isAdminOrSupervisor()) {
+							<button
+								type="button"
+								(click)="navigateToDashboard()"
+								class="flex-shrink-0 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+							>
+								<i class="pi pi-home"></i>
+								<span>Go to dashboard</span>
+							</button>
+						}
 					</div>
 
 					<!-- Small Action Buttons (Mobile) -->

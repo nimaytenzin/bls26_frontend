@@ -31,6 +31,7 @@ import { DownloadService } from '../../../../core/utility/download.service';
 import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
 import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
+import { AuthService } from '../../../../core/dataservice/auth/auth.service';
 
 interface DzongkhagStats {
 	dzongkhagId: number;
@@ -160,7 +161,8 @@ export class PublicNationalDataViewerComponent
 		private downloadService: DownloadService,
 		private dzongkhagService: DzongkhagDataService,
 		private administrativeZoneService: AdministrativeZoneDataService,
-		private subAdministrativeZoneService: SubAdministrativeZoneDataService
+		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
+		private authService: AuthService
 	) {}
 
 	// Flags to track initialization state
@@ -978,6 +980,30 @@ export class PublicNationalDataViewerComponent
 	 */
 	navigateToLogin(): void {
 		this.router.navigate(['/auth/login']);
+	}
+
+	/** Whether the user is logged in. */
+	isLoggedIn(): boolean {
+		return this.authService.isAuthenticated();
+	}
+
+	/** Whether the current user is a general user (public-only access). */
+	isGeneralUser(): boolean {
+		return this.authService.isGeneralUser();
+	}
+
+	/** Whether the current user is admin or supervisor (has internal dashboard). */
+	isAdminOrSupervisor(): boolean {
+		return this.authService.isAdmin() || this.authService.isSupervisor();
+	}
+
+	/** Navigate to the dashboard for admin or supervisor. */
+	navigateToDashboard(): void {
+		if (this.authService.isAdmin()) {
+			this.router.navigate(['/admin']);
+		} else if (this.authService.isSupervisor()) {
+			this.router.navigate(['/supervisor']);
+		}
 	}
 
 	/**

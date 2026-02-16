@@ -132,6 +132,7 @@ export class AdminMasterEnumerationAreasComponent
 		private dzongkhagService: DzongkhagDataService,
 		private fb: FormBuilder,
 		private messageService: MessageService,
+		private confirmationService: ConfirmationService,
 		private router: Router,
 		private basemapService: BasemapService,
 		private locationSelectionService: LocationSelectionService,
@@ -1667,6 +1668,70 @@ export class AdminMasterEnumerationAreasComponent
 					},
 				});
 		}
+	}
+
+	confirmMarkAsRba(ea: EnumerationArea) {
+		this.confirmationService.confirm({
+			message: `Mark "${ea.name}" (${ea.areaCode}) as RBA (Royal Bhutan Army / sensitive) EA?`,
+			header: 'Mark as RBA EA',
+			icon: 'pi pi-shield',
+			acceptButtonStyleClass: 'p-button-warning',
+			accept: () => this.markAsRba(ea),
+		});
+	}
+
+	markAsRba(ea: EnumerationArea) {
+		this.enumerationAreaService.markAsRba(ea.id).subscribe({
+			next: () => {
+				this.loadEnumerationAreas();
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: 'EA marked as RBA',
+					life: 3000,
+				});
+			},
+			error: (err) => {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: err.error?.message || 'Failed to mark EA as RBA',
+					life: 3000,
+				});
+			},
+		});
+	}
+
+	confirmUnmarkAsRba(ea: EnumerationArea) {
+		this.confirmationService.confirm({
+			message: `Remove "${ea.name}" (${ea.areaCode}) from RBA (sensitive) list?`,
+			header: 'Unmark as RBA',
+			icon: 'pi pi-question-circle',
+			acceptButtonStyleClass: 'p-button-warning',
+			accept: () => this.unmarkAsRba(ea),
+		});
+	}
+
+	unmarkAsRba(ea: EnumerationArea) {
+		this.enumerationAreaService.unmarkAsRba(ea.id).subscribe({
+			next: () => {
+				this.loadEnumerationAreas();
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: 'EA unmarked as RBA',
+					life: 3000,
+				});
+			},
+			error: (err) => {
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: err.error?.message || 'Failed to unmark EA as RBA',
+					life: 3000,
+				});
+			},
+		});
 	}
 
 	// Utility functions

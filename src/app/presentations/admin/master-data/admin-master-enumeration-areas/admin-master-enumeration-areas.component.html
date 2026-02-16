@@ -300,6 +300,28 @@
 									
 								</button>
 									<button
+										*ngIf="!item.data.isRBA"
+										pButton
+										type="button"
+										icon="pi pi-shield"
+										class="p-button-outlined p-button-sm p-button-warning"
+										(click)="
+											confirmMarkAsRba(item.data); $event.stopPropagation()
+										"
+										pTooltip="Mark as RBA (sensitive EA)"
+									></button>
+									<button
+										*ngIf="item.data.isRBA"
+										pButton
+										type="button"
+										icon="pi pi-times-circle"
+										class="p-button-outlined p-button-sm p-button-help"
+										(click)="
+											confirmUnmarkAsRba(item.data); $event.stopPropagation()
+										"
+										pTooltip="Unmark as RBA"
+									></button>
+									<button
 										pButton
 										type="button"
 										icon="pi pi-trash"

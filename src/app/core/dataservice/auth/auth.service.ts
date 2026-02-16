@@ -431,6 +431,14 @@ export class AuthService {
 	}
 
 	/**
+	 * Check if user is general user (public dashboard access only).
+	 * @returns boolean
+	 */
+	isGeneralUser(): boolean {
+		return this.hasRole(UserRole.GENERAL_USER);
+	}
+
+	/**
 	 * Check if user can manage enumerators (Admin or Supervisor)
 	 * @returns boolean
 	 */

@@ -230,18 +230,15 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 	 */
 	private redirectToUserDashboard(): void {
 		const user = this.authService.getCurrentUser();
-		console.log(user);
 		if (user) {
-			console.log('Redirecting based on user role:', user.role);
-			console.log('IsSupervisor:', this.authService.isSupervisor());
-			console.log('IsAdmin:', this.authService.isAdmin());
-			console.log('IsEnumerator:', this.authService.isEnumerator());
 			if (this.authService.isAdmin()) {
 				this.router.navigate(['/admin']);
 			} else if (this.authService.isSupervisor()) {
 				this.router.navigate(['/supervisor']);
 			} else if (this.authService.isEnumerator()) {
 				this.router.navigate(['/enumerator']);
+			} else if (this.authService.isGeneralUser()) {
+				this.router.navigate(['/']);
 			} else {
 				this.router.navigate(['/']);
 			}
@@ -291,10 +288,4 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 		return '';
 	}
 
-	/**
-	 * Navigate back to home page
-	 */
-	navigateToHome(): void {
-		this.router.navigate(['/']);
-	}
 }

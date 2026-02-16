@@ -56,7 +56,8 @@
 
 html {
   height: 100%;
-  font-size: 16px;
+  /* Base font size overridden by global styles.css (14px) for consistent PrimeNG + Tailwind scaling */
+  font-size: 14px;
 }
 
 body {

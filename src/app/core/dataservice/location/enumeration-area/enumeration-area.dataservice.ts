@@ -586,4 +586,168 @@ export class EnumerationAreaDataService {
 				})
 			);
 	}
+
+	/**
+	 * Get all RBA (Royal Bhutan Army) EAs – active with isRBA: true, paginated.
+	 * Query: page, limit, sortBy, sortOrder, includeSubAdminZone (optional), search (optional – filter by dzongkhag code, EA name, description).
+	 */
+	findAllRbaPaginated(
+		page: number = 1,
+		limit: number = 10,
+		sortBy: string = 'name',
+		sortOrder: 'ASC' | 'DESC' = 'ASC',
+		includeSubAdminZone: boolean = true,
+		search?: string
+	): Observable<PaginatedResponse<EnumerationArea>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('limit', Math.min(limit, 100).toString())
+			.set('sortBy', sortBy)
+			.set('sortOrder', sortOrder);
+		if (includeSubAdminZone) params = params.set('includeSubAdminZone', 'true');
+		if (search?.trim()) params = params.set('search', search.trim());
+
+		return this.http
+			.get<PaginatedResponse<EnumerationArea>>(`${this.apiUrl}/rba/paginated/all`, { params })
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching RBA EAs:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get urban RBA EAs (Thromde), paginated.
+	 * Optional search: filter by dzongkhag code, EA name, description.
+	 */
+	findAllUrbanRbaPaginated(
+		page: number = 1,
+		limit: number = 10,
+		sortBy: string = 'name',
+		sortOrder: 'ASC' | 'DESC' = 'ASC',
+		includeSubAdminZone: boolean = true,
+		search?: string
+	): Observable<PaginatedResponse<EnumerationArea>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('limit', Math.min(limit, 100).toString())
+			.set('sortBy', sortBy)
+			.set('sortOrder', sortOrder);
+		if (includeSubAdminZone) params = params.set('includeSubAdminZone', 'true');
+		if (search?.trim()) params = params.set('search', search.trim());
+
+		return this.http
+			.get<PaginatedResponse<EnumerationArea>>(`${this.apiUrl}/rba/urban/paginated/all`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching urban RBA EAs:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Get rural RBA EAs (Gewog), paginated.
+	 * Optional search: filter by dzongkhag code, EA name, description.
+	 */
+	findAllRuralRbaPaginated(
+		page: number = 1,
+		limit: number = 10,
+		sortBy: string = 'name',
+		sortOrder: 'ASC' | 'DESC' = 'ASC',
+		includeSubAdminZone: boolean = true,
+		search?: string
+	): Observable<PaginatedResponse<EnumerationArea>> {
+		let params = new HttpParams()
+			.set('page', page.toString())
+			.set('limit', Math.min(limit, 100).toString())
+			.set('sortBy', sortBy)
+			.set('sortOrder', sortOrder);
+		if (includeSubAdminZone) params = params.set('includeSubAdminZone', 'true');
+		if (search?.trim()) params = params.set('search', search.trim());
+
+		return this.http
+			.get<PaginatedResponse<EnumerationArea>>(`${this.apiUrl}/rba/rural/paginated/all`, {
+				params,
+			})
+			.pipe(
+				catchError((error) => {
+					console.error('Error fetching rural RBA EAs:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Mark enumeration area as RBA (sensitive).
+	 */
+	markAsRba(id: number): Observable<ApiResponse<EnumerationArea>> {
+		return this.http
+			.patch<ApiResponse<EnumerationArea>>(`${this.apiUrl}/${id}/mark-rba`, {})
+			.pipe(
+				catchError((error) => {
+					console.error('Error marking EA as RBA:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Unmark enumeration area as RBA.
+	 */
+	unmarkAsRba(id: number): Observable<ApiResponse<EnumerationArea>> {
+		return this.http
+			.patch<ApiResponse<EnumerationArea>>(`${this.apiUrl}/${id}/unmark-rba`, {})
+			.pipe(
+				catchError((error) => {
+					console.error('Error unmarking EA as RBA:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download all RBA enumeration areas as Excel.
+	 */
+	downloadRbaExcel(): Observable<Blob> {
+		return this.http
+			.get(`${this.apiUrl}/rba/excel`, { responseType: 'blob' })
+			.pipe(
+				catchError((error) => {
+					console.error('Error downloading RBA Excel:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Urban RBA enumeration areas as Excel.
+	 */
+	downloadUrbanRbaExcel(): Observable<Blob> {
+		return this.http
+			.get(`${this.apiUrl}/rba/urban/excel`, { responseType: 'blob' })
+			.pipe(
+				catchError((error) => {
+					console.error('Error downloading Urban RBA Excel:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Rural RBA enumeration areas as Excel.
+	 */
+	downloadRuralRbaExcel(): Observable<Blob> {
+		return this.http
+			.get(`${this.apiUrl}/rba/rural/excel`, { responseType: 'blob' })
+			.pipe(
+				catchError((error) => {
+					console.error('Error downloading Rural RBA Excel:', error);
+					return throwError(() => error);
+				})
+			);
+	}
 }

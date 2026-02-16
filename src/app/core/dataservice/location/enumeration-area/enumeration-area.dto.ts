@@ -12,6 +12,8 @@ export interface EnumerationArea {
 	isActive?: boolean; // Default: true
 	deactivatedAt?: Date; // When EA was deactivated
 	deactivatedReason?: string; // Reason for deactivation
+	/** Royal Bhutan Army (sensitive) EA flag */
+	isRBA?: boolean;
 
 	subAdministrativeZones?: SubAdministrativeZone[]; // Array via junction table
 	surveyEnumerationAreas: SurveyEnumerationArea[];

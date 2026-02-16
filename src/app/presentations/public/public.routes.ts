@@ -1,10 +1,13 @@
 import { Routes } from '@angular/router';
 import { PublicLayoutComponentComponent } from './layout/public-layout-component/public-layout-component.component';
+import { PublicRouteGuard } from '../../core/guards/auth.guard';
 
 export const publicRoutes: Routes = [
 	{
 		path: '',
 		component: PublicLayoutComponentComponent,
+		canActivate: [PublicRouteGuard],
+		canActivateChild: [PublicRouteGuard],
 		children: [
 			{
 				path: '',
