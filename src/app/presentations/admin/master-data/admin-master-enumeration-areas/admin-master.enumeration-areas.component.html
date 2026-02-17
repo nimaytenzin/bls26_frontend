@@ -246,11 +246,15 @@
 						<!-- Enumeration Area Row -->
 						<tr
 							*ngIf="item.type === 'enumeration-area'"
-							[attr.id]="'ea-row-' + item.data?.id"
+							[attr.id]="'ea-row-' + item.eaId"
 							class="hover:bg-gray-50 cursor-pointer transition-colors"
-							[class.bg-blue-50]="selectedEnumerationArea?.id === item.data.id"
+							[class.bg-primary-50]="selectedEnumerationArea?.id === item.data.id"
 							[class.bg-purple-50]="item.isShared"
+							[class.ring-2]="highlightedEAId === item.eaId"
+							[class.ring-primary-400]="highlightedEAId === item.eaId"
 							(click)="onRowSelectHierarchical(item)"
+							(mouseenter)="onTableHoverEA(item, true)"
+							(mouseleave)="onTableHoverEA(item, false)"
 						>
 						<td>
 							<div class="flex items-center gap-2">
@@ -824,24 +828,26 @@
 					</h4>
 					<pre
 						class="text-xs bg-gray-900 text-gray-100 p-3 rounded overflow-x-auto"
-					><code>&#123;
-  "type": "FeatureCollection",
-  "features": [
-    &#123;
-      "type": "Feature",
-      "properties": &#123;
-        "subAdministrativeZoneIds": [1, 2],
-        "name": "EA Zone 1",
-        "areaCode": "EA001",
-        "description": "Enumeration Area 1"
-      &#125;,
-      "geometry": &#123;
-        "type": "MultiPolygon",
-        "coordinates": [[[[...]]]]
-      &#125;
-    &#125;
-  ]
-&#125;</code></pre>
+					>
+					<code>&#123;
+					"type": "FeatureCollection",
+					"features": [
+						&#123;
+						"type": "Feature",
+						"properties": &#123;
+							"subAdministrativeZoneIds": [1, 2],
+							"name": "EA Zone 1",
+							"areaCode": "EA001",
+							"description": "Enumeration Area 1"
+						&#125;,
+						"geometry": &#123;
+							"type": "MultiPolygon",
+							"coordinates": [[[[...]]]]
+						&#125;
+						&#125;
+					]
+					&#125;</code>
+</pre>
 				</div>
 
 				<!-- File Upload -->

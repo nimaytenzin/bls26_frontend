@@ -99,6 +99,9 @@ export class AdminMasterEnumerationAreasComponent
 	private baseLayer?: L.TileLayer;
 	showSAZLayer = false;
 
+	// Lookup from EA id → map layer, for click sync between table and map
+	private eaLayersById: Map<number, L.Path> = new Map();
+
 	// Basemap properties
 	selectedBasemapId = 'positron'; // Default basemap
 	basemapCategories: Record<
@@ -1112,6 +1115,9 @@ export class AdminMasterEnumerationAreasComponent
 			this.map.removeLayer(this.allEnumerationAreasLayer);
 		}
 
+		// Reset EA layer lookup whenever we re-render all EAs
+		this.eaLayersById.clear();
+
 		this.allEnumerationAreasLayer = L.geoJSON(this.enumerationAreaGeoJSON, {
 			style: () => ({
 				fillColor: '#EC4899',
@@ -1122,6 +1128,12 @@ export class AdminMasterEnumerationAreasComponent
 			}),
 			onEachFeature: (feature, layer) => {
 				const props = feature.properties;
+
+				// Track EA layer by id for click sync from table → map
+				const eaId = props?.id as number | undefined;
+				if (eaId) {
+					this.eaLayersById.set(eaId, layer as L.Path);
+				}
 
 				// Look up SAZ and AZ names from hierarchical data
 				let sazName = 'N/A';
@@ -1236,8 +1248,13 @@ export class AdminMasterEnumerationAreasComponent
 					direction: 'top',
 				});
 
+				// Map click: select EA in table (reusing onRowSelectHierarchical) and scroll to row
 				layer.on('click', () => {
-					this.selectEnumerationAreaFromMap(props);
+					if (eaId) {
+						this.handleMapClickEA(eaId, props);
+					} else {
+						this.selectEnumerationAreaFromMap(props);
+					}
 				});
 
 				layer.on('mouseover', () => {
@@ -1780,6 +1797,56 @@ export class AdminMasterEnumerationAreasComponent
 				...item.data,
 				description: item.data.description || '',
 			} as EnumerationArea;
+
+			// Table click → fly to EA on map and open its popup
+			const eaId = item.data?.id ?? item.eaId;
+			if (eaId !== undefined) {
+				this.flyToEAOnMap(eaId);
+			}
+		}
+	}
+
+	/**
+	 * Scroll the hierarchical table to the EA row, if present.
+	 */
+	private scrollToEAInTable(eaId: number): void {
+		const rowEl = document.getElementById(`ea-row-${eaId}`);
+		if (rowEl) {
+			rowEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		}
+	}
+
+	/**
+	 * Map click handler: find the corresponding table row, reuse onRowSelectHierarchical,
+	 * and scroll the table so the row is visible.
+	 */
+	private handleMapClickEA(eaId: number, props: any): void {
+		const item = this.hierarchicalTableData.find(
+			(row) =>
+				row.type === 'enumeration-area' &&
+				(row.eaId === eaId || row.data?.id === eaId)
+		);
+		if (item) {
+			this.onRowSelectHierarchical(item);
+			this.scrollToEAInTable(eaId);
+		} else {
+			// Fallback to existing behavior if we don't find a matching row
+			this.selectEnumerationAreaFromMap(props);
+		}
+	}
+
+	/**
+	 * Fly to EA polygon on the map and open its popup.
+	 */
+	private flyToEAOnMap(eaId: number): void {
+		if (!this.map) return;
+		const layer = this.eaLayersById.get(eaId);
+		if (layer && (layer as any).getBounds) {
+			const bounds = (layer as any).getBounds();
+			this.map.fitBounds(bounds, { maxZoom: 16, padding: [24, 24] });
+			if (typeof (layer as any).openPopup === 'function') {
+				(layer as any).openPopup();
+			}
 		}
 	}
 
