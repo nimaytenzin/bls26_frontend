@@ -14,8 +14,8 @@ export interface SessionInfo {
 	providedIn: 'root',
 })
 export class SessionService {
-	private readonly SESSION_KEY = 'movie_booking_session';
-	private readonly SESSION_ACTIVITY_KEY = 'movie_booking_session_activity';
+	private readonly SESSION_KEY = 'nsfd_session';
+	private readonly SESSION_ACTIVITY_KEY = 'nsfd_session_activity';
 
 	private sessionSubject = new BehaviorSubject<SessionInfo | null>(null);
 	private isDestroyed = false;

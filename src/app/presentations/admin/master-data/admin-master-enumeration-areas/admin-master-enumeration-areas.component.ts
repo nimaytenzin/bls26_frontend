@@ -600,7 +600,14 @@ export class AdminMasterEnumerationAreasComponent
 		}
 	}
 
-	/** Gewog/Thromde options grouped by Urban (Thromde) first, then Rural (Gewog), each item shown as areaCode | name. */
+	/** Dzongkhag options sorted by areaCode ascending for dropdown. */
+	get dzongkhagsSortedByCode(): Dzongkhag[] {
+		return [...(this.dzongkhags || [])].sort((a, b) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
+		);
+	}
+
+	/** Gewog/Thromde options grouped by Urban (Thromde) first, then Rural (Gewog), each group sorted by areaCode ascending. */
 	get groupedAdministrativeZones(): { label: string; items: AdministrativeZone[] }[] {
 		const thromde = (this.administrativeZones || []).filter(
 			(az) => az.type === AdministrativeZoneType.Thromde
@@ -608,11 +615,11 @@ export class AdminMasterEnumerationAreasComponent
 		const gewog = (this.administrativeZones || []).filter(
 			(az) => az.type === AdministrativeZoneType.Gewog
 		);
-		const sortByName = (a: AdministrativeZone, b: AdministrativeZone) =>
-			(a.name || '').localeCompare(b.name || '');
+		const sortByAreaCode = (a: AdministrativeZone, b: AdministrativeZone) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true });
 		const groups: { label: string; items: AdministrativeZone[] }[] = [
-			{ label: 'Urban (Thromde)', items: thromde.slice().sort(sortByName) },
-			{ label: 'Rural (Gewog)', items: gewog.slice().sort(sortByName) },
+			{ label: 'Urban (Thromde)', items: thromde.slice().sort(sortByAreaCode) },
+			{ label: 'Rural (Gewog)', items: gewog.slice().sort(sortByAreaCode) },
 		];
 		return groups.filter((g) => g.items.length > 0);
 	}

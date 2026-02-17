@@ -53,8 +53,9 @@
 					</label>
 					<p-dropdown
 						id="dzongkhagSelect"
-						[options]="dzongkhags"
+						[options]="dzongkhagsSortedByCode"
 						[(ngModel)]="selectedDzongkhag"
+						dataKey="id"
 						placeholder="Choose a dzongkhag"
 						[loading]="loading"
 						[showClear]="true"

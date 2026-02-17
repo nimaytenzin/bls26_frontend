@@ -47,6 +47,8 @@ export class AdminMasterSurveyComponent implements OnInit {
 
 	// Dialog states
 	deleteDialog = false;
+	/** User must type the survey name to confirm deletion (GitHub-style). */
+	deleteConfirmSurveyName = '';
 	editDialogRef: DynamicDialogRef | undefined;
 
 	// Table properties
@@ -181,34 +183,47 @@ export class AdminMasterSurveyComponent implements OnInit {
 
 	confirmDelete(survey: Survey) {
 		this.selectedSurvey = survey;
+		this.deleteConfirmSurveyName = '';
 		this.deleteDialog = true;
 	}
 
+	/** True when the typed name exactly matches the survey to delete (case-sensitive). */
+	get canConfirmDelete(): boolean {
+		return (
+			!!this.selectedSurvey?.name &&
+			this.deleteConfirmSurveyName.trim() === this.selectedSurvey.name
+		);
+	}
+
+	closeDeleteDialog() {
+		this.deleteDialog = false;
+		this.selectedSurvey = null;
+		this.deleteConfirmSurveyName = '';
+	}
+
 	deleteSurvey() {
-		if (this.selectedSurvey) {
-			this.surveyService.deleteSurvey(this.selectedSurvey.id).subscribe({
-				next: () => {
-					this.refreshCurrentTab();
-					this.deleteDialog = false;
-					this.selectedSurvey = null;
-					this.messageService.add({
-						severity: 'success',
-						summary: 'Success',
-						detail: 'Survey deleted successfully',
-						life: 3000,
-					});
-				},
-				error: (error) => {
-					console.error('Error deleting survey:', error);
-					this.messageService.add({
-						severity: 'error',
-						summary: 'Error',
-						detail: error?.error?.message || 'Failed to delete survey',
-						life: 3000,
-					});
-				},
-			});
-		}
+		if (!this.selectedSurvey || !this.canConfirmDelete) return;
+		this.surveyService.deleteSurvey(this.selectedSurvey.id).subscribe({
+			next: () => {
+				this.refreshCurrentTab();
+				this.closeDeleteDialog();
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: 'Survey deleted successfully',
+					life: 3000,
+				});
+			},
+			error: (error) => {
+				console.error('Error deleting survey:', error);
+				this.messageService.add({
+					severity: 'error',
+					summary: 'Error',
+					detail: error?.error?.message || 'Failed to delete survey',
+					life: 3000,
+				});
+			},
+		});
 	}
 
 	/**
