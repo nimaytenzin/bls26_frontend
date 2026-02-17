@@ -64,7 +64,11 @@
                 }
               ],
               "outputHashing": "all",
-              "optimization": true,
+              "optimization": {
+                "scripts": true,
+                "styles": true,
+                "fonts": false
+              },
               "buildOptimizer": true,
               "aot": true,
               "extractLicenses": true,
