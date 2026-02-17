@@ -55,40 +55,57 @@
 				<div class="flex flex-col items-start gap-1">
 					<label
 						for="dzongkhag-selector"
-						class=" font-medium text-slate-700 whitespace-nowrap"
+						class="font-medium text-slate-700 whitespace-nowrap"
 					>
 						Select Dzongkhag
 					</label>
 					<p-dropdown
 						id="dzongkhag-selector"
 						[(ngModel)]="selectedDzongkhag"
-						[options]="dzongkhags"
-						optionLabel="name"
+						[options]="dzongkhagsSortedByCode"
+						dataKey="id"
 						placeholder="Choose a dzongkhag"
 						styleClass="w-64"
 						(onChange)="onDzongkhagChange()"
 						[showClear]="true"
-					></p-dropdown>
+					>
+						<ng-template let-dzongkhag pTemplate="item">
+							<span>{{ dzongkhag.areaCode }} | {{ dzongkhag.name }}</span>
+						</ng-template>
+						<ng-template let-dzongkhag pTemplate="selectedItem">
+							<span>{{ dzongkhag?.areaCode }} | {{ dzongkhag?.name }}</span>
+						</ng-template>
+					</p-dropdown>
 				</div>
 
 				<div class="flex flex-col items-start gap-1">
 					<label
 						for="administrative-zone-selector"
-						class=" font-medium text-slate-700 whitespace-nowrap"
+						class="font-medium text-slate-700 whitespace-nowrap"
 					>
 						Select Gewog/Thromde
 					</label>
 					<p-dropdown
 						id="administrative-zone-selector"
 						[(ngModel)]="selectedAdministrativeZone"
-						[options]="administrativeZones"
-						optionLabel="name"
+						[options]="groupedAdministrativeZones"
+						[group]="true"
+						optionGroupLabel="label"
+						optionGroupChildren="items"
+						dataKey="id"
 						placeholder="Choose a gewog/thromde"
 						styleClass="w-64"
 						(onChange)="onAdministrativeZoneChange()"
 						[showClear]="true"
 						[disabled]="!selectedDzongkhag"
-					></p-dropdown>
+					>
+						<ng-template let-az pTemplate="item">
+							<span>{{ az.areaCode }} | {{ az.name }}</span>
+						</ng-template>
+						<ng-template let-az pTemplate="selectedItem">
+							<span>{{ az?.areaCode }} | {{ az?.name }}</span>
+						</ng-template>
+					</p-dropdown>
 					<small 
 						*ngIf="selectedDzongkhag && noAdministrativeZones && !loading"
 						class="text-amber-600 text-xs mt-1"

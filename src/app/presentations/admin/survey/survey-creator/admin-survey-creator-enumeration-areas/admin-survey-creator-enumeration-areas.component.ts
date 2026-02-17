@@ -4,29 +4,33 @@ import { FormsModule } from '@angular/forms';
 import { PrimeNgModules } from '../../../../../primeng.modules';
 import { MessageService } from 'primeng/api';
 import { Dzongkhag } from '../../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
-import { AdministrativeZone } from '../../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import {
+	AdministrativeZone,
+	AdministrativeZoneType,
+} from '../../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
 import { SubAdministrativeZone } from '../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
 import { EnumerationArea } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 import { DzongkhagDataService } from '../../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
 import { AdministrativeZoneDataService } from '../../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
 import { SubAdministrativeZoneDataService } from '../../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
 import { EnumerationAreaDataService } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
-import { SurveyEnumerationAreaDataService } from '../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dataservice';
-import { BulkMatchEaResponse } from '../../../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
 import { finalize } from 'rxjs/operators';
+import { AdminSurveyCreatorBulkUploadEaDialogComponent } from '../admin-survey-creator-bulk-upload-ea-dialog/admin-survey-creator-bulk-upload-ea-dialog.component';
 
 @Component({
 	selector: 'app-admin-survey-creator-enumeration-areas',
 	templateUrl: './admin-survey-creator-enumeration-areas.component.html',
 	styleUrls: ['./admin-survey-creator-enumeration-areas.component.css'],
 	standalone: true,
-	imports: [CommonModule, FormsModule, PrimeNgModules],
+	imports: [CommonModule, FormsModule, PrimeNgModules, AdminSurveyCreatorBulkUploadEaDialogComponent],
 	providers: [MessageService],
 })
 export class AdminSurveyCreatorEnumerationAreasComponent implements OnInit {
 	@Input() selectedEAIds: number[] = [];
 	@Output() completed = new EventEmitter<number[]>();
 	@Output() back = new EventEmitter<void>();
+	/** Emitted when user clicks "Proceed to Enumerator upload" in bulk upload dialog (wizard advances to enumerators step). */
+	@Output() proceedToEnumerators = new EventEmitter<void>();
 
 	// Dropdown data
 	dzongkhags: Dzongkhag[] = [];
@@ -48,19 +52,45 @@ export class AdminSurveyCreatorEnumerationAreasComponent implements OnInit {
 
 	// Bulk Upload Dialog
 	showBulkUploadDialog = false;
-	bulkUploadFile: File | null = null;
-	uploading = false;
-	uploadResult: BulkMatchEaResponse | null = null;
-	activeTabIndex = 0; // 0 = Matched, 1 = Unmatched
 
 	constructor(
 		private dzongkhagService: DzongkhagDataService,
 		private adminZoneService: AdministrativeZoneDataService,
 		private subAdminZoneService: SubAdministrativeZoneDataService,
 		private eaService: EnumerationAreaDataService,
-		private surveyEAService: SurveyEnumerationAreaDataService,
 		private messageService: MessageService
 	) {}
+
+	/** Dzongkhags sorted by areaCode ascending for dropdown (display: areaCode | name). */
+	get dzongkhagsSortedByCode(): Dzongkhag[] {
+		return [...(this.dzongkhags || [])].sort((a, b) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
+		);
+	}
+
+	/** Gewog/Thromde grouped by Urban (Thromde) first, then Rural (Gewog), each sorted by areaCode ascending. */
+	get groupedAdministrativeZones(): { label: string; items: AdministrativeZone[] }[] {
+		const thromde = (this.administrativeZones || []).filter(
+			(az) => az.type === AdministrativeZoneType.Thromde
+		);
+		const gewog = (this.administrativeZones || []).filter(
+			(az) => az.type === AdministrativeZoneType.Gewog
+		);
+		const sortByAreaCode = (a: AdministrativeZone, b: AdministrativeZone) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true });
+		const groups: { label: string; items: AdministrativeZone[] }[] = [
+			{ label: 'Urban (Thromde)', items: thromde.slice().sort(sortByAreaCode) },
+			{ label: 'Rural (Gewog)', items: gewog.slice().sort(sortByAreaCode) },
+		];
+		return groups.filter((g) => g.items.length > 0);
+	}
+
+	/** Chiwog/Lap sorted by areaCode ascending for dropdown (display: areaCode | name). */
+	get subAdministrativeZonesSortedByCode(): SubAdministrativeZone[] {
+		return [...(this.subAdministrativeZones || [])].sort((a, b) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
+		);
+	}
 
 	ngOnInit(): void {
 		this.loadDzongkhags();
@@ -251,21 +281,22 @@ export class AdminSurveyCreatorEnumerationAreasComponent implements OnInit {
 	 */
 	openBulkUploadDialog(): void {
 		this.showBulkUploadDialog = true;
-		this.bulkUploadFile = null;
-		this.uploadResult = null;
-		this.uploading = false;
-		this.activeTabIndex = 0;
+	}
+
+	/** When user proceeds from bulk upload dialog to enumerator step, emit so wizard advances. */
+	onProceedToEnumeratorsFromBulk(): void {
+		this.proceedToEnumerators.emit();
 	}
 
 	/**
-	 * Close bulk upload dialog
+	 * Add EAs from bulk upload to selected list (no duplicates)
 	 */
-	closeBulkUploadDialog(): void {
-		this.showBulkUploadDialog = false;
-		this.bulkUploadFile = null;
-		this.uploadResult = null;
-		this.uploading = false;
-		this.activeTabIndex = 0;
+	onBulkUploadMatchedEAs(eas: EnumerationArea[]): void {
+		for (const ea of eas) {
+			if (!this.selectedEAs.find((s) => s.id === ea.id)) {
+				this.selectedEAs.push(ea);
+			}
+		}
 	}
 
 	/**
@@ -276,158 +307,90 @@ export class AdminSurveyCreatorEnumerationAreasComponent implements OnInit {
 	}
 
 	/**
-	 * Get location hierarchy for an EA
+	 * Full hierarchy code: dzongkhag + gewog/thromde + chiwog/lap + EA code (e.g. 13123201).
+	 * Uses current filter selection when available, else EA's subAdministrativeZones.
 	 */
-	getEALocation(ea: EnumerationArea): string {
+	getEAFullCode(ea: EnumerationArea): string {
+		const eaPart = ea.areaCode ?? (ea as any).eaCode ?? '';
+		if (
+			this.selectedDzongkhag &&
+			this.selectedAdminZone &&
+			this.selectedSubAdminZone
+		) {
+			return (
+				(this.selectedDzongkhag.areaCode ?? '') +
+				(this.selectedAdminZone.areaCode ?? '') +
+				(this.selectedSubAdminZone.areaCode ?? '') +
+				eaPart
+			);
+		}
 		if (ea.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
 			const saz = ea.subAdministrativeZones[0];
-			const parts: string[] = [];
-			if (saz.administrativeZone?.dzongkhag?.name) {
-				parts.push(saz.administrativeZone.dzongkhag.name);
-			}
-			if (saz.administrativeZone?.name) {
-				parts.push(saz.administrativeZone.name);
-			}
-			if (saz.name) {
-				parts.push(saz.name);
-			}
-			return parts.join(' > ');
+			const az = saz.administrativeZone;
+			const dz = az?.dzongkhag;
+			return (
+				(dz?.areaCode ?? '') +
+				(az?.areaCode ?? '') +
+				(saz.areaCode ?? '') +
+				eaPart
+			);
 		}
-		return 'N/A';
+		return eaPart || '—';
 	}
 
 	/**
-	 * Handle file selection
+	 * Get location hierarchy for an EA (Dzongkhag | Thromde/Gewog | Chiwog/LAP | EA)
 	 */
-	onBulkFileSelect(event: any): void {
-		const files = event.files;
-		if (files && files.length > 0) {
-			this.bulkUploadFile = files[0];
-			this.uploadResult = null; // Reset previous results
+	getEALocation(ea: EnumerationArea): string {
+		const eaPart = ea.name || (ea.areaCode ?? (ea as any).eaCode ?? 'EA');
+		if (
+			this.selectedDzongkhag &&
+			this.selectedAdminZone &&
+			this.selectedSubAdminZone
+		) {
+			return [
+				this.selectedDzongkhag.name,
+				this.selectedAdminZone.name,
+				this.selectedSubAdminZone.name,
+				eaPart,
+			]
+				.filter(Boolean)
+				.join(' | ');
 		}
+		if (ea.subAdministrativeZones && ea.subAdministrativeZones.length > 0) {
+			const saz = ea.subAdministrativeZones[0];
+			const dz = saz.administrativeZone?.dzongkhag?.name ?? '';
+			const az = saz.administrativeZone?.name ?? '';
+			const sazName = saz.name ?? '';
+			return [dz, az, sazName, eaPart].filter(Boolean).join(' | ');
+		}
+		return eaPart || '—';
 	}
 
-	/**
-	 * Download CSV template
-	 */
-	downloadTemplate(): void {
-		this.surveyEAService.downloadTemplate().subscribe({
-			next: (blob: Blob) => {
-				const url = window.URL.createObjectURL(blob);
-				const link = document.createElement('a');
-				link.href = url;
-				link.download = 'enumeration_area_upload_template.csv';
-				document.body.appendChild(link);
-				link.click();
-				document.body.removeChild(link);
-				window.URL.revokeObjectURL(url);
-				this.messageService.add({
-					severity: 'success',
-					summary: 'Success',
-					detail: 'Template downloaded successfully',
-					life: 3000,
-				});
-			},
-			error: (error) => {
-				console.error('Error downloading template:', error);
-				this.messageService.add({
-					severity: 'error',
-					summary: 'Error',
-					detail: 'Failed to download template',
-					life: 3000,
-				});
-			},
-		});
+	/** Dzongkhag name for EA (for location columns). */
+	getEADzongkhag(ea: EnumerationArea): string {
+		if (this.selectedDzongkhag) return this.selectedDzongkhag.name ?? '—';
+		const saz = ea.subAdministrativeZones?.[0];
+		return saz?.administrativeZone?.dzongkhag?.name ?? '—';
 	}
 
-	/**
-	 * Execute bulk match - call API to validate and match enumeration areas
-	 */
-	executeBulkUpload(): void {
-		if (!this.bulkUploadFile) {
-			this.messageService.add({
-				severity: 'warn',
-				summary: 'No File',
-				detail: 'Please select a file to upload',
-				life: 3000,
-			});
-			return;
-		}
+	/** Thromde/Gewog name for EA (for location columns). */
+	getEAGewogThromde(ea: EnumerationArea): string {
+		if (this.selectedAdminZone) return this.selectedAdminZone.name ?? '—';
+		const saz = ea.subAdministrativeZones?.[0];
+		return saz?.administrativeZone?.name ?? '—';
+	}
 
-		this.uploading = true;
-		this.uploadResult = null;
-		this.activeTabIndex = 0;
+	/** Chiwog/LAP name for EA (for location columns). */
+	getEAChiwogLap(ea: EnumerationArea): string {
+		if (this.selectedSubAdminZone) return this.selectedSubAdminZone.name ?? '—';
+		const saz = ea.subAdministrativeZones?.[0];
+		return saz?.name ?? '—';
+	}
 
-		this.surveyEAService.bulkMatch(this.bulkUploadFile).subscribe({
-			next: (result) => {
-				this.uploadResult = result;
-				this.uploading = false;
-
-				// Add matched EAs to selectedEAs
-				if (result.matched > 0 && result.matchedEnumerationAreaIds.length > 0) {
-					// Load full EA details for matched IDs
-					const loadPromises = result.matchedEnumerationAreaIds.map((eaId) => {
-						return new Promise<void>((resolve) => {
-							this.eaService.findEnumerationAreaById(eaId, false, true).subscribe({
-								next: (fullEA) => {
-									if (!this.selectedEAs.find((selected) => selected.id === fullEA.id)) {
-										this.selectedEAs.push(fullEA);
-									}
-									resolve();
-								},
-								error: () => {
-									// If loading fails, try to create a minimal EA object
-									const minimalEA: EnumerationArea = {
-										id: eaId,
-										name: `EA ${eaId}`,
-										areaCode: '',
-									} as EnumerationArea;
-									if (!this.selectedEAs.find((selected) => selected.id === minimalEA.id)) {
-										this.selectedEAs.push(minimalEA);
-									}
-									resolve();
-								},
-							});
-						});
-					});
-
-					Promise.all(loadPromises).then(() => {
-						this.messageService.add({
-							severity: 'success',
-							summary: 'Success',
-							detail: `Matched ${result.matched} enumeration areas and added to selection`,
-							life: 5000,
-						});
-					});
-				} else {
-					this.messageService.add({
-						severity: 'warn',
-						summary: 'No Matches',
-						detail: 'No enumeration areas were matched. Please check your CSV file.',
-						life: 5000,
-					});
-				}
-
-				// Switch to unmatched tab if there are errors
-				if (result.errors && result.errors.length > 0) {
-					this.activeTabIndex = 1;
-				}
-			},
-			error: (error) => {
-				this.uploading = false;
-				console.error('Error matching enumeration areas:', error);
-				let errorMessage = 'Failed to process CSV file. Please check the format.';
-				if (error.error?.message) {
-					errorMessage = error.error.message;
-				}
-				this.messageService.add({
-					severity: 'error',
-					summary: 'Error',
-					detail: errorMessage,
-					life: 5000,
-				});
-			},
-		});
+	/** EA name/code for display (for location columns). */
+	getEAPart(ea: EnumerationArea): string {
+		return ea.name || (ea.areaCode ?? (ea as any).eaCode ?? '—');
 	}
 
 }

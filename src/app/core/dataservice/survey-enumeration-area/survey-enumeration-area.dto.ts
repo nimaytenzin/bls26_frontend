@@ -133,6 +133,8 @@ export interface BulkMatchMatch {
 	enumerationAreaId: number;
 	enumerationAreaName: string;
 	enumerationAreaCode: string;
+	/** EA description if returned by API */
+	enumerationAreaDescription?: string;
 	subAdminZoneName: string;
 	adminZoneName: string;
 	dzongkhagName: string;

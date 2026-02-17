@@ -27,7 +27,7 @@
 		</div>
 
 		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-			<!-- Dzongkhag Dropdown -->
+			<!-- Dzongkhag Dropdown: areaCode | name, ascending -->
 			<div class="flex flex-col">
 				<label for="dzongkhag" class="text-sm font-medium text-gray-700 mb-2">
 					1. Select Dzongkhag <span class="text-red-500">*</span>
@@ -35,32 +35,26 @@
 				<p-dropdown
 					id="dzongkhag"
 					[(ngModel)]="selectedDzongkhag"
-					[options]="dzongkhags"
-					optionLabel="name"
-					placeholder="Select Dzongkhag"
+					[options]="dzongkhagsSortedByCode"
+					dataKey="id"
+					placeholder="Choose a dzongkhag"
 					[filter]="true"
-					filterBy="name"
+					filterBy="name,areaCode"
 					[showClear]="true"
 					(onChange)="onDzongkhagChange()"
 					[loading]="loadingDzongkhags"
 					styleClass="w-full"
 				>
-					<ng-template pTemplate="selectedItem" let-item>
-						<div *ngIf="item" class="flex items-center gap-2">
-							<i class="pi pi-map-marker text-blue-500"></i>
-							<span>{{ item.name }}</span>
-						</div>
+					<ng-template pTemplate="item" let-dzongkhag>
+						<span>{{ dzongkhag.areaCode }} | {{ dzongkhag.name }}</span>
 					</ng-template>
-					<ng-template pTemplate="item" let-item>
-						<div class="flex items-center gap-2">
-							<i class="pi pi-map-marker text-blue-500"></i>
-							<span>{{ item.name }}</span>
-						</div>
+					<ng-template pTemplate="selectedItem" let-dzongkhag>
+						<span>{{ dzongkhag?.areaCode }} | {{ dzongkhag?.name }}</span>
 					</ng-template>
 				</p-dropdown>
 			</div>
 
-			<!-- Gewog/Thromde Dropdown -->
+			<!-- Gewog/Thromde Dropdown: grouped Urban (Thromde) first, then Rural (Gewog); areaCode | name, ascending -->
 			<div class="flex flex-col">
 				<label for="adminZone" class="text-sm font-medium text-gray-700 mb-2">
 					2. Select Gewog/Thromde <span class="text-red-500">*</span>
@@ -68,33 +62,29 @@
 				<p-dropdown
 					id="adminZone"
 					[(ngModel)]="selectedAdminZone"
-					[options]="administrativeZones"
-					optionLabel="name"
-					placeholder="Select Gewog/Thromde"
+					[options]="groupedAdministrativeZones"
+					[group]="true"
+					optionGroupLabel="label"
+					optionGroupChildren="items"
+					dataKey="id"
+					placeholder="Choose a gewog/thromde"
 					[filter]="true"
-					filterBy="name"
 					[showClear]="true"
 					[disabled]="!selectedDzongkhag"
 					(onChange)="onAdminZoneChange()"
 					[loading]="loadingAdminZones"
 					styleClass="w-full"
 				>
-					<ng-template pTemplate="selectedItem" let-item>
-						<div *ngIf="item" class="flex items-center gap-2">
-							<i class="pi pi-building text-green-500"></i>
-							<span>{{ item.name }}</span>
-						</div>
+					<ng-template pTemplate="item" let-az>
+						<span>{{ az.areaCode }} | {{ az.name }}</span>
 					</ng-template>
-					<ng-template pTemplate="item" let-item>
-						<div class="flex items-center gap-2">
-							<i class="pi pi-building text-green-500"></i>
-							<span>{{ item.name }}</span>
-						</div>
+					<ng-template pTemplate="selectedItem" let-az>
+						<span>{{ az?.areaCode }} | {{ az?.name }}</span>
 					</ng-template>
 				</p-dropdown>
 			</div>
 
-			<!-- Chiwog/Lap Dropdown -->
+			<!-- Chiwog/Lap Dropdown: areaCode | name, ascending -->
 			<div class="flex flex-col">
 				<label
 					for="subAdminZone"
@@ -105,28 +95,22 @@
 				<p-dropdown
 					id="subAdminZone"
 					[(ngModel)]="selectedSubAdminZone"
-					[options]="subAdministrativeZones"
-					optionLabel="name"
-					placeholder="Select Chiwog/Lap"
+					[options]="subAdministrativeZonesSortedByCode"
+					dataKey="id"
+					placeholder="Choose a chiwog/lap"
 					[filter]="true"
-					filterBy="name"
+					filterBy="name,areaCode"
 					[showClear]="true"
 					[disabled]="!selectedAdminZone"
 					(onChange)="onSubAdminZoneChange()"
 					[loading]="loadingSubAdminZones"
 					styleClass="w-full"
 				>
-					<ng-template pTemplate="selectedItem" let-item>
-						<div *ngIf="item" class="flex items-center gap-2">
-							<i class="pi pi-sitemap text-purple-500"></i>
-							<span>{{ item.name }}</span>
-						</div>
+					<ng-template pTemplate="item" let-saz>
+						<span>{{ saz.areaCode }} | {{ saz.name }}</span>
 					</ng-template>
-					<ng-template pTemplate="item" let-item>
-						<div class="flex items-center gap-2">
-							<i class="pi pi-sitemap text-purple-500"></i>
-							<span>{{ item.name }}</span>
-						</div>
+					<ng-template pTemplate="selectedItem" let-saz>
+						<span>{{ saz?.areaCode }} | {{ saz?.name }}</span>
 					</ng-template>
 				</p-dropdown>
 			</div>
@@ -205,12 +189,13 @@
 						<th style="width: 50px">
 							<p-tableHeaderCheckbox></p-tableHeaderCheckbox>
 						</th>
-						<th pSortableColumn="eaCode">
-							EA Code <p-sortIcon field="eaCode"></p-sortIcon>
+						<th pSortableColumn="areaCode">
+							Code <p-sortIcon field="areaCode"></p-sortIcon>
 						</th>
 						<th pSortableColumn="name">
 							Name <p-sortIcon field="name"></p-sortIcon>
 						</th>
+						<th>Description</th>
 					</tr>
 				</ng-template>
 				<ng-template pTemplate="body" let-ea>
@@ -219,16 +204,19 @@
 							<p-tableCheckbox [value]="ea"></p-tableCheckbox>
 						</td>
 						<td>
-							<span class="font-mono text-sm">{{ ea.eaCode }}</span>
+							<span class="font-mono text-sm">{{ getEAFullCode(ea) }}</span>
 						</td>
 						<td>
 							<span class="font-medium">{{ ea.name }}</span>
+						</td>
+						<td>
+							<span class="text-sm text-gray-600">{{ ea.description || '—' }}</span>
 						</td>
 					</tr>
 				</ng-template>
 				<ng-template pTemplate="emptymessage">
 					<tr>
-						<td colspan="3" class="text-center py-8 text-gray-500">
+						<td colspan="4" class="text-center py-8 text-gray-500">
 							No enumeration areas found
 						</td>
 					</tr>
@@ -290,9 +278,13 @@
 						EA Name <p-sortIcon field="name"></p-sortIcon>
 					</th>
 					<th pSortableColumn="areaCode">
-						EA Code <p-sortIcon field="areaCode"></p-sortIcon>
+						Code <p-sortIcon field="areaCode"></p-sortIcon>
 					</th>
-					<th>Location</th>
+					<th>Description</th>
+					<th>Dzongkhag</th>
+					<th>Thromde/Gewog</th>
+					<th>Chiwog/LAP</th>
+					<th>EA</th>
 					<th style="width: 80px">Action</th>
 				</tr>
 			</ng-template>
@@ -302,10 +294,22 @@
 						<span class="font-medium">{{ ea.name }}</span>
 					</td>
 					<td>
-						<span class="font-mono text-sm">{{ ea.areaCode }}</span>
+						<span class="font-mono text-sm">{{ getEAFullCode(ea) }}</span>
 					</td>
 					<td>
-						<span class="text-sm text-gray-600">{{ getEALocation(ea) }}</span>
+						<span class="text-sm text-gray-600">{{ ea.description || '—' }}</span>
+					</td>
+					<td>
+						<span class="text-sm text-gray-600">{{ getEADzongkhag(ea) }}</span>
+					</td>
+					<td>
+						<span class="text-sm text-gray-600">{{ getEAGewogThromde(ea) }}</span>
+					</td>
+					<td>
+						<span class="text-sm text-gray-600">{{ getEAChiwogLap(ea) }}</span>
+					</td>
+					<td>
+						<span class="text-sm text-gray-600">{{ getEAPart(ea) }}</span>
 					</td>
 					<td>
 						<button
@@ -321,7 +325,7 @@
 			</ng-template>
 			<ng-template pTemplate="emptymessage">
 				<tr>
-					<td colspan="4" class="text-center py-8 text-gray-500">
+					<td colspan="8" class="text-center py-8 text-gray-500">
 						No enumeration areas selected
 					</td>
 				</tr>
@@ -349,297 +353,10 @@
 	<!-- Toast Messages -->
 	<p-toast position="top-right"></p-toast>
 
-	<!-- Bulk Upload Dialog -->
-	<p-dialog
+	<!-- Bulk Upload Dialog (separate component, larger on open) -->
+	<app-admin-survey-creator-bulk-upload-ea-dialog
 		[(visible)]="showBulkUploadDialog"
-		[modal]="true"
-		[closable]="true"
-		[maximizable]="true"
-		header="Bulk Upload Enumeration Areas"
-		(close)="closeBulkUploadDialog()"
-		[style]="{ width: '32rem' }"
-	>
-		<div class="space-y-4">
-			<!-- Instructions -->
-			<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-				<div class="flex items-start gap-2">
-					<i class="pi pi-info-circle text-gray-600 mt-0.5"></i>
-					<div class="text-sm text-gray-700">
-						<p class="font-semibold mb-2">How to use bulk upload:</p>
-						<ol class="list-decimal list-inside space-y-1 ml-2">
-							<li>Download the CSV template</li>
-							<li>Fill in the enumeration area codes (Dzongkhag, Gewog/Thromde, Chiwog/Lap, Enumeration Code)</li>
-							<li>Upload the completed CSV file</li>
-							<li>Review the results below</li>
-						</ol>
-					</div>
-				</div>
-			</div>
-
-			<!-- Template Download -->
-			<div
-				class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
-			>
-				<div>
-					<span class="text-sm font-semibold text-gray-700 block">CSV Template</span>
-					<span class="text-xs text-gray-500">Download the template file to get started</span>
-				</div>
-				<button
-					type="button"
-					(click)="downloadTemplate()"
-					class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-semibold flex items-center gap-2"
-				>
-					<i class="pi pi-download"></i>
-					Download Template
-				</button>
-			</div>
-
-			<!-- File Upload -->
-			<div>
-				<label class="text-sm font-semibold text-gray-700 mb-2 block"
-					>Upload CSV File</label
-				>
-				<p-fileUpload
-					#fileUpload
-					mode="basic"
-					chooseLabel="Select CSV File"
-					accept=".csv"
-					[maxFileSize]="10000000"
-					(onSelect)="onBulkFileSelect($event)"
-					[auto]="false"
-					[showUploadButton]="false"
-					[showCancelButton]="false"
-					[disabled]="uploading"
-				></p-fileUpload>
-				<p class="text-xs text-gray-500 mt-1">Maximum file size: 10MB</p>
-			</div>
-
-			<!-- File Info -->
-			<div
-				*ngIf="bulkUploadFile"
-				class="flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-200"
-			>
-				<i class="pi pi-file text-gray-600"></i>
-				<span class="text-sm text-gray-700 font-medium">{{ bulkUploadFile.name }}</span>
-				<span class="text-xs text-gray-500 ml-auto">
-					{{ (bulkUploadFile.size / 1024).toFixed(2) }} KB
-				</span>
-			</div>
-
-			<!-- Loading State -->
-			<div *ngIf="uploading" class="flex items-center justify-center py-6">
-				<div class="flex flex-col items-center gap-3">
-					<p-progressSpinner styleClass="w-10 h-10"></p-progressSpinner>
-					<p class="text-sm text-gray-600">Processing file...</p>
-				</div>
-			</div>
-
-			<!-- Upload Results -->
-			<div *ngIf="uploadResult && !uploading" class="space-y-4">
-				<div class="border-t border-gray-200 pt-4">
-					<h4 class="text-sm font-semibold text-gray-700 mb-3">Upload Results</h4>
-					
-					<!-- Statistics Grid -->
-					<div class="grid grid-cols-3 gap-3 mb-4">
-						<div class="bg-white border border-gray-200 rounded-lg p-3">
-							<p class="text-xs text-gray-500 mb-1">Total Rows</p>
-							<p class="text-xl font-bold text-gray-900">
-								{{ uploadResult.totalRows }}
-							</p>
-						</div>
-						<div class="bg-white border border-gray-200 rounded-lg p-3">
-							<p class="text-xs text-gray-500 mb-1">Matched</p>
-							<p class="text-xl font-bold" style="color: #1A58AF;">
-								{{ uploadResult.matched }}
-							</p>
-						</div>
-						<div class="bg-white border border-gray-200 rounded-lg p-3">
-							<p class="text-xs text-gray-500 mb-1">Failed</p>
-							<p class="text-xl font-bold text-red-600">
-								{{ uploadResult.failed }}
-							</p>
-						</div>
-					</div>
-
-					<!-- Tabs -->
-					<p-tabView [(activeIndex)]="activeTabIndex" styleClass="mt-4">
-						<p-tabPanel>
-							<ng-template pTemplate="header">
-								<span>Matched</span>
-								<span *ngIf="uploadResult.matches && uploadResult.matches.length > 0" class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-									{{ uploadResult.matches.length }}
-								</span>
-							</ng-template>
-							<div *ngIf="uploadResult.matches && uploadResult.matches.length > 0">
-								<p class="text-sm text-gray-600 mb-3">
-									{{ uploadResult.matches.length }} enumeration area(s) matched successfully
-								</p>
-								<div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-									<div class="max-h-96 overflow-y-auto">
-										<p-table
-											[value]="uploadResult.matches"
-											[rows]="10"
-											[paginator]="true"
-											[rowsPerPageOptions]="[10, 25, 50]"
-											styleClass="p-datatable-sm"
-											responsiveLayout="scroll"
-										>
-											<ng-template pTemplate="header">
-												<tr>
-													<th pSortableColumn="row">
-														Row <p-sortIcon field="row"></p-sortIcon>
-													</th>
-													<th pSortableColumn="enumerationAreaName">
-														EA Name <p-sortIcon field="enumerationAreaName"></p-sortIcon>
-													</th>
-													<th pSortableColumn="enumerationAreaCode">
-														EA Code <p-sortIcon field="enumerationAreaCode"></p-sortIcon>
-													</th>
-													<th>Location</th>
-													<th>Codes</th>
-												</tr>
-											</ng-template>
-											<ng-template pTemplate="body" let-match>
-												<tr>
-													<td>
-														<span class="text-sm text-gray-600">{{ match.row }}</span>
-													</td>
-													<td>
-														<span class="font-medium text-sm">{{ match.enumerationAreaName }}</span>
-													</td>
-													<td>
-														<span class="font-mono text-xs">{{ match.enumerationAreaCode }}</span>
-													</td>
-													<td>
-														<div class="text-xs text-gray-600">
-															<div>{{ match.dzongkhagName }}</div>
-															<div class="text-gray-500">{{ match.adminZoneName }} > {{ match.subAdminZoneName }}</div>
-														</div>
-													</td>
-													<td>
-														<div class="text-xs font-mono text-gray-500">
-															<div>D: {{ match.codes.dzongkhagCode }}</div>
-															<div>A: {{ match.codes.adminZoneCode }}</div>
-															<div>S: {{ match.codes.subAdminZoneCode }}</div>
-															<div>E: {{ match.codes.enumerationCode }}</div>
-														</div>
-													</td>
-												</tr>
-											</ng-template>
-											<ng-template pTemplate="emptymessage">
-												<tr>
-													<td colspan="5" class="text-center py-8 text-gray-500">
-														No matches found
-													</td>
-												</tr>
-											</ng-template>
-										</p-table>
-									</div>
-								</div>
-							</div>
-							<div *ngIf="!uploadResult.matches || uploadResult.matches.length === 0" class="text-center py-8 text-gray-500">
-								<i class="pi pi-info-circle text-2xl mb-2"></i>
-								<p>No enumeration areas were matched</p>
-							</div>
-						</p-tabPanel>
-						<p-tabPanel>
-							<ng-template pTemplate="header">
-								<span>Unmatched</span>
-								<span *ngIf="uploadResult.errors && uploadResult.errors.length > 0" class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
-									{{ uploadResult.errors.length }}
-								</span>
-							</ng-template>
-							<div *ngIf="uploadResult.errors && uploadResult.errors.length > 0">
-								<p class="text-sm text-gray-600 mb-3">
-									{{ uploadResult.errors.length }} row(s) failed to match
-								</p>
-								<div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-									<div class="max-h-96 overflow-y-auto">
-										<p-table
-											[value]="uploadResult.errors"
-											[rows]="10"
-											[paginator]="true"
-											[rowsPerPageOptions]="[10, 25, 50]"
-											styleClass="p-datatable-sm"
-											responsiveLayout="scroll"
-										>
-											<ng-template pTemplate="header">
-												<tr>
-													<th pSortableColumn="row">
-														Row <p-sortIcon field="row"></p-sortIcon>
-													</th>
-													<th>Dzongkhag Code</th>
-													<th>Gewog/Thromde Code</th>
-													<th>Chiwog/Lap Code</th>
-													<th>EA Code</th>
-													<th pSortableColumn="error">
-														Error <p-sortIcon field="error"></p-sortIcon>
-													</th>
-												</tr>
-											</ng-template>
-											<ng-template pTemplate="body" let-error>
-												<tr>
-													<td>
-														<span class="text-sm text-gray-600">{{ error.row }}</span>
-													</td>
-													<td>
-														<span class="font-mono text-xs text-gray-600">{{ error.dzongkhagCode || '-' }}</span>
-													</td>
-													<td>
-														<span class="font-mono text-xs text-gray-600">{{ error.gewogThromdeCode || '-' }}</span>
-													</td>
-													<td>
-														<span class="font-mono text-xs text-gray-600">{{ error.chiwogLapCode || '-' }}</span>
-													</td>
-													<td>
-														<span class="font-mono text-xs text-gray-600">{{ error.eaCode || '-' }}</span>
-													</td>
-													<td>
-														<span class="text-sm text-red-600">{{ error.error }}</span>
-													</td>
-												</tr>
-											</ng-template>
-											<ng-template pTemplate="emptymessage">
-												<tr>
-													<td colspan="6" class="text-center py-8 text-gray-500">
-														No errors found
-													</td>
-												</tr>
-											</ng-template>
-										</p-table>
-									</div>
-								</div>
-							</div>
-							<div *ngIf="!uploadResult.errors || uploadResult.errors.length === 0" class="text-center py-8 text-gray-500">
-								<i class="pi pi-check-circle text-2xl mb-2 text-green-500"></i>
-								<p>All rows matched successfully</p>
-							</div>
-						</p-tabPanel>
-					</p-tabView>
-				</div>
-			</div>
-		</div>
-
-		<ng-template pTemplate="footer">
-			<button
-				type="button"
-				(click)="closeBulkUploadDialog()"
-				class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-semibold"
-				[disabled]="uploading"
-			>
-				{{ uploadResult ? 'Close' : 'Cancel' }}
-			</button>
-			<button
-				type="button"
-				(click)="executeBulkUpload()"
-				class="px-4 py-2 text-white rounded-lg transition-colors text-sm font-semibold flex items-center gap-2"
-				style="background-color: #1A58AF;"
-				[disabled]="!bulkUploadFile || uploading"
-			>
-				<i class="pi pi-upload" *ngIf="!uploading"></i>
-				<p-progressSpinner *ngIf="uploading" styleClass="w-4 h-4" strokeWidth="4"></p-progressSpinner>
-				{{ uploading ? 'Processing...' : 'Process CSV' }}
-			</button>
-		</ng-template>
-	</p-dialog>
+		(matchedEAsAdded)="onBulkUploadMatchedEAs($event)"
+		(proceedToEnumerators)="onProceedToEnumeratorsFromBulk()"
+	></app-admin-survey-creator-bulk-upload-ea-dialog>
 </div>

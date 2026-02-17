@@ -26,7 +26,10 @@ import {
 	SubAdministrativeZoneType,
 	BulkUploadResponse,
 } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
-import { AdministrativeZone } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
+import {
+	AdministrativeZone,
+	AdministrativeZoneType,
+} from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
 import { Dzongkhag } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
 import { PrimeNgModules } from '../../../../primeng.modules';
 import { Table } from 'primeng/table';
@@ -147,9 +150,33 @@ export class AdminMasterSubAdministrativeZonesComponent
 			administrativeZoneId: ['', [Validators.required]],
 			type: ['', [Validators.required]],
 		});
-		
+
 		// Initialize basemap categories
 		this.basemapCategories = this.basemapService.getBasemapCategories();
+	}
+
+	/** Dzongkhag options sorted by areaCode ascending for dropdown (display: areaCode | name). */
+	get dzongkhagsSortedByCode(): Dzongkhag[] {
+		return [...(this.dzongkhags || [])].sort((a, b) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
+		);
+	}
+
+	/** Gewog/Thromde options grouped by Urban (Thromde) first, then Rural (Gewog), each sorted by areaCode ascending. */
+	get groupedAdministrativeZones(): { label: string; items: AdministrativeZone[] }[] {
+		const thromde = (this.administrativeZones || []).filter(
+			(az) => az.type === AdministrativeZoneType.Thromde
+		);
+		const gewog = (this.administrativeZones || []).filter(
+			(az) => az.type === AdministrativeZoneType.Gewog
+		);
+		const sortByAreaCode = (a: AdministrativeZone, b: AdministrativeZone) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true });
+		const groups: { label: string; items: AdministrativeZone[] }[] = [
+			{ label: 'Urban (Thromde)', items: thromde.slice().sort(sortByAreaCode) },
+			{ label: 'Rural (Gewog)', items: gewog.slice().sort(sortByAreaCode) },
+		];
+		return groups.filter((g) => g.items.length > 0);
 	}
 
 	ngOnInit() {

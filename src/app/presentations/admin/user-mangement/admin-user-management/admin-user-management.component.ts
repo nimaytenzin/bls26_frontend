@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PrimeNgModules } from '../../../../primeng.modules';
@@ -75,8 +75,63 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 		private authService: AuthService,
 		private messageService: MessageService,
 		private confirmationService: ConfirmationService,
-		private dialogService: DialogService
+		private dialogService: DialogService,
+		private cdr: ChangeDetectorRef
 	) {}
+
+	/** Defer child loading/count updates to next tick to avoid NG0100 ExpressionChangedAfterItHasBeenCheckedError */
+	private deferUpdate(fn: () => void): void {
+		setTimeout(fn, 0);
+	}
+
+	onLoadingAdminsChange(value: boolean): void {
+		this.deferUpdate(() => {
+			this.loadingAdmins = value;
+			this.cdr.markForCheck();
+		});
+	}
+	onLoadingSupervisorsChange(value: boolean): void {
+		this.deferUpdate(() => {
+			this.loadingSupervisors = value;
+			this.cdr.markForCheck();
+		});
+	}
+	onLoadingEnumeratorsChange(value: boolean): void {
+		this.deferUpdate(() => {
+			this.loadingEnumerators = value;
+			this.cdr.markForCheck();
+		});
+	}
+	onLoadingGeneralUsersChange(value: boolean): void {
+		this.deferUpdate(() => {
+			this.loadingGeneralUsers = value;
+			this.cdr.markForCheck();
+		});
+	}
+	onAdminsCountChange(value: number): void {
+		this.deferUpdate(() => {
+			this.adminsCount = value;
+			this.cdr.markForCheck();
+		});
+	}
+	onSupervisorsCountChange(value: number): void {
+		this.deferUpdate(() => {
+			this.supervisorsCount = value;
+			this.cdr.markForCheck();
+		});
+	}
+	onEnumeratorsCountChange(value: number): void {
+		this.deferUpdate(() => {
+			this.enumeratorsCount = value;
+			this.cdr.markForCheck();
+		});
+	}
+	onGeneralUsersCountChange(value: number): void {
+		this.deferUpdate(() => {
+			this.generalUsersCount = value;
+			this.cdr.markForCheck();
+		});
+	}
 
 	ngOnInit(): void {
 		this.loadAllUsers();

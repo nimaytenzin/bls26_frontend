@@ -134,6 +134,13 @@ export class AdminMasterAdministrativeZonesComponent
 		this.basemapCategories = this.basemapService.getBasemapCategories();
 	}
 
+	/** Dzongkhag options sorted by areaCode ascending for dropdown (display: areaCode | name). */
+	get dzongkhagsSortedByCode(): Dzongkhag[] {
+		return [...(this.dzongkhags || [])].sort((a, b) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
+		);
+	}
+
 	ngOnInit() {
 		// Restore selections from service
 		const savedDzongkhag = this.locationSelectionService.getSelectedDzongkhag();
