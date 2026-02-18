@@ -1,0 +1,237 @@
+<p-toast></p-toast>
+
+<div class="min-h-[calc(100vh-5rem)] bg-slate-50 flex flex-col">
+	<!-- Header -->
+	<div class="flex-shrink-0 p-6 border-b border-slate-200 bg-white">
+		<h1 class="text-2xl font-semibold text-slate-900">Survey Data Upload</h1>
+		<p class="text-sm text-slate-600 mt-1">
+			Create a new survey and upload a CSV of sampled EAs with household counts 
+		</p>
+	</div>
+
+	<div class="flex-1 overflow-auto p-6">
+		<div class="max-w-3xl mx-auto space-y-6">
+			<!-- Create Survey with Household Upload (Process B) -->
+			<div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+				<div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+					<h2 class="text-lg font-semibold text-slate-800">
+						Create Survey with Household Upload (Process B)
+					</h2>
+					<p class="text-sm text-slate-600 mt-0.5">
+						Create a new survey and upload a CSV of sampled enumeration areas (EAs) with household counts. The system creates the survey, then for each row creates a Survey EA and dummy structures plus household listings.
+					</p>
+				</div>
+
+				<div class="p-6 space-y-6">
+					<!-- Survey details -->
+					<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+						<div class="sm:col-span-2">
+							<label for="name" class="block text-sm font-medium text-slate-700 mb-1">Survey name <span class="text-red-500">*</span></label>
+							<input
+								id="name"
+								type="text"
+								[(ngModel)]="name"
+								class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+								placeholder="e.g. HCES 2025"
+							/>
+						</div>
+						<div class="sm:col-span-2">
+							<label for="description" class="block text-sm font-medium text-slate-700 mb-1">Description <span class="text-red-500">*</span></label>
+							<textarea
+								id="description"
+								[(ngModel)]="description"
+								rows="2"
+								class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+								placeholder="e.g. Household Consumption and Expenditure Survey 2025"
+							></textarea>
+						</div>
+						<div>
+							<label for="startDate" class="block text-sm font-medium text-slate-700 mb-1">Start date <span class="text-red-500">*</span></label>
+							<p-calendar
+								id="startDate"
+								[(ngModel)]="startDate"
+								dateFormat="yy-mm-dd"
+								[showIcon]="true"
+								styleClass="w-full"
+								inputStyleClass="w-full rounded-lg border border-slate-300"
+								placeholder="YYYY-MM-DD"
+							></p-calendar>
+						</div>
+						<div>
+							<label for="endDate" class="block text-sm font-medium text-slate-700 mb-1">End date <span class="text-red-500">*</span></label>
+							<p-calendar
+								id="endDate"
+								[(ngModel)]="endDate"
+								dateFormat="yy-mm-dd"
+								[showIcon]="true"
+								styleClass="w-full"
+								inputStyleClass="w-full rounded-lg border border-slate-300"
+								placeholder="YYYY-MM-DD"
+							></p-calendar>
+						</div>
+						<div>
+							<label for="year" class="block text-sm font-medium text-slate-700 mb-1">Year <span class="text-red-500">*</span></label>
+							<p-inputNumber
+								id="year"
+								[(ngModel)]="year"
+								[min]="1900"
+								[max]="2100"
+								placeholder="e.g. 2025"
+								styleClass="w-full"
+								inputStyleClass="w-full rounded-lg border border-slate-300"
+							></p-inputNumber>
+						</div>
+						<div>
+							<label for="status" class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+							<p-dropdown
+								id="status"
+								[options]="[{ label: 'Active', value: SurveyStatus.ACTIVE }, { label: 'Ended', value: SurveyStatus.ENDED }]"
+								[(ngModel)]="status"
+								optionLabel="label"
+								optionValue="value"
+								styleClass="w-full"
+							></p-dropdown>
+						</div>
+						<div class="sm:col-span-2 flex flex-wrap gap-6">
+							<label class="inline-flex items-center gap-2 cursor-pointer">
+								<p-checkbox [(ngModel)]="isSubmitted" [binary]="true" inputId="isSubmitted"></p-checkbox>
+								<span class="text-sm text-slate-700">Is submitted</span>
+							</label>
+							<label class="inline-flex items-center gap-2 cursor-pointer">
+								<p-checkbox [(ngModel)]="isVerified" [binary]="true" inputId="isVerified"></p-checkbox>
+								<span class="text-sm text-slate-700">Is verified</span>
+							</label>
+						</div>
+					</div>
+
+					<!-- CSV upload -->
+					<div class="border-t border-slate-200 pt-6">
+						<label class="block text-sm font-medium text-slate-700 mb-2">CSV file <span class="text-red-500">*</span></label>
+						<div class="flex flex-wrap items-center gap-4">
+							<p-fileUpload
+								#csvFileUpload
+								name="file"
+								mode="advanced"
+								[customUpload]="true"
+								[auto]="false"
+								[maxFileSize]="10000000"
+								accept=".csv,text/csv"
+								[showUploadButton]="false"
+								[showCancelButton]="true"
+								chooseLabel="Choose CSV"
+								cancelLabel="Clear"
+								[disabled]="submitting"
+								(onSelect)="onCsvFileSelected($event)"
+								(onRemove)="onCsvFileRemoved()"
+							></p-fileUpload>
+							<div class="flex items-center gap-2">
+								<button
+									type="button"
+									class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
+									[disabled]="downloadingTemplate"
+									(click)="downloadTemplate()"
+								>
+									<i class="pi" [ngClass]="downloadingTemplate ? 'pi-spin pi-spinner' : 'pi-download'"></i>
+									{{ downloadingTemplate ? 'Downloading...' : 'Download Excel template' }}
+								</button>
+							</div>
+						</div>
+						<p class="text-xs text-slate-500 mt-2">
+							Use the Excel template for correct headers. Max 10 MB.
+						</p>
+					</div>
+
+					<!-- Submit -->
+					<div class="flex flex-wrap gap-3 border-t border-slate-200 pt-6">
+						<button
+							type="button"
+							class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
+							[disabled]="submitting"
+							(click)="createSurveyWithHouseholdUpload()"
+						>
+							<i class="pi" [ngClass]="submitting ? 'pi-spin pi-spinner' : 'pi-upload'"></i>
+							{{ submitting ? 'Creating...' : 'Create Survey & Upload CSV' }}
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Result dialog: success or parse errors -->
+<p-dialog
+	[(visible)]="showResultDialog"
+	[modal]="true"
+	[closable]="true"
+	[style]="{ width: 'min(90vw, 520px)' }"
+	[contentStyle]="{ overflow: 'auto' }"
+	(onHide)="closeResultDialog()"
+>
+	@if (lastResponse) {
+		@if (lastResponse.survey && lastResponse.bulkResult) {
+			<!-- Success -->
+			<div class="flex items-center gap-3 mb-4">
+				<div class="flex-shrink-0 w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
+					<i class="pi pi-check text-emerald-600 text-xl"></i>
+				</div>
+				<div>
+					<h3 class="text-lg font-semibold text-slate-900 m-0">Survey created</h3>
+					<p class="text-sm text-slate-600 m-0">Upload completed successfully.</p>
+				</div>
+			</div>
+			<div class="rounded-lg border border-slate-200 bg-slate-50/50 p-4 mb-4">
+				<h4 class="text-sm font-semibold text-slate-700 mb-2">Created survey</h4>
+				<dl class="grid grid-cols-2 gap-2 text-sm">
+					<div><dt class="text-slate-500">ID</dt><dd class="font-medium text-slate-900">{{ lastResponse.survey.id }}</dd></div>
+					<div><dt class="text-slate-500">Name</dt><dd class="font-medium text-slate-900">{{ lastResponse.survey.name }}</dd></div>
+					<div><dt class="text-slate-500">Year</dt><dd class="font-medium text-slate-900">{{ lastResponse.survey.year }}</dd></div>
+					<div><dt class="text-slate-500">Status</dt><dd class="font-medium text-slate-900">{{ lastResponse.survey.status }}</dd></div>
+				</dl>
+			</div>
+			<div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+				<h4 class="text-sm font-semibold text-emerald-800 mb-2">Bulk upload result</h4>
+				<dl class="grid grid-cols-2 gap-2 text-sm">
+					<div><dt class="text-emerald-700">Total items</dt><dd class="font-medium text-emerald-900">{{ lastResponse.bulkResult.totalItems }}</dd></div>
+					<div><dt class="text-emerald-700">Created</dt><dd class="font-medium text-emerald-900">{{ lastResponse.bulkResult.created }}</dd></div>
+					<div><dt class="text-emerald-700">Skipped</dt><dd class="font-medium text-emerald-900">{{ lastResponse.bulkResult.skipped }}</dd></div>
+					<div><dt class="text-emerald-700">Household listings</dt><dd class="font-medium text-emerald-900">{{ lastResponse.bulkResult.householdListingsCreated }}</dd></div>
+				</dl>
+				@if (lastResponse.bulkResult.errors.length) {
+					<ul class="list-disc pl-5 mt-2 text-sm text-emerald-800 space-y-0.5">
+						@for (e of lastResponse.bulkResult.errors; track e.reason + e.enumerationAreaId) {
+							<li>{{ e.reason }}</li>
+						}
+					</ul>
+				}
+			</div>
+		} @else {
+			<!-- Parse errors (nothing created) -->
+			<div class="flex items-center gap-3 mb-4">
+				<div class="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+					<i class="pi pi-times text-red-600 text-xl"></i>
+				</div>
+				<div>
+					<h3 class="text-lg font-semibold text-slate-900 m-0">Nothing was created</h3>
+					<p class="text-sm text-slate-600 m-0">Validation or processing failed. Fix the errors below and try again.</p>
+				</div>
+			</div>
+			@if (lastResponse.parseErrors.length) {
+				<div class="rounded-lg border border-red-200 bg-red-50 p-4">
+					<h4 class="text-sm font-semibold text-red-800 mb-2">Parse errors ({{ lastResponse.parseErrors.length }})</h4>
+					<p class="text-xs text-red-700 mb-2">Each row explains why the request was rejected.</p>
+					<ul class="list-disc pl-5 space-y-1 text-sm text-red-800 max-h-[min(50vh, 20rem)] overflow-y-auto pr-2 break-words">
+						@for (err of lastResponse.parseErrors; track err.row + err.reason) {
+							<li class="break-words">
+								<span class="font-medium">Row {{ err.row }}:</span> {{ err.reason }}
+							</li>
+						}
+					</ul>
+				</div>
+			}
+		}
+	}
+	<ng-template pTemplate="footer">
+		<p-button label="Close" severity="secondary" (click)="closeResultDialog()"></p-button>
+	</ng-template>
+</p-dialog>

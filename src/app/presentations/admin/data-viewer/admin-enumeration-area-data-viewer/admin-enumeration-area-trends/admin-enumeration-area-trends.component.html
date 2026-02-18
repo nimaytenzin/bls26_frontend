@@ -3,30 +3,102 @@
 	<div class="flex items-center justify-between mb-4">
 		<div>
 			<h3 class="text-lg font-semibold text-gray-800 m-0 mb-1">
-				Annual Statistics History
+				Enumeration Area Trends
 			</h3>
 			<div
 				class="flex items-center gap-4 text-base text-gray-600"
-				*ngIf="!loading && statistics"
+				*ngIf="!loading && surveyStatistics"
 			>
-				<span>{{ statistics.totalYears }} Records</span>
-				<span *ngIf="statistics.firstYear !== statistics.lastYear">
-					{{ statistics.firstYear }} - {{ statistics.lastYear }}
+				<span>{{ surveyStatistics.totalRecords }} Survey Records</span>
+				<span *ngIf="surveyStatistics.firstYear !== surveyStatistics.lastYear">
+					{{ surveyStatistics.firstYear }} - {{ surveyStatistics.lastYear }}
 				</span>
-				<span class="flex items-center gap-1" [ngClass]="getTrendColor()">
-					<i [class]="'pi ' + getTrendIcon()"></i>
-					{{ getTrendLabel() }}
+				<span class="flex items-center gap-1" [ngClass]="getSurveyTrendColor()">
+					<i [class]="'pi ' + getSurveyTrendIcon()"></i>
+					{{ getSurveyTrendLabel() }}
 				</span>
 			</div>
 		</div>
-		<div class="flex gap-2">
-			<p-button
-				label="Add Record"
-				icon="pi pi-plus"
-				size="small"
-				severity="primary"
-				(click)="addHistoricalRecord()"
-			></p-button>
+		
+	</div>
+
+	<!-- Past survey details (surveys with household count for this EA) -->
+	<div class="mb-6">
+		<div class="bg-white rounded-lg border">
+			<div class="px-4 py-3 border-b">
+				<h4 class="text-base font-semibold text-gray-800 m-0">
+					Past survey details
+				</h4>
+				<p class="text-sm text-gray-500 mt-0.5 m-0">
+					Surveys that include this enumeration area, with household count. Ordered by start date (latest first).
+				</p>
+			</div>
+			<div class="p-4">
+				<div *ngIf="loading" class="text-center py-4">
+					<i class="pi pi-spin pi-spinner text-xl text-blue-500"></i>
+					<span class="text-gray-600 text-sm ml-2">Loading...</span>
+				</div>
+				<div *ngIf="!loading && pastSurveys.length === 0" class="text-center py-6 text-gray-500 text-base">
+					<i class="pi pi-inbox block text-3xl mb-2"></i>
+					No surveys include this enumeration area.
+				</div>
+				<p-table
+					*ngIf="!loading && pastSurveys.length > 0"
+					[value]="pastSurveys"
+					styleClass="p-datatable-sm"
+					[paginator]="pastSurveys.length > 10"
+					[rows]="10"
+					[showCurrentPageReport]="true"
+					currentPageReportTemplate="Showing {first} to {last} of {totalRecords} surveys"
+				>
+					<ng-template pTemplate="header">
+						<tr>
+							<th>Survey</th>
+							<th>Year</th>
+							<th>Month</th>
+							<th>Status</th>
+							<th class="text-right">Household count</th>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="body" let-item>
+						<tr>
+							<td>
+								<div class="font-medium text-gray-900">{{ item.survey.name }}</div>
+								<div class="text-xs text-gray-500" *ngIf="item.survey.description">{{ item.survey.description }}</div>
+							</td>
+							<td>{{ item.survey.year }}</td>
+							<td>{{ item.survey.startDate | date:'MMM' }}</td>
+ 							<td>
+								<span
+									class="px-2 py-0.5 rounded text-xs font-medium"
+									[ngClass]="{
+										'bg-green-100 text-green-800': item.survey.status === 'ACTIVE',
+										'bg-gray-100 text-gray-700': item.survey.status === 'ENDED'
+									}"
+								>
+									{{ item.survey.status }}
+								</span>
+							</td>
+							<td class="text-right font-semibold text-blue-600">{{ item.householdCount }}</td>
+						</tr>
+					</ng-template>
+				</p-table>
+
+				<!-- Survey household count trend (line chart) -->
+				<div *ngIf="!loading && surveyTrendChartData" class="mt-6 pt-4 border-t border-gray-200">
+					<h4 class="text-base font-semibold text-gray-800 mb-4">
+						Survey household count trend
+					</h4>
+					<div style="height: max-content">
+						<p-chart
+							type="line"
+							[data]="surveyTrendChartData"
+							[options]="surveyTrendChartOptions"
+							[responsive]="true"
+						></p-chart>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 
@@ -54,7 +126,7 @@
 	<!-- Historical Data Display -->
 	<div *ngIf="!loading && annualStats.length > 0">
 		<!-- Statistics Cards -->
-		<div class="grid grid-cols-2 gap-4 mb-6">
+		<!-- <div class="grid grid-cols-2 gap-4 mb-6">
 			<div class="bg-green-50 rounded-lg p-3">
 				<div class="text-green-600 text-base font-medium">
 					Average Households
@@ -73,12 +145,12 @@
 					{{ getTrendLabel() }}
 				</div>
 			</div>
-		</div>
+		</div> -->
 
 		<!-- Chart Section - Two Charts Side by Side -->
 		<div class="flex flex-col">
 			<!-- Household Count Chart -->
-			<div *ngIf="householdChartData">
+			<!-- <div *ngIf="householdChartData">
 				<h4 class="text-base font-semibold text-gray-800 mb-4">
 					Household Count Trend
 				</h4>
@@ -90,10 +162,10 @@
 						[responsive]="true"
 					></p-chart>
 				</div>
-			</div>
+			</div> -->
 
 			<!-- Population Chart -->
-			<div *ngIf="populationChartData">
+			<!-- <div *ngIf="populationChartData">
 				<h4 class="text-base font-semibold text-gray-800 mb-4">
 					Population Trend
 				</h4>
@@ -105,11 +177,11 @@
 						[responsive]="true"
 					></p-chart>
 				</div>
-			</div>
+			</div> -->
 		</div>
 
 		<!-- Data Table -->
-		<div class="bg-white rounded-lg border">
+		<!-- <div class="bg-white rounded-lg border">
 			<div class="px-4 py-3 border-b">
 				<h4 class="text-base font-semibold text-gray-800 m-0">
 					Annual Statistics Records
@@ -212,7 +284,7 @@
 					</tr>
 				</ng-template>
 			</p-table>
-		</div>
+		</div> -->
 	</div>
 
 	<!-- Add Historical Record Dialog -->

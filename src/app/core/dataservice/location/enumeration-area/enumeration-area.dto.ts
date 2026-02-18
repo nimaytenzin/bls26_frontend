@@ -339,3 +339,25 @@ export interface PaginatedResponse<T> {
 	data: T[];
 	meta: PaginationMeta;
 }
+
+/**
+ * Survey summary returned by GET /enumeration-area/:id/surveys-with-household-count
+ */
+export interface SurveySummaryForEA {
+	id: number;
+	name: string;
+	description: string;
+	startDate: string;
+	endDate: string;
+	year: number;
+	status: string;
+}
+
+/**
+ * Item returned by GET /enumeration-area/:id/surveys-with-household-count
+ * Ordered by survey.startDate descending (latest first).
+ */
+export interface SurveyWithHouseholdCountForEA {
+	survey: SurveySummaryForEA;
+	householdCount: number;
+}

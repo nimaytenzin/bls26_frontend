@@ -38,6 +38,19 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin/survey/create'],
 				roles: [USERROLESENUM.ADMIN],
 			},
+			{
+				label: 'Survey Data Upload',
+				icon: 'pi pi-fw pi-cloud-upload',
+				routerLink: ['/admin/master/survey-data-upload'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			//add route survey reports
+			{
+				label: 'Survey Reports',
+				icon: 'pi pi-fw pi-file-pdf',
+				routerLink: ['/admin/survey/reports'],
+				roles: [USERROLESENUM.ADMIN],
+			},
 		],
 	},
 
@@ -104,6 +117,7 @@ export const ADMINSIDEBARITEMS = [
 
 		label: 'Data Management',
 		items: [
+			
 			{
 				label: 'Auto KML Upload',
 				icon: 'pi pi-fw pi-cloud-upload',

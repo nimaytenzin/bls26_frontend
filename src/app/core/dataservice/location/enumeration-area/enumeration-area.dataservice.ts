@@ -19,6 +19,7 @@ import {
 	EaLineageResponse,
 	EaHistoryResponse,
 	PaginatedResponse,
+	SurveyWithHouseholdCountForEA,
 } from './enumeration-area.dto';
 
 @Injectable({
@@ -210,6 +211,29 @@ export class EnumerationAreaDataService {
 				return throwError(() => error);
 			})
 		);
+	}
+
+	/**
+	 * Get all surveys with household count for an enumeration area.
+	 * Returns surveys that include this EA, with household count per survey.
+	 * Ordered by survey.startDate descending (latest first). Public, no auth.
+	 */
+	getSurveysWithHouseholdCount(
+		enumerationAreaId: number
+	): Observable<SurveyWithHouseholdCountForEA[]> {
+		return this.http
+			.get<SurveyWithHouseholdCountForEA[]>(
+				`${this.apiUrl}/${enumerationAreaId}/surveys-with-household-count`
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						'Error fetching surveys with household count for EA:',
+						error
+					);
+					return throwError(() => error);
+				})
+			);
 	}
 
 	/**

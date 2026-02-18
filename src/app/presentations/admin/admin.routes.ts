@@ -7,6 +7,7 @@ import { AdminMasterSubAdministrativeZonesComponent } from './master-data/admin-
 import { AdminMasterEnumerationAreasComponent } from './master-data/admin-master-enumeration-areas/admin-master-enumeration-areas.component';
 import { AdminRbaEasComponent } from './master-data/admin-rba-eas/admin-rba-eas.component';
 import { AdminAutoKmlUploadComponent } from './master-data/admin-auto-kml-upload/admin-auto-kml-upload.component';
+import { AdminSurveyDataUploadComponent } from './master-data/admin-survey-data-upload/admin-survey-data-upload.component';
 import { AdminAutoHouseholdDataUploadByDzongkhagComponent } from './master-data/admin-auto-household-data-upload-by-dzongkhag/admin-auto-household-data-upload-by-dzongkhag.component';
 import { AdminSazEaUploadComponent } from './master-data/admin-saz-ea-upload/admin-saz-ea-upload.component';
 import { AdminMultiSazSingleEaUploadComponent } from './master-data/admin-multi-saz-single-ea-upload/admin-multi-saz-single-ea-upload.component';
@@ -16,6 +17,7 @@ import { AdminAdminstrativeZoneDataViewerComponent } from './data-viewer/admin-a
 import { AdminSubAdminstrativeZoneDataViewerComponent } from './data-viewer/admin-sub-adminstrative-zone-data-viewer/admin-sub-adminstrative-zone-data-viewer.component';
 import { AdminEnumerationAreaDataViewerComponent } from './data-viewer/admin-enumeration-area-data-viewer/admin-enumeration-area-data-viewer.component';
 import { AdminSurveyViewerComponent } from './survey/admin-survey-viewer/admin-survey-viewer.component';
+import { AdminSurveyReportsComponent } from './survey/admin-survey-reports/admin-survey-reports.component';
 import { AdminSurveyCreatorComponent } from './survey/survey-creator/admin-survey-creator.component';
 import { AdminNationalDataViewerComponent } from './data-viewer/admin-national-data-viewer/admin-national-data-viewer.component';
 import { AdminUserManagementComponent } from './user-mangement/admin-user-management/admin-user-management.component';
@@ -82,6 +84,10 @@ export const adminRoutes: Routes = [
 						component: AdminRbaEasComponent,
 					},
 					{
+						path: 'survey-data-upload',
+						component: AdminSurveyDataUploadComponent,
+					},
+					{
 						path: 'auto-kml-upload',
 						component: AdminAutoKmlUploadComponent,
 					},
@@ -129,6 +135,10 @@ export const adminRoutes: Routes = [
 					{
 						path: 'manage-areas/:id',
 						component: AdminSurveyViewerComponent, // For now, reuse the same component
+					},
+					{
+						path: 'reports',
+						component: AdminSurveyReportsComponent,
 					},
 				],
 			},

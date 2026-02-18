@@ -14,6 +14,8 @@ import {
 	CreateEAAnnualStatsDto,
 	HistoricalStatistics,
 } from '../../../../../core/dataservice/household-listings/ea-annual-stats/ea-annual-stats.dto';
+import { EnumerationAreaDataService } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
+import { SurveyWithHouseholdCountForEA } from '../../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
 import { MessageService } from 'primeng/api';
 import { forkJoin } from 'rxjs';
 
@@ -31,6 +33,13 @@ export class AdminEnumerationAreaTrendsComponent implements OnInit, OnChanges {
 	annualStats: EAAnnualStats[] = [];
 	combinedData: EAAnnualStats[] = []; // Annual stats + Current year data
 	statistics: HistoricalStatistics | null = null;
+	// Derived trend from survey records (household count across surveys)
+	surveyStatistics: {
+		totalRecords: number;
+		firstYear: number;
+		lastYear: number;
+		trend: 'increasing' | 'decreasing' | 'stable';
+	} | null = null;
 	loading = false;
 	showAddDialog = false;
 	submitting = false;
@@ -56,11 +65,23 @@ export class AdminEnumerationAreaTrendsComponent implements OnInit, OnChanges {
 	householdChartOptions: any;
 	populationChartOptions: any;
 
+	// Survey trend chart (from past surveys household count)
+	surveyTrendChartData: any;
+	surveyTrendChartOptions: any;
+	/** Survey names by index for tooltip (same order as chart data). */
+	surveyTrendChartSurveyNames: string[] = [];
+
+	// Past survey details (GET /enumeration-area/:id/surveys-with-household-count)
+	pastSurveys: SurveyWithHouseholdCountForEA[] = [];
+	loadingPastSurveys = false;
+
 	constructor(
 		private eaAnnualStatsService: EAAnnualStatsDataService,
+		private enumerationAreaDataService: EnumerationAreaDataService,
 		private messageService: MessageService
 	) {
 		this.initializeChartOptions();
+		this.initializeSurveyTrendChartOptions();
 	}
 
 	ngOnInit(): void {
@@ -80,15 +101,21 @@ export class AdminEnumerationAreaTrendsComponent implements OnInit, OnChanges {
 		if (!this.enumerationAreaId) return;
 
 		this.loading = true;
+		this.loadingPastSurveys = true;
+		this.pastSurveys = [];
 
-		// Fetch both annual stats and current household listings
+		// Fetch annual stats and past surveys with household count for this EA
 		forkJoin({
 			annualStats: this.eaAnnualStatsService.getHistoricalRecords(
+				this.enumerationAreaId
+			),
+			pastSurveys: this.enumerationAreaDataService.getSurveysWithHouseholdCount(
 				this.enumerationAreaId
 			),
 		}).subscribe({
 			next: (data) => {
 				this.annualStats = data.annualStats;
+				this.pastSurveys = data.pastSurveys ?? [];
 
 				// Create combined data with current year info
 				this.combinedData = this.createCombinedData();
@@ -98,16 +125,20 @@ export class AdminEnumerationAreaTrendsComponent implements OnInit, OnChanges {
 					this.combinedData
 				);
 				this.updateChartData();
+				this.updateSurveyTrendChart();
 				this.loading = false;
+				this.loadingPastSurveys = false;
 			},
 			error: (error) => {
 				console.error('Error loading annual stats data:', error);
+				this.pastSurveys = [];
 				this.messageService.add({
 					severity: 'error',
 					summary: 'Error',
 					detail: 'Failed to load annual statistics data',
 				});
 				this.loading = false;
+				this.loadingPastSurveys = false;
 			},
 		});
 	}
@@ -308,6 +339,154 @@ export class AdminEnumerationAreaTrendsComponent implements OnInit, OnChanges {
 			default:
 				return 'Stable';
 		}
+	}
+
+	getSurveyTrendIcon(): string {
+		if (!this.surveyStatistics) return 'pi-minus';
+
+		switch (this.surveyStatistics.trend) {
+			case 'increasing':
+				return 'pi-arrow-up';
+			case 'decreasing':
+				return 'pi-arrow-down';
+			default:
+				return 'pi-minus';
+		}
+	}
+
+	getSurveyTrendColor(): string {
+		if (!this.surveyStatistics) return 'text-gray-500';
+
+		switch (this.surveyStatistics.trend) {
+			case 'increasing':
+				return 'text-green-600';
+			case 'decreasing':
+				return 'text-red-600';
+			default:
+				return 'text-blue-600';
+		}
+	}
+
+	getSurveyTrendLabel(): string {
+		if (!this.surveyStatistics) return 'No Data';
+
+		switch (this.surveyStatistics.trend) {
+			case 'increasing':
+				return 'Increasing';
+			case 'decreasing':
+				return 'Decreasing';
+			default:
+				return 'Stable';
+		}
+	}
+
+	/**
+	 * Build line chart data from past surveys (household count per survey).
+	 * API returns latest first; chart uses chronological order (oldest first) for trend.
+	 */
+	updateSurveyTrendChart(): void {
+		if (!this.pastSurveys || this.pastSurveys.length === 0) {
+			this.surveyTrendChartData = null;
+			this.surveyTrendChartSurveyNames = [];
+			this.surveyStatistics = null;
+			return;
+		}
+		// Chronological order (oldest first) for trend line
+		const sorted = [...this.pastSurveys].sort(
+			(a, b) =>
+				new Date(a.survey.startDate).getTime() -
+				new Date(b.survey.startDate).getTime()
+		);
+		// X-axis: year and month only (e.g. "Jan 2025"); full name shown in tooltip
+		const labels = sorted.map((item) => {
+			const d = new Date(item.survey.startDate);
+			return d.toLocaleDateString('en-US', {
+				month: 'short',
+				year: 'numeric',
+			});
+		});
+		this.surveyTrendChartSurveyNames = sorted.map((item) => item.survey.name);
+
+		// Basic survey trend stats derived from household counts across surveys
+		const totalRecords = sorted.length;
+		const firstYear = sorted[0].survey.year;
+		const lastYear = sorted[totalRecords - 1].survey.year;
+		const firstCount = sorted[0].householdCount;
+		const lastCount = sorted[totalRecords - 1].householdCount;
+		let trend: 'increasing' | 'decreasing' | 'stable' = 'stable';
+		if (lastCount > firstCount) {
+			trend = 'increasing';
+		} else if (lastCount < firstCount) {
+			trend = 'decreasing';
+		}
+		this.surveyStatistics = {
+			totalRecords,
+			firstYear,
+			lastYear,
+			trend,
+		};
+		this.surveyTrendChartData = {
+			labels,
+			datasets: [
+				{
+					label: 'Household count',
+					data: sorted.map((item) => item.householdCount),
+					borderColor: '#6366f1',
+					backgroundColor: 'rgba(99, 102, 241, 0.1)',
+					fill: true,
+					tension: 0.4,
+					pointBackgroundColor: '#6366f1',
+					pointBorderColor: '#6366f1',
+					pointRadius: 4,
+					pointHoverRadius: 6,
+				},
+			],
+		};
+	}
+
+	private initializeSurveyTrendChartOptions(): void {
+		this.surveyTrendChartOptions = {
+			responsive: true,
+			maintainAspectRatio: false,
+			plugins: {
+				legend: { display: false },
+				tooltip: {
+					mode: 'index',
+					intersect: false,
+					callbacks: {
+						title: (items: any[]) => {
+							const idx = items[0]?.dataIndex;
+							return this.surveyTrendChartSurveyNames?.[idx] ?? '';
+						},
+					},
+				},
+			},
+			scales: {
+				y: {
+					beginAtZero: true,
+					grid: { display: false },
+					ticks: { stepSize: 1 },
+					title: {
+						display: true,
+						text: 'Household count',
+					},
+				},
+				x: {
+					grid: { display: false },
+					title: {
+						display: true,
+						text: 'Survey (year – month)',
+					},
+					ticks: {
+						maxRotation: 45,
+						minRotation: 45,
+					},
+				},
+			},
+			elements: {
+				point: { radius: 4, hoverRadius: 6 },
+			},
+		};
 	}
 
 	updateChartData(): void {

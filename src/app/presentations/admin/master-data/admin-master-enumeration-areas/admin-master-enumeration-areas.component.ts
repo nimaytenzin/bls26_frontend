@@ -1135,9 +1135,11 @@ export class AdminMasterEnumerationAreasComponent
 					this.eaLayersById.set(eaId, layer as L.Path);
 				}
 
-				// Look up SAZ and AZ names from hierarchical data
+				// Look up SAZ and AZ names and types from hierarchical data
 				let sazName = 'N/A';
 				let azName = 'N/A';
+				let azType: string | undefined;
+				let sazType: string | undefined;
 
 				if (this.hierarchicalData?.administrativeZones) {
 					for (const adminZone of this.hierarchicalData.administrativeZones) {
@@ -1150,6 +1152,8 @@ export class AdminMasterEnumerationAreasComponent
 									if (foundEA) {
 										sazName = subAdminZone.name || 'N/A';
 										azName = adminZone.name || 'N/A';
+										azType = (adminZone as any).type;
+										sazType = (subAdminZone as any).type;
 										break;
 									}
 								}
@@ -1165,11 +1169,12 @@ export class AdminMasterEnumerationAreasComponent
 						// Use first SAZ for display, or show multiple
 						const sazNames = ea.subAdministrativeZones.map(saz => saz.name).join(', ');
 						sazName = sazNames;
-						
-						// Get AZ from first SAZ
-						if (ea.subAdministrativeZones[0]?.administrativeZone?.name) {
-							azName = ea.subAdministrativeZones[0].administrativeZone.name;
+						const firstSaz = ea.subAdministrativeZones[0];
+						if (firstSaz?.administrativeZone?.name) {
+							azName = firstSaz.administrativeZone.name;
 						}
+						azType = (firstSaz?.administrativeZone as any)?.type;
+						sazType = (firstSaz as any)?.type;
 					}
 				}
 
@@ -1181,6 +1186,11 @@ export class AdminMasterEnumerationAreasComponent
 					azName = props.administrativeZoneName || props.azName || 'N/A';
 				}
 
+				// Urban = Thromde/LAP, Rural = Gewog/Chiwog (do not use "Administrative Zone" / "Sub-Administrative Zone")
+				const isUrban = azType?.toLowerCase() === 'thromde' || sazType?.toLowerCase() === 'lap';
+				const azLabel = isUrban ? 'Thromde' : 'Gewog';
+				const sazLabel = isUrban ? 'LAP' : 'Chiwog';
+
 				const featureId = `ea-${props.id || props.areaCode || Math.random()}`;
 				const featureName = props.name || 'Enumeration Area';
 				const popup = `
@@ -1189,9 +1199,9 @@ export class AdminMasterEnumerationAreasComponent
 							props.name || 'N/A'
 						}</h3>
 						<div class="space-y-1 text-sm mb-3">
-							${props.areaCode ? `<div><strong>Code:</strong> ${props.areaCode}</div>` : ''}
-							<div><strong>Administrative Zone:</strong> ${azName}</div>
-							<div><strong>Sub-Administrative Zone(s):</strong> ${sazName}</div>
+							${props.areaCode ? `<div><strong>EA Code:</strong> ${props.areaCode}</div>` : ''}
+							<div><strong>${azLabel}:</strong> ${azName}</div>
+							<div><strong>${sazLabel}:</strong> ${sazName}</div>
 							${props.description ? `<div><strong>Description:</strong> ${props.description}</div>` : ''}
 						</div>
 						<div class="flex gap-2 justify-center border-t pt-2">
@@ -2085,6 +2095,15 @@ export class AdminMasterEnumerationAreasComponent
 		return this.subAdministrativeZones.length;
 	}
 
+	/** Count of Gewogs/Thromdes that have EAs in current view (from hierarchical table). */
+	get gewogThromdeCountWithEAs(): number {
+		return this.hierarchicalTableData.filter((i) => i.type === 'admin-zone').length;
+	}
+
+	/** Count of Chiwogs/LAPs that have EAs in current view (from hierarchical table). */
+	get chiwogLapCountWithEAs(): number {
+		return this.hierarchicalTableData.filter((i) => i.type === 'sub-admin-zone').length;
+	}
 
 	switchBasemap(): void {
 		if (!this.map || !this.basemapService.hasBasemap(this.selectedBasemapId)) {

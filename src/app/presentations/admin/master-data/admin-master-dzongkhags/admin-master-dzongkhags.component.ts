@@ -49,7 +49,7 @@ export class AdminMasterDzongkhagsComponent
 	loading = false;
 
 	// Map properties
-	private map?: L.Map;
+	private map: L.Map | null = null;
 	dzongkhagGeoJSON: any;
 	private allDzongkhagsLayer?: L.GeoJSON;
 	private baseLayer?: L.TileLayer;
@@ -107,6 +107,7 @@ export class AdminMasterDzongkhagsComponent
 	ngOnDestroy() {
 		if (this.map) {
 			this.map.remove();
+			this.map = null;
 		}
 	}
 
@@ -323,7 +324,7 @@ export class AdminMasterDzongkhagsComponent
 
 		if (this.map) {
 			this.map.remove();
-			this.map = undefined;
+			this.map = null;
 		}
 
 		const container = document.getElementById('dzongkhag-map');

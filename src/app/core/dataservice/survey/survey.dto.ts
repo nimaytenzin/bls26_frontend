@@ -174,3 +174,21 @@ export interface AutoHouseholdUploadCsvResponseDto {
 	parseErrors: string[];
 	bulkResult: AutoHouseholdUploadResponseDto;
 }
+
+/**
+ * Create Survey with Household Upload – parse error for a CSV row
+ */
+export interface CreateSurveyWithHouseholdUploadParseErrorDto {
+	row: number;
+	reason: string;
+}
+
+/**
+ * Create Survey with Household Upload – API response
+ * When validation or processing fails, survey is null and nothing is persisted (full rollback).
+ */
+export interface CreateSurveyWithHouseholdUploadResponseDto {
+	survey: Survey | null;
+	parseErrors: CreateSurveyWithHouseholdUploadParseErrorDto[];
+	bulkResult: AutoHouseholdUploadResponseDto | null;
+}

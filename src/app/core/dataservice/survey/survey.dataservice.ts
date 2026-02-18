@@ -15,6 +15,7 @@ import {
 	AutoHouseholdUploadRequestDto,
 	AutoHouseholdUploadResponseDto,
 	AutoHouseholdUploadCsvResponseDto,
+	CreateSurveyWithHouseholdUploadResponseDto,
 } from './survey.dto';
 import { SurveyStatus } from '../../constants/enums';
 import { SurveyEnumerationHierarchyDto } from './survey-enumeration-hierarchy.dto';
@@ -387,6 +388,58 @@ export class SurveyDataService {
 			.pipe(
 				catchError((error) => {
 					console.error('Error uploading household data via CSV:', error);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Download Excel template for Create Survey with Household Upload (Process B)
+	 * HCES-style headers, no data rows
+	 * @returns Observable of Blob (.xlsx file)
+	 * @requires Authentication (ADMIN role)
+	 */
+	downloadHouseholdUploadTemplateExcel(): Observable<Blob> {
+		return this.http
+			.get(`${this.apiUrl}/household-upload/template/excel`, {
+				headers: this.getAuthHeaders(),
+				responseType: 'blob',
+			})
+			.pipe(
+				catchError((error) => {
+					console.error(
+						'Error downloading household upload template:',
+						error
+					);
+					return throwError(() => error);
+				})
+			);
+	}
+
+	/**
+	 * Create survey with household upload from CSV (Process B)
+	 * Creates a new survey and for each CSV row creates Survey EA and dummy structures/listings
+	 * @param formData multipart/form-data: survey fields (name, description, startDate, endDate, year, ...) + file (CSV)
+	 * @returns Observable of CreateSurveyWithHouseholdUploadResponseDto
+	 * @requires Authentication (ADMIN role)
+	 */
+	createSurveyWithHouseholdUpload(
+		formData: FormData
+	): Observable<CreateSurveyWithHouseholdUploadResponseDto> {
+		return this.http
+			.post<CreateSurveyWithHouseholdUploadResponseDto>(
+				`${this.apiUrl}/household-upload/create-with-survey`,
+				formData,
+				{
+					headers: this.getAuthHeadersForMultipart(),
+				}
+			)
+			.pipe(
+				catchError((error) => {
+					console.error(
+						'Error creating survey with household upload:',
+						error
+					);
 					return throwError(() => error);
 				})
 			);
