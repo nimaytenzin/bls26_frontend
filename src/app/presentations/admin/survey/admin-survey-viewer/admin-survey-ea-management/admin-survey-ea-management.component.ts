@@ -440,13 +440,101 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 		}
 
 		this.availableDzongkhags = Array.from(dzongkhagMap.values()).sort((a, b) =>
-			a.name.localeCompare(b.name)
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
 		);
 		this.availableAdminZones = Array.from(adminZoneMap.values()).sort((a, b) =>
-			a.name.localeCompare(b.name)
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
 		);
-		this.availableSubAdminZones = Array.from(subAdminZoneMap.values()).sort(
-			(a, b) => a.name.localeCompare(b.name)
+		this.availableSubAdminZones = Array.from(subAdminZoneMap.values()).sort((a, b) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
+		);
+	}
+
+	/** Dzongkhag options sorted by areaCode for dropdown (display areaCode | name). */
+	get availableDzongkhagsSortedByCode(): Dzongkhag[] {
+		return [...this.availableDzongkhags].sort((a, b) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
+		);
+	}
+
+	/** Gewog/Thromde options grouped by Urban (Thromde) first, then Rural (Gewog), sorted by areaCode. */
+	get groupedAvailableAdminZones(): { label: string; items: AdministrativeZone[] }[] {
+		const thromde = (this.availableAdminZones || []).filter(
+			(az) => az.type === AdministrativeZoneType.Thromde
+		);
+		const gewog = (this.availableAdminZones || []).filter(
+			(az) => az.type === AdministrativeZoneType.Gewog
+		);
+		const sortByAreaCode = (a: AdministrativeZone, b: AdministrativeZone) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true });
+		const groups: { label: string; items: AdministrativeZone[] }[] = [
+			{ label: 'Urban (Thromde)', items: thromde.slice().sort(sortByAreaCode) },
+			{ label: 'Rural (Gewog)', items: gewog.slice().sort(sortByAreaCode) },
+		];
+		return groups.filter((g) => g.items.length > 0);
+	}
+
+	/** Chiwog/LAP options sorted by areaCode for dropdown. */
+	get availableSubAdminZonesSortedByCode(): SubAdministrativeZone[] {
+		return [...this.availableSubAdminZones].sort((a, b) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
+		);
+	}
+
+	/** Title for the table section: "Showing all enumeration areas" or hierarchical location. */
+	get filterScopeTitle(): string {
+		const dz = this.selectedDzongkhagId != null
+			? this.availableDzongkhags.find((d) => d.id === this.selectedDzongkhagId)
+			: null;
+		const az = this.selectedAdminZoneId != null
+			? this.availableAdminZones.find((a) => a.id === this.selectedAdminZoneId)
+			: null;
+		const saz = this.selectedSubAdminZoneId != null
+			? this.availableSubAdminZones.find((s) => s.id === this.selectedSubAdminZoneId)
+			: null;
+
+		if (!dz) return 'Showing all enumeration areas';
+
+		const dzPart = `${dz.name} Dzongkhag`;
+		if (!az) return `Showing enumeration areas for ${dzPart}`;
+
+		const azLabel = az.type === AdministrativeZoneType.Thromde ? 'Thromde' : 'Gewog';
+		const azPart = `${az.name} ${azLabel}`;
+		if (!saz) return `${dzPart}, ${azPart}`;
+
+		const sazLabel = az.type === AdministrativeZoneType.Thromde ? 'Lap' : 'Chiwog';
+		const sazPart = `${saz.name} ${sazLabel}`;
+		return `${dzPart}, ${azPart}, ${sazPart}`;
+	}
+
+	/** For Add EA dialog: dzongkhags sorted by areaCode. */
+	get dzongkhagsSortedByCode(): Dzongkhag[] {
+		return [...(this.dzongkhags || [])].sort((a, b) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
+		);
+	}
+
+	/** For Add EA dialog: administrative zones grouped Urban (Thromde) first, then Rural (Gewog). */
+	get groupedAdministrativeZones(): { label: string; items: AdministrativeZone[] }[] {
+		const thromde = (this.administrativeZones || []).filter(
+			(az) => az.type === AdministrativeZoneType.Thromde
+		);
+		const gewog = (this.administrativeZones || []).filter(
+			(az) => az.type === AdministrativeZoneType.Gewog
+		);
+		const sortByAreaCode = (a: AdministrativeZone, b: AdministrativeZone) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true });
+		const groups: { label: string; items: AdministrativeZone[] }[] = [
+			{ label: 'Urban (Thromde)', items: thromde.slice().sort(sortByAreaCode) },
+			{ label: 'Rural (Gewog)', items: gewog.slice().sort(sortByAreaCode) },
+		];
+		return groups.filter((g) => g.items.length > 0);
+	}
+
+	/** For Add EA dialog: sub-administrative zones sorted by areaCode. */
+	get subAdministrativeZonesSortedByCode(): SubAdministrativeZone[] {
+		return [...(this.subAdministrativeZones || [])].sort((a, b) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
 		);
 	}
 
@@ -571,7 +659,7 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 			}
 		}
 		this.availableAdminZones = Array.from(adminZoneMap.values()).sort((a, b) =>
-			a.name.localeCompare(b.name)
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
 		);
 	}
 
@@ -613,8 +701,8 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 				});
 			}
 		}
-		this.availableSubAdminZones = Array.from(subAdminZoneMap.values()).sort(
-			(a, b) => a.name.localeCompare(b.name)
+		this.availableSubAdminZones = Array.from(subAdminZoneMap.values()).sort((a, b) =>
+			(a.areaCode ?? '').localeCompare(b.areaCode ?? '', undefined, { numeric: true })
 		);
 	}
 
@@ -854,12 +942,19 @@ export class AdminSurveyEaManagementComponent implements OnInit {
 	}
 
 	/**
-	 * Handle table search
+	 * Handle table search (from filter row)
 	 */
 	onTableSearch(event: any) {
 		if (this.tableRef) {
 			this.tableRef.filterGlobal(event.target.value, 'contains');
 		}
+	}
+
+	/**
+	 * Apply global filter to EA table by value (used by filter-row search input)
+	 */
+	applyGlobalFilter(value: string) {
+		this.tableRef?.filterGlobal(value ?? '', 'contains');
 	}
 
 	/**

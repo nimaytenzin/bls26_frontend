@@ -1,13 +1,10 @@
 <div class="p-4 space-y-4 h-full flex flex-col">
 	<!-- Header -->
 	<div class="flex justify-between items-center">
-		<div>
-			<h3 class="text-xl font-semibold text-gray-800">
-				Survey Enumeration Areas
+		<h3 class="text-xl font-semibold text-gray-800 text-wrap  w-1/2">
+			{{ filterScopeTitle }}
 
-			</h3>
-			
-		</div>
+		</h3>
 		<div class="flex gap-2" *ngIf="canAddEA()">
 			<button
 				pButton
@@ -85,98 +82,115 @@
 		<div 
 			class="bg-white border border-gray-200 rounded-xl flex-1 flex flex-col w-full"
 		>
-			<div class="p-4 border-b border-gray-200">
-				<div class="flex justify-between items-center mb-4">
-					<h4 class="font-semibold text-gray-800">Assigned Enumeration Areas</h4>
-					<div class="flex items-center gap-2">
-						<button
-							pButton
-							type="button"
-							label="Run Bulk Sampling"
-							icon="pi pi-filter"
-							class="p-button-primary p-button-sm"
-							[disabled]="getSelectedEnumeratedEAs().length === 0 || bulkSubmitting || isProcessingBatch"
-							(click)="openBulkDialog()"
-						></button>
-						<button
-							*ngIf="selectedEAIds.size > 0"
-							type="button"
-							class="text-xs text-gray-500 hover:text-primary-600"
-							(click)="clearSelection()"
-						>
-							Clear
-						</button>
-						<span class="text-xs text-gray-500" *ngIf="selectedEAIds.size">
-							{{ getSelectedEnumeratedEAs().length }} selected
-						</span>
-					</div>
+			<!-- Header: title + actions only -->
+			<div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+				<h4 class="font-semibold text-gray-800"></h4>
+				<div class="flex items-center gap-2">
+					<button
+						pButton
+						type="button"
+						label="Run Bulk Sampling"
+						icon="pi pi-filter"
+						class="p-button-primary p-button-sm"
+						[disabled]="getSelectedEnumeratedEAs().length === 0 || bulkSubmitting || isProcessingBatch"
+						(click)="openBulkDialog()"
+					></button>
+					<button
+						*ngIf="selectedEAIds.size > 0"
+						type="button"
+						class="text-xs text-gray-500 hover:text-primary-600"
+						(click)="clearSelection()"
+					>
+						Clear
+					</button>
+					<span class="text-xs text-gray-500" *ngIf="selectedEAIds.size">
+						{{ getSelectedEnumeratedEAs().length }} selected
+					</span>
 				</div>
-				
-				<!-- Filters -->
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+			</div>
+
+			<!-- Filters + Search + Clear -->
+			<div class="px-4 py-3 border-b border-gray-200">
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
 					<!-- Dzongkhag Filter -->
-					<div class="flex flex-col gap-2">
-						<label class="text-sm font-medium text-gray-700">Filter by Dzongkhag</label>
+					<div class="flex flex-col items-start gap-1">
+						<label for="dzongkhagFilter" class="font-medium text-slate-700 whitespace-nowrap">Select Dzongkhag</label>
 						<p-dropdown
-							[options]="availableDzongkhags"
+							id="dzongkhagFilter"
+							[options]="availableDzongkhagsSortedByCode"
 							[(ngModel)]="selectedDzongkhagId"
-							optionLabel="name"
+							dataKey="id"
 							optionValue="id"
-							placeholder="All Dzongkhags"
+							placeholder="Choose a dzongkhag"
 							[showClear]="true"
 							styleClass="w-full"
 							(onChange)="onDzongkhagFilterChange()"
 						>
 							<ng-template let-dzongkhag pTemplate="item">
-								<div>{{ dzongkhag.name }}</div>
+								<span>{{ dzongkhag.areaCode }} | {{ dzongkhag.name }}</span>
+							</ng-template>
+							<ng-template let-dzongkhag pTemplate="selectedItem">
+								<span>{{ dzongkhag?.areaCode }} | {{ dzongkhag?.name }}</span>
 							</ng-template>
 						</p-dropdown>
 					</div>
 
 					<!-- Gewog/Thromde Filter -->
-					<div class="flex flex-col gap-2">
-						<label class="text-sm font-medium text-gray-700">Filter by Gewog/Thromde</label>
+					<div class="flex flex-col items-start gap-1">
+						<label for="adminZoneFilter" class="font-medium text-slate-700 whitespace-nowrap">Select Gewog/Thromde</label>
 						<p-dropdown
-							[options]="availableAdminZones"
+							id="adminZoneFilter"
+							[options]="groupedAvailableAdminZones"
+							[group]="true"
+							optionGroupLabel="label"
+							optionGroupChildren="items"
+							dataKey="id"
 							[(ngModel)]="selectedAdminZoneId"
-							optionLabel="name"
 							optionValue="id"
-							placeholder="All Gewog/Thromde"
+							placeholder="Choose a gewog/thromde"
 							[showClear]="true"
 							styleClass="w-full"
-							[disabled]="selectedDzongkhagId === null && availableAdminZones.length === 0"
+							[disabled]="!selectedDzongkhagId && availableAdminZones.length === 0"
 							(onChange)="onAdminZoneFilterChange()"
 						>
-							<ng-template let-adminZone pTemplate="item">
-								<div>{{ adminZone.name }}</div>
+							<ng-template let-az pTemplate="item">
+								<span>{{ az.areaCode }} | {{ az.name }}</span>
+							</ng-template>
+							<ng-template let-az pTemplate="selectedItem">
+								<span>{{ az?.areaCode }} | {{ az?.name }}</span>
 							</ng-template>
 						</p-dropdown>
 					</div>
 
 					<!-- Chiwog/Lap Filter -->
-					<div class="flex flex-col gap-2">
-						<label class="text-sm font-medium text-gray-700">Filter by Chiwog/LAP</label>
+					<div class="flex flex-col items-start gap-1">
+						<label for="subAdminZoneFilter" class="font-medium text-slate-700 whitespace-nowrap">Select Chiwog/Lap</label>
 						<p-dropdown
-							[options]="availableSubAdminZones"
+							id="subAdminZoneFilter"
+							[options]="availableSubAdminZonesSortedByCode"
 							[(ngModel)]="selectedSubAdminZoneId"
-							optionLabel="name"
+							dataKey="id"
 							optionValue="id"
-							placeholder="All Chiwog/LAP"
+							placeholder="Choose a chiwog/lap"
 							[showClear]="true"
 							styleClass="w-full"
-							[disabled]="selectedAdminZoneId === null && availableSubAdminZones.length === 0"
+							[disabled]="!selectedAdminZoneId && availableSubAdminZones.length === 0"
 							(onChange)="onSubAdminZoneFilterChange()"
 						>
-							<ng-template let-subAdminZone pTemplate="item">
-								<div>{{ subAdminZone.name }}</div>
+							<ng-template let-saz pTemplate="item">
+								<span>{{ saz.areaCode }} | {{ saz.name }}</span>
+							</ng-template>
+							<ng-template let-saz pTemplate="selectedItem">
+								<span>{{ saz?.areaCode }} | {{ saz?.name }}</span>
 							</ng-template>
 						</p-dropdown>
 					</div>
 
 					<!-- Status Filter -->
-					<div class="flex flex-col gap-2">
-						<label class="text-sm font-medium text-gray-700">Filter by Status</label>
+					<div class="flex flex-col items-start gap-1">
+						<label for="statusFilter" class="font-medium text-slate-700 whitespace-nowrap">Filter by Status</label>
 						<p-dropdown
+							id="statusFilter"
 							[options]="statusOptions"
 							[(ngModel)]="selectedStatus"
 							optionLabel="label"
@@ -188,14 +202,39 @@
 						></p-dropdown>
 					</div>
 
-					<!-- Clear Filters Button -->
-					<div class="flex flex-col gap-2">
-						<label class="text-sm font-medium text-gray-700 opacity-0">Clear</label>
+					<!-- Search -->
+					<div class="flex flex-col items-start gap-1">
+						<label for="searchEAs" class="font-medium text-slate-700 whitespace-nowrap">Search</label>
+						<p-inputgroup class="w-full max-w-[200px]">
+							<input
+								pInputText
+								id="searchEAs"
+								type="text"
+								#searchInput
+								(input)="applyGlobalFilter($any($event.target).value)"
+								placeholder="Search by name, code..."
+								class="w-full"
+							/>
+							<p-inputgroup-addon>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-search"
+									class="p-button-text p-button-sm"
+									(click)="applyGlobalFilter(searchInput.value)"
+								></button>
+							</p-inputgroup-addon>
+						</p-inputgroup>
+					</div>
+
+					<!-- Clear Filters -->
+					<div class="flex flex-col items-start gap-1">
+						<label class="font-medium text-slate-700 whitespace-nowrap opacity-0 select-none">Clear</label>
 						<button
 							pButton
 							label="Clear Filters"
 							icon="pi pi-filter-slash"
-							class="p-button-outlined p-button-sm"
+							class="p-button-outlined p-button-sm w-full"
 							style="border-color: #6B7280; color: #6B7280;"
 							(click)="clearFilters()"
 							[disabled]="selectedDzongkhagId === null && selectedAdminZoneId === null && selectedSubAdminZoneId === null && selectedStatus === null"
@@ -203,7 +242,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="p-4 flex-1 overflow-auto">
+			<div class="p-4 flex-1 min-h-0 overflow-auto">
 			<!-- Loading State -->
 			<div
 				*ngIf="loadingSurveyEAs"
@@ -234,30 +273,10 @@
 						'enumerationArea.areaCode'
 					]"
 					styleClass="p-datatable-sm"
+					[scrollable]="true"
+					scrollHeight="calc(100vh - 420px)"
+					responsiveLayout="scroll"
 				>
-					<ng-template pTemplate="caption">
-						<div class="flex items-center justify-between p-4 border-b border-gray-200">
-							<p-inputgroup>
-								<input
-									pInputText
-									type="text"
-									#searchInput
-									(input)="dt.filterGlobal($any($event.target).value, 'contains')"
-									placeholder="Search by name, code, location..."
-									style="width: 250px"
-								/>
-								<p-inputgroup-addon>
-									<p-button
-										icon="pi pi-search"
-										severity="secondary"
-										variant="text"
-										(click)="dt.filterGlobal(searchInput.value, 'contains')"
-									/>
-								</p-inputgroup-addon>
-							</p-inputgroup>
-						</div>
-					</ng-template>
-
 					<ng-template pTemplate="header">
 						<tr>
 							<th class="w-10">Select</th>
@@ -687,62 +706,86 @@
 		<!-- Cascading Dropdowns -->
 		<div class="grid grid-cols-2 gap-4">
 			<!-- Dzongkhag -->
-			<div class="flex flex-col">
-				<label class="text-sm font-medium text-gray-700 mb-1"
-					>Dzongkhag <span class="text-red-500">*</span></label
-				>
+			<div class="flex flex-col items-start gap-1">
+				<label for="addEaDzongkhagSelect" class="font-medium text-slate-700 whitespace-nowrap">Select Dzongkhag <span class="text-red-500">*</span></label>
 				<p-dropdown
+					id="addEaDzongkhagSelect"
 					[(ngModel)]="selectedDzongkhag"
-					[options]="dzongkhags"
-					optionLabel="name"
-					placeholder="Select Dzongkhag"
+					[options]="dzongkhagsSortedByCode"
+					dataKey="id"
+					placeholder="Choose a dzongkhag"
 					[filter]="true"
-					filterBy="name"
+					filterBy="name,areaCode"
 					[loading]="loadingDzongkhags"
+					[showClear]="true"
 					(onChange)="onDzongkhagChange()"
 					styleClass="w-full"
 					appendTo="body"
-				></p-dropdown>
+				>
+					<ng-template let-dzongkhag pTemplate="item">
+						<span>{{ dzongkhag.areaCode }} | {{ dzongkhag.name }}</span>
+					</ng-template>
+					<ng-template let-dzongkhag pTemplate="selectedItem">
+						<span>{{ dzongkhag?.areaCode }} | {{ dzongkhag?.name }}</span>
+					</ng-template>
+				</p-dropdown>
 			</div>
 
 			<!-- Gewog/Thromde -->
-			<div class="flex flex-col">
-				<label class="text-sm font-medium text-gray-700 mb-1"
-					>Gewog/Thromde <span class="text-red-500">*</span></label
-				>
+			<div class="flex flex-col items-start gap-1">
+				<label for="addEaAdminZoneSelect" class="font-medium text-slate-700 whitespace-nowrap">Select Gewog/Thromde <span class="text-red-500">*</span></label>
 				<p-dropdown
+					id="addEaAdminZoneSelect"
 					[(ngModel)]="selectedAdminZone"
-					[options]="administrativeZones"
-					optionLabel="name"
-					placeholder="Select Gewog/Thromde"
+					[options]="groupedAdministrativeZones"
+					[group]="true"
+					optionGroupLabel="label"
+					optionGroupChildren="items"
+					dataKey="id"
+					placeholder="Choose a gewog/thromde"
 					[filter]="true"
-					filterBy="name"
+					filterBy="name,areaCode"
 					[disabled]="!selectedDzongkhag"
 					[loading]="loadingAdminZones"
+					[showClear]="true"
 					(onChange)="onAdminZoneChange()"
 					styleClass="w-full"
 					appendTo="body"
-				></p-dropdown>
+				>
+					<ng-template let-az pTemplate="item">
+						<span>{{ az.areaCode }} | {{ az.name }}</span>
+					</ng-template>
+					<ng-template let-az pTemplate="selectedItem">
+						<span>{{ az?.areaCode }} | {{ az?.name }}</span>
+					</ng-template>
+				</p-dropdown>
 			</div>
 
 			<!-- Chiwog/Lap -->
-			<div class="flex flex-col">
-				<label class="text-sm font-medium text-gray-700 mb-1"
-					>Chiwog/Lap <span class="text-red-500">*</span></label
-				>
+			<div class="flex flex-col items-start gap-1">
+				<label for="addEaSubAdminZoneSelect" class="font-medium text-slate-700 whitespace-nowrap">Select Chiwog/Lap <span class="text-red-500">*</span></label>
 				<p-dropdown
+					id="addEaSubAdminZoneSelect"
 					[(ngModel)]="selectedSubAdminZone"
-					[options]="subAdministrativeZones"
-					optionLabel="name"
-					placeholder="Select Chiwog/Lap"
+					[options]="subAdministrativeZonesSortedByCode"
+					dataKey="id"
+					placeholder="Choose a chiwog/lap"
 					[filter]="true"
-					filterBy="name"
+					filterBy="name,areaCode"
 					[disabled]="!selectedAdminZone"
 					[loading]="loadingSubAdminZones"
+					[showClear]="true"
 					(onChange)="onSubAdminZoneChange()"
 					styleClass="w-full"
 					appendTo="body"
-				></p-dropdown>
+				>
+					<ng-template let-saz pTemplate="item">
+						<span>{{ saz.areaCode }} | {{ saz.name }}</span>
+					</ng-template>
+					<ng-template let-saz pTemplate="selectedItem">
+						<span>{{ saz?.areaCode }} | {{ saz?.name }}</span>
+					</ng-template>
+				</p-dropdown>
 			</div>
 		</div>
 

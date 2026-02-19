@@ -12,6 +12,7 @@ import { TableLazyLoadEvent } from 'primeng/table';
 import { PrimeNgModules } from '../../../../../primeng.modules';
 import { CreateBlankHouseholdListingsDto, HouseholdListingStatisticsResponseDto, SurveyEnumerationAreaHouseholdListing, CreateSurveyEnumerationAreaHouseholdListingDto, BulkUploadResponse } from '../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
 import { SurveyEnumerationAreaHouseholdListingDataService } from '../../../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dataservice';
+import { AdministrativeZoneType } from '../../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
 import { DzongkhagHierarchyDto, AdministrativeZoneHierarchyDto, SubAdministrativeZoneHierarchyDto, EnumerationAreaHierarchyDto } from '../../../../../core/dataservice/survey/survey-enumeration-hierarchy.dto';
 import { SurveyDataService } from '../../../../../core/dataservice/survey/survey.dataservice';
 import { PaginationQueryDto, PaginatedResponse } from '../../../../../core/utility/pagination.utility.service';
@@ -51,6 +52,29 @@ export class AdminSurveyHouseholdListingsComponent
 	selectedAdminZoneFilter: AdministrativeZoneHierarchyDto | null = null;
 	selectedSubAdminZoneFilter: SubAdministrativeZoneHierarchyDto | null = null;
 	selectedEnumerationArea: EnumerationAreaHierarchyDto | null = null;
+
+	/** Title for the table section: "Showing all household listings" or hierarchical location with names. */
+	get filterScopeTitle(): string {
+		const dz = this.selectedDzongkhagFilter;
+		const az = this.selectedAdminZoneFilter;
+		const saz = this.selectedSubAdminZoneFilter;
+		const ea = this.selectedEnumerationArea;
+
+		if (!dz) return 'Showing all household listings';
+
+		const dzPart = `${dz.name} Dzongkhag`;
+		if (!az) return `Showing household listings for ${dzPart}`;
+
+		const azLabel = az.type === AdministrativeZoneType.Thromde ? 'Thromde' : 'Gewog';
+		const azPart = `${az.name} ${azLabel}`;
+		if (!saz) return `Showing household listings for ${dzPart}, ${azPart}`;
+
+		const sazLabel = az.type === AdministrativeZoneType.Thromde ? 'Lap' : 'Chiwog';
+		const sazPart = `${saz.name} ${sazLabel}`;
+		if (!ea) return `Showing household listings for ${dzPart}, ${azPart}, ${sazPart}`;
+
+		return `Showing household listings for ${dzPart}, ${azPart}, ${sazPart}, ${ea.name}`;
+	}
 
 	// UI State
 	loading = false;

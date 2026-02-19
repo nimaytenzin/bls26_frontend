@@ -1,229 +1,252 @@
-<div class="household-listings-container p-4">
+<div class="p-4 space-y-4 h-full flex flex-col">
 	<p-toast></p-toast>
 
 	<!-- Loading State -->
-	<div *ngIf="loading" class="flex justify-center items-center h-64">
+	<div *ngIf="loading" class="flex justify-center items-center flex-1 min-h-[200px]">
 		<div class="relative w-16 h-16">
-			<div
-				class="absolute inset-0 border-4 rounded-full"
-				style="border-color: #e8f0ff"
-			></div>
-			<div
-				class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
-				style="border-color: #1a58af"
-			></div>
+			<div class="absolute inset-0 border-4 rounded-full" style="border-color: #E8F0FF;"></div>
+			<div class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin" style="border-color: #1A58AF;"></div>
 		</div>
 	</div>
 
 	<!-- Main Content -->
-	<div *ngIf="!loading" class="space-y-4">
-		<!-- Title and Action Buttons -->
-		<div
-			class="flex items-center justify-between border-b border-gray-200 pb-3"
-		>
-			<h3 class="text-xl font-semibold text-gray-900">
-				<span *ngIf="selectedEnumerationArea">
-					Showing households for the selected EA
-				</span>
-				<span *ngIf="!selectedEnumerationArea">
-					Showing households for all enumeration areas
-				</span>
+	<div *ngIf="!loading" class="flex-1 flex flex-col min-h-0 space-y-4">
+		<!-- Header -->
+		<div class="flex justify-between items-center">
+			<h3 class="text-xl font-semibold text-gray-800 text-wrap  w-1/2">
+				{{ filterScopeTitle }}
+
 			</h3>
 			<div class="flex gap-2">
-				<p-button
-					label="Create Blank Entries"
+				<button
+					pButton
+					label="Create Blank"
 					icon="pi pi-plus"
+					size="small"
 					(click)="openCreateBlankDialog()"
-					styleClass="p-button-outlined p-button-sm"
-					pTooltip="Create blank household listing entries"
-				></p-button>
-
-				<p-button
-					label="Bulk Upload Households"
+				></button>
+				<button
+					pButton
+					label="Bulk Upload"
 					icon="pi pi-upload"
-					styleClass="p-button-outlined p-button-sm"
-					pTooltip="Bulk upload household listings from CSV file"
+					size="small"
+					class="p-button-secondary"
 					(click)="openBulkUploadDialog()"
-				></p-button>
-				<p-button
-					*ngIf="selectedEnumerationArea"
-					icon="pi pi-times"
-					(click)="clearSelection()"
-					styleClass="p-button-text p-button-sm"
-					pTooltip="Clear selection"
-				></p-button>
+				></button>
 			</div>
 		</div>
 
-		<!-- Statistics - Compact -->
-		<div
-			*ngIf="statistics"
-			class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 rounded-lg p-4 border border-gray-200"
-		>
-			<div class="text-center">
-				<div class="flex items-center justify-center gap-2 mb-1">
-					<i class="pi pi-home text-lg" style="color: #1a58af"></i>
-					<h3 class="text-xl font-bold text-gray-900">
-						{{ statistics.totalHouseholds | number }}
-					</h3>
+		<!-- Statistics Cards -->
+		<div *ngIf="statistics" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+			<div class="bg-white border border-gray-200 rounded-xl p-4">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-sm text-gray-500">Total Households</p>
+						<p class="text-2xl font-bold" style="color: #1A58AF;">
+							{{ statistics.totalHouseholds | number }}
+						</p>
+					</div>
+					<i class="pi pi-home text-3xl" style="color: #4C81E3;"></i>
 				</div>
-				<p class="text-xs text-gray-600">Total Households</p>
 			</div>
-
-			<div class="text-center">
-				<div class="flex items-center justify-center gap-2 mb-1">
-					<i class="pi pi-users text-lg" style="color: #10b981"></i>
-					<h3 class="text-xl font-bold text-gray-900">
-						{{ statistics.totalPopulation | number }}
-					</h3>
+			<div class="bg-white border border-gray-200 rounded-xl p-4">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-sm text-gray-500">Total Population</p>
+						<p class="text-2xl font-bold" style="color: #1A58AF;">
+							{{ statistics.totalPopulation | number }}
+						</p>
+					</div>
+					<i class="pi pi-users text-3xl" style="color: #10B981;"></i>
 				</div>
-				<p class="text-xs text-gray-600">Total Population</p>
 			</div>
-
-			<div class="text-center">
-				<div class="flex items-center justify-center gap-2 mb-1">
-					<i class="pi pi-user text-lg" style="color: #1a58af"></i>
-					<h3 class="text-xl font-bold text-gray-900">
-						{{ statistics.totalMale | number }} /
-						{{ statistics.totalFemale | number }}
-					</h3>
+			<div class="bg-white border border-gray-200 rounded-xl p-4">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-sm text-gray-500">Male / Female</p>
+						<p class="text-2xl font-bold" style="color: #F59E0B;">
+							{{ statistics.totalMale | number }} / {{ statistics.totalFemale | number }}
+						</p>
+					</div>
+					<i class="pi pi-user text-3xl" style="color: #F59E0B;"></i>
 				</div>
-				<p class="text-xs text-gray-600">Male / Female</p>
 			</div>
-
-			<div
-				class="text-center"
-				*ngIf="statistics.totalEnumerationAreas !== undefined"
-			>
-				<div class="flex items-center justify-center gap-2 mb-1">
-					<i class="pi pi-map-marker text-lg" style="color: #f59e0b"></i>
-					<h3 class="text-xl font-bold text-gray-900">
-						{{ statistics.totalEnumerationAreas | number }}
-					</h3>
+			<div class="bg-white border border-gray-200 rounded-xl p-4" *ngIf="statistics.totalEnumerationAreas !== undefined">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-sm text-gray-500">Enumeration Areas</p>
+						<p class="text-2xl font-bold" style="color: #10B981;">
+							{{ statistics.totalEnumerationAreas | number }}
+						</p>
+					</div>
+					<i class="pi pi-map-marker text-3xl" style="color: #10B981;"></i>
 				</div>
-				<p class="text-xs text-gray-600">Enumeration Areas</p>
 			</div>
 		</div>
 
-		<!-- Filters and Household Listings Table -->
-		<p-card>
-			<ng-template pTemplate="header">
-				<div
-					class="flex items-center justify-between p-4 border-b border-gray-200"
-				>
-					<p-inputgroup>
-						<input
-							pInputText
-							type="text"
-							#searchInput
-							(input)="dt.filterGlobal($any($event.target).value, 'contains')"
-							placeholder="Search households..."
-							style="width: 250px"
-						/>
-						<p-inputgroup-addon>
-							<p-button
-								icon="pi pi-search"
-								severity="secondary"
-								variant="text"
-								(click)="dt.filterGlobal(searchInput.value, 'contains')"
-							/>
-						</p-inputgroup-addon>
-					</p-inputgroup>
-				</div>
-			</ng-template>
-
-			<!-- Filters Section -->
-			<div class="p-4 border-b border-gray-200 bg-gray-50">
-				<h4 class="text-sm font-semibold text-gray-700 mb-3">Filters</h4>
-				<div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-					<!-- Dzongkhag Filter -->
-					<div class="flex flex-col">
-						<label class="text-xs font-medium text-gray-600 mb-1"
-							>Dzongkhag</label
-						>
-						<p-dropdown
-							[(ngModel)]="selectedDzongkhagFilter"
-							[options]="dzongkhagFilters"
-							optionLabel="name"
-							placeholder="All Dzongkhags"
-							(onChange)="onDzongkhagFilterChange()"
-							styleClass="w-full p-inputtext-sm"
-						></p-dropdown>
-					</div>
-
-					<!-- Gewog/Thromde Filter -->
-					<div class="flex flex-col">
-						<label class="text-xs font-medium text-gray-600 mb-1"
-							>Gewog/Thromde</label
-						>
-						<p-dropdown
-							[(ngModel)]="selectedAdminZoneFilter"
-							[options]="adminZoneFilters"
-							optionLabel="name"
-							placeholder="All Gewogs/Thromdes"
-							[disabled]="!selectedDzongkhagFilter"
-							(onChange)="onAdminZoneFilterChange()"
-							styleClass="w-full p-inputtext-sm"
-						></p-dropdown>
-					</div>
-
-					<!-- Chiwog/Lap Filter -->
-					<div class="flex flex-col">
-						<label class="text-xs font-medium text-gray-600 mb-1"
-							>Chiwog/Lap</label
-						>
-						<p-dropdown
-							[(ngModel)]="selectedSubAdminZoneFilter"
-							[options]="subAdminZoneFilters"
-							optionLabel="name"
-							placeholder="All Chiwogs/Laps"
-							[disabled]="!selectedAdminZoneFilter"
-							(onChange)="onSubAdminZoneFilterChange()"
-							styleClass="w-full p-inputtext-sm"
-						></p-dropdown>
-					</div>
-
-					<!-- Enumeration Area Filter -->
-					<div class="flex flex-col">
-						<label class="text-xs font-medium text-gray-600 mb-1"
-							>Enumeration Area</label
-						>
-						<p-dropdown
-							[(ngModel)]="selectedEnumerationArea"
-							[options]="enumerationAreaOptions"
-							optionLabel="name"
-							placeholder="All Enumeration Areas"
-							[disabled]="!selectedSubAdminZoneFilter"
-							(onChange)="onEnumerationAreaSelect()"
-							styleClass="w-full p-inputtext-sm"
-						></p-dropdown>
+		<!-- Household Listings Table -->
+		<div class="flex-1 flex flex-col min-h-0">
+			<!-- Table Container -->
+			<div class="bg-white border border-gray-200 rounded-xl flex-1 flex flex-col w-full">
+				<!-- Header: title + actions only -->
+				<div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+					<h4 class="font-semibold text-gray-800">Household Listings</h4>
+					<div class="flex items-center gap-2">
 					</div>
 				</div>
-			</div>
 
-			<p-table
-				#dt
-				[value]="householdListings"
-				[loading]="householdListingsLoading"
-				[lazy]="true"
-				(onLazyLoad)="onLazyLoad($event)"
-				[paginator]="true"
-				[rows]="householdListingsPageSize"
-				[totalRecords]="householdListingsTotalRecords"
-				[showCurrentPageReport]="true"
-				currentPageReportTemplate="Showing {first} to {last} of {totalRecords} households"
-				[rowsPerPageOptions]="[10, 25, 50, 100]"
-				[globalFilterFields]="[
-					'structureNumber',
-					'householdIdentification',
-					'nameOfHOH',
-					'phoneNumber'
-				]"
-				styleClass="p-datatable-sm p-datatable-striped"
-				responsiveLayout="scroll"
-				[scrollable]="true"
-				scrollHeight="500px"
-			>
+				<!-- Filters + Search + Clear -->
+				<div class="px-4 py-3 border-b border-gray-200">
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
+						<!-- Dzongkhag Filter -->
+						<div class="flex flex-col items-start gap-1">
+							<label for="dzongkhagFilter" class="font-medium text-slate-700 whitespace-nowrap">Select Dzongkhag</label>
+							<p-dropdown
+								id="dzongkhagFilter"
+								[(ngModel)]="selectedDzongkhagFilter"
+								[options]="dzongkhagFilters"
+								dataKey="id"
+								placeholder="Choose a dzongkhag"
+								[showClear]="true"
+								(onChange)="onDzongkhagFilterChange()"
+								styleClass="w-full"
+							>
+							<ng-template let-dzongkhag pTemplate="item">
+								<span>{{ dzongkhag.areaCode }} | {{ dzongkhag.name }}</span>
+							</ng-template>
+							<ng-template let-dzongkhag pTemplate="selectedItem">
+								<span>{{ dzongkhag?.areaCode }} | {{ dzongkhag?.name }}</span>
+							</ng-template>
+							</p-dropdown>
+						</div>
+
+						<!-- Gewog/Thromde Filter -->
+						<div class="flex flex-col items-start gap-1">
+							<label for="adminZoneFilter" class="font-medium text-slate-700 whitespace-nowrap">Select Gewog/Thromde</label>
+							<p-dropdown
+								id="adminZoneFilter"
+								[(ngModel)]="selectedAdminZoneFilter"
+								[options]="adminZoneFilters"
+								dataKey="id"
+								placeholder="Choose a gewog/thromde"
+								[showClear]="true"
+								[disabled]="!selectedDzongkhagFilter"
+								(onChange)="onAdminZoneFilterChange()"
+								styleClass="w-full"
+							>
+								<ng-template let-az pTemplate="item">
+									<span>{{ az.areaCode }} | {{ az.name }}</span>
+								</ng-template>
+								<ng-template let-az pTemplate="selectedItem">
+									<span>{{ az?.areaCode }} | {{ az?.name }}</span>
+								</ng-template>
+							</p-dropdown>
+						</div>
+
+						<!-- Chiwog/Lap Filter -->
+						<div class="flex flex-col items-start gap-1">
+							<label for="subAdminZoneFilter" class="font-medium text-slate-700 whitespace-nowrap">Select Chiwog/Lap</label>
+							<p-dropdown
+								id="subAdminZoneFilter"
+								[(ngModel)]="selectedSubAdminZoneFilter"
+								[options]="subAdminZoneFilters"
+								dataKey="id"
+								placeholder="Choose a chiwog/lap"
+								[showClear]="true"
+								[disabled]="!selectedAdminZoneFilter"
+								(onChange)="onSubAdminZoneFilterChange()"
+								styleClass="w-full"
+							>
+								<ng-template let-saz pTemplate="item">
+									<span>{{ saz.areaCode }} | {{ saz.name }}</span>
+								</ng-template>
+								<ng-template let-saz pTemplate="selectedItem">
+									<span>{{ saz?.areaCode }} | {{ saz?.name }}</span>
+								</ng-template>
+							</p-dropdown>
+						</div>
+
+						<!-- Enumeration Area Filter -->
+						<div class="flex flex-col items-start gap-1">
+							<label for="eaFilter" class="font-medium text-slate-700 whitespace-nowrap">Select Enumeration Area</label>
+							<p-dropdown
+								id="eaFilter"
+								[(ngModel)]="selectedEnumerationArea"
+								[options]="enumerationAreaOptions"
+								dataKey="id"
+								optionLabel="name"
+								placeholder="Choose an enumeration area"
+								[showClear]="true"
+								[disabled]="!selectedSubAdminZoneFilter"
+								(onChange)="onEnumerationAreaSelect()"
+								styleClass="w-full"
+							></p-dropdown>
+						</div>
+
+						<!-- Search -->
+						<div class="flex flex-col items-start gap-1">
+							<label for="searchHouseholds" class="font-medium text-slate-700 whitespace-nowrap">Search</label>
+							<p-inputgroup class="w-full max-w-[200px]">
+								<input
+									pInputText
+									id="searchHouseholds"
+									type="text"
+									#searchInput
+									(input)="dt.filterGlobal($any($event.target).value, 'contains')"
+									placeholder="Search households..."
+									class="w-full"
+								/>
+								<p-inputgroup-addon>
+									<button
+										pButton
+										type="button"
+										icon="pi pi-search"
+										class="p-button-text p-button-sm"
+										(click)="dt.filterGlobal(searchInput.value, 'contains')"
+									></button>
+								</p-inputgroup-addon>
+							</p-inputgroup>
+						</div>
+
+						<!-- Clear Filters -->
+						<div class="flex flex-col items-start gap-1">
+							<label class="font-medium text-slate-700 whitespace-nowrap opacity-0 select-none">Clear</label>
+							<button
+								pButton
+								label="Clear Filters"
+								icon="pi pi-filter-slash"
+								class="p-button-outlined p-button-sm w-full"
+								style="border-color: #6B7280; color: #6B7280;"
+								(click)="clearSelection()"
+								[disabled]="!selectedDzongkhagFilter && !selectedAdminZoneFilter && !selectedSubAdminZoneFilter && !selectedEnumerationArea"
+							></button>
+						</div>
+					</div>
+				</div>
+				<div class="p-4 flex-1 min-h-0 overflow-auto">
+					<p-table
+						#dt
+						[value]="householdListings"
+						[loading]="householdListingsLoading"
+						[lazy]="true"
+						(onLazyLoad)="onLazyLoad($event)"
+						[paginator]="true"
+						[rows]="householdListingsPageSize"
+						[totalRecords]="householdListingsTotalRecords"
+						[showCurrentPageReport]="true"
+						currentPageReportTemplate="Showing {first} to {last} of {totalRecords} households"
+						[rowsPerPageOptions]="[10, 25, 50, 100]"
+						[globalFilterFields]="[
+							'structureNumber',
+							'householdIdentification',
+							'nameOfHOH',
+							'phoneNumber'
+						]"
+						styleClass="p-datatable-sm p-datatable-striped"
+						responsiveLayout="scroll"
+						[scrollable]="true"
+						scrollHeight="calc(100vh - 420px)"
+					>
 				<ng-template pTemplate="header">
 					<tr>
 						<th pSortableColumn="id" style="width: 60px">
@@ -317,8 +340,10 @@
 						</td>
 					</tr>
 				</ng-template>
-			</p-table>
-		</p-card>
+					</p-table>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -344,44 +369,71 @@
 			</h4>
 
 			<!-- Dzongkhag Selection -->
-			<div class="flex flex-col gap-1.5">
-				<label class="text-xs font-medium text-gray-600">Dzongkhag</label>
+			<div class="flex flex-col items-start gap-1">
+				<label for="blankDzongkhagSelect" class="font-medium text-slate-700 whitespace-nowrap">Select Dzongkhag</label>
 				<p-dropdown
+					id="blankDzongkhagSelect"
 					[(ngModel)]="selectedDialogDzongkhag"
 					[options]="dialogDzongkhagFilters"
-					optionLabel="name"
-					placeholder="Select Dzongkhag"
+					dataKey="id"
+					placeholder="Choose a dzongkhag"
+					[showClear]="true"
 					(onChange)="onDialogDzongkhagChange()"
 					styleClass="w-full"
-				></p-dropdown>
+				>
+					<ng-template let-dzongkhag pTemplate="item">
+						<span>{{ dzongkhag.areaCode }} | {{ dzongkhag.name }}</span>
+					</ng-template>
+					<ng-template let-dzongkhag pTemplate="selectedItem">
+						<span>{{ dzongkhag?.areaCode }} | {{ dzongkhag?.name }}</span>
+					</ng-template>
+				</p-dropdown>
 			</div>
 
 			<!-- Gewog/Thromde Selection -->
-			<div class="flex flex-col gap-1.5">
-				<label class="text-xs font-medium text-gray-600">Gewog/Thromde</label>
+			<div class="flex flex-col items-start gap-1">
+				<label for="blankAdminZoneSelect" class="font-medium text-slate-700 whitespace-nowrap">Select Gewog/Thromde</label>
 				<p-dropdown
+					id="blankAdminZoneSelect"
 					[(ngModel)]="selectedDialogAdminZone"
 					[options]="dialogAdminZoneFilters"
-					optionLabel="name"
-					placeholder="Select Gewog/Thromde"
+					dataKey="id"
+					placeholder="Choose a gewog/thromde"
+					[showClear]="true"
 					[disabled]="!selectedDialogDzongkhag"
 					(onChange)="onDialogAdminZoneChange()"
 					styleClass="w-full"
-				></p-dropdown>
+				>
+					<ng-template let-az pTemplate="item">
+						<span>{{ az.areaCode }} | {{ az.name }}</span>
+					</ng-template>
+					<ng-template let-az pTemplate="selectedItem">
+						<span>{{ az?.areaCode }} | {{ az?.name }}</span>
+					</ng-template>
+				</p-dropdown>
 			</div>
 
 			<!-- Chiwog/Lap Selection -->
-			<div class="flex flex-col gap-1.5">
-				<label class="text-xs font-medium text-gray-600">Chiwog/Lap</label>
+			<div class="flex flex-col items-start gap-1">
+				<label for="blankSubAdminZoneSelect" class="font-medium text-slate-700 whitespace-nowrap">Select Chiwog/Lap</label>
 				<p-dropdown
+					id="blankSubAdminZoneSelect"
 					[(ngModel)]="selectedDialogSubAdminZone"
 					[options]="dialogSubAdminZoneFilters"
-					optionLabel="name"
-					placeholder="Select Chiwog/Lap"
+					dataKey="id"
+					placeholder="Choose a chiwog/lap"
+					[showClear]="true"
 					[disabled]="!selectedDialogAdminZone"
 					(onChange)="onDialogSubAdminZoneChange()"
 					styleClass="w-full"
-				></p-dropdown>
+				>
+					<ng-template let-saz pTemplate="item">
+						<span>{{ saz.areaCode }} | {{ saz.name }}</span>
+					</ng-template>
+					<ng-template let-saz pTemplate="selectedItem">
+						<span>{{ saz?.areaCode }} | {{ saz?.name }}</span>
+					</ng-template>
+				</p-dropdown>
 			</div>
 
 			<!-- Enumeration Area Selection -->
@@ -482,44 +534,71 @@
 			</h4>
 
 			<!-- Dzongkhag Selection -->
-			<div class="flex flex-col gap-1.5">
-				<label class="text-xs font-medium text-gray-600">Dzongkhag</label>
+			<div class="flex flex-col items-start gap-1">
+				<label for="bulkDzongkhagSelect" class="font-medium text-slate-700 whitespace-nowrap">Select Dzongkhag</label>
 				<p-dropdown
+					id="bulkDzongkhagSelect"
 					[(ngModel)]="selectedDialogDzongkhag"
 					[options]="dialogDzongkhagFilters"
-					optionLabel="name"
-					placeholder="Select Dzongkhag"
+					dataKey="id"
+					placeholder="Choose a dzongkhag"
+					[showClear]="true"
 					(onChange)="onDialogDzongkhagChange()"
 					styleClass="w-full"
-				></p-dropdown>
+				>
+					<ng-template let-dzongkhag pTemplate="item">
+						<span>{{ dzongkhag.areaCode }} | {{ dzongkhag.name }}</span>
+					</ng-template>
+					<ng-template let-dzongkhag pTemplate="selectedItem">
+						<span>{{ dzongkhag?.areaCode }} | {{ dzongkhag?.name }}</span>
+					</ng-template>
+				</p-dropdown>
 			</div>
 
 			<!-- Gewog/Thromde Selection -->
-			<div class="flex flex-col gap-1.5">
-				<label class="text-xs font-medium text-gray-600">Gewog/Thromde</label>
+			<div class="flex flex-col items-start gap-1">
+				<label for="bulkAdminZoneSelect" class="font-medium text-slate-700 whitespace-nowrap">Select Gewog/Thromde</label>
 				<p-dropdown
+					id="bulkAdminZoneSelect"
 					[(ngModel)]="selectedDialogAdminZone"
 					[options]="dialogAdminZoneFilters"
-					optionLabel="name"
-					placeholder="Select Gewog/Thromde"
+					dataKey="id"
+					placeholder="Choose a gewog/thromde"
+					[showClear]="true"
 					[disabled]="!selectedDialogDzongkhag"
 					(onChange)="onDialogAdminZoneChange()"
 					styleClass="w-full"
-				></p-dropdown>
+				>
+					<ng-template let-az pTemplate="item">
+						<span>{{ az.areaCode }} | {{ az.name }}</span>
+					</ng-template>
+					<ng-template let-az pTemplate="selectedItem">
+						<span>{{ az?.areaCode }} | {{ az?.name }}</span>
+					</ng-template>
+				</p-dropdown>
 			</div>
 
 			<!-- Chiwog/Lap Selection -->
-			<div class="flex flex-col gap-1.5">
-				<label class="text-xs font-medium text-gray-600">Chiwog/Lap</label>
+			<div class="flex flex-col items-start gap-1">
+				<label for="bulkSubAdminZoneSelect" class="font-medium text-slate-700 whitespace-nowrap">Select Chiwog/Lap</label>
 				<p-dropdown
+					id="bulkSubAdminZoneSelect"
 					[(ngModel)]="selectedDialogSubAdminZone"
 					[options]="dialogSubAdminZoneFilters"
-					optionLabel="name"
-					placeholder="Select Chiwog/Lap"
+					dataKey="id"
+					placeholder="Choose a chiwog/lap"
+					[showClear]="true"
 					[disabled]="!selectedDialogAdminZone"
 					(onChange)="onDialogSubAdminZoneChange()"
 					styleClass="w-full"
-				></p-dropdown>
+				>
+					<ng-template let-saz pTemplate="item">
+						<span>{{ saz.areaCode }} | {{ saz.name }}</span>
+					</ng-template>
+					<ng-template let-saz pTemplate="selectedItem">
+						<span>{{ saz?.areaCode }} | {{ saz?.name }}</span>
+					</ng-template>
+				</p-dropdown>
 			</div>
 
 			<!-- Enumeration Area Selection -->

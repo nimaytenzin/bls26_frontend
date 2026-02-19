@@ -44,13 +44,7 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin/master/survey-data-upload'],
 				roles: [USERROLESENUM.ADMIN],
 			},
-			//add route survey reports
-			{
-				label: 'Survey Reports',
-				icon: 'pi pi-fw pi-file-pdf',
-				routerLink: ['/admin/survey/reports'],
-				roles: [USERROLESENUM.ADMIN],
-			},
+			
 		],
 	},
 
