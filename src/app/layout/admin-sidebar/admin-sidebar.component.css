@@ -3,12 +3,8 @@
 	display: block;
 	height: 100%;
 	background-color: #ffffff;
-}
-
-/* Override parent layout-sidebar to prevent double borders */
-:host {
-	border: none;
-	border-right: none;
+	padding: 0.5rem 1.5rem;
+	overflow-x: hidden;
 }
 
 /* Target the parent .layout-sidebar wrapper to ensure single clean border */
@@ -32,7 +28,7 @@
 	margin-bottom: 0.5rem;
 }
 
-:host ::ng-deep .layout-root-menuitem > .layout-menuitem-root-text {
+:host ::ng-deep .layout-root-menuitem>.layout-menuitem-root-text {
 	font-size: 0.75rem;
 	text-transform: uppercase;
 	font-weight: 600;
@@ -130,7 +126,6 @@
 	padding-left: 1.5rem;
 }
 
-:host ::ng-deep .layout-menu li.active-menuitem > a .layout-submenu-toggler {
+:host ::ng-deep .layout-menu li.active-menuitem>a .layout-submenu-toggler {
 	transform: rotate(-180deg);
 }
-

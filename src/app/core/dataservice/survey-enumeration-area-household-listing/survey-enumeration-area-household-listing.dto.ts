@@ -12,7 +12,7 @@ export interface SurveyEnumerationAreaHouseholdListing {
 	structureId: number;
 	householdIdentification: string;
 	householdSerialNumber: number;
-	nameOfHOH: string;
+	nameOfHOH?: string;
 	totalMale: number;
 	totalFemale: number;
 	phoneNumber?: string;
@@ -33,7 +33,7 @@ export interface CreateSurveyEnumerationAreaHouseholdListingDto {
 	structureId: number;
 	householdIdentification: string;
 	householdSerialNumber: number;
-	nameOfHOH: string;
+	nameOfHOH?: string;
 	totalMale: number;
 	totalFemale: number;
 	phoneNumber?: string;

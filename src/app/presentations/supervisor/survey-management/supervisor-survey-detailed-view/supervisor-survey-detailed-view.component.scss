@@ -5,26 +5,63 @@
 
 /* PrimeNG TabView styling with Tailwind utilities */
 ::ng-deep {
-	.p-tabview.supervisor-tabview {
-		.p-tabview-nav {
-			@apply bg-white border-b-2 border-gray-200 px-4;
+
+	/* New PrimeNG 18+ structure and legacy support */
+	.p-tabview.supervisor-tabview,
+	.p-tabs.supervisor-tabview {
+
+		.p-tabview-nav-container,
+		.p-tablist {
+			@apply relative overflow-hidden;
 		}
 
-		.p-tabview-nav-link {
-			@apply px-6 py-4 font-semibold text-gray-600 border-b-[3px] border-transparent transition-all duration-200;
+		/* The container that handles overflow */
+		.p-tabview-nav,
+		.p-tablist-content {
+			@apply flex flex-nowrap bg-white border-b-2 border-gray-200 overflow-x-auto overflow-y-hidden;
+			scroll-behavior: smooth;
+			-webkit-overflow-scrolling: touch;
+
+			/* Hide scrollbar but keep functionality */
+			-ms-overflow-style: none;
+			scrollbar-width: none;
+
+			&::-webkit-scrollbar {
+				display: none;
+			}
+		}
+
+		/* The list of tabs */
+		.p-tabview-nav,
+		.p-tablist-tab-list {
+			@apply flex flex-nowrap;
+		}
+
+		/* Individual tabs */
+		.p-tabview-nav-link,
+		.p-tab {
+			@apply flex-shrink-0 px-4 sm:px-6 py-4 font-semibold text-gray-600 border-b-[3px] border-transparent transition-all duration-200 whitespace-nowrap bg-transparent cursor-pointer;
 
 			&:hover {
 				@apply text-[#1A58AF] bg-[#E8F0FF];
 			}
 
-			&.p-highlight {
+			&.p-highlight,
+			&.p-tab-active {
 				@apply text-[#1A58AF];
-				border-bottom-color: #1A58AF;
+				border-bottom-color: #1A58AF !important;
 			}
+
+			/* Remove default button styles if any */
+			border-top: none;
+			border-left: none;
+			border-right: none;
+			outline: none;
 		}
 
-		.p-tabview-panels {
-			@apply p-6;
+		.p-tabview-panels,
+		.p-tabpanels {
+			@apply p-0 sm:p-4;
 		}
 	}
 }

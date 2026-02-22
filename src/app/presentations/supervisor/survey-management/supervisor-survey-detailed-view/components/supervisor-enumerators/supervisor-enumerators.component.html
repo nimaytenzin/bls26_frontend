@@ -1,90 +1,48 @@
-<div class="space-y-6 p-6">
-	
+<div class="space-y-6 p-4 sm:p-6">
+
 
 	<!-- Enumerators Section -->
 	<div class="space-y-4">
-		<div class="flex items-center justify-between">
+		<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 			<h2 class="text-xl font-semibold text-gray-800">
 				Enumerators
-				<span class="text-sm font-normal text-gray-500 ml-2"
-					>({{ getGroupedEnumeratorsArray().length }})</span
-				>
+				<span class="text-sm font-normal text-gray-500 ml-2">({{ getGroupedEnumeratorsArray().length }})</span>
 			</h2>
-			<div class="flex gap-2">
-				<button
-					pButton
-					label="Enumerator"
-					icon="pi pi-plus"
-					styleClass="p-button-sm"
-					size="small"
-					(click)="openCreateDialog()"
-				></button>
-				<button
-					pButton
-					label="Delete Selected"
-					icon="pi pi-trash"
-					severity="danger"
-					styleClass="p-button-sm"
-					size="small"
-					[disabled]="selectedEnumerators.length === 0"
-					(click)="deleteSelectedEnumerators()"
-				></button>
-				<button
-					pButton
-					label="Bulk Upload"
-					icon="pi pi-upload"
-					severity="secondary"
-					styleClass="p-button-sm"
-					size="small"
-					(click)="openUploadDialog()"
-				></button>
+			<div class="flex flex-wrap gap-2">
+				<button pButton label="Enumerator" icon="pi pi-plus" styleClass="p-button-sm" size="small"
+					(click)="openCreateDialog()"></button>
+				<button pButton label="Delete Selected" icon="pi pi-trash" severity="danger" styleClass="p-button-sm"
+					size="small" [disabled]="selectedEnumerators.length === 0"
+					(click)="deleteSelectedEnumerators()"></button>
+				<button pButton label="Bulk Upload" icon="pi pi-upload" severity="secondary" styleClass="p-button-sm"
+					size="small" (click)="openUploadDialog()"></button>
 			</div>
 		</div>
 
 		<!-- Loading State -->
-		<div
-			*ngIf="loadingEnumerators"
-			class="flex justify-center items-center py-12"
-		>
+		<div *ngIf="loadingEnumerators" class="flex justify-center items-center py-12">
 			<div class="relative w-16 h-16">
-				<div
-					class="absolute inset-0 border-4 rounded-full"
-					style="border-color: #E8F0FF;"
-				></div>
-				<div
-					class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
-					style="border-color: #1A58AF;"
-				></div>
+				<div class="absolute inset-0 border-4 rounded-full" style="border-color: #E8F0FF;"></div>
+				<div class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+					style="border-color: #1A58AF;"></div>
 			</div>
 		</div>
 
 		<!-- Enumerators Table -->
-		<div *ngIf="!loadingEnumerators" class="rounded-xl border border-gray-200">
-			<p-table
-				[value]="getGroupedEnumeratorsArray()"
-				[(selection)]="selectedEnumerators"
-				[paginator]="true"
-				[rows]="10"
-				[rowsPerPageOptions]="[10, 25, 50]"
-				styleClass="p-datatable-sm"
-				[globalFilterFields]="['user.name', 'user.cid', 'user.emailAddress']"
-			>
+		<div *ngIf="!loadingEnumerators" class="rounded-xl border border-gray-200 overflow-x-auto overflow-y-hidden">
+			<p-table [value]="getGroupedEnumeratorsArray()" [(selection)]="selectedEnumerators" [paginator]="true"
+				[rows]="10" [rowsPerPageOptions]="[10, 25, 50]" styleClass="p-datatable-sm w-full min-w-[1000px]"
+				[globalFilterFields]="['user.name', 'user.cid', 'user.emailAddress']">
 				<ng-template pTemplate="caption">
 					<div class="flex justify-between items-center">
 						<span class="p-input-icon-left w-full max-w-md">
-							<input
-								pInputText
-								type="text"
-								placeholder="Search enumerators..."
-								class="w-full"
-								(input)="
+							<input pInputText type="text" placeholder="Search enumerators..." class="w-full" (input)="
 									$any($event.target)?.value &&
 										$any($any($event.target).closest('p-table'))?.filterGlobal(
 											$any($event.target).value,
 											'contains'
 										)
-								"
-							/>
+								" />
 						</span>
 					</div>
 				</ng-template>
@@ -118,86 +76,58 @@
 				<ng-template pTemplate="body" let-enumerator>
 					<tr>
 						<td>
-							<p-tableCheckbox 
-								[value]="enumerator"
-								[disabled]="!isEnumeratorActive(enumerator)"
-							></p-tableCheckbox>
+							<p-tableCheckbox [value]="enumerator"
+								[disabled]="!isEnumeratorActive(enumerator)"></p-tableCheckbox>
 						</td>
-						<td class="font-medium" [ngClass]="{'text-gray-800': isEnumeratorActive(enumerator), 'text-gray-400 line-through opacity-50': !isEnumeratorActive(enumerator)}">
+						<td class="font-medium"
+							[ngClass]="{'text-gray-800': isEnumeratorActive(enumerator), 'text-gray-400 line-through opacity-50': !isEnumeratorActive(enumerator)}">
 							{{ enumerator.user?.name || 'N/A' }}
 						</td>
-						<td [ngClass]="{'text-gray-600': isEnumeratorActive(enumerator), 'text-gray-400 line-through opacity-50': !isEnumeratorActive(enumerator)}">
+						<td
+							[ngClass]="{'text-gray-600': isEnumeratorActive(enumerator), 'text-gray-400 line-through opacity-50': !isEnumeratorActive(enumerator)}">
 							{{ enumerator.user?.cid || 'N/A' }}
 						</td>
-						<td [ngClass]="{'text-gray-600': isEnumeratorActive(enumerator), 'text-gray-400 line-through opacity-50': !isEnumeratorActive(enumerator)}">
+						<td
+							[ngClass]="{'text-gray-600': isEnumeratorActive(enumerator), 'text-gray-400 line-through opacity-50': !isEnumeratorActive(enumerator)}">
 							{{ enumerator.user?.emailAddress || 'N/A' }}
 						</td>
-						<td [ngClass]="{'text-gray-600': isEnumeratorActive(enumerator), 'text-gray-400 line-through opacity-50': !isEnumeratorActive(enumerator)}">
+						<td
+							[ngClass]="{'text-gray-600': isEnumeratorActive(enumerator), 'text-gray-400 line-through opacity-50': !isEnumeratorActive(enumerator)}">
 							{{ enumerator.user?.phoneNumber || 'N/A' }}
 						</td>
-						<td [ngClass]="{'text-gray-600': isEnumeratorActive(enumerator), 'text-gray-400 opacity-50': !isEnumeratorActive(enumerator)}">
+						<td
+							[ngClass]="{'text-gray-600': isEnumeratorActive(enumerator), 'text-gray-400 opacity-50': !isEnumeratorActive(enumerator)}">
 							<div class="flex flex-wrap gap-1">
-								<span
-									*ngFor="let assignment of getAssignmentsForEnumerator(enumerator.userId)"
-									class="px-2 py-1 rounded text-xs font-medium"
-									[ngClass]="{
+								<span *ngFor="let assignment of getAssignmentsForEnumerator(enumerator.userId)"
+									class="px-2 py-1 rounded text-xs font-medium" [ngClass]="{
 										'bg-blue-100 text-blue-800': assignment.isActive !== false,
 										'bg-gray-200 text-gray-500': assignment.isActive === false
-									}"
-								>
+									}">
 									{{ assignment.dzongkhag?.name || 'N/A' }}
 								</span>
 							</div>
 						</td>
-						<td [ngClass]="{'text-gray-600': isEnumeratorActive(enumerator), 'text-gray-400 line-through opacity-50': !isEnumeratorActive(enumerator)}">
-							{{  enumerator.createdAt |date: 'mediumDate' }}
+						<td
+							[ngClass]="{'text-gray-600': isEnumeratorActive(enumerator), 'text-gray-400 line-through opacity-50': !isEnumeratorActive(enumerator)}">
+							{{ enumerator.createdAt |date: 'mediumDate' }}
 						</td>
 						<td>
 							<div class="flex gap-1">
-								<button
-									pButton
-									icon="pi pi-pencil"
-									severity="secondary"
-									styleClass="p-button-sm p-button-text"
-									pTooltip="Edit"
-									tooltipPosition="top"
-									size="small"
+								<button pButton icon="pi pi-pencil" severity="secondary"
+									styleClass="p-button-sm p-button-text" pTooltip="Edit" tooltipPosition="top"
+									size="small" [disabled]="!isEnumeratorActive(enumerator)"
+									(click)="openEditDialog(enumerator)"></button>
+								<button pButton icon="pi pi-key" severity="info" styleClass="p-button-sm p-button-text"
+									pTooltip="Reset Password" tooltipPosition="top" size="small"
 									[disabled]="!isEnumeratorActive(enumerator)"
-									(click)="openEditDialog(enumerator)"
-								></button>
-								<button
-									pButton
-									icon="pi pi-key"
-									severity="info"
-									styleClass="p-button-sm p-button-text"
-									pTooltip="Reset Password"
-									tooltipPosition="top"
-									size="small"
-									[disabled]="!isEnumeratorActive(enumerator)"
-									(click)="openResetPasswordDialog(enumerator)"
-								></button>
-								<button
-									*ngIf="isEnumeratorActive(enumerator)"
-									pButton
-									icon="pi pi-trash"
-									severity="danger"
-									styleClass="p-button-sm p-button-text"
-									pTooltip="Delete"
-									tooltipPosition="top"
-									size="small"
-									(click)="deleteEnumerator(enumerator)"
-								></button>
-								<button
-									*ngIf="!isEnumeratorActive(enumerator)"
-									pButton
-									icon="pi pi-refresh"
-									severity="success"
-									styleClass="p-button-sm p-button-text"
-									pTooltip="Reactivate"
-									tooltipPosition="top"
-									size="small"
-									(click)="reactivateEnumerator(enumerator)"
-								></button>
+									(click)="openResetPasswordDialog(enumerator)"></button>
+								<button *ngIf="isEnumeratorActive(enumerator)" pButton icon="pi pi-trash"
+									severity="danger" styleClass="p-button-sm p-button-text" pTooltip="Delete"
+									tooltipPosition="top" size="small" (click)="deleteEnumerator(enumerator)"></button>
+								<button *ngIf="!isEnumeratorActive(enumerator)" pButton icon="pi pi-refresh"
+									severity="success" styleClass="p-button-sm p-button-text" pTooltip="Reactivate"
+									tooltipPosition="top" size="small"
+									(click)="reactivateEnumerator(enumerator)"></button>
 							</div>
 						</td>
 					</tr>
@@ -216,13 +146,8 @@
 </div>
 
 <!-- Bulk Upload Dialog -->
-<p-dialog
-	[(visible)]="showUploadDialog"
-	[modal]="true"
-	[closable]="!uploading"
-	[closeOnEscape]="!uploading"
-	styleClass="w-[90vw] max-w-4xl"
->
+<p-dialog [(visible)]="showUploadDialog" [modal]="true" [closable]="!uploading" [closeOnEscape]="!uploading"
+	styleClass="w-[90vw] max-w-4xl">
 	<ng-template pTemplate="header">
 		<h3 class="text-lg font-semibold">Bulk Upload Enumerators</h3>
 	</ng-template>
@@ -254,52 +179,28 @@
 
 		<!-- Download Template Button -->
 		<div class="flex justify-center">
-			<button
-				pButton
-				label="Download CSV Template"
-				icon="pi pi-download"
-				severity="secondary"
-				(click)="downloadTemplate()"
-			></button>
+			<button pButton label="Download CSV Template" icon="pi pi-download" severity="secondary"
+				(click)="downloadTemplate()"></button>
 		</div>
 
 		<!-- File Upload -->
 		<div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
-			<p-fileUpload
-				mode="basic"
-				chooseLabel="Choose CSV File"
-				accept=".csv"
-				[auto]="true"
-				[disabled]="parsing || uploading"
-				(onSelect)="onFileSelect($event)"
-			></p-fileUpload>
+			<p-fileUpload mode="basic" chooseLabel="Choose CSV File" accept=".csv" [auto]="true"
+				[disabled]="parsing || uploading" (onSelect)="onFileSelect($event)"></p-fileUpload>
 
 			<div *ngIf="selectedFile" class="mt-4">
 				<div class="flex items-center justify-between">
-					<span class="text-sm text-gray-600"
-						>Selected: {{ selectedFile.name }}</span
-					>
-					<button
-						pButton
-						icon="pi pi-times"
-						severity="secondary"
-						styleClass="p-button-sm p-button-text"
-						[disabled]="parsing || uploading"
-						(click)="clearFile()"
-					></button>
+					<span class="text-sm text-gray-600">Selected: {{ selectedFile.name }}</span>
+					<button pButton icon="pi pi-times" severity="secondary" styleClass="p-button-sm p-button-text"
+						[disabled]="parsing || uploading" (click)="clearFile()"></button>
 				</div>
 			</div>
 
 			<div *ngIf="parsing" class="mt-4 text-center">
 				<div class="relative w-16 h-16 mx-auto">
-					<div
-						class="absolute inset-0 border-4 rounded-full"
-						style="border-color: #E8F0FF;"
-					></div>
-					<div
-						class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
-						style="border-color: #1A58AF;"
-					></div>
+					<div class="absolute inset-0 border-4 rounded-full" style="border-color: #E8F0FF;"></div>
+					<div class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+						style="border-color: #1A58AF;"></div>
 				</div>
 				<p class="text-sm text-gray-600 mt-2">Parsing CSV file...</p>
 			</div>
@@ -313,11 +214,8 @@
 					Valid Enumerators ({{ parsedData.valid.length }})
 				</h4>
 				<div class="rounded-lg border border-gray-200 max-h-96 overflow-auto">
-					<p-table
-						[value]="parsedData.valid"
-						[paginator]="false"
-						styleClass="p-datatable-sm"
-					>
+					<p-table [value]="parsedData.valid" [paginator]="false"
+						styleClass="p-datatable-sm w-full min-w-[800px]">
 						<ng-template pTemplate="header">
 							<tr>
 								<th>Name</th>
@@ -348,11 +246,8 @@
 					Invalid Rows ({{ parsedData.invalid.length }})
 				</h4>
 				<div class="rounded-lg border border-red-200 max-h-64 overflow-auto">
-					<p-table
-						[value]="parsedData.invalid"
-						[paginator]="false"
-						styleClass="p-datatable-sm"
-					>
+					<p-table [value]="parsedData.invalid" [paginator]="false"
+						styleClass="p-datatable-sm w-full min-w-[600px]">
 						<ng-template pTemplate="header">
 							<tr>
 								<th>Row</th>
@@ -381,21 +276,10 @@
 
 	<ng-template pTemplate="footer">
 		<div class="flex justify-end gap-2">
-			<button
-				pButton
-				label="Cancel"
-				severity="secondary"
-				[disabled]="uploading"
-				(click)="showUploadDialog = false"
-			></button>
-			<button
-				pButton
-				label="Upload"
-				icon="pi pi-upload"
-				[loading]="uploading"
-				[disabled]="!parsedData || parsedData.valid.length === 0"
-				(click)="uploadEnumerators()"
-			></button>
+			<button pButton label="Cancel" severity="secondary" [disabled]="uploading"
+				(click)="showUploadDialog = false"></button>
+			<button pButton label="Upload" icon="pi pi-upload" [loading]="uploading"
+				[disabled]="!parsedData || parsedData.valid.length === 0" (click)="uploadEnumerators()"></button>
 		</div>
 	</ng-template>
 </p-dialog>
@@ -407,14 +291,8 @@
 <p-confirmDialog></p-confirmDialog>
 
 <!-- Edit Enumerator Dialog -->
-<p-dialog
-	[(visible)]="showEditDialog"
-	[modal]="true"
-	[closable]="!saving"
-	[closeOnEscape]="!saving"
-	styleClass="w-[90vw] max-w-2xl"
-	(close)="closeEditDialog()"
->
+<p-dialog [(visible)]="showEditDialog" [modal]="true" [closable]="!saving" [closeOnEscape]="!saving"
+	styleClass="w-[90vw] max-w-2xl" (close)="closeEditDialog()">
 	<ng-template pTemplate="header">
 		<h3 class="text-lg font-semibold">
 			Edit Enumerator - {{ editingEnumerator?.user?.name }}
@@ -427,15 +305,8 @@
 			<label for="edit-name" class="block text-sm font-medium text-gray-700 mb-2">
 				Full Name *
 			</label>
-			<input
-				id="edit-name"
-				type="text"
-				pInputText
-				formControlName="name"
-				placeholder="Enter full name"
-				[class.ng-invalid]="hasFormError(editForm, 'name')"
-				class="w-full"
-			/>
+			<input id="edit-name" type="text" pInputText formControlName="name" placeholder="Enter full name"
+				[class.ng-invalid]="hasFormError(editForm, 'name')" class="w-full" />
 			<small *ngIf="hasFormError(editForm, 'name')" class="p-error">
 				{{ getFormError(editForm, "name") }}
 			</small>
@@ -446,16 +317,8 @@
 			<label for="edit-cid" class="block text-sm font-medium text-gray-700 mb-2">
 				CID <span class="text-red-500">*</span>
 			</label>
-			<input
-				id="edit-cid"
-				type="text"
-				pInputText
-				formControlName="cid"
-				placeholder="Enter 11-digit CID"
-				maxlength="11"
-				[class.ng-invalid]="hasFormError(editForm, 'cid')"
-				class="w-full"
-			/>
+			<input id="edit-cid" type="text" pInputText formControlName="cid" placeholder="Enter 11-digit CID"
+				maxlength="11" [class.ng-invalid]="hasFormError(editForm, 'cid')" class="w-full" />
 			<small *ngIf="hasFormError(editForm, 'cid')" class="p-error">
 				{{ getFormError(editForm, "cid") }}
 			</small>
@@ -466,21 +329,12 @@
 
 		<!-- Email Address -->
 		<div>
-			<label
-				for="edit-emailAddress"
-				class="block text-sm font-medium text-gray-700 mb-2"
-			>
+			<label for="edit-emailAddress" class="block text-sm font-medium text-gray-700 mb-2">
 				Email Address *
 			</label>
-			<input
-				id="edit-emailAddress"
-				type="email"
-				pInputText
-				formControlName="emailAddress"
-				placeholder="Enter email address"
-				[class.ng-invalid]="hasFormError(editForm, 'emailAddress')"
-				class="w-full"
-			/>
+			<input id="edit-emailAddress" type="email" pInputText formControlName="emailAddress"
+				placeholder="Enter email address" [class.ng-invalid]="hasFormError(editForm, 'emailAddress')"
+				class="w-full" />
 			<small *ngIf="hasFormError(editForm, 'emailAddress')" class="p-error">
 				{{ getFormError(editForm, "emailAddress") }}
 			</small>
@@ -488,22 +342,12 @@
 
 		<!-- Phone Number -->
 		<div>
-			<label
-				for="edit-phoneNumber"
-				class="block text-sm font-medium text-gray-700 mb-2"
-			>
+			<label for="edit-phoneNumber" class="block text-sm font-medium text-gray-700 mb-2">
 				Phone Number
 			</label>
-			<input
-				id="edit-phoneNumber"
-				type="text"
-				pInputText
-				formControlName="phoneNumber"
-				placeholder="Enter 8-digit phone number"
-				maxlength="8"
-				[class.ng-invalid]="hasFormError(editForm, 'phoneNumber')"
-				class="w-full"
-			/>
+			<input id="edit-phoneNumber" type="text" pInputText formControlName="phoneNumber"
+				placeholder="Enter 8-digit phone number" maxlength="8"
+				[class.ng-invalid]="hasFormError(editForm, 'phoneNumber')" class="w-full" />
 			<small *ngIf="hasFormError(editForm, 'phoneNumber')" class="p-error">
 				{{ getFormError(editForm, "phoneNumber") }}
 			</small>
@@ -514,24 +358,13 @@
 
 		<!-- Dzongkhags -->
 		<div>
-			<label
-				for="edit-dzongkhags"
-				class="block text-sm font-medium text-gray-700 mb-2"
-			>
+			<label for="edit-dzongkhags" class="block text-sm font-medium text-gray-700 mb-2">
 				Dzongkhags
 			</label>
-			<p-multiSelect
-				id="edit-dzongkhags"
-				formControlName="dzongkhagIds"
-				[options]="availableDzongkhags"
-				optionLabel="name"
-				optionValue="id"
-				placeholder="Select dzongkhag(s)"
-				[class.ng-invalid]="hasFormError(editForm, 'dzongkhagIds')"
-				styleClass="w-full"
-				appendTo="body"
-				[displaySelectedLabel]="true"
-			></p-multiSelect>
+			<p-multiSelect id="edit-dzongkhags" formControlName="dzongkhagIds" [options]="availableDzongkhags"
+				optionLabel="name" optionValue="id" placeholder="Select dzongkhag(s)"
+				[class.ng-invalid]="hasFormError(editForm, 'dzongkhagIds')" styleClass="w-full" appendTo="body"
+				[displaySelectedLabel]="true"></p-multiSelect>
 			<small class="text-gray-500 block mt-1">
 				Optional - Select dzongkhag(s) to update assignments. Leaving empty will not change assignments.
 			</small>
@@ -540,34 +373,17 @@
 
 	<ng-template pTemplate="footer">
 		<div class="flex justify-end gap-2">
-			<button
-				pButton
-				label="Cancel"
-				severity="secondary"
-				[disabled]="saving"
-				(click)="closeEditDialog()"
-			></button>
-			<button
-				pButton
-				label="Save"
-				icon="pi pi-check"
-				[loading]="saving"
-				[disabled]="editForm.invalid"
-				(click)="saveEnumerator()"
-			></button>
+			<button pButton label="Cancel" severity="secondary" [disabled]="saving"
+				(click)="closeEditDialog()"></button>
+			<button pButton label="Save" icon="pi pi-check" [loading]="saving" [disabled]="editForm.invalid"
+				(click)="saveEnumerator()"></button>
 		</div>
 	</ng-template>
 </p-dialog>
 
 <!-- Reset Password Dialog -->
-<p-dialog
-	[(visible)]="showResetPasswordDialog"
-	[modal]="true"
-	[closable]="!resettingPassword"
-	[closeOnEscape]="!resettingPassword"
-	styleClass="w-[90vw] max-w-2xl"
-	(close)="closeResetPasswordDialog()"
->
+<p-dialog [(visible)]="showResetPasswordDialog" [modal]="true" [closable]="!resettingPassword"
+	[closeOnEscape]="!resettingPassword" styleClass="w-[90vw] max-w-2xl" (close)="closeResetPasswordDialog()">
 	<ng-template pTemplate="header">
 		<h3 class="text-xl font-semibold text-gray-900">Reset Password</h3>
 	</ng-template>
@@ -577,7 +393,7 @@
 		<div class="mb-6">
 			<p class="text-sm text-gray-600">
 				Reset password for {{ resettingPasswordEnumerator?.user?.name }} ({{
-					resettingPasswordEnumerator?.user?.emailAddress
+				resettingPasswordEnumerator?.user?.emailAddress
 				}})
 			</p>
 		</div>
@@ -585,30 +401,30 @@
 		<!-- User Info Card -->
 		<div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
 			<h4 class="text-sm font-semibold text-gray-700 mb-3">User Information</h4>
-			<div class="grid grid-cols-2 gap-4 text-sm">
-				<div>
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+				<div class="flex flex-col sm:block">
 					<span class="text-gray-600">Name:</span>
-					<span class="font-semibold text-gray-900 ml-2">{{
+					<span class="font-semibold text-gray-900 sm:ml-2">{{
 						resettingPasswordEnumerator?.user?.name
-					}}</span>
+						}}</span>
 				</div>
-				<div>
+				<div class="flex flex-col sm:block">
 					<span class="text-gray-600">CID:</span>
-					<span class="font-semibold text-gray-900 ml-2 font-mono">{{
+					<span class="font-semibold text-gray-900 sm:ml-2 font-mono">{{
 						resettingPasswordEnumerator?.user?.cid
-					}}</span>
+						}}</span>
 				</div>
-				<div>
+				<div class="flex flex-col sm:block">
 					<span class="text-gray-600">Email:</span>
-					<span class="font-semibold text-gray-900 ml-2">{{
+					<span class="font-semibold text-gray-900 sm:ml-2 break-all">{{
 						resettingPasswordEnumerator?.user?.emailAddress
-					}}</span>
+						}}</span>
 				</div>
-				<div>
+				<div class="flex flex-col sm:block">
 					<span class="text-gray-600">Phone:</span>
-					<span class="font-semibold text-gray-900 ml-2">{{
+					<span class="font-semibold text-gray-900 sm:ml-2">{{
 						resettingPasswordEnumerator?.user?.phoneNumber || 'N/A'
-					}}</span>
+						}}</span>
 				</div>
 			</div>
 		</div>
@@ -617,36 +433,20 @@
 		<form [formGroup]="resetPasswordForm" class="space-y-4">
 			<!-- New Password -->
 			<div>
-				<label
-					for="newPassword"
-					class="block text-sm font-medium text-gray-700 mb-2"
-				>
+				<label for="newPassword" class="block text-sm font-medium text-gray-700 mb-2">
 					New Password <span class="text-red-500">*</span>
 				</label>
-				<p-password
-					id="newPassword"
-					formControlName="newPassword"
-					placeholder="Enter new password"
-					[toggleMask]="true"
-					[feedback]="true"
-					[class.ng-invalid]="hasFormError(resetPasswordForm, 'newPassword')"
-					styleClass="w-full"
-					inputStyleClass="w-full"
-				></p-password>
-				<small
-					*ngIf="hasFormError(resetPasswordForm, 'newPassword')"
-					class="p-error"
-				>
+				<p-password id="newPassword" formControlName="newPassword" placeholder="Enter new password"
+					[toggleMask]="true" [feedback]="true"
+					[class.ng-invalid]="hasFormError(resetPasswordForm, 'newPassword')" styleClass="w-full"
+					inputStyleClass="w-full"></p-password>
+				<small *ngIf="hasFormError(resetPasswordForm, 'newPassword')" class="p-error">
 					{{ getFormError(resetPasswordForm, 'newPassword') }}
 				</small>
-				<small
-					*ngIf="
+				<small *ngIf="
 						resetPasswordForm.get('newPassword')?.value &&
 						!hasFormError(resetPasswordForm, 'newPassword')
-					"
-					class="block mt-1"
-					[ngClass]="getPasswordStrengthColor()"
-				>
+					" class="block mt-1" [ngClass]="getPasswordStrengthColor()">
 					Password strength:
 					<span class="font-semibold">{{ getPasswordStrength() || 'weak' }}</span>
 				</small>
@@ -654,32 +454,18 @@
 
 			<!-- Confirm Password -->
 			<div>
-				<label
-					for="confirmPassword"
-					class="block text-sm font-medium text-gray-700 mb-2"
-				>
+				<label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
 					Confirm Password <span class="text-red-500">*</span>
 				</label>
-				<p-password
-					id="confirmPassword"
-					formControlName="confirmPassword"
-					placeholder="Confirm new password"
-					[toggleMask]="true"
-					[feedback]="false"
-					[class.ng-invalid]="
+				<p-password id="confirmPassword" formControlName="confirmPassword" placeholder="Confirm new password"
+					[toggleMask]="true" [feedback]="false" [class.ng-invalid]="
 						hasFormError(resetPasswordForm, 'confirmPassword') ||
 						getPasswordMismatchError()
-					"
-					styleClass="w-full"
-					inputStyleClass="w-full"
-				></p-password>
-				<small
-					*ngIf="
+					" styleClass="w-full" inputStyleClass="w-full"></p-password>
+				<small *ngIf="
 						hasFormError(resetPasswordForm, 'confirmPassword') ||
 						getPasswordMismatchError()
-					"
-					class="p-error"
-				>
+					" class="p-error">
 					{{ getPasswordMismatchError() || getFormError(resetPasswordForm, 'confirmPassword') }}
 				</small>
 			</div>
@@ -711,39 +497,19 @@
 
 			<!-- Action Buttons -->
 			<div class="flex justify-end gap-3 mt-6 pt-4 border-t">
-				<button
-					pButton
-					type="button"
-					label="Cancel"
-					icon="pi pi-times"
-					class="p-button-text"
-					(click)="closeResetPasswordDialog()"
-					[disabled]="resettingPassword"
-				></button>
-				<button
-					pButton
-					type="button"
-					label="Reset Password"
-					icon="pi pi-key"
-					class="p-button-primary"
-					(click)="resetPassword()"
-					[loading]="resettingPassword"
-					[disabled]="resetPasswordForm.invalid"
-				></button>
+				<button pButton type="button" label="Cancel" icon="pi pi-times" class="p-button-text"
+					(click)="closeResetPasswordDialog()" [disabled]="resettingPassword"></button>
+				<button pButton type="button" label="Reset Password" icon="pi pi-key" class="p-button-primary"
+					(click)="resetPassword()" [loading]="resettingPassword"
+					[disabled]="resetPasswordForm.invalid"></button>
 			</div>
 		</form>
 	</div>
 </p-dialog>
 
 <!-- Create Enumerator Dialog -->
-<p-dialog
-	[(visible)]="showCreateDialog"
-	[modal]="true"
-	[closable]="!creating"
-	[closeOnEscape]="!creating"
-	styleClass="w-[90vw] max-w-2xl"
-	(close)="closeCreateDialog()"
->
+<p-dialog [(visible)]="showCreateDialog" [modal]="true" [closable]="!creating" [closeOnEscape]="!creating"
+	styleClass="w-[90vw] max-w-2xl" (close)="closeCreateDialog()">
 	<ng-template pTemplate="header">
 		<h3 class="text-lg font-semibold">Create Enumerator</h3>
 	</ng-template>
@@ -754,15 +520,8 @@
 			<label for="create-name" class="block text-sm font-medium text-gray-700 mb-2">
 				Full Name <span class="text-red-500">*</span>
 			</label>
-			<input
-				id="create-name"
-				type="text"
-				pInputText
-				formControlName="name"
-				placeholder="Enter full name"
-				[class.ng-invalid]="hasFormError(createForm, 'name')"
-				class="w-full"
-			/>
+			<input id="create-name" type="text" pInputText formControlName="name" placeholder="Enter full name"
+				[class.ng-invalid]="hasFormError(createForm, 'name')" class="w-full" />
 			<small *ngIf="hasFormError(createForm, 'name')" class="p-error">
 				{{ getFormError(createForm, 'name') }}
 			</small>
@@ -773,16 +532,8 @@
 			<label for="create-cid" class="block text-sm font-medium text-gray-700 mb-2">
 				CID <span class="text-red-500">*</span>
 			</label>
-			<input
-				id="create-cid"
-				type="text"
-				pInputText
-				formControlName="cid"
-				placeholder="Enter 11-digit CID"
-				maxlength="11"
-				[class.ng-invalid]="hasFormError(createForm, 'cid')"
-				class="w-full"
-			/>
+			<input id="create-cid" type="text" pInputText formControlName="cid" placeholder="Enter 11-digit CID"
+				maxlength="11" [class.ng-invalid]="hasFormError(createForm, 'cid')" class="w-full" />
 			<small *ngIf="hasFormError(createForm, 'cid')" class="p-error">
 				{{ getFormError(createForm, 'cid') }}
 			</small>
@@ -793,21 +544,12 @@
 
 		<!-- Email Address -->
 		<div>
-			<label
-				for="create-emailAddress"
-				class="block text-sm font-medium text-gray-700 mb-2"
-			>
+			<label for="create-emailAddress" class="block text-sm font-medium text-gray-700 mb-2">
 				Email Address
 			</label>
-			<input
-				id="create-emailAddress"
-				type="email"
-				pInputText
-				formControlName="emailAddress"
+			<input id="create-emailAddress" type="email" pInputText formControlName="emailAddress"
 				placeholder="Enter email address (optional)"
-				[class.ng-invalid]="hasFormError(createForm, 'emailAddress')"
-				class="w-full"
-			/>
+				[class.ng-invalid]="hasFormError(createForm, 'emailAddress')" class="w-full" />
 			<small *ngIf="hasFormError(createForm, 'emailAddress')" class="p-error">
 				{{ getFormError(createForm, 'emailAddress') }}
 			</small>
@@ -818,22 +560,12 @@
 
 		<!-- Phone Number -->
 		<div>
-			<label
-				for="create-phoneNumber"
-				class="block text-sm font-medium text-gray-700 mb-2"
-			>
+			<label for="create-phoneNumber" class="block text-sm font-medium text-gray-700 mb-2">
 				Phone Number
 			</label>
-			<input
-				id="create-phoneNumber"
-				type="text"
-				pInputText
-				formControlName="phoneNumber"
-				placeholder="Enter 8-digit phone number (optional)"
-				maxlength="8"
-				[class.ng-invalid]="hasFormError(createForm, 'phoneNumber')"
-				class="w-full"
-			/>
+			<input id="create-phoneNumber" type="text" pInputText formControlName="phoneNumber"
+				placeholder="Enter 8-digit phone number (optional)" maxlength="8"
+				[class.ng-invalid]="hasFormError(createForm, 'phoneNumber')" class="w-full" />
 			<small *ngIf="hasFormError(createForm, 'phoneNumber')" class="p-error">
 				<span *ngIf="createForm.get('phoneNumber')?.hasError('pattern')">
 					Phone number must be 8 digits starting with 1, 7, 6, 8, or 9
@@ -846,21 +578,11 @@
 
 		<!-- Password -->
 		<div>
-			<label
-				for="create-password"
-				class="block text-sm font-medium text-gray-700 mb-2"
-			>
+			<label for="create-password" class="block text-sm font-medium text-gray-700 mb-2">
 				Password
 			</label>
-			<p-password
-				id="create-password"
-				formControlName="password"
-				placeholder="Enter password (optional)"
-				[toggleMask]="true"
-				[feedback]="false"
-				styleClass="w-full"
-				inputStyleClass="w-full"
-			></p-password>
+			<p-password id="create-password" formControlName="password" placeholder="Enter password (optional)"
+				[toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full"></p-password>
 			<small class="text-gray-500 block mt-1">
 				Optional - defaults to CID if not provided
 			</small>
@@ -868,24 +590,13 @@
 
 		<!-- Dzongkhags -->
 		<div>
-			<label
-				for="create-dzongkhags"
-				class="block text-sm font-medium text-gray-700 mb-2"
-			>
+			<label for="create-dzongkhags" class="block text-sm font-medium text-gray-700 mb-2">
 				Dzongkhags <span class="text-red-500">*</span>
 			</label>
-			<p-multiSelect
-				id="create-dzongkhags"
-				formControlName="dzongkhagIds"
-				[options]="availableDzongkhags"
-				optionLabel="name"
-				optionValue="id"
-				placeholder="Select dzongkhag(s)"
-				[class.ng-invalid]="hasFormError(createForm, 'dzongkhagIds')"
-				styleClass="w-full"
-				appendTo="body"
-				[displaySelectedLabel]="true"
-			></p-multiSelect>
+			<p-multiSelect id="create-dzongkhags" formControlName="dzongkhagIds" [options]="availableDzongkhags"
+				optionLabel="name" optionValue="id" placeholder="Select dzongkhag(s)"
+				[class.ng-invalid]="hasFormError(createForm, 'dzongkhagIds')" styleClass="w-full" appendTo="body"
+				[displaySelectedLabel]="true"></p-multiSelect>
 			<small *ngIf="hasFormError(createForm, 'dzongkhagIds')" class="p-error">
 				<span *ngIf="createForm.get('dzongkhagIds')?.hasError('required')">
 					At least one dzongkhag is required
@@ -902,22 +613,10 @@
 
 	<ng-template pTemplate="footer">
 		<div class="flex justify-end gap-2">
-			<button
-				pButton
-				label="Cancel"
-				severity="secondary"
-				[disabled]="creating"
-				(click)="closeCreateDialog()"
-			></button>
-			<button
-				pButton
-				label="Create"
-				icon="pi pi-check"
-				[loading]="creating"
-				[disabled]="createForm.invalid"
-				(click)="createEnumerator()"
-			></button>
+			<button pButton label="Cancel" severity="secondary" [disabled]="creating"
+				(click)="closeCreateDialog()"></button>
+			<button pButton label="Create" icon="pi pi-check" [loading]="creating" [disabled]="createForm.invalid"
+				(click)="createEnumerator()"></button>
 		</div>
 	</ng-template>
 </p-dialog>
-

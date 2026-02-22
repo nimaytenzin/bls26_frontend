@@ -4,7 +4,7 @@ export interface HouseholdListing {
 	structureNumber: string;
 	householdIdentification: string;
 	householdSerialNumber: number;
-	nameOfHOH: string;
+	nameOfHOH?: string;
 	totalMale: number;
 	totalFemale: number;
 	phoneNumber?: string;
@@ -19,7 +19,7 @@ export interface CreateHouseholdListingDto {
 	structureNumber: string;
 	householdIdentification: string;
 	householdSerialNumber: number;
-	nameOfHOH: string;
+	nameOfHOH?: string;
 	totalMale: number;
 	totalFemale: number;
 	phoneNumber?: string;

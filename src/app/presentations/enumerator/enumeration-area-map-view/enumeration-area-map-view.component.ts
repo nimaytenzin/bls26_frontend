@@ -20,7 +20,9 @@ import { ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { CompleteEnumerationDto, SurveyEnumerationArea } from '../../../core/dataservice/survey-enumeration-area/survey-enumeration-area.dto';
 import { EnumeratorMapStateService } from '../../../core/utility/enumerator-map-state.service';
+import { BuildingDataService } from '../../../core/dataservice/buildings/buildings.dataservice';
 import * as L from 'leaflet';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import {
 	SurveyEnumerationAreaStructure,
 	CreateSurveyEnumerationAreaStructureDto,
@@ -59,6 +61,8 @@ export class EnumerationAreaMapViewComponent
 	private satelliteLayer?: L.TileLayer;
 	private currentBaseLayer?: L.TileLayer;
 	private enumerationAreaLayer?: L.GeoJSON;
+	private buildingsLayer?: L.GeoJSON;
+	private buildingsData: any = null;
 	private userLocationMarker?: L.Marker;
 	private userLocationCircle?: L.Circle;
 	private watchId?: number;
@@ -94,6 +98,10 @@ export class EnumerationAreaMapViewComponent
 	locationError: string | null = null;
 	isTrackingLocation = false;
 
+	// Buildings overlay (footprints)
+	showBuildingsLayer = true;
+	loadingBuildings = false;
+
 	// Toast notification
 	toastMessage: string | null = null;
 	toastSeverity: 'error' | 'success' | 'info' = 'info';
@@ -117,7 +125,8 @@ export class EnumerationAreaMapViewComponent
 		private authService: AuthService,
 		private confirmationService: ConfirmationService,
 		private mapStateService: EnumeratorMapStateService,
-		private dialogService: DialogService
+		private dialogService: DialogService,
+		private buildingDataService: BuildingDataService
 	) {}
 
 	ngOnInit(): void {
@@ -390,6 +399,173 @@ export class EnumerationAreaMapViewComponent
 			const bounds = this.enumerationAreaLayer.getBounds();
 			this.map.fitBounds(bounds, { padding: [50, 50] });
 		}
+
+		// Load buildings overlay after map is ready (defer like public data-viewer)
+		setTimeout(() => this.loadBuildingsLayer(), 150);
+	}
+
+	/**
+	 * Resolve enumeration area ID for buildings API (same EA as map).
+	 */
+	private getEnumerationAreaIdForBuildings(): number | null {
+		return this.enumerationAreaId ?? this.enumerationArea?.id ?? null;
+	}
+
+	/**
+	 * Load buildings as GeoJSON for this enumeration area and render as a muted overlay.
+	 * Pattern aligned with public-subadministrative-zone-data-viewer loadBuildings.
+	 */
+	private loadBuildingsLayer(): void {
+		const eaId = this.getEnumerationAreaIdForBuildings();
+		if (!this.map || eaId == null) {
+			return;
+		}
+
+		this.loadingBuildings = true;
+
+		this.buildingDataService
+			.findAsGeoJsonByEnumerationArea(eaId)
+			.subscribe({
+				next: (geoJson) => {
+					this.loadingBuildings = false;
+
+					const map = this.map;
+					if (!map) return;
+
+					// Remove any existing buildings layer
+					if (this.buildingsLayer && map.hasLayer(this.buildingsLayer)) {
+						map.removeLayer(this.buildingsLayer);
+					}
+
+					// Normalize: accept FeatureCollection or single Feature
+					const normalized =
+						geoJson?.type === 'FeatureCollection'
+							? geoJson
+							: geoJson?.type === 'Feature'
+								? { type: 'FeatureCollection' as const, features: [geoJson] }
+								: geoJson;
+
+					const features = normalized?.features;
+					if (!features || !Array.isArray(features) || features.length === 0) {
+						this.buildingsLayer = undefined;
+						this.buildingsData = null;
+						return;
+					}
+
+					this.buildingsData = normalized;
+
+					// High-visibility style so buildings stand out on satellite basemap
+					this.buildingsLayer = L.geoJSON(normalized as any, {
+						style: {
+							color: '#CCFF00',
+							weight: 2,
+							fillColor: '#ADFF2F',
+							fillOpacity: 0.35,
+						},
+					});
+
+					if (this.showBuildingsLayer) {
+						this.buildingsLayer.addTo(map);
+					}
+				},
+				error: (error) => {
+					this.loadingBuildings = false;
+					console.error('Error loading building GeoJSON:', error);
+					this.showToast(
+						error?.error?.message || 'Failed to load buildings. Please try again.',
+						'error'
+					);
+				},
+			});
+	}
+
+	/**
+	 * Add buildings layer to map from already-loaded GeoJSON (used when toggling back on).
+	 */
+	private addBuildingsLayerToMap(geojson: any): void {
+		const map = this.map;
+		if (!map) return;
+
+		if (this.buildingsLayer && map.hasLayer(this.buildingsLayer)) {
+			map.removeLayer(this.buildingsLayer);
+		}
+
+		this.buildingsLayer = L.geoJSON(geojson, {
+			style: {
+				color: '#CCFF00',
+				weight: 2,
+				fillColor: '#ADFF2F',
+				fillOpacity: 0.35,
+			},
+		});
+		this.buildingsLayer.addTo(map);
+	}
+
+	/**
+	 * Toggle buildings overlay visibility.
+	 * Pattern aligned with public-subadministrative-zone-data-viewer toggleBuildings.
+	 */
+	toggleBuildingsLayer(): void {
+		this.showBuildingsLayer = !this.showBuildingsLayer;
+
+		if (!this.map) {
+			return;
+		}
+
+		if (this.showBuildingsLayer) {
+			if (this.buildingsData?.features?.length) {
+				this.addBuildingsLayerToMap(this.buildingsData);
+			} else {
+				this.loadBuildingsLayer();
+			}
+		} else if (this.buildingsLayer && this.map.hasLayer(this.buildingsLayer)) {
+			this.map.removeLayer(this.buildingsLayer);
+		}
+	}
+
+	/**
+	 * Check if a point (lat, lng) is inside the current enumeration area boundary.
+	 * If no boundary is available, allow the point by default.
+	 */
+	private isPointInsideEnumerationArea(lat: number, lng: number): boolean {
+		if (!this.enumerationAreaLayer) {
+			// If we don't have the layer for some reason, don't block the user
+			return true;
+		}
+
+		const eaGeoJson: any = this.enumerationAreaLayer.toGeoJSON();
+		const point: any = {
+			type: 'Point',
+			coordinates: [lng, lat],
+		};
+
+		const testFeature = (feature: any): boolean => {
+			if (!feature || !feature.geometry) {
+				return false;
+			}
+			// booleanPointInPolygon accepts a Feature or geometry; passing the Feature is simplest
+			return booleanPointInPolygon(point, feature as any);
+		};
+
+		if (!eaGeoJson) {
+			return true;
+		}
+
+		if (eaGeoJson.type === 'FeatureCollection') {
+			const features = eaGeoJson.features || [];
+			return features.some((f: any) => testFeature(f));
+		}
+
+		if (eaGeoJson.type === 'Feature') {
+			return testFeature(eaGeoJson);
+		}
+
+		// Handle raw Polygon / MultiPolygon geometry
+		if (eaGeoJson.type === 'Polygon' || eaGeoJson.type === 'MultiPolygon') {
+			return booleanPointInPolygon(point, eaGeoJson as any);
+		}
+
+		return true;
 	}
 
 	/**
@@ -870,6 +1046,15 @@ export class EnumerationAreaMapViewComponent
 		// Double-check edit mode is enabled
 		if (!this.editMode) return;
 
+		// Ensure the clicked location is inside the enumeration area boundary
+		if (!this.isPointInsideEnumerationArea(e.latlng.lat, e.latlng.lng)) {
+			this.showToast(
+				'Selected location is outside the enumeration area boundary. Please click inside the EA.',
+				'error'
+			);
+			return;
+		}
+
 		// Store the clicked location
 		this.clickedLatLng = { lat: e.latlng.lat, lng: e.latlng.lng };
 		// Get the next structure number and set it
@@ -1031,44 +1216,90 @@ export class EnumerationAreaMapViewComponent
 	}
 
 	/**
-	 * Delete structure with confirmation
+	 * Delete structure with confirmation. If structure has households, offers force delete.
 	 */
 	deleteStructure(): void {
 		if (!this.selectedStructure) return;
 
+		const hasHouseholds =
+			this.selectedStructure.householdListings != null &&
+			this.selectedStructure.householdListings.length > 0;
+
+		if (hasHouseholds) {
+			this.confirmForceDelete();
+			return;
+		}
+
+		this.confirmDeleteStructure(false);
+	}
+
+	/**
+	 * Show confirmation for normal structure delete (no households).
+	 */
+	private confirmDeleteStructure(force: boolean): void {
+		if (!this.selectedStructure) return;
+
+		const msg = force
+			? `Force delete will remove all household samples and household listings for structure "${this.selectedStructure.structureNumber}", then delete the structure. This cannot be undone. Continue?`
+			: `Are you sure you want to delete structure "${this.selectedStructure.structureNumber}"? This action cannot be undone.`;
+
 		this.confirmationService.confirm({
-			message: `Are you sure you want to delete structure "${this.selectedStructure.structureNumber}"? This action cannot be undone.`,
-			header: 'Confirm Delete',
+			message: msg,
+			header: force ? 'Confirm Force Delete' : 'Confirm Delete',
 			icon: 'pi pi-exclamation-triangle',
 			acceptButtonStyleClass: 'p-button-danger',
-			accept: () => {
-				if (!this.selectedStructure) return;
+			accept: () => this.performDeleteStructure(force),
+			reject: () => {},
+		});
+	}
 
-				this.isDeletingStructure = true;
+	/**
+	 * Show confirmation for force delete (when structure has households).
+	 */
+	private confirmForceDelete(): void {
+		if (!this.selectedStructure) return;
+		this.confirmDeleteStructure(true);
+	}
 
-				this.structureService.delete(this.selectedStructure.id).subscribe({
-					next: () => {
-						this.isDeletingStructure = false;
-						this.showStructureActionsDialog = false;
-						const deletedStructure = this.selectedStructure;
-						this.selectedStructure = null;
-						this.mapStateService.saveSelectedStructure(this.surveyEnumerationAreaId, null);
-						this.updateStructureMarkerHighlight(null);
-						this.showToast('Structure deleted successfully', 'success');
-						this.loadStructures();
-					},
-					error: (error) => {
-						this.isDeletingStructure = false;
-						console.error('Error deleting structure:', error);
-						this.showToast(
-							error.error?.message || 'Failed to delete structure',
-							'error'
-						);
-					},
-				});
+	/**
+	 * Perform delete or force-delete and refresh.
+	 */
+	private performDeleteStructure(force: boolean): void {
+		if (!this.selectedStructure) return;
+
+		this.isDeletingStructure = true;
+		const id = this.selectedStructure.id;
+		const request = force
+			? this.structureService.forceDelete(id)
+			: this.structureService.delete(id);
+
+		request.subscribe({
+			next: () => {
+				this.isDeletingStructure = false;
+				this.showStructureActionsDialog = false;
+				this.selectedStructure = null;
+				this.mapStateService.saveSelectedStructure(this.surveyEnumerationAreaId, null);
+				this.updateStructureMarkerHighlight(null);
+				this.showToast(
+					force ? 'Structure and associated households deleted' : 'Structure deleted successfully',
+					'success'
+				);
+				this.loadStructures();
 			},
-			reject: () => {
-				// User cancelled, do nothing
+			error: (error) => {
+				this.isDeletingStructure = false;
+				console.error('Error deleting structure:', error);
+				const msg = error.error?.message ?? '';
+				const suggestsHouseholds =
+					error.status === 400 ||
+					error.status === 409 ||
+					/household|associated|cannot delete/i.test(String(msg));
+				if (!force && suggestsHouseholds && this.selectedStructure) {
+					this.showToast('This structure has associated households. Use Force delete to remove them and the structure.', 'info');
+					this.confirmForceDelete();
+					return;
+				}
+				this.showToast(msg || 'Failed to delete structure', 'error');
 			},
 		});
 	}
@@ -1228,7 +1459,8 @@ export class EnumerationAreaMapViewComponent
 				closable: true,
 				data: {
 					structureId: this.selectedStructure.id,
-				},
+					surveyEnumerationAreaId:this.surveyEnumerationAreaId
+ 				},
 			}
 		);
 

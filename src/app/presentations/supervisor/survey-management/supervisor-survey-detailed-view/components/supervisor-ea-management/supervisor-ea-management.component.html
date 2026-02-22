@@ -1,5 +1,5 @@
 <div class="p-4 space-y-4 h-full flex flex-col">
-	 
+
 	<!-- Statistics Cards -->
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 		<div class="bg-white border border-gray-200 rounded-xl p-4">
@@ -54,28 +54,17 @@
 	<!-- EA Table -->
 	<div class="flex-1 flex flex-col min-h-0">
 		<!-- EA Table Container -->
-		<div 
-			class="bg-white border border-gray-200 rounded-xl flex-1 flex flex-col w-full"
-		>
+		<div class="bg-white border border-gray-200 rounded-xl flex-1 flex flex-col w-full">
 			<div class="p-4 border-b border-gray-200">
-				<div class="flex justify-between items-center mb-4">
+				<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
 					<h4 class="font-semibold text-gray-800">Assigned Enumeration Areas</h4>
-					<div class="flex items-center gap-2">
-						<button
-							pButton
-							type="button"
-							label="Run Bulk Sampling"
-							icon="pi pi-filter"
+					<div class="flex flex-wrap items-center gap-2">
+						<button pButton type="button" label="Run Bulk Sampling" icon="pi pi-filter"
 							class="p-button-primary p-button-sm"
 							[disabled]="getSelectedEnumeratedEAs().length === 0 || bulkSubmitting || isProcessingBatch"
-							(click)="openBulkDialog()"
-						></button>
-						<button
-							*ngIf="selectedEAIds.size > 0"
-							type="button"
-							class="text-xs text-gray-500 hover:text-primary-600"
-							(click)="clearSelection()"
-						>
+							(click)="openBulkDialog()"></button>
+						<button *ngIf="selectedEAIds.size > 0" type="button"
+							class="text-xs text-gray-500 hover:text-primary-600" (click)="clearSelection()">
 							Clear
 						</button>
 						<span class="text-xs text-gray-500" *ngIf="selectedEAIds.size">
@@ -83,35 +72,21 @@
 						</span>
 					</div>
 				</div>
-				
+
 				<!-- Filters -->
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
 					<!-- Dzongkhag Filter -->
 					<div class="flex flex-col gap-2">
 						<div class="flex items-center justify-between">
 							<label class="text-sm font-medium text-gray-700">Filter by Dzongkhag</label>
-							<button
-								*ngIf="selectedDzongkhagId"
-								pButton
-								type="button"
-								icon="pi pi-download"
-								class="p-button-text p-button-sm"
-								[disabled]="downloadingDzongkhagExport"
-								[loading]="downloadingDzongkhagExport"
-								(click)="downloadDzongkhagHouseholdCount()"
-								pTooltip="Download household count CSV for selected dzongkhag"
-							></button>
+							<button *ngIf="selectedDzongkhagId" pButton type="button" icon="pi pi-download"
+								class="p-button-text p-button-sm" [disabled]="downloadingDzongkhagExport"
+								[loading]="downloadingDzongkhagExport" (click)="downloadDzongkhagHouseholdCount()"
+								pTooltip="Download household count CSV for selected dzongkhag"></button>
 						</div>
-						<p-dropdown
-							[options]="availableDzongkhags"
-							[(ngModel)]="selectedDzongkhagId"
-							optionLabel="name"
-							optionValue="id"
-							placeholder="All Dzongkhags"
-							[showClear]="true"
-							styleClass="w-full"
-							(onChange)="onDzongkhagFilterChange()"
-						>
+						<p-dropdown [options]="availableDzongkhags" [(ngModel)]="selectedDzongkhagId" optionLabel="name"
+							optionValue="id" placeholder="All Dzongkhags" [showClear]="true" styleClass="w-full"
+							(onChange)="onDzongkhagFilterChange()">
 							<ng-template let-dzongkhag pTemplate="item">
 								<div>{{ dzongkhag.name }}</div>
 							</ng-template>
@@ -121,115 +96,67 @@
 					<!-- Gewog/Thromde Filter -->
 					<div class="flex flex-col gap-2">
 						<label class="text-sm font-medium text-gray-700">Filter by Gewog/Thromde</label>
-						<p-dropdown
-							[options]="availableAdminZones"
-							[(ngModel)]="selectedAdminZoneId"
-							optionLabel="name"
-							optionValue="id"
-							placeholder="All Gewog/Thromde"
-							[showClear]="true"
-							styleClass="w-full"
+						<p-dropdown [options]="availableAdminZones" [(ngModel)]="selectedAdminZoneId" optionLabel="name"
+							optionValue="id" placeholder="All Gewog/Thromde" [showClear]="true" styleClass="w-full"
 							[disabled]="selectedDzongkhagId === null && availableAdminZones.length === 0"
-							(onChange)="onAdminZoneFilterChange()"
-						></p-dropdown>
+							(onChange)="onAdminZoneFilterChange()"></p-dropdown>
 					</div>
 
 					<!-- Chiwog/Lap Filter -->
 					<div class="flex flex-col gap-2">
 						<label class="text-sm font-medium text-gray-700">Filter by Chiwog/LAP</label>
-						<p-dropdown
-							[options]="availableSubAdminZones"
-							[(ngModel)]="selectedSubAdminZoneId"
-							optionLabel="name"
-							optionValue="id"
-							placeholder="All Chiwog/LAP"
-							[showClear]="true"
+						<p-dropdown [options]="availableSubAdminZones" [(ngModel)]="selectedSubAdminZoneId"
+							optionLabel="name" optionValue="id" placeholder="All Chiwog/LAP" [showClear]="true"
 							styleClass="w-full"
 							[disabled]="selectedAdminZoneId === null && availableSubAdminZones.length === 0"
-							(onChange)="onSubAdminZoneFilterChange()"
-						></p-dropdown>
+							(onChange)="onSubAdminZoneFilterChange()"></p-dropdown>
 					</div>
 
 					<!-- Status Filter -->
 					<div class="flex flex-col gap-2">
 						<label class="text-sm font-medium text-gray-700">Filter by Status</label>
-						<p-dropdown
-							[options]="statusOptions"
-							[(ngModel)]="selectedStatus"
-							optionLabel="label"
-							optionValue="value"
-							placeholder="All Statuses"
-							[showClear]="true"
-							styleClass="w-full"
-							(onChange)="onStatusFilterChange()"
-						></p-dropdown>
+						<p-dropdown [options]="statusOptions" [(ngModel)]="selectedStatus" optionLabel="label"
+							optionValue="value" placeholder="All Statuses" [showClear]="true" styleClass="w-full"
+							(onChange)="onStatusFilterChange()"></p-dropdown>
 					</div>
 
 					<!-- Clear Filters Button -->
 					<div class="flex flex-col gap-2">
 						<label class="text-sm font-medium text-gray-700 opacity-0">Clear</label>
-						<button
-							pButton
-							label="Clear Filters"
-							icon="pi pi-filter-slash"
-							class="p-button-outlined p-button-sm"
-							style="border-color: #6B7280; color: #6B7280;"
+						<button pButton label="Clear Filters" icon="pi pi-filter-slash"
+							class="p-button-outlined p-button-sm" style="border-color: #6B7280; color: #6B7280;"
 							(click)="clearFilters()"
-							[disabled]="selectedDzongkhagId === null && selectedAdminZoneId === null && selectedSubAdminZoneId === null && selectedStatus === null"
-						></button>
+							[disabled]="selectedDzongkhagId === null && selectedAdminZoneId === null && selectedSubAdminZoneId === null && selectedStatus === null"></button>
 					</div>
 				</div>
 			</div>
-			<div class="p-4 flex-1 overflow-auto">
+			<div class="p-0 sm:p-4 flex-1 overflow-auto">
 				<!-- Loading State -->
-				<div
-					*ngIf="loadingSurveyEAs"
-					class="flex items-center justify-center py-8"
-				>
+				<div *ngIf="loadingSurveyEAs" class="flex items-center justify-center py-8">
 					<div class="relative w-16 h-16">
-						<div
-							class="absolute inset-0 border-4 rounded-full"
-							style="border-color: #E8F0FF;"
-						></div>
-						<div
-							class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
-							style="border-color: #1A58AF;"
-						></div>
+						<div class="absolute inset-0 border-4 rounded-full" style="border-color: #E8F0FF;"></div>
+						<div class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+							style="border-color: #1A58AF;"></div>
 					</div>
 				</div>
 
 				<!-- Table -->
-				<div *ngIf="!loadingSurveyEAs && filteredSurveyEAs.length > 0">
-					<p-table
-						#dt
-						[value]="filteredSurveyEAs"
-						[paginator]="true"
-						[rows]="10"
-						[rowsPerPageOptions]="[10, 25, 50, 100]"
-						[globalFilterFields]="[
+				<div *ngIf="!loadingSurveyEAs && filteredSurveyEAs.length > 0"
+					class="overflow-x-auto overflow-y-hidden">
+					<p-table #dt [value]="filteredSurveyEAs" [paginator]="true" [rows]="10"
+						[rowsPerPageOptions]="[10, 25, 50, 100]" [globalFilterFields]="[
 							'enumerationArea.name',
 							'enumerationArea.areaCode'
-						]"
-						styleClass="p-datatable-sm"
-					>
+						]" styleClass="p-datatable-sm w-full min-w-[1000px]">
 						<ng-template pTemplate="caption">
 							<div class="flex items-center justify-between p-4 border-b border-gray-200">
 								<p-inputgroup>
-									<input
-										pInputText
-										type="text"
-										#searchInput
+									<input pInputText type="text" #searchInput
 										(input)="dt.filterGlobal($any($event.target).value, 'contains')"
-										placeholder="Search by name, code, location..."
-										style="width: 250px"
-									/>
+										placeholder="Search by name, code, location..." class="w-full sm:w-64" />
 									<p-inputgroup-addon>
-										<p-button
-											icon="pi pi-search"
-											severity="secondary"
-											variant="text"
-											(click)="dt.filterGlobal(searchInput.value, 'contains')"
-										/>
+										<p-button icon="pi pi-search" severity="secondary" variant="text"
+											(click)="dt.filterGlobal(searchInput.value, 'contains')" />
 									</p-inputgroup-addon>
 								</p-inputgroup>
 							</div>
@@ -247,7 +174,7 @@
 								<th pSortableColumn="enumerationArea.name">
 									EA <p-sortIcon field="enumerationArea.name"></p-sortIcon>
 								</th>
-								<th>EA Code</th>		
+								<th>EA Code</th>
 
 								<th>Households</th>
 								<th pSortableColumn="isPublished">
@@ -260,12 +187,9 @@
 						<ng-template pTemplate="body" let-ea>
 							<tr [class.opacity-50]="!canSelectEA(ea)">
 								<td>
-									<p-checkbox
-										[binary]="true"
-										[ngModel]="isEASelected(ea)"
+									<p-checkbox [binary]="true" [ngModel]="isEASelected(ea)"
 										[disabled]="!canSelectEA(ea)"
-										(onChange)="toggleEASelection(ea, $event.checked)"
-									></p-checkbox>
+										(onChange)="toggleEASelection(ea, $event.checked)"></p-checkbox>
 								</td>
 								<td>
 									{{ getDzongkhag(ea.enumerationArea) }}
@@ -289,87 +213,48 @@
 									<div class="font-semibold">{{ ea.enumerationArea?.name || 'N/A' }}</div>
 								</td>
 								<td>
-									<span class="text-sm text-gray-600">{{ ea.enumerationArea?.areaCode || 'N/A' }}</span>
+									<span class="text-sm text-gray-600">{{ ea.enumerationArea?.areaCode || 'N/A'
+										}}</span>
 								</td>
 								<td>
 									<span class="font-medium">{{ getHouseholdCount(ea) }}</span>
 								</td>
 								<td>
-									<span
-										*ngIf="ea.isPublished"
-										class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
-									>
+									<span *ngIf="ea.isPublished"
+										class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
 										Published
 									</span>
-									<span
-										*ngIf="ea.isSampled && !ea.isPublished"
-										class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800"
-									>
+									<span *ngIf="ea.isSampled && !ea.isPublished"
+										class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
 										Sampled
 									</span>
-									<span
-										*ngIf="ea.isEnumerated && !ea.isPublished && !ea.isSampled"
-										class="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800"
-									>
+									<span *ngIf="ea.isEnumerated && !ea.isPublished && !ea.isSampled"
+										class="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">
 										Sampling Required
 									</span>
-									<span
-										*ngIf="!ea.isEnumerated"
-										class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800"
-									>
+									<span *ngIf="!ea.isEnumerated"
+										class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
 										Pending
 									</span>
 								</td>
 								<td>
-									<button
-										pButton
-										type="button"
-										icon="pi pi-ellipsis-v"
-										class="p-button-text p-button-sm"
-										pTooltip="Actions"
-										(click)="actionMenu.toggle($event)"
-									></button>
-									<p-popover 
-										#actionMenu
-										[style]="{ width: '220px' }"
-									>
+									<button pButton type="button" icon="pi pi-ellipsis-v"
+										class="p-button-text p-button-sm" pTooltip="Actions"
+										(click)="actionMenu.toggle($event)"></button>
+									<p-popover #actionMenu [style]="{ width: '220px' }">
 										<div class="flex flex-col gap-1">
-											<button
-												pButton
-												type="button"
-												label="View Households"
-												icon="pi pi-eye"
-												size="small"
- 												(click)="openResultDialog(ea); actionMenu.hide()"
-											></button>
-											<button
-												pButton
-												type="button"
-												label="View Sampled HH"
-												icon="pi pi-eye"
-												size="small"
- 												[disabled]="!isSampled(ea)"
-												(click)="openSampledHouseholdsDialog(ea); actionMenu.hide()"
-											></button>
-											<button
-												pButton
-												type="button"
-												label="Sample EA"
-												icon="pi pi-filter"
-												size="small"
- 												[disabled]="!isReadyForSampling(ea)"
-												(click)="openSamplingDialog(ea); actionMenu.hide()"
-											></button>
-											<button
-												pButton
-												type="button"
-												label="Download Listing"
-												icon="pi pi-download"
-												size="small"
-												[disabled]="isDownloadingEA(ea)"
+											<button pButton type="button" label="View Households" icon="pi pi-eye"
+												size="small" (click)="openResultDialog(ea); actionMenu.hide()"></button>
+											<button pButton type="button" label="View Sampled HH" icon="pi pi-eye"
+												size="small" [disabled]="!isSampled(ea)"
+												(click)="openSampledHouseholdsDialog(ea); actionMenu.hide()"></button>
+											<button pButton type="button" label="Sample EA" icon="pi pi-filter"
+												size="small" [disabled]="!isReadyForSampling(ea)"
+												(click)="openSamplingDialog(ea); actionMenu.hide()"></button>
+											<button pButton type="button" label="Download Listing" icon="pi pi-download"
+												size="small" [disabled]="isDownloadingEA(ea)"
 												[loading]="isDownloadingEA(ea)"
-												(click)="downloadHouseholdListingCSV(ea); actionMenu.hide()"
-											></button>
+												(click)="downloadHouseholdListingCSV(ea); actionMenu.hide()"></button>
 										</div>
 									</p-popover>
 								</td>
@@ -402,34 +287,18 @@
 </div>
 
 <!-- Single EA Sampling Dialog -->
-<p-dialog
-	[(visible)]="showSamplingDialog"
-	[modal]="true"
-	[closable]="true"
-	[style]="{ width: '500px' }"
-	header="Run Sampling"
-	(onHide)="closeSamplingDialog()"
->
+<p-dialog [(visible)]="showSamplingDialog" [modal]="true" [closable]="true" styleClass="w-[90vw] max-w-lg"
+	header="Run Sampling" (onHide)="closeSamplingDialog()">
 	<ng-template pTemplate="content">
 		<form [formGroup]="runForm" class="space-y-4">
 			<div class="flex flex-col gap-2">
 				<label class="text-sm font-medium">Sampling Method</label>
-				<p-dropdown
-					formControlName="method"
-					[options]="['CSS', 'SRS', 'SYSTEMATIC']"
-					placeholder="Select Method"
-					styleClass="w-full"
-				></p-dropdown>
+				<p-dropdown formControlName="method" [options]="['CSS', 'SRS', 'SYSTEMATIC']"
+					placeholder="Select Method" styleClass="w-full"></p-dropdown>
 			</div>
 			<div class="flex flex-col gap-2">
 				<label class="text-sm font-medium">Sample Size</label>
-				<input
-					pInputText
-					type="number"
-					formControlName="sampleSize"
-					styleClass="w-full"
-					min="1"
-				/>
+				<input pInputText type="number" formControlName="sampleSize" styleClass="w-full" min="1" />
 			</div>
 			<div class="flex items-center gap-2">
 				<p-checkbox formControlName="overwriteExisting" [binary]="true"></p-checkbox>
@@ -438,33 +307,16 @@
 		</form>
 	</ng-template>
 	<ng-template pTemplate="footer">
-		<button
-			pButton
-			label="Cancel"
-			icon="pi pi-times"
-			class="p-button-text"
-			(click)="closeSamplingDialog()"
-		></button>
-		<button
-			pButton
-			label="Run Sampling"
-			icon="pi pi-filter"
-			[loading]="runningSampling"
-			[disabled]="runForm.invalid || runningSampling"
-			(click)="runSampling()"
-		></button>
+		<button pButton label="Cancel" icon="pi pi-times" class="p-button-text"
+			(click)="closeSamplingDialog()"></button>
+		<button pButton label="Run Sampling" icon="pi pi-filter" [loading]="runningSampling"
+			[disabled]="runForm.invalid || runningSampling" (click)="runSampling()"></button>
 	</ng-template>
 </p-dialog>
 
 <!-- Bulk Sampling Dialog -->
-<p-dialog
-	[(visible)]="bulkDialogVisible"
-	[modal]="true"
-	[closable]="true"
-	[style]="{ width: '500px' }"
-	header="Bulk Sampling"
-	(onHide)="bulkDialogVisible = false"
->
+<p-dialog [(visible)]="bulkDialogVisible" [modal]="true" [closable]="true" styleClass="w-[90vw] max-w-lg"
+	header="Bulk Sampling" (onHide)="bulkDialogVisible = false">
 	<ng-template pTemplate="content">
 		<div class="mb-4">
 			<p class="text-sm text-gray-600">
@@ -474,22 +326,12 @@
 		<form [formGroup]="bulkForm" class="space-y-4">
 			<div class="flex flex-col gap-2">
 				<label class="text-sm font-medium">Sampling Method</label>
-				<p-dropdown
-					formControlName="method"
-					[options]="['CSS', 'SRS', 'SYSTEMATIC']"
-					placeholder="Select Method"
-					styleClass="w-full"
-				></p-dropdown>
+				<p-dropdown formControlName="method" [options]="['CSS', 'SRS', 'SYSTEMATIC']"
+					placeholder="Select Method" styleClass="w-full"></p-dropdown>
 			</div>
 			<div class="flex flex-col gap-2">
 				<label class="text-sm font-medium">Sample Size</label>
-				<input
-					pInputText
-					type="number"
-					formControlName="sampleSize"
-					styleClass="w-full"
-					min="1"
-				/>
+				<input pInputText type="number" formControlName="sampleSize" styleClass="w-full" min="1" />
 			</div>
 			<div class="flex items-center gap-2">
 				<p-checkbox formControlName="overwriteExisting" [binary]="true"></p-checkbox>
@@ -498,24 +340,12 @@
 		</form>
 	</ng-template>
 	<ng-template pTemplate="footer">
-		<button
-			pButton
-			label="Cancel"
-			icon="pi pi-times"
-			class="p-button-text"
-			(click)="bulkDialogVisible = false"
-		></button>
-		<button
-			pButton
-			label="Run Bulk Sampling"
-			icon="pi pi-filter"
-			[loading]="bulkSubmitting || isProcessingBatch"
-			[disabled]="bulkForm.invalid || bulkSubmitting || isProcessingBatch"
-			(click)="runBulkSampling()"
-		></button>
+		<button pButton label="Cancel" icon="pi pi-times" class="p-button-text"
+			(click)="bulkDialogVisible = false"></button>
+		<button pButton label="Run Bulk Sampling" icon="pi pi-filter" [loading]="bulkSubmitting || isProcessingBatch"
+			[disabled]="bulkForm.invalid || bulkSubmitting || isProcessingBatch" (click)="runBulkSampling()"></button>
 	</ng-template>
 </p-dialog>
 
 <p-toast></p-toast>
 <p-confirmDialog></p-confirmDialog>
-

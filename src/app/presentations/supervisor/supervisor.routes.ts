@@ -17,10 +17,7 @@ export const supervisorRoutes: Routes = [
 		canActivateChild: [AuthGuard],
 		data: { roles: [UserRole.SUPERVISOR] },
 		children: [
-			{
-				path: '',
-				component: AdminNationalDataViewerComponent,
-			},
+			{ path: '', component: SupervisorActiveSurveysComponent },
 			{
 				path: 'survey',
 				children: [

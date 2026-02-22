@@ -29,6 +29,7 @@
     "@swimlane/ngx-graph": "^11.0.0",
     "@tailwindcss/cli": "^4.1.8",
     "@tailwindcss/postcss": "^4.1.8",
+    "@turf/turf": "^7.3.4",
     "@types/html2canvas": "^1.0.0",
     "@types/qrcode": "^1.5.5",
     "@zxing/browser": "^0.1.5",

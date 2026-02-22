@@ -1,82 +1,60 @@
 <div class="layout-topbar bg-white">
 	<!-- Animated Hamburger Menu Button -->
-	<button
-		#menubutton
-		class="layout-menu-button"
-		(click)="layoutService.onMenuToggle()"
-		type="button"
-		[class.active]="layoutService.state.staticMenuDesktopInactive === false"
-		aria-label="Toggle menu"
-	>
+	<button #menubutton class="layout-menu-button" (click)="layoutService.onMenuToggle()" type="button"
+		[class.active]="layoutService.state.staticMenuDesktopInactive === false" aria-label="Toggle menu">
 		<div class="hamburger">
 			<span class="hamburger-line"></span>
 			<span class="hamburger-line"></span>
 			<span class="hamburger-line"></span>
 		</div>
 	</button>
-	 
+
+	<!-- Mobile Logo (shown only on small screens) -->
+	<a routerLink="/" class="flex lg:hidden items-center gap-2 ml-2 hover:opacity-80 transition-opacity">
+		<img src="logo.png" class="h-8 w-auto" alt="Logo" />
+		<span class="text-lg font-black text-slate-900 tracking-tighter">NSB</span>
+	</a>
 
 	<!-- Spacer to push menu to the right -->
 	<div class="flex-1"></div>
 
 	<!-- User Profile with Popover -->
 	<div class="flex items-center gap-3" *ngIf="userProfile">
-		<button
-			type="button"
-			(click)="profilePopover.toggle($event)"
-			class="hidden sm:block relative focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full transition-all hover:scale-105"
-		>
-			<p-avatar
-				size="normal"
-				shape="circle"
+		<button type="button" (click)="profilePopover.toggle($event)"
+			class="relative focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full transition-all hover:scale-105">
+			<p-avatar size="normal" shape="circle"
 				class="ring-2 ring-slate-200 hover:ring-primary-300 cursor-pointer transition-all shadow-sm hover:shadow-md"
-				[image]="userProfile.profileImage || undefined"
-				[label]="getAvatarLabel()"
-				styleClass="bg-primary-500 text-white"
-			></p-avatar>
+				[image]="userProfile.profileImage || undefined" [label]="getAvatarLabel()"
+				styleClass="bg-primary-500 text-white"></p-avatar>
 		</button>
-		<div class="text-right hidden sm:block">
+		<div class="text-right hidden md:block">
 			<p class="text-sm font-semibold text-slate-900 m-0 leading-tight">
 				{{ userProfile.name || 'User' }}
 			</p>
 			<p class="text-xs text-slate-500 m-0 leading-tight">
 				{{ userProfile.role ? (userProfile.role | titlecase) : '' }}
 			</p>
-			<p 
-				class="text-xs text-slate-600 m-0 leading-tight mt-0.5 font-medium"
-				*ngIf="isSupervisor() && assignedDzongkhags.length > 0"
-			>
+			<p class="text-xs text-slate-600 m-0 leading-tight mt-0.5 font-medium"
+				*ngIf="isSupervisor() && assignedDzongkhags.length > 0">
 				{{ getDzongkhagNames() }}
 			</p>
-			<p 
-				class="text-xs text-slate-400 m-0 leading-tight mt-0.5 italic"
-				*ngIf="isSupervisor() && loadingDzongkhags"
-			>
+			<p class="text-xs text-slate-400 m-0 leading-tight mt-0.5 italic"
+				*ngIf="isSupervisor() && loadingDzongkhags">
 				Loading assignments...
 			</p>
-			<p 
-				class="text-xs text-slate-400 m-0 leading-tight mt-0.5 italic"
-				*ngIf="isSupervisor() && !loadingDzongkhags && assignedDzongkhags.length === 0"
-			>
+			<p class="text-xs text-slate-400 m-0 leading-tight mt-0.5 italic"
+				*ngIf="isSupervisor() && !loadingDzongkhags && assignedDzongkhags.length === 0">
 				No dzongkhag assignments
 			</p>
 		</div>
-		<p-popover
-			#profilePopover
-			[style]="{ width: '320px' }"
-		>
+		<p-popover #profilePopover [style]="{ width: '320px' }">
 			<ng-template pTemplate="content">
 				<div class="flex flex-col">
 					<!-- Profile Header -->
 					<div class="flex items-center gap-3 p-4 border-b border-slate-200">
-						<p-avatar
-							size="large"
-							shape="circle"
-							class="ring-2 ring-primary-100"
-							[image]="userProfile.profileImage || undefined"
-							[label]="getAvatarLabel()"
-							styleClass="bg-primary-500 text-white"
-						></p-avatar>
+						<p-avatar size="large" shape="circle" class="ring-2 ring-primary-100"
+							[image]="userProfile.profileImage || undefined" [label]="getAvatarLabel()"
+							styleClass="bg-primary-500 text-white"></p-avatar>
 						<div class="flex-1 min-w-0">
 							<h3 class="text-base font-semibold text-slate-900 m-0 truncate">
 								{{ userProfile.name }}
@@ -84,22 +62,16 @@
 							<p class="text-xs text-primary-600 font-medium m-0 mt-0.5">
 								{{ userProfile.role }}
 							</p>
-							<p 
-								class="text-xs text-slate-600 m-0 mt-1 font-medium"
-								*ngIf="isSupervisor() && assignedDzongkhags.length > 0"
-							>
+							<p class="text-xs text-slate-600 m-0 mt-1 font-medium"
+								*ngIf="isSupervisor() && assignedDzongkhags.length > 0">
 								{{ getDzongkhagNames() }}
 							</p>
-							<p 
-								class="text-xs text-slate-400 m-0 mt-1 italic"
-								*ngIf="isSupervisor() && loadingDzongkhags"
-							>
+							<p class="text-xs text-slate-400 m-0 mt-1 italic"
+								*ngIf="isSupervisor() && loadingDzongkhags">
 								Loading assignments...
 							</p>
-							<p 
-								class="text-xs text-slate-400 m-0 mt-1 italic"
-								*ngIf="isSupervisor() && !loadingDzongkhags && assignedDzongkhags.length === 0"
-							>
+							<p class="text-xs text-slate-400 m-0 mt-1 italic"
+								*ngIf="isSupervisor() && !loadingDzongkhags && assignedDzongkhags.length === 0">
 								No dzongkhag assignments
 							</p>
 						</div>
@@ -134,51 +106,26 @@
 
 					<!-- Action Buttons -->
 					<div class="border-t border-slate-200 p-3 space-y-2">
-						<button
-							type="button"
-							(click)="openEditProfileDialog()"
-							class="w-full px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
-						>
+						<button type="button" (click)="openEditProfileDialog()"
+							class="w-full px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-semibold flex items-center justify-center gap-2">
 							<i class="pi pi-user-edit text-xs"></i>
 							Edit Profile
 						</button>
 
-						<button
-							type="button"
-							(click)="openChangePasswordDialog()"
-							class="w-full px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
-						>
+						<button type="button" (click)="openChangePasswordDialog()"
+							class="w-full px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-semibold flex items-center justify-center gap-2">
 							<i class="pi pi-key text-xs"></i>
 							Change Password
 						</button>
 
-						<button
-							type="button"
-							#logoutButton
-							(click)="confirmLogout($event)"
-							class="w-full px-3 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
-						>
+						<button type="button" #logoutButton (click)="confirmLogout($event)"
+							class="w-full px-3 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-semibold flex items-center justify-center gap-2">
 							<i class="pi pi-sign-out text-xs"></i>
 							Sign Out
 						</button>
 					</div>
 				</div>
 			</ng-template>
-			<button
-				#profileButton
-				type="button"
-				(click)="profilePopover.toggle($event)"
-				class="relative focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full transition-all hover:scale-105"
-			>
-				<p-avatar
-					size="normal"
-					shape="circle"
-					class="ring-2 ring-slate-200 hover:ring-primary-300 cursor-pointer transition-all shadow-sm hover:shadow-md"
-					[image]="userProfile.profileImage || undefined"
-					[label]="getAvatarLabel()"
-					styleClass="bg-primary-500 text-white"
-				></p-avatar>
-			</button>
 		</p-popover>
 	</div>
 
@@ -188,16 +135,9 @@
 <p-confirmPopup />
 
 <!-- Edit Profile Dialog -->
-<p-dialog
-	[(visible)]="showEditProfileDialog"
-	[style]="{ width: '500px' }"
-	header="Edit Profile"
-	[modal]="true"
-	[closable]="!isUpdatingProfile"
-	[dismissableMask]="!isUpdatingProfile"
-	(onHide)="closeEditProfileDialog()"
-	styleClass="p-fluid"
->
+<p-dialog [(visible)]="showEditProfileDialog" [style]="{ width: '500px' }" header="Edit Profile" [modal]="true"
+	[closable]="!isUpdatingProfile" [dismissableMask]="!isUpdatingProfile" (onHide)="closeEditProfileDialog()"
+	styleClass="p-fluid">
 	<ng-template pTemplate="content">
 		<div class="flex flex-col gap-4">
 			<!-- Name Field -->
@@ -205,51 +145,26 @@
 				<label for="editName" class="text-sm font-medium text-slate-700 mb-1">
 					Full Name
 				</label>
-				<input
-					pInputText
-					id="editName"
-					[(ngModel)]="editProfileForm.name"
-					[disabled]="isUpdatingProfile"
-					placeholder="Enter your full name"
-					class="w-full"
-				/>
+				<input pInputText id="editName" [(ngModel)]="editProfileForm.name" [disabled]="isUpdatingProfile"
+					placeholder="Enter your full name" class="w-full" />
 			</div>
 
 			<!-- Email Field -->
 			<div class="flex flex-col">
-				<label
-					for="editEmail"
-					class="text-sm font-medium text-slate-700 mb-1"
-				>
+				<label for="editEmail" class="text-sm font-medium text-slate-700 mb-1">
 					Email Address
 				</label>
-				<input
-					pInputText
-					id="editEmail"
-					type="email"
-					[(ngModel)]="editProfileForm.emailAddress"
-					[disabled]="isUpdatingProfile"
-					placeholder="Enter your email address"
-					class="w-full"
-				/>
+				<input pInputText id="editEmail" type="email" [(ngModel)]="editProfileForm.emailAddress"
+					[disabled]="isUpdatingProfile" placeholder="Enter your email address" class="w-full" />
 			</div>
 
 			<!-- Phone Number Field -->
 			<div class="flex flex-col">
-				<label
-					for="editPhone"
-					class="text-sm font-medium text-slate-700 mb-1"
-				>
+				<label for="editPhone" class="text-sm font-medium text-slate-700 mb-1">
 					Phone Number
 				</label>
-				<input
-					pInputText
-					id="editPhone"
-					[(ngModel)]="editProfileForm.phoneNumber"
-					[disabled]="isUpdatingProfile"
-					placeholder="Enter your phone number"
-					class="w-full"
-				/>
+				<input pInputText id="editPhone" [(ngModel)]="editProfileForm.phoneNumber"
+					[disabled]="isUpdatingProfile" placeholder="Enter your phone number" class="w-full" />
 			</div>
 
 			<!-- Info Message -->
@@ -267,79 +182,38 @@
 
 	<ng-template pTemplate="footer">
 		<div class="flex justify-end gap-2">
-			<button
-				pButton
-				type="button"
-				label="Cancel"
-				icon="pi pi-times"
-				class="p-button-text"
-				[disabled]="isUpdatingProfile"
-				(click)="closeEditProfileDialog()"
-			></button>
-			<button
-				pButton
-				type="button"
-				label="Update Profile"
-				icon="pi pi-check"
-				[loading]="isUpdatingProfile"
-				[disabled]="isUpdatingProfile"
-				(click)="updateProfile()"
-			></button>
+			<button pButton type="button" label="Cancel" icon="pi pi-times" class="p-button-text"
+				[disabled]="isUpdatingProfile" (click)="closeEditProfileDialog()"></button>
+			<button pButton type="button" label="Update Profile" icon="pi pi-check" [loading]="isUpdatingProfile"
+				[disabled]="isUpdatingProfile" (click)="updateProfile()"></button>
 		</div>
 	</ng-template>
 </p-dialog>
 
 <!-- Change Password Dialog -->
-<p-dialog
-	[(visible)]="showChangePasswordDialog"
-	[style]="{ width: '500px' }"
-	header="Change Password"
-	[modal]="true"
-	[closable]="!isChangingPassword"
-	[dismissableMask]="!isChangingPassword"
-	(onHide)="closeChangePasswordDialog()"
-	styleClass="p-fluid"
->
+<p-dialog [(visible)]="showChangePasswordDialog" [style]="{ width: '500px' }" header="Change Password" [modal]="true"
+	[closable]="!isChangingPassword" [dismissableMask]="!isChangingPassword" (onHide)="closeChangePasswordDialog()"
+	styleClass="p-fluid">
 	<ng-template pTemplate="content">
 		<div class="flex flex-col gap-4">
 			<!-- Current Password Field -->
 			<div class="flex flex-col">
-				<label
-					for="currentPassword"
-					class="text-sm font-medium text-slate-700 mb-1"
-				>
+				<label for="currentPassword" class="text-sm font-medium text-slate-700 mb-1">
 					Current Password *
 				</label>
-				<p-password
-					id="currentPassword"
-					[(ngModel)]="changePasswordForm.currentPassword"
-					[disabled]="isChangingPassword"
-					placeholder="Enter your current password"
-					[feedback]="false"
-					[toggleMask]="true"
-					styleClass="w-full"
-					inputStyleClass="w-full"
-				></p-password>
+				<p-password id="currentPassword" [(ngModel)]="changePasswordForm.currentPassword"
+					[disabled]="isChangingPassword" placeholder="Enter your current password" [feedback]="false"
+					[toggleMask]="true" styleClass="w-full" inputStyleClass="w-full"></p-password>
 			</div>
 
 			<!-- New Password Field -->
 			<div class="flex flex-col">
-				<label
-					for="newPassword"
-					class="text-sm font-medium text-slate-700 mb-1"
-				>
+				<label for="newPassword" class="text-sm font-medium text-slate-700 mb-1">
 					New Password *
 				</label>
-				<p-password
-					id="newPassword"
-					[(ngModel)]="changePasswordForm.newPassword"
-					[disabled]="isChangingPassword"
-					placeholder="Enter your new password"
-					[feedback]="true"
-					[toggleMask]="true"
-					styleClass="w-full"
-					inputStyleClass="w-full"
-				></p-password>
+				<p-password id="newPassword" [(ngModel)]="changePasswordForm.newPassword"
+					[disabled]="isChangingPassword" placeholder="Enter your new password" [feedback]="true"
+					[toggleMask]="true" styleClass="w-full" inputStyleClass="w-full"></p-password>
 				<small class="text-xs text-slate-500 mt-1">
 					Password must be at least 6 characters long.
 				</small>
@@ -347,30 +221,18 @@
 
 			<!-- Confirm New Password Field -->
 			<div class="flex flex-col">
-				<label
-					for="confirmNewPassword"
-					class="text-sm font-medium text-slate-700 mb-1"
-				>
+				<label for="confirmNewPassword" class="text-sm font-medium text-slate-700 mb-1">
 					Confirm New Password *
 				</label>
-				<p-password
-					id="confirmNewPassword"
-					[(ngModel)]="confirmNewPassword"
-					[disabled]="isChangingPassword"
-					placeholder="Confirm your new password"
-					[feedback]="false"
-					[toggleMask]="true"
-					styleClass="w-full"
-					inputStyleClass="w-full"
-				></p-password>
+				<p-password id="confirmNewPassword" [(ngModel)]="confirmNewPassword" [disabled]="isChangingPassword"
+					placeholder="Confirm your new password" [feedback]="false" [toggleMask]="true" styleClass="w-full"
+					inputStyleClass="w-full"></p-password>
 			</div>
 
 			<!-- Info Message -->
 			<div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
 				<div class="flex items-start">
-					<i
-						class="pi pi-exclamation-triangle text-amber-600 text-sm mr-2 mt-0.5"
-					></i>
+					<i class="pi pi-exclamation-triangle text-amber-600 text-sm mr-2 mt-0.5"></i>
 					<p class="text-xs text-amber-800 m-0">
 						Make sure your new password is strong and different from your current
 						password.
@@ -382,24 +244,10 @@
 
 	<ng-template pTemplate="footer">
 		<div class="flex justify-end gap-2">
-			<button
-				pButton
-				type="button"
-				label="Cancel"
-				icon="pi pi-times"
-				class="p-button-text"
-				[disabled]="isChangingPassword"
-				(click)="closeChangePasswordDialog()"
-			></button>
-			<button
-				pButton
-				type="button"
-				label="Change Password"
-				icon="pi pi-check"
-				[loading]="isChangingPassword"
-				[disabled]="isChangingPassword"
-				(click)="changePassword()"
-			></button>
+			<button pButton type="button" label="Cancel" icon="pi pi-times" class="p-button-text"
+				[disabled]="isChangingPassword" (click)="closeChangePasswordDialog()"></button>
+			<button pButton type="button" label="Change Password" icon="pi pi-check" [loading]="isChangingPassword"
+				[disabled]="isChangingPassword" (click)="changePassword()"></button>
 		</div>
 	</ng-template>
 </p-dialog>

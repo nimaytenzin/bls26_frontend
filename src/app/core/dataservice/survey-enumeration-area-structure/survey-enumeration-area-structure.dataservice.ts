@@ -83,14 +83,28 @@ export class SurveyEnumerationAreaStructureDataService {
 	}
 
 	/**
-	 * Delete structure
+	 * Delete structure (fails if structure has associated households)
 	 * @param id - Structure ID
-	 * @returns Observable of delete result
+	 * @returns Observable of delete result (204 on success)
 	 */
 	delete(id: number): Observable<any> {
 		return this.http.delete(`${this.apiUrl}/${id}`).pipe(
 			catchError((error) => {
 				console.error(`Error deleting structure ${id}:`, error);
+				return throwError(() => error);
+			})
+		);
+	}
+
+	/**
+	 * Force delete structure: deletes all associated household samples and household listings, then the structure.
+	 * @param id - Structure ID
+	 * @returns Observable of delete result (204 on success)
+	 */
+	forceDelete(id: number): Observable<any> {
+		return this.http.delete(`${this.apiUrl}/${id}/force`).pipe(
+			catchError((error) => {
+				console.error(`Error force-deleting structure ${id}:`, error);
 				return throwError(() => error);
 			})
 		);

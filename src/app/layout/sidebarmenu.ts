@@ -22,7 +22,7 @@ export const ADMINSIDEBARITEMS = [
 			},
 		],
 	},
-	 
+
 	{
 		label: 'Survey Management',
 		items: [
@@ -44,74 +44,74 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin/master/survey-data-upload'],
 				roles: [USERROLESENUM.ADMIN],
 			},
-			
+
 		],
 	},
 
-		{
-			label: 'Master Data',
-			items: [
-				{
-					label: 'Dzongkhags',
-					icon: 'pi pi-fw pi-map',
-					routerLink: ['/admin/master/dzongkhags'],
-					roles: [USERROLESENUM.ADMIN],
-				},
-				{
-					label: 'Gewog/Thromdes',
-					icon: 'pi pi-fw pi-map-marker',
-					routerLink: ['/admin/master/administrative-zones'],
-					roles: [USERROLESENUM.ADMIN],
-				},
-				{
-					label: 'Chiwogs/LAPs',
-					icon: 'pi pi-fw pi-th-large',
-					routerLink: ['/admin/master/sub-administrative-zones'],
-					roles: [USERROLESENUM.ADMIN],
-				},
-				{
-					label: 'Enumeration Areas',
-					icon: 'pi pi-fw pi-sitemap',
-					routerLink: ['/admin/master/enumeration-areas'],
-					roles: [USERROLESENUM.ADMIN],
-				},
-				{
-					label: 'RBA EAs',
-					icon: 'pi pi-fw pi-sitemap',
-					routerLink: ['/admin/master/rba-eas'],
-					roles: [USERROLESENUM.ADMIN],
-				},
-				{
-					label: 'Geographic Statistical Code',
-					icon: 'pi pi-fw pi-file-pdf',
-					routerLink: ['/admin/reports/geographic-statistical-code'],
-					roles: [USERROLESENUM.ADMIN],
-				},
-			
-			],
-		},
-		{
-			label: 'EA Operations',
-			items: [
-				{
-					label: 'Split Enumeration Area',
-					icon: 'pi pi-fw pi-sitemap',
-					routerLink: ['/admin/ea-operations/split'],
-					roles: [USERROLESENUM.ADMIN],
-				},
-				{
-					label: 'Merge Enumeration Areas',
-					icon: 'pi pi-fw pi-objects-column',
-					routerLink: ['/admin/ea-operations/merge'],
-					roles: [USERROLESENUM.ADMIN],
-				},
-			],
-		},
+	{
+		label: 'Master Data',
+		items: [
+			{
+				label: 'Dzongkhags',
+				icon: 'pi pi-fw pi-map',
+				routerLink: ['/admin/master/dzongkhags'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'Gewog/Thromdes',
+				icon: 'pi pi-fw pi-map-marker',
+				routerLink: ['/admin/master/administrative-zones'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'Chiwogs/LAPs',
+				icon: 'pi pi-fw pi-th-large',
+				routerLink: ['/admin/master/sub-administrative-zones'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'Enumeration Areas',
+				icon: 'pi pi-fw pi-sitemap',
+				routerLink: ['/admin/master/enumeration-areas'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'RBA EAs',
+				icon: 'pi pi-fw pi-sitemap',
+				routerLink: ['/admin/master/rba-eas'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'Geographic Statistical Code',
+				icon: 'pi pi-fw pi-file-pdf',
+				routerLink: ['/admin/reports/geographic-statistical-code'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+
+		],
+	},
+	{
+		label: 'EA Operations',
+		items: [
+			{
+				label: 'Split Enumeration Area',
+				icon: 'pi pi-fw pi-sitemap',
+				routerLink: ['/admin/ea-operations/split'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+			{
+				label: 'Merge Enumeration Areas',
+				icon: 'pi pi-fw pi-objects-column',
+				routerLink: ['/admin/ea-operations/merge'],
+				roles: [USERROLESENUM.ADMIN],
+			},
+		],
+	},
 	{
 
 		label: 'Data Management',
 		items: [
-			
+
 			{
 				label: 'Auto KML Upload',
 				icon: 'pi pi-fw pi-cloud-upload',
@@ -136,7 +136,7 @@ export const ADMINSIDEBARITEMS = [
 				routerLink: ['/admin/master/multi-saz-ea-upload'],
 				roles: [USERROLESENUM.ADMIN],
 			},
-		 
+
 		],
 	},
 	{
@@ -164,7 +164,7 @@ export const ADMINSIDEBARITEMS = [
 	// {
 	// 	label: 'Reports',
 	// 	items: [
-			
+
 	// 		{
 	// 			label: 'Dzongkhag EA Summary',
 	// 			icon: 'pi pi-fw pi-file-pdf',
@@ -188,14 +188,15 @@ export const ADMINSIDEBARITEMS = [
 
 // Supervisor Menu - Survey field operations and data submission
 export const SUPERVISORMENUSIDEBARITEMS = [
-	
+
 	{
 		label: 'Dashboard',
 		items: [
+
 			{
-				label: 'Overview',
-				icon: 'pi pi-fw pi-chart-bar',
-				routerLink: ['/supervisor'],
+				label: 'Surveys',
+				icon: 'pi pi-fw pi-list-check',
+				routerLink: ['/supervisor/survey/active'],
 				roles: [USERROLESENUM.SUPERVISOR],
 			},
 			{
@@ -206,17 +207,7 @@ export const SUPERVISORMENUSIDEBARITEMS = [
 			},
 		],
 	},
-	{
-		label: 'My Surveys',
-		items: [
-			{
-				label: 'Active Surveys',
-				icon: 'pi pi-fw pi-list-check',
-				routerLink: ['/supervisor/survey/active'],
-				roles: [USERROLESENUM.SUPERVISOR],
-			},
-		],
-	},
+
 ];
 
 // Enumerator Sidebar Menu - Field data collection

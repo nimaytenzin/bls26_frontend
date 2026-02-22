@@ -8,6 +8,7 @@ import { PrimeNgModules } from '../../../primeng.modules';
 import { MessageService } from 'primeng/api';
 import { SurveyEnumerationAreaHouseholdListing } from '../../../core/dataservice/survey-enumeration-area-household-listing/survey-enumeration-area-household-listing.dto';
 import { SurveyEnumerationAreaStructure } from '../../../core/dataservice/survey-enumeration-area-structure/survey-enumeration-area-structure.dto';
+import { Router } from '@angular/router';
 
 @Component({
 	selector: 'app-household-by-structure',
@@ -15,23 +16,26 @@ import { SurveyEnumerationAreaStructure } from '../../../core/dataservice/survey
 	imports: [CommonModule, FormsModule, PrimeNgModules],
 	providers: [MessageService],
 	templateUrl: './household-by-structure.component.html',
-	styleUrls: ['./household-by-structure.component.scss'],
 })
 export class HouseholdByStructureComponent implements OnInit {
 	structureId!: number;
 	structure: SurveyEnumerationAreaStructure | null = null;
 	householdListings: SurveyEnumerationAreaHouseholdListing[] = [];
 	loading = true;
+	surveyEnumerationAreaId!: number;
+
 
 	constructor(
 		public ref: DynamicDialogRef,
 		public config: DynamicDialogConfig,
 		private householdService: SurveyEnumerationAreaHouseholdListingDataService,
 		private structureService: SurveyEnumerationAreaStructureDataService,
-		private messageService: MessageService
+		private messageService: MessageService,
+		private router: Router
 	) {
 		// Get structureId from dialog config
 		this.structureId = this.config.data?.structureId;
+		this.surveyEnumerationAreaId = this.config.data?.surveyEnumerationAreaId
 	}
 
 	ngOnInit(): void {
@@ -89,6 +93,28 @@ export class HouseholdByStructureComponent implements OnInit {
 		});
 	}
 
+
+
+	/**
+	 * Navigate to edit household form
+	 */
+	viewHouseholdDetails(household: SurveyEnumerationAreaHouseholdListing): void {
+		console.log('Edit household clicked:', household);
+		this.router.navigate([
+			'/enumerator/household-listing-form',
+			this.surveyEnumerationAreaId,
+			household.id,
+		]);
+		this.ref.close();
+	}
+
+
+	/**
+	 * Total members (male + female) for display
+	 */
+	getTotalMembers(household: SurveyEnumerationAreaHouseholdListing): number {
+		return (household.totalMale ?? 0) + (household.totalFemale ?? 0);
+	}
 
 	/**
 	 * Track by household ID

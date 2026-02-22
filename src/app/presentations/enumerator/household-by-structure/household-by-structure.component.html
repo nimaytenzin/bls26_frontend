@@ -1,104 +1,105 @@
-<div class="household-by-structure">
-	<!-- Content -->
-	<div class="p-4">
-		<!-- Structure Info Card -->
-		<div *ngIf="structure" class="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
-			<div class="flex items-center justify-between mb-2">
-				<h3 class="text-lg font-semibold text-gray-900">
-					Structure: {{ structure.structureNumber }}
-				</h3>
+<div class="bg-slate-50/50 min-h-full">
+	<div class="p-4 sm:p-6 text-slate-900">
+		<!-- Structure header -->
+		<div *ngIf="structure" class="mb-6 flex items-end justify-between border-b border-slate-200 pb-4">
+			<div class="flex flex-col gap-0.5">
+				<h2 class="text-[9px] font-black text-[#1A58AF] uppercase tracking-[0.2em]">Structure Context</h2>
+				<div class="flex items-baseline gap-2">
+					<span class="text-2xl font-black text-slate-900 tracking-tighter">
+						#{{ structure.structureNumber }}
+					</span>
+					<span class="text-xs font-bold text-slate-400">
+						{{ householdListings.length }} households recorded
+					</span>
+				</div>
 			</div>
-			
+			<div class="hidden sm:block">
+				<div class="px-3 py-1.5 bg-white rounded-lg border border-slate-200 shadow-sm flex items-center gap-2">
+					<div class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+					<span class="text-[10px] font-bold text-slate-500 tracking-wide uppercase">Enumerator Session</span>
+				</div>
+			</div>
 		</div>
 
-		<!-- Loading State -->
-		<div *ngIf="loading" class="flex items-center justify-center py-12">
-			<p-progressSpinner></p-progressSpinner>
+		<!-- Loading -->
+		<div *ngIf="loading" class="flex flex-col items-center justify-center py-16 gap-3">
+			<p-progressSpinner strokeWidth="4" fill="transparent" animationDuration=".8s"
+				styleClass="w-10 h-10"></p-progressSpinner>
+			<span class="text-[10px] font-black text-[#1A58AF] uppercase tracking-widest text-center">Syncing...</span>
 		</div>
 
-		<!-- Household Listings -->
-		<div *ngIf="!loading">
-			<!-- Empty State -->
+		<!-- Empty state -->
+		<div *ngIf="!loading && householdListings.length === 0"
+			class="bg-white rounded-2xl border border-slate-200 p-10 flex flex-col items-center justify-center text-center shadow-sm">
 			<div
-				*ngIf="householdListings.length === 0"
-				class="bg-white rounded-lg shadow-sm p-8 text-center"
-			>
-				<i class="pi pi-inbox text-4xl text-gray-400 mb-3"></i>
-				<p class="text-gray-500 text-sm">No household listings found for this structure</p>
+				class="h-14 w-14 rounded-full bg-slate-50 flex items-center justify-center mb-4 border border-slate-100">
+				<i class="pi pi-inbox text-xl text-slate-300"></i>
 			</div>
+			<h3 class="text-base font-bold text-slate-900 mb-1">No Household Data</h3>
+			<p class="text-xs text-slate-500 max-w-[200px]">There are no households linked to this structure yet.</p>
+		</div>
 
-			<!-- Household Listings Table -->
-			<div *ngIf="householdListings.length > 0">
-				<p-table
-					[value]="householdListings"
-					[paginator]="true"
-					[rows]="10"
-					[rowsPerPageOptions]="[10, 25, 50, 100]"
-					styleClass="p-datatable-sm"
-					[tableStyle]="{ 'min-width': '60rem' }"
-					[scrollable]="true"
-					scrollHeight="400px"
-				>
-					<ng-template pTemplate="header">
-						<tr>
-							<th class="font-semibold text-gray-700">Serial #</th>
-							<th class="font-semibold text-gray-700">Household ID</th>
-							<th class="font-semibold text-gray-700">Head of Household</th>
-							<th class="font-semibold text-gray-700 text-center">Male</th>
-							<th class="font-semibold text-gray-700 text-center">Female</th>
-							<th class="font-semibold text-gray-700 text-center">Total</th>
-							<th class="font-semibold text-gray-700">Phone</th>
-						</tr>
-					</ng-template>
-					<ng-template pTemplate="body" let-household>
-						<tr>
-							<td>
-								<span class="text-sm font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded">
-									{{ household.householdSerialNumber }}
-								</span>
-							</td>
-							<td>
-								<span class="text-sm font-medium text-gray-700">
-									{{ household.householdIdentification }}
-								</span>
-							</td>
-							<td>
-								<span class="text-sm font-semibold text-gray-900">
-									{{ household.nameOfHOH }}
-								</span>
-							</td>
-							<td class="text-center">
-								<span class="text-sm font-semibold text-gray-900">
-									{{ household.totalMale || 0 }}
-								</span>
-							</td>
-							<td class="text-center">
-								<span class="text-sm font-semibold text-gray-900">
-									{{ household.totalFemale || 0 }}
-								</span>
-							</td>
-							<td class="text-center">
-								<span class="text-sm font-bold" style="color: #1A58AF;">
-									{{ (household.totalMale || 0) + (household.totalFemale || 0) }}
-								</span>
-							</td>
-							<td>
-								<span class="text-sm text-gray-700">
-									{{ household.phoneNumber || '-' }}
-								</span>
-							</td>
-						</tr>
-					</ng-template>
-					<ng-template pTemplate="emptymessage">
-						<tr>
-							<td colspan="7" class="text-center text-gray-500 py-8">
-								No household listings found
-							</td>
-						</tr>
-					</ng-template>
-				</p-table>
+		<!-- Household cards grid -->
+		<div *ngIf="!loading && householdListings.length > 0"
+			class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+			<div *ngFor="let household of householdListings; trackBy: trackByHouseholdId"
+				class="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-[#1A58AF]/30 transition-all duration-300 overflow-hidden flex flex-col">
+				<!-- Identification Bar -->
+				<div class="px-4 pt-4 flex items-start justify-between gap-3">
+					<div class="flex flex-col gap-1 flex-1 min-w-0">
+						<div
+							class="inline-flex items-center w-fit px-2.5 py-1 bg-[#1A58AF] rounded-md shadow shadow-blue-500/10">
+							<span class="text-[9px] font-mono font-bold text-white tracking-widest truncate">
+								ID: {{ household.householdIdentification || '0000-0000' }}
+							</span>
+						</div>
+					</div>
+					<span
+						class="text-[10px] font-black text-slate-400 uppercase bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
+						#{{ household.householdSerialNumber }}
+					</span>
+				</div>
+
+				<!-- Compact Main Content -->
+				<div class="p-4 pt-3 flex flex-col flex-1">
+					<div class="mb-4 flex-1">
+						<h3
+							class="text-lg font-black text-slate-900 leading-tight tracking-tight group-hover:text-[#1A58AF] transition-colors duration-300">
+							{{ household.nameOfHOH || 'NA' }}
+						</h3>
+
+						<div class="mt-2 flex items-center gap-2" *ngIf="household.phoneNumber">
+							<i class="pi pi-phone text-[9px] text-[#1A58AF]"></i>
+							<span class="text-[11px] font-bold text-slate-500 tracking-tight">{{ household.phoneNumber
+								}}</span>
+						</div>
+					</div>
+
+					<!-- Integrated Footer -->
+					<div class="pt-3 border-t border-slate-50 flex items-center justify-between gap-4">
+						<!-- Mini Stats Area -->
+						<div class="flex flex-col">
+							<div class="flex items-center gap-1.5">
+								<span class="text-xs font-black text-[#1A58AF]">{{ getTotalMembers(household) }}</span>
+								<span
+									class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Residents</span>
+							</div>
+							<div class="flex items-center gap-1.5 text-[9px] font-bold text-slate-400/60 lowercase">
+								<span>{{ household.totalMale }}m</span>
+								<span class="inline-block w-0.5 h-0.5 rounded-full bg-slate-200"></span>
+								<span>{{ household.totalFemale }}f</span>
+							</div>
+						</div>
+
+						<!-- Quick Edit Action -->
+						<button (click)="viewHouseholdDetails(household)"
+							class="h-9 px-4 bg-slate-50 hover:bg-[#1A58AF] text-slate-600 hover:text-white rounded-lg flex items-center gap-2 text-[11px] font-black transition-all group-active:scale-95 border border-slate-100 group-hover:border-transparent shadow-sm">
+							<i class="pi pi-pencil text-[10px]"></i>
+							<span>Edit</span>
+						</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
 </div>
-

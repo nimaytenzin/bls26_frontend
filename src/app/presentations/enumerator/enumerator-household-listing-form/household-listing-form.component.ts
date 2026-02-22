@@ -59,11 +59,11 @@ export class HouseholdListingFormComponent implements OnInit {
 		phoneNumber: '',
 		remarks: '',
 	};
-	
+
 	// Store structureNumber separately for display (read-only)
 	structureNumberDisplay: string = '';
 	phoneNumberInvalid = false;
-	
+
 	// Store original household data to detect changes
 	private originalHouseholdData: CreateHouseholdListingDto | null = null;
 
@@ -75,7 +75,7 @@ export class HouseholdListingFormComponent implements OnInit {
 		private structureService: SurveyEnumerationAreaStructureDataService,
 		private messageService: MessageService,
 		private mapStateService: EnumeratorMapStateService
-	) {}
+	) { }
 
 	ngOnInit(): void {
 		// Subscribe to route params
@@ -126,7 +126,7 @@ export class HouseholdListingFormComponent implements OnInit {
 						} else if (household.structure?.id) {
 							this.structureId = household.structure.id;
 						}
-						
+
 						this.householdForm = {
 							surveyEnumerationAreaId: household.surveyEnumerationAreaId,
 							structureNumber: household.structureNumber || household.structure?.structureNumber || '',
@@ -138,10 +138,10 @@ export class HouseholdListingFormComponent implements OnInit {
 							phoneNumber: household.phoneNumber || '',
 							remarks: household.remarks || '',
 						};
-						
+
 						// Store original data to detect changes
 						this.originalHouseholdData = { ...this.householdForm };
-						
+
 						// Set structureNumber display
 						this.structureNumberDisplay = this.householdForm.structureNumber;
 						// Validate phone number if it exists
@@ -275,7 +275,7 @@ export class HouseholdListingFormComponent implements OnInit {
 					phoneNumber: this.householdForm.phoneNumber,
 					remarks: this.householdForm.remarks,
 				};
-				
+
 				// Include structureId if available (to prevent it from becoming null)
 				if (resolvedStructureId) {
 					updateDto.structureId = resolvedStructureId;
@@ -284,25 +284,25 @@ export class HouseholdListingFormComponent implements OnInit {
 				this.enumeratorService
 					.updateHouseholdListing(this.householdId!, updateDto)
 					.subscribe({
-					next: () => {
-						this.messageService.add({
-							severity: 'success',
-							summary: 'Success',
-							detail: 'Household updated successfully. You can continue editing.',
-						});
-						this.submitting = false;
-						// Don't navigate away - allow continued editing
-					},
-					error: (error: any) => {
-						console.error('Error updating household:', error);
-						this.messageService.add({
-							severity: 'error',
-							summary: 'Error',
-							detail:
-								error.error?.message || 'Failed to update household listing',
-						});
-						this.submitting = false;
-					},
+						next: () => {
+							this.messageService.add({
+								severity: 'success',
+								summary: 'Success',
+								detail: 'Household updated successfully. You can continue editing.',
+							});
+							this.submitting = false;
+							// Don't navigate away - allow continued editing
+						},
+						error: (error: any) => {
+							console.error('Error updating household:', error);
+							this.messageService.add({
+								severity: 'error',
+								summary: 'Error',
+								detail:
+									error.error?.message || 'Failed to update household listing',
+							});
+							this.submitting = false;
+						},
 					});
 			});
 		} else {
@@ -416,11 +416,13 @@ export class HouseholdListingFormComponent implements OnInit {
 	 */
 	isFormValid(): boolean {
 		return !!(
-			this.householdForm.structureNumber &&
+			(this.householdForm.structureNumber || this.structureId) &&
 			this.householdForm.householdIdentification &&
-			this.householdForm.householdSerialNumber
+			this.householdForm.householdSerialNumber &&
+			!this.phoneNumberInvalid
 		);
 	}
+
 
 	/**
 	 * Load structure details to get structure number
@@ -512,7 +514,7 @@ export class HouseholdListingFormComponent implements OnInit {
 								detail: 'Moving to next household',
 							});
 						}
-						
+
 						// Reset form for new household in same structure
 						this.resetFormForNewHousehold();
 						this.submitting = false;
@@ -537,12 +539,12 @@ export class HouseholdListingFormComponent implements OnInit {
 	private resetFormForNewHousehold(): void {
 		// Keep structureId and structureNumber, reset everything else
 		const currentStructureNumber = this.householdForm.structureNumber;
-		
+
 		// Reset edit mode first
 		this.householdId = undefined;
 		this.isEditMode = false;
 		this.originalHouseholdData = null;
-		
+
 		// Reset form fields but keep structure info
 		this.householdForm = {
 			surveyEnumerationAreaId: this.surveyEnumerationAreaId,
@@ -555,7 +557,7 @@ export class HouseholdListingFormComponent implements OnInit {
 			phoneNumber: '',
 			remarks: '',
 		};
-		
+
 		// Load next serial number (this will update householdSerialNumber asynchronously)
 		this.loadNextSerialNumber();
 	}
@@ -609,7 +611,7 @@ export class HouseholdListingFormComponent implements OnInit {
 					phoneNumber: this.householdForm.phoneNumber,
 					remarks: this.householdForm.remarks,
 				};
-				
+
 				if (resolvedStructureId) {
 					updateDto.structureId = resolvedStructureId;
 				}

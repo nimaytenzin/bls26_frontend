@@ -151,6 +151,23 @@
 					"
 				></button>
 
+				<!-- Buildings Overlay Toggle -->
+				<button
+					pButton
+					type="button"
+					icon="pi pi-building"
+					(click)="toggleBuildingsLayer()"
+					styleClass="p-button-rounded p-button-text map-control-btn"
+					size="small"
+					[style]="{
+						'background-color': showBuildingsLayer ? '#e5e7eb' : 'white',
+						color: '#4b5563',
+						'min-width': '44px',
+						'height': '44px'
+					}"
+					[title]="showBuildingsLayer ? 'Hide building footprints' : 'Show building footprints'"
+				></button>
+
 				<!-- Zoom to Enumeration Area Button -->
 				<button
 					pButton

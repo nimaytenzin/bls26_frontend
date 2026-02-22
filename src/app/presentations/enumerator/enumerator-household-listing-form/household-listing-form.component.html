@@ -1,19 +1,11 @@
 <div class="min-h-screen bg-gray-50">
 	<!-- Loading State -->
-	<div
-		*ngIf="loading"
-		class="flex items-center justify-center h-screen bg-white"
-	>
+	<div *ngIf="loading" class="flex items-center justify-center h-screen bg-white">
 		<div class="text-center">
 			<div class="relative w-20 h-20 mx-auto mb-6">
-				<div
-					class="absolute inset-0 border-4 rounded-full"
-					style="border-color: #E8F0FF;"
-				></div>
-				<div
-					class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
-					style="border-color: #1A58AF;"
-				></div>
+				<div class="absolute inset-0 border-4 rounded-full" style="border-color: #E8F0FF;"></div>
+				<div class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+					style="border-color: #1A58AF;"></div>
 			</div>
 			<p class="text-gray-600 font-medium">Loading form...</p>
 		</div>
@@ -25,11 +17,8 @@
 		<div class="fixed top-0 left-0 right-0 z-30 bg-white border-b shadow-sm">
 			<div class="max-w-3xl mx-auto px-4 py-3">
 				<div class="flex items-center justify-between">
-					<button
-						(click)="goBack()"
-						[disabled]="submitting"
-						class="flex items-center text-gray-700 hover:text-gray-900 font-medium transition-colors disabled:opacity-50"
-					>
+					<button (click)="goBack()" [disabled]="submitting"
+						class="flex items-center text-gray-700 hover:text-gray-900 font-medium transition-colors disabled:opacity-50">
 						<i class="pi pi-arrow-left mr-2"></i>
 						<span>Back</span>
 					</button>
@@ -47,16 +36,12 @@
 
 		<!-- Form Container -->
 		<div class="max-w-3xl mx-auto px-4 py-6 pb-32">
-			<form (ngSubmit)="submitForm()" class="space-y-4">
+			<form #f="ngForm" (ngSubmit)="submitForm()" class="space-y-4">
 				<!-- Single Form Section -->
-				<div
-					class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
-				>
+				<div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
 					<div class="px-5 py-3" style="background-color: #1A58AF;">
 						<div class="flex items-center">
-							<div
-								class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center mr-3"
-							>
+							<div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center mr-3">
 								<i class="pi pi-home text-white text-sm"></i>
 							</div>
 							<h2 class="text-white font-bold text-base">
@@ -73,45 +58,30 @@
 									(From selected structure)
 								</span>
 							</label>
-							<input
-								type="text"
-								pInputText
-								[(ngModel)]="householdForm.structureNumber"
-								name="structureNumber"
-								[disabled]="submitting || !!structureId"
-								[readonly]="!!structureId"
-								placeholder="e.g., STR-001"
+							<input type="text" pInputText [(ngModel)]="householdForm.structureNumber"
+								name="structureNumber" [disabled]="submitting || !!structureId"
+								[readonly]="!!structureId" placeholder="e.g., STR-001"
 								(blur)="onStructureNumberChange()"
 								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-								[class.bg-gray-100]="!!structureId"
-								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
-								required
-							/>
+								[class.bg-gray-100]="!!structureId" style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
+								required />
 							<p *ngIf="structureId" class="mt-1 text-xs text-blue-600">
 								<i class="pi pi-info-circle mr-1"></i>
 								Structure selected from map. This field is auto-filled.
 							</p>
 						</div>
 
-						
+
 
 						<!-- Serial Number -->
 						<div class="form-field">
 							<label class="block text-sm font-semibold text-gray-900 mb-2">
 								Household Serial Number <span class="text-red-500">*</span>
 							</label>
-							<input
-								type="number"
-								pInputText
-								[(ngModel)]="householdForm.householdSerialNumber"
-								name="householdSerialNumber"
-								[disabled]="submitting"
-								[min]="1"
-								placeholder="1"
+							<input type="number" pInputText [(ngModel)]="householdForm.householdSerialNumber"
+								name="householdSerialNumber" [disabled]="submitting" [min]="1" placeholder="1"
 								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
-								required
-							/>
+								style="--tw-ring-color: rgba(26, 88, 175, 0.5);" required />
 							<p class="mt-1 text-xs text-gray-500">
 								<i class="pi pi-info-circle mr-1"></i>
 								Sequential number for this household
@@ -121,37 +91,25 @@
 						<!-- Household ID -->
 						<div class="form-field">
 							<label class="block text-sm font-semibold text-gray-900 mb-2">
-								Household Identification 
+								Household Identification <span class="text-red-500">*</span>
 							</label>
-							<input
-								type="text"
-								pInputText
-								[(ngModel)]="householdForm.householdIdentification"
-								name="householdIdentification"
-								[disabled]="submitting"
+							<input type="text" pInputText [(ngModel)]="householdForm.householdIdentification"
+								name="householdIdentification" [disabled]="submitting"
 								placeholder="e.g. Building Name, Flat Number, Landmarks..."
 								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
-								required
-							/>
+								style="--tw-ring-color: rgba(26, 88, 175, 0.5);" required />
 						</div>
 
 						<!-- Head of Household -->
 						<div class="form-field">
 							<label class="block text-sm font-semibold text-gray-900 mb-2">
-								Head of Household <span class="text-red-500">*</span>
+								Head of Household
+								<span class="text-gray-400 text-xs font-normal ml-1">(Optional)</span>
 							</label>
-							<input
-								type="text"
-								pInputText
-								[(ngModel)]="householdForm.nameOfHOH"
-								name="nameOfHOH"
-								[disabled]="submitting"
-								placeholder="Full name"
+							<input type="text" pInputText [(ngModel)]="householdForm.nameOfHOH" name="nameOfHOH"
+								[disabled]="submitting" placeholder="Full name (leave blank if not available)"
 								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
-								required
-							/>
+								style="--tw-ring-color: rgba(26, 88, 175, 0.5);" />
 						</div>
 
 						<!-- Divider -->
@@ -165,17 +123,10 @@
 									<i class="pi pi-user mr-1" style="color: #1A58AF;"></i>
 									Total Male
 								</label>
-								<input
-									type="number"
-									pInputText
-									[(ngModel)]="householdForm.totalMale"
-									name="totalMale"
-									[disabled]="submitting"
-									[min]="0"
-									placeholder="0"
+								<input type="number" pInputText [(ngModel)]="householdForm.totalMale" name="totalMale"
+									[disabled]="submitting" [min]="0" placeholder="0"
 									class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all text-center text-lg font-semibold"
-									style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
-								/>
+									style="--tw-ring-color: rgba(26, 88, 175, 0.5);" />
 							</div>
 
 							<!-- Female Count -->
@@ -184,52 +135,34 @@
 									<i class="pi pi-user text-pink-600 mr-1"></i>
 									Total Female
 								</label>
-								<input
-									type="number"
-									pInputText
-									[(ngModel)]="householdForm.totalFemale"
-									name="totalFemale"
-									[disabled]="submitting"
-									[min]="0"
-									placeholder="0"
+								<input type="number" pInputText [(ngModel)]="householdForm.totalFemale"
+									name="totalFemale" [disabled]="submitting" [min]="0" placeholder="0"
 									class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all text-center text-lg font-semibold"
-									style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
-								/>
+									style="--tw-ring-color: rgba(26, 88, 175, 0.5);" />
 							</div>
 						</div>
 
 						<!-- Total Population Display -->
-						<div
-							class="border-2 rounded-2xl p-6 text-center"
-							style="background-color: #E8F0FF; border-color: #4C81E3;"
-						>
+						<div class="border-2 rounded-2xl p-6 text-center"
+							style="background-color: #E8F0FF; border-color: #4C81E3;">
 							<div class="flex items-center justify-center gap-2 mb-2">
 								<i class="pi pi-chart-bar" style="color: #1A58AF;"></i>
-								<div
-									class="text-sm font-semibold text-gray-700 uppercase tracking-wide"
-								>
+								<div class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
 									Total Population
 								</div>
 							</div>
-							<div
-								class="text-5xl font-bold"
-								style="color: #1A58AF;"
-							>
+							<div class="text-5xl font-bold" style="color: #1A58AF;">
 								{{ getTotalPopulation() }}
 							</div>
 							<div class="mt-3 flex items-center justify-center gap-4 text-sm">
 								<div class="flex items-center gap-1">
 									<div class="w-3 h-3 bg-blue-600 rounded-full"></div>
-									<span class="text-gray-600"
-										>{{ householdForm.totalMale || 0 }} Male</span
-									>
+									<span class="text-gray-600">{{ householdForm.totalMale || 0 }} Male</span>
 								</div>
 								<div class="w-px h-4 bg-gray-300"></div>
 								<div class="flex items-center gap-1">
 									<div class="w-3 h-3 bg-pink-600 rounded-full"></div>
-									<span class="text-gray-600"
-										>{{ householdForm.totalFemale || 0 }} Female</span
-									>
+									<span class="text-gray-600">{{ householdForm.totalFemale || 0 }} Female</span>
 								</div>
 							</div>
 						</div>
@@ -242,33 +175,25 @@
 							<label class="block text-sm font-semibold text-gray-900 mb-2">
 								<i class="pi pi-phone text-green-600 mr-1"></i>
 								Phone Number
-								<span class="text-gray-400 text-xs font-normal ml-1"
-									>(Optional)</span
-								>
+								<span class="text-gray-400 text-xs font-normal ml-1">(Optional)</span>
 							</label>
 							<p-inputGroup class="w-full">
-								<p-inputGroupAddon class="bg-gray-50 border border-gray-300 border-r-0 rounded-l-xl px-3 py-3">
+								<p-inputGroupAddon
+									class="bg-gray-50 border border-gray-300 border-r-0 rounded-l-xl px-3 py-3">
 									+975
 								</p-inputGroupAddon>
-								<input
-									type="tel"
-									pInputText
-									[(ngModel)]="householdForm.phoneNumber"
-									name="phoneNumber"
-									[disabled]="submitting"
-									placeholder="12345678"
-									maxlength="8"
-									pattern="^[17689]\d{7}$"
-									(input)="validatePhoneNumber()"
+								<input type="tel" pInputText [(ngModel)]="householdForm.phoneNumber" name="phoneNumber"
+									[disabled]="submitting" placeholder="12345678" maxlength="8"
+									pattern="^[17689]\d{7}$" (input)="validatePhoneNumber()"
 									[class.ng-invalid]="phoneNumberInvalid && householdForm.phoneNumber"
 									class="w-full px-4 py-3 border border-gray-300 rounded-r-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all"
-									style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
-								/>
+									style="--tw-ring-color: rgba(26, 88, 175, 0.5);" />
 							</p-inputGroup>
 							<small *ngIf="phoneNumberInvalid && householdForm.phoneNumber" class="p-error block mt-1">
 								Phone number must be 8 digits starting with 1, 7, 6, 8, or 9
 							</small>
-							<small *ngIf="!phoneNumberInvalid || !householdForm.phoneNumber" class="text-gray-500 block mt-1">
+							<small *ngIf="!phoneNumberInvalid || !householdForm.phoneNumber"
+								class="text-gray-500 block mt-1">
 								8 digits starting with 1, 7, 6, 8, or 9 (e.g., 17123456)
 							</small>
 						</div>
@@ -278,20 +203,12 @@
 							<label class="block text-sm font-semibold text-gray-900 mb-2">
 								<i class="pi pi-file text-amber-600 mr-1"></i>
 								Remarks
-								<span class="text-gray-400 text-xs font-normal ml-1"
-									>(Optional)</span
-								>
+								<span class="text-gray-400 text-xs font-normal ml-1">(Optional)</span>
 							</label>
-							<textarea
-								pInputText
-								[(ngModel)]="householdForm.remarks"
-								name="remarks"
-								[disabled]="submitting"
-								placeholder="Any additional notes or observations..."
-								rows="4"
+							<textarea pInputText [(ngModel)]="householdForm.remarks" name="remarks"
+								[disabled]="submitting" placeholder="Any additional notes or observations..." rows="4"
 								class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all resize-none"
-								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"
-							></textarea>
+								style="--tw-ring-color: rgba(26, 88, 175, 0.5);"></textarea>
 							<p class="mt-1 text-xs text-gray-500">
 								<i class="pi pi-info-circle mr-1"></i>
 								Add any relevant notes about this household
@@ -302,47 +219,37 @@
 
 				<!-- Action Buttons - Sticky Bottom -->
 				<div
-					class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-30"
-				>
-					<div class="max-w-3xl mx-auto px-4 py-4">
+					class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-slate-200/60 shadow-2xl z-40 transition-all duration-300">
+					<div class="max-w-3xl mx-auto px-6 py-5">
+
 						<!-- Create Mode Buttons -->
-						<div *ngIf="!isEditMode" class="flex gap-3">
-							<p-button
-								(onClick)="saveAndNext()"
-								[disabled]="!isFormValid() || submitting"
-								[icon]="submitting ? 'pi pi-spin pi-spinner' : 'pi pi-save'"
-								[label]="submitting ? 'Saving...' : 'Save and Next Household'"
-								styleClass="flex-1"
-								size="small"
-								[style]="{'background-color': '#1A58AF', 'border-color': '#1A58AF'}"
-							></p-button>
-							<p-button
-								(onClick)="nextStructure()"
-								[disabled]="submitting"
-								size="small"
-								[icon]="submitting ? 'pi pi-spin pi-spinner' : 'pi pi-arrow-right'"
-								[label]="submitting ? 'Saving...' : 'Save and Next Structure'"
-								styleClass="flex-1 p-button-outlined"
-							></p-button>
+						<div *ngIf="!isEditMode" class="flex flex-col sm:flex-row gap-4">
+							<button type="button" (click)="saveAndNext()" [disabled]="!f.valid || submitting"
+								class="flex-1 h-14 bg-[#1A58AF] hover:bg-[#15468c] disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-2xl flex items-center justify-center gap-3 text-sm font-black shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all duration-200">
+								<i class="pi" [ngClass]="submitting ? 'pi-spin pi-spinner' : 'pi-save'"></i>
+								<span>{{ submitting ? 'Saving...' : 'Save & Next Household' }}</span>
+							</button>
+
+							<button type="button" (click)="nextStructure()" [disabled]="submitting"
+								class="flex-1 h-14 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 border-2 border-slate-200 rounded-2xl flex items-center justify-center gap-3 text-sm font-black active:scale-[0.98] transition-all duration-200">
+								<i class="pi" [ngClass]="submitting ? 'pi-spin pi-spinner' : 'pi-map-marker'"></i>
+								<span>Finish & View Map</span>
+							</button>
 						</div>
-						
+
 						<!-- Edit Mode Buttons -->
-						<div *ngIf="isEditMode" class="flex gap-3">
-							<p-button
-								(onClick)="goBack()"
-								[disabled]="submitting"
-								icon="pi pi-times"
-								label="Cancel"
-								styleClass="flex-1 p-button-outlined"
-							></p-button>
-							<p-button
-								type="submit"
-								[disabled]="!isFormValid() || submitting"
-								[icon]="submitting ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
-								[label]="submitting ? 'Saving...' : 'Save Changes'"
-								styleClass="flex-[2]"
-								[style]="{'background-color': '#1A58AF', 'border-color': '#1A58AF'}"
-							></p-button>
+						<div *ngIf="isEditMode" class="flex gap-4">
+							<button type="button" (click)="goBack()" [disabled]="submitting"
+								class="flex-1 h-14 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-500 border-2 border-slate-200 rounded-2xl flex items-center justify-center gap-3 text-sm font-black active:scale-[0.98] transition-all duration-200 uppercase tracking-wider">
+								<i class="pi pi-times"></i>
+								<span>Cancel</span>
+							</button>
+
+							<button type="submit" (click)="submitForm()" [disabled]="!f.valid || submitting"
+								class="flex-[2] h-14 bg-[#1A58AF] hover:bg-[#15468c] disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-2xl flex items-center justify-center gap-3 text-sm font-black shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all duration-200 uppercase tracking-widest">
+								<i class="pi" [ngClass]="submitting ? 'pi-spin pi-spinner' : 'pi-check-circle'"></i>
+								<span>{{ submitting ? 'Updating...' : 'Save Changes' }}</span>
+							</button>
 						</div>
 					</div>
 				</div>

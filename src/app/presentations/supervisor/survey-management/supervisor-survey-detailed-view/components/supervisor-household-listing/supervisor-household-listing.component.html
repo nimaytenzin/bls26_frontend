@@ -39,7 +39,8 @@
 			</div>
 		</div>
 
-		<div class="bg-white border border-gray-200 rounded-xl p-4" *ngIf="statistics.totalEnumerationAreas !== undefined">
+		<div class="bg-white border border-gray-200 rounded-xl p-4"
+			*ngIf="statistics.totalEnumerationAreas !== undefined">
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm text-gray-500">Enumeration Areas</p>
@@ -55,11 +56,9 @@
 	<!-- Household Listings Table -->
 	<div class="flex-1 flex flex-col min-h-0">
 		<!-- Table Container -->
-		<div 
-			class="bg-white border border-gray-200 rounded-xl flex-1 flex flex-col w-full"
-		>
+		<div class="bg-white border border-gray-200 rounded-xl flex-1 flex flex-col w-full">
 			<div class="p-4 border-b border-gray-200">
-				<div class="flex justify-between items-center mb-4">
+				<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
 					<h4 class="font-semibold text-gray-800">
 						<span *ngIf="selectedEnumerationArea">
 							Household Listings - Selected EA
@@ -68,55 +67,32 @@
 							Household Listings - All Enumeration Areas
 						</span>
 					</h4>
-					<div class="flex items-center gap-2">
-						<button
-							pButton
-							type="button"
-							label="Bulk Upload"
-							icon="pi pi-upload"
-							class="p-button-outlined p-button-sm"
-							(click)="openBulkUploadDialog()"
-							pTooltip="Bulk upload household listings from CSV file"
-						></button>
-						<button
-							*ngIf="selectedEnumerationArea"
-							type="button"
-							class="text-xs text-gray-500 hover:text-primary-600"
-							(click)="clearSelection()"
-							pTooltip="Clear selection"
-						>
+					<div class="flex flex-wrap items-center gap-2">
+						<button pButton type="button" label="Bulk Upload" icon="pi pi-upload"
+							class="p-button-outlined p-button-sm" (click)="openBulkUploadDialog()"
+							pTooltip="Bulk upload household listings from CSV file"></button>
+						<button *ngIf="selectedEnumerationArea" type="button"
+							class="text-xs text-gray-500 hover:text-primary-600" (click)="clearSelection()"
+							pTooltip="Clear selection">
 							Clear
 						</button>
 					</div>
 				</div>
-				
+
 				<!-- Filters -->
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 					<!-- Dzongkhag Filter -->
 					<div class="flex flex-col gap-2">
 						<div class="flex items-center justify-between">
 							<label class="text-sm font-medium text-gray-700">Filter by Dzongkhag</label>
-							<button
-								*ngIf="selectedDzongkhagFilter"
-								pButton
-								type="button"
-								icon="pi pi-download"
-								class="p-button-text p-button-sm"
-								[disabled]="downloadingDzongkhagExport"
-								[loading]="downloadingDzongkhagExport"
-								(click)="downloadDzongkhagHouseholdCount()"
-								pTooltip="Download household count CSV for selected dzongkhag"
-							></button>
+							<button *ngIf="selectedDzongkhagFilter" pButton type="button" icon="pi pi-download"
+								class="p-button-text p-button-sm" [disabled]="downloadingDzongkhagExport"
+								[loading]="downloadingDzongkhagExport" (click)="downloadDzongkhagHouseholdCount()"
+								pTooltip="Download household count CSV for selected dzongkhag"></button>
 						</div>
-						<p-dropdown
-							[(ngModel)]="selectedDzongkhagFilter"
-							[options]="dzongkhagFilters"
-							optionLabel="name"
-							placeholder="All Dzongkhags"
-							[showClear]="true"
-							styleClass="w-full"
-							(onChange)="onDzongkhagFilterChange()"
-						>
+						<p-dropdown [(ngModel)]="selectedDzongkhagFilter" [options]="dzongkhagFilters"
+							optionLabel="name" placeholder="All Dzongkhags" [showClear]="true" styleClass="w-full"
+							(onChange)="onDzongkhagFilterChange()">
 							<ng-template let-dzongkhag pTemplate="item">
 								<div>{{ dzongkhag.name }}</div>
 							</ng-template>
@@ -126,196 +102,128 @@
 					<!-- Gewog/Thromde Filter -->
 					<div class="flex flex-col gap-2">
 						<label class="text-sm font-medium text-gray-700">Filter by Gewog/Thromde</label>
-						<p-dropdown
-							[(ngModel)]="selectedAdminZoneFilter"
-							[options]="adminZoneFilters"
-							optionLabel="name"
-							placeholder="All Gewogs/Thromdes"
-							[showClear]="true"
-							styleClass="w-full"
-							[disabled]="!selectedDzongkhagFilter"
-							(onChange)="onAdminZoneFilterChange()"
-						></p-dropdown>
+						<p-dropdown [(ngModel)]="selectedAdminZoneFilter" [options]="adminZoneFilters"
+							optionLabel="name" placeholder="All Gewogs/Thromdes" [showClear]="true" styleClass="w-full"
+							[disabled]="!selectedDzongkhagFilter" (onChange)="onAdminZoneFilterChange()"></p-dropdown>
 					</div>
 
 					<!-- Chiwog/Lap Filter -->
 					<div class="flex flex-col gap-2">
 						<label class="text-sm font-medium text-gray-700">Filter by Chiwog/Lap</label>
-						<p-dropdown
-							[(ngModel)]="selectedSubAdminZoneFilter"
-							[options]="subAdminZoneFilters"
-							optionLabel="name"
-							placeholder="All Chiwogs/Laps"
-							[showClear]="true"
-							styleClass="w-full"
+						<p-dropdown [(ngModel)]="selectedSubAdminZoneFilter" [options]="subAdminZoneFilters"
+							optionLabel="name" placeholder="All Chiwogs/Laps" [showClear]="true" styleClass="w-full"
 							[disabled]="!selectedAdminZoneFilter"
-							(onChange)="onSubAdminZoneFilterChange()"
-						></p-dropdown>
+							(onChange)="onSubAdminZoneFilterChange()"></p-dropdown>
 					</div>
 
 					<!-- Enumeration Area Filter -->
 					<div class="flex flex-col gap-2">
 						<label class="text-sm font-medium text-gray-700">Filter by Enumeration Area</label>
-						<p-dropdown
-							[(ngModel)]="selectedEnumerationArea"
-							[options]="enumerationAreaOptions"
-							optionLabel="name"
-							placeholder="All Enumeration Areas"
-							[showClear]="true"
-							styleClass="w-full"
-							[disabled]="!selectedSubAdminZoneFilter"
-							(onChange)="onEnumerationAreaSelect()"
-						></p-dropdown>
+						<p-dropdown [(ngModel)]="selectedEnumerationArea" [options]="enumerationAreaOptions"
+							optionLabel="name" placeholder="All Enumeration Areas" [showClear]="true"
+							styleClass="w-full" [disabled]="!selectedSubAdminZoneFilter"
+							(onChange)="onEnumerationAreaSelect()"></p-dropdown>
 					</div>
 				</div>
 			</div>
-			<div class="p-4 flex-1 overflow-auto">
+			<div class="p-0 sm:p-4 flex-1 overflow-auto">
 				<!-- Loading State -->
-				<div
-					*ngIf="loading || householdListingsLoading"
-					class="flex items-center justify-center py-8"
-				>
+				<div *ngIf="loading || householdListingsLoading" class="flex items-center justify-center py-8">
 					<div class="relative w-16 h-16">
-						<div
-							class="absolute inset-0 border-4 rounded-full"
-							style="border-color: #E8F0FF;"
-						></div>
-						<div
-							class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
-							style="border-color: #1A58AF;"
-						></div>
+						<div class="absolute inset-0 border-4 rounded-full" style="border-color: #E8F0FF;"></div>
+						<div class="absolute inset-0 border-4 rounded-full border-t-transparent animate-spin"
+							style="border-color: #1A58AF;"></div>
 					</div>
 				</div>
 
 				<!-- Table -->
-				<div *ngIf="!loading && !householdListingsLoading && householdListings.length > 0">
-					<p-table
-						#dt
-						[value]="householdListings"
-						[loading]="householdListingsLoading"
-						[paginator]="true"
-						[rows]="householdListingsPageSize"
-						[showCurrentPageReport]="true"
+				<div *ngIf="!loading && !householdListingsLoading && householdListings.length > 0"
+					class="overflow-x-auto overflow-y-hidden">
+					<p-table #dt [value]="householdListings" [loading]="householdListingsLoading" [paginator]="true"
+						[rows]="householdListingsPageSize" [showCurrentPageReport]="true"
 						currentPageReportTemplate="Showing {first} to {last} of {totalRecords} households"
-						[rowsPerPageOptions]="[10, 25, 50, 100]"
-						[globalFilterFields]="[
+						[rowsPerPageOptions]="[10, 25, 50, 100]" [globalFilterFields]="[
 							'structure.structureNumber',
 							'householdIdentification',
 							'householdSerialNumber',
 							'nameOfHOH',
 							'phoneNumber'
-						]"
-						sortField="structure.structureNumber"
-						[sortOrder]="1"
-						[sortMode]="'single'"
-						(onSort)="customSort($event)"
-						styleClass="p-datatable-sm"
-					>
+						]" sortField="structure.structureNumber" [sortOrder]="1" [sortMode]="'single'" (onSort)="customSort($event)"
+						styleClass="p-datatable-sm w-full min-w-[1200px]">
 						<ng-template pTemplate="caption">
 							<div class="flex items-center justify-between p-4 border-b border-gray-200">
 								<p-inputgroup>
-									<input
-										pInputText
-										type="text"
-										#searchInput
+									<input pInputText type="text" #searchInput
 										(input)="dt.filterGlobal($any($event.target).value, 'contains')"
 										placeholder="Search by structure, household ID, name, phone..."
-										style="width: 250px"
-									/>
+										class="w-full sm:w-64" />
 									<p-inputgroup-addon>
-										<p-button
-											icon="pi pi-search"
-											severity="secondary"
-											variant="text"
-											(click)="dt.filterGlobal(searchInput.value, 'contains')"
-										/>
+										<p-button icon="pi pi-search" severity="secondary" variant="text"
+											(click)="dt.filterGlobal(searchInput.value, 'contains')" />
 									</p-inputgroup-addon>
 								</p-inputgroup>
 							</div>
 						</ng-template>
 						<ng-template pTemplate="header">
 							<tr>
-								<th
-									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide"
-									style="width: 60px"
-								>
+								<th class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide"
+									style="width: 60px">
 									ID
 								</th>
-								<th
-									pSortableColumn="structure.structureNumber"
-									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide"
-								>
+								<th pSortableColumn="structure.structureNumber"
+									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">
 									Structure # <p-sortIcon field="structure.structureNumber"></p-sortIcon>
 								</th>
-								<th
-									pSortableColumn="householdSerialNumber"
-									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide"
-								>
+								<th pSortableColumn="householdSerialNumber"
+									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">
 									Household Serial # <p-sortIcon field="householdSerialNumber"></p-sortIcon>
 								</th>
-								<th
-									pSortableColumn="householdIdentification"
-									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide"
-								>
+								<th pSortableColumn="householdIdentification"
+									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">
 									Identification <p-sortIcon field="householdIdentification"></p-sortIcon>
 								</th>
-								<th
-									pSortableColumn="nameOfHOH"
-									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide"
-								>
+								<th pSortableColumn="nameOfHOH"
+									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">
 									Head of Household <p-sortIcon field="nameOfHOH"></p-sortIcon>
 								</th>
-								<th
-									pSortableColumn="totalMale"
+								<th pSortableColumn="totalMale"
 									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide text-center"
-									style="width: 80px"
-								>
+									style="width: 80px">
 									Male <p-sortIcon field="totalMale"></p-sortIcon>
 								</th>
-								<th
-									pSortableColumn="totalFemale"
+								<th pSortableColumn="totalFemale"
 									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide text-center"
-									style="width: 80px"
-								>
+									style="width: 80px">
 									Female <p-sortIcon field="totalFemale"></p-sortIcon>
 								</th>
-								<th
-									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide text-center"
-									style="width: 80px"
-								>
+								<th class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide text-center"
+									style="width: 80px">
 									Total
 								</th>
-								<th
-									pSortableColumn="phoneNumber"
-									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide"
-								>
+								<th pSortableColumn="phoneNumber"
+									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">
 									Phone Number <p-sortIcon field="phoneNumber"></p-sortIcon>
 								</th>
-								<th
-									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide"
-								>
+								<th class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">
 									Remarks
 								</th>
-								<th
-									pSortableColumn="createdAt"
-									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide"
-								>
+								<th pSortableColumn="createdAt"
+									class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wide">
 									Submitted Date <p-sortIcon field="createdAt"></p-sortIcon>
 								</th>
 							</tr>
 						</ng-template>
 
 						<ng-template pTemplate="body" let-listing>
-							<tr
-								class="border-b border-slate-100 hover:bg-slate-50 transition-colors"
-							>
+							<tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
 								<td>
 									<div class="text-xs text-slate-500 font-mono">
 										{{ listing.id }}
 									</div>
 								</td>
 								<td>
-									<span class="text-sm text-slate-700">{{ listing.structure?.structureNumber || '—' }}</span>
+									<span class="text-sm text-slate-700">{{ listing.structure?.structureNumber || '—'
+										}}</span>
 								</td>
 								<td>
 									<span class="text-sm text-slate-700">{{ listing.householdSerialNumber }}</span>
@@ -323,7 +231,7 @@
 								<td>
 									<span class="text-sm text-slate-700">{{ listing.householdIdentification }}</span>
 								</td>
-								
+
 								<td>
 									<div class="font-semibold text-slate-900">{{ listing.nameOfHOH }}</div>
 								</td>
@@ -366,7 +274,8 @@
 				</div>
 
 				<!-- Empty State -->
-				<div *ngIf="!loading && !householdListingsLoading && householdListings.length === 0" class="text-center py-12">
+				<div *ngIf="!loading && !householdListingsLoading && householdListings.length === 0"
+					class="text-center py-12">
 					<div class="text-gray-400">
 						<i class="pi pi-inbox text-4xl mb-3 block"></i>
 						<p class="text-sm">No household listings found</p>
@@ -378,16 +287,12 @@
 </div>
 
 <!-- Bulk Upload Household Listings Dialog -->
-<p-dialog
-	[(visible)]="showBulkUploadDialog"
-	[modal]="true"
-	[closable]="true"
-	[style]="{ width: '700px' }"
-	header="Bulk Upload Household Listings"
->
+<p-dialog [(visible)]="showBulkUploadDialog" [modal]="true" [closable]="true" styleClass="w-[90vw] max-w-2xl"
+	header="Bulk Upload Household Listings">
 	<div class="space-y-4">
 		<p class="text-sm text-gray-600">
-			Upload household listings from a CSV file. First, select an enumeration area and download the template to ensure your CSV format is correct.
+			Upload household listings from a CSV file. First, select an enumeration area and download the template to
+			ensure your CSV format is correct.
 		</p>
 
 		<!-- Enumeration Area Selection -->
@@ -399,71 +304,43 @@
 			<!-- Dzongkhag Selection -->
 			<div class="flex flex-col gap-1.5">
 				<label class="text-xs font-medium text-gray-600">Dzongkhag</label>
-				<p-dropdown
-					[(ngModel)]="selectedDialogDzongkhag"
-					[options]="dialogDzongkhagFilters"
-					optionLabel="name"
-					placeholder="Select Dzongkhag"
-					(onChange)="onDialogDzongkhagChange()"
-					styleClass="w-full"
-				></p-dropdown>
+				<p-dropdown [(ngModel)]="selectedDialogDzongkhag" [options]="dialogDzongkhagFilters" optionLabel="name"
+					placeholder="Select Dzongkhag" (onChange)="onDialogDzongkhagChange()"
+					styleClass="w-full"></p-dropdown>
 			</div>
 
 			<!-- Gewog/Thromde Selection -->
 			<div class="flex flex-col gap-1.5">
 				<label class="text-xs font-medium text-gray-600">Gewog/Thromde</label>
-				<p-dropdown
-					[(ngModel)]="selectedDialogAdminZone"
-					[options]="dialogAdminZoneFilters"
-					optionLabel="name"
-					placeholder="Select Gewog/Thromde"
-					[disabled]="!selectedDialogDzongkhag"
-					(onChange)="onDialogAdminZoneChange()"
-					styleClass="w-full"
-				></p-dropdown>
+				<p-dropdown [(ngModel)]="selectedDialogAdminZone" [options]="dialogAdminZoneFilters" optionLabel="name"
+					placeholder="Select Gewog/Thromde" [disabled]="!selectedDialogDzongkhag"
+					(onChange)="onDialogAdminZoneChange()" styleClass="w-full"></p-dropdown>
 			</div>
 
 			<!-- Chiwog/Lap Selection -->
 			<div class="flex flex-col gap-1.5">
 				<label class="text-xs font-medium text-gray-600">Chiwog/Lap</label>
-				<p-dropdown
-					[(ngModel)]="selectedDialogSubAdminZone"
-					[options]="dialogSubAdminZoneFilters"
-					optionLabel="name"
-					placeholder="Select Chiwog/Lap"
-					[disabled]="!selectedDialogAdminZone"
-					(onChange)="onDialogSubAdminZoneChange()"
-					styleClass="w-full"
-				></p-dropdown>
+				<p-dropdown [(ngModel)]="selectedDialogSubAdminZone" [options]="dialogSubAdminZoneFilters"
+					optionLabel="name" placeholder="Select Chiwog/Lap" [disabled]="!selectedDialogAdminZone"
+					(onChange)="onDialogSubAdminZoneChange()" styleClass="w-full"></p-dropdown>
 			</div>
 
 			<!-- Enumeration Area Selection -->
 			<div class="flex flex-col gap-1.5">
-				<label class="text-xs font-medium text-gray-600"
-					>Enumeration Area <span class="text-red-500">*</span></label
-				>
-				<p-dropdown
-					[(ngModel)]="selectedEAForBulkUpload"
-					[options]="dialogEnumerationAreaOptions"
-					optionLabel="name"
-					placeholder="Select Enumeration Area"
-					[disabled]="!selectedDialogSubAdminZone"
-					styleClass="w-full"
-				></p-dropdown>
+				<label class="text-xs font-medium text-gray-600">Enumeration Area <span
+						class="text-red-500">*</span></label>
+				<p-dropdown [(ngModel)]="selectedEAForBulkUpload" [options]="dialogEnumerationAreaOptions"
+					optionLabel="name" placeholder="Select Enumeration Area" [disabled]="!selectedDialogSubAdminZone"
+					styleClass="w-full"></p-dropdown>
 			</div>
 		</div>
 
 		<!-- Download Template Button -->
 		<div class="flex items-center gap-2">
-			<p-button
-				label="Download CSV Template"
-				icon="pi pi-download"
-				class="p-button-outlined p-button-sm"
-				[disabled]="!selectedEAForBulkUpload || downloadingTemplate"
-				[loading]="downloadingTemplate"
+			<p-button label="Download CSV Template" icon="pi pi-download" class="p-button-outlined p-button-sm"
+				[disabled]="!selectedEAForBulkUpload || downloadingTemplate" [loading]="downloadingTemplate"
 				(click)="downloadTemplate()"
-				pTooltip="Download CSV template for the selected enumeration area"
-			></p-button>
+				pTooltip="Download CSV template for the selected enumeration area"></p-button>
 		</div>
 
 		<!-- File Upload -->
@@ -471,29 +348,17 @@
 			<label class="block text-sm font-medium text-gray-700 mb-2">
 				Select CSV File <span class="text-red-500">*</span>
 			</label>
-			<p-fileUpload
-				mode="basic"
-				[auto]="false"
-				accept=".csv"
-				[maxFileSize]="10000000"
-				chooseLabel="Choose CSV File"
-				chooseIcon="pi pi-upload"
-				(onSelect)="onBulkUploadFileSelect($event)"
-				(onRemove)="onBulkUploadFileRemove()"
-				[showUploadButton]="false"
-				[showCancelButton]="false"
-				styleClass="w-full"
-			></p-fileUpload>
+			<p-fileUpload mode="basic" [auto]="false" accept=".csv" [maxFileSize]="10000000"
+				chooseLabel="Choose CSV File" chooseIcon="pi pi-upload" (onSelect)="onBulkUploadFileSelect($event)"
+				(onRemove)="onBulkUploadFileRemove()" [showUploadButton]="false" [showCancelButton]="false"
+				styleClass="w-full"></p-fileUpload>
 			<small class="text-gray-500 mt-1 block">
 				Maximum file size: 10 MB. Accepted format: .csv
 			</small>
 		</div>
 
 		<!-- Selected File Info -->
-		<div
-			*ngIf="bulkUploadFile"
-			class="bg-green-50 border border-green-200 rounded-lg p-3"
-		>
+		<div *ngIf="bulkUploadFile" class="bg-green-50 border border-green-200 rounded-lg p-3">
 			<div class="flex items-center justify-between">
 				<div class="flex items-center">
 					<i class="pi pi-file text-green-600 text-xl mr-3"></i>
@@ -509,10 +374,7 @@
 		</div>
 
 		<!-- Upload Results -->
-		<div
-			*ngIf="bulkUploadResults"
-			class="bg-white border border-gray-300 rounded-lg p-4 space-y-3"
-		>
+		<div *ngIf="bulkUploadResults" class="bg-white border border-gray-300 rounded-lg p-4 space-y-3">
 			<h4 class="font-semibold text-gray-900 flex items-center">
 				<i class="pi pi-chart-bar text-purple-600 mr-2"></i>
 				Upload Results
@@ -540,10 +402,8 @@
 					✗ Errors ({{ bulkUploadResults.errors.length }})
 				</p>
 				<div class="max-h-32 overflow-y-auto space-y-1">
-					<div
-						*ngFor="let error of bulkUploadResults.errors"
-						class="text-xs bg-red-50 border border-red-200 rounded px-2 py-1"
-					>
+					<div *ngFor="let error of bulkUploadResults.errors"
+						class="text-xs bg-red-50 border border-red-200 rounded px-2 py-1">
 						{{ error.error }}
 					</div>
 				</div>
@@ -553,28 +413,13 @@
 
 	<ng-template pTemplate="footer">
 		<div class="flex justify-end gap-2">
-			<button
-				pButton
-				type="button"
-				label="Cancel"
-				class="p-button-text"
-				[disabled]="bulkUploadLoading"
-				(click)="closeBulkUploadDialog()"
-			></button>
-			<button
-				pButton
-				type="button"
-				label="Upload"
-				icon="pi pi-upload"
-				class="p-button-primary"
-				[disabled]="
+			<button pButton type="button" label="Cancel" class="p-button-text" [disabled]="bulkUploadLoading"
+				(click)="closeBulkUploadDialog()"></button>
+			<button pButton type="button" label="Upload" icon="pi pi-upload" class="p-button-primary" [disabled]="
 					bulkUploadLoading ||
 					!selectedEAForBulkUpload ||
 					!bulkUploadFile
-				"
-				[loading]="bulkUploadLoading"
-				(click)="uploadHouseholdListings()"
-			></button>
+				" [loading]="bulkUploadLoading" (click)="uploadHouseholdListings()"></button>
 		</div>
 	</ng-template>
 </p-dialog>

@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { AdminLayoutService } from '../service/admin-layout.service';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Popover } from 'primeng/popover';
 import { Subscription } from 'rxjs';
 
@@ -46,6 +46,7 @@ import { Dzongkhag } from '../../core/dataservice/location/dzongkhag/dzongkhag.i
 		FormsModule,
 		InputTextModule,
 		AvatarModule,
+		RouterModule,
 	],
 	providers: [ConfirmationService, MessageService],
 })
@@ -95,7 +96,7 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 		private authService: AuthService,
 		private router: Router,
 		private dzongkhagService: DzongkhagDataService
-	) {}
+	) { }
 
 	ngOnInit(): void {
 		// Get initial user profile
@@ -372,7 +373,7 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 					error?.error?.message ||
 					error?.message ||
 					'Failed to change password. Please check your current password and try again.';
-		this.messageService.add({
+				this.messageService.add({
 					severity: 'error',
 					summary: 'Error',
 					detail: errorMessage,
@@ -403,20 +404,20 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 	 * Tries the new /auth/my-dzongkhags endpoint first, falls back to the old endpoint if it doesn't exist
 	 */
 	loadSupervisorDzongkhags(): void {
-		console.log('Loading supervisor dzongkhags');	
+		console.log('Loading supervisor dzongkhags');
 		if (!this.userProfile?.id) {
 			console.warn('Cannot load dzongkhags: user profile ID is missing');
 			return;
 		}
 
 		this.loadingDzongkhags = true;
-		
-		
+
+
 		// Try the new endpoint first (uses JWT token)
 		this.authService
 			.getMyDzongkhagAssignments()
 			.subscribe({
-				next: (assiignedDzongkhags:Dzongkhag[]) => {
+				next: (assiignedDzongkhags: Dzongkhag[]) => {
 					this.assignedDzongkhags = assiignedDzongkhags;
 					this.loadingDzongkhags = false;
 				},
@@ -425,7 +426,7 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 					this.assignedDzongkhags = [];
 					this.loadingDzongkhags = false;
 				},
-				 
+
 			});
 	}
 
@@ -436,6 +437,6 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 		if (this.assignedDzongkhags.length === 0) {
 			return '';
 		}
-		return this.assignedDzongkhags.map((dz) => dz.name +" Dzongkhag").join(', ');
+		return this.assignedDzongkhags.map((dz) => dz.name + " Dzongkhag").join(', ');
 	}
 }
