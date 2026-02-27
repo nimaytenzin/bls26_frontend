@@ -1,0 +1,130 @@
+<div class="ea-map-view h-screen flex flex-col bg-gray-50 m-3">
+	<div *ngIf="loading" class="flex items-center justify-center flex-1">
+		<p-progressSpinner></p-progressSpinner>
+	</div>
+	<div *ngIf="error && !loading" class="p-6 flex flex-col items-center justify-center">
+		<p class="text-red-600 mb-4">{{ error }}</p>
+		<button pButton label="Go back" icon="pi pi-arrow-left" (click)="goBack()"></button>
+	</div>
+
+	<div *ngIf="!loading && !error" class="relative flex-1 flex flex-col">
+		<!-- Header -->
+		<div class="flex-shrink-0 px-3 py-2 bg-[#1A58AF] text-white flex items-center justify-between gap-2">
+			<button pButton type="button" icon="pi pi-arrow-left" class="p-button-text p-button-plain !text-white" (click)="goBack()"></button>
+			<h1 class="font-bold text-sm truncate flex-1 text-center">{{ ea?.name || 'EA Map' }}</h1>
+			<span class="flex-shrink-0">
+				<p-tag *ngIf="eaCompleted" value="Completed" severity="success"></p-tag>
+				<p-tag *ngIf="!eaCompleted" value="In progress" severity="warn"></p-tag>
+			</span>
+		</div>
+
+		<!-- Map -->
+		<div class="ea-map-panel flex-1 min-h-0 w-full bg-slate-200">
+			<div #mapContainer class="map-container w-full h-full"></div>
+		</div>
+
+		<!-- Map controls -->
+		<div class="absolute bottom-24 right-2 flex flex-col gap-2 z-[1000]">
+			<button
+				pButton
+				type="button"
+				icon="pi pi-plus"
+				class="p-button-rounded"
+				[class.p-button-success]="editMode"
+				[class.p-button-secondary]="!editMode"
+				[disabled]="eaCompleted"
+				(click)="toggleEditMode()"
+				pTooltip="Add structure"
+			></button>
+			<button
+				pButton
+				type="button"
+				icon="pi pi-list"
+				class="p-button-rounded p-button-info"
+				(click)="viewHouseholdList()"
+				pTooltip="View household list"
+			></button>
+		</div>
+
+		<!-- Mark complete -->
+		<div class="absolute bottom-4 left-3 z-[1000]">
+			<button
+				*ngIf="!eaCompleted"
+				pButton
+				type="button"
+				label="Mark complete"
+				icon="pi pi-check"
+				class="p-button-success"
+				(click)="openCompleteDialog()"
+			></button>
+		</div>
+
+		<!-- Toast -->
+		<div
+			*ngIf="toastMessage"
+			class="absolute top-14 left-4 right-4 z-[1001] rounded-lg shadow-lg p-3 text-white text-sm"
+			[ngClass]="{
+				'bg-green-600': toastSeverity === 'success',
+				'bg-red-600': toastSeverity === 'error',
+				'bg-blue-600': toastSeverity === 'info'
+			}"
+		>
+			{{ toastMessage }}
+		</div>
+	</div>
+
+	<!-- Add structure dialog -->
+	<p-dialog
+		[(visible)]="showAddStructureDialog"
+		header="Add structure"
+		[modal]="true"
+		[closable]="!isAddingStructure"
+		(onHide)="closeAddStructureDialog()"
+	>
+		<div class="space-y-3">
+			<p *ngIf="clickedLatLng" class="text-sm text-gray-600">
+				Lat: {{ clickedLatLng.lat | number:'1.4-4' }}, Lng: {{ clickedLatLng.lng | number:'1.4-4' }}
+			</p>
+			<div>
+				<label class="block text-sm font-medium mb-1">Structure number</label>
+				<input pInputText [(ngModel)]="newStructureNumber" class="w-full" />
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<button pButton label="Cancel" class="p-button-text" (click)="closeAddStructureDialog()" [disabled]="isAddingStructure"></button>
+			<button pButton label="Add" (click)="createStructure()" [loading]="isAddingStructure" [disabled]="!newStructureNumber?.trim()"></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Structure actions dialog -->
+	<p-dialog
+		[(visible)]="showStructureActionsDialog"
+		[header]="'Structure: ' + (selectedStructure?.structureNumber || '')"
+		[modal]="true"
+		[closable]="true"
+		(onHide)="showStructureActionsDialog = false"
+	>
+		<div *ngIf="selectedStructure" class="flex flex-col gap-2">
+			<button pButton label="Add household" icon="pi pi-plus" (click)="addHousehold()"></button>
+			<button pButton label="View households" icon="pi pi-list" class="p-button-outlined" (click)="viewHouseholdsForStructure()"></button>
+			<button *ngIf="!eaCompleted" pButton label="Delete structure" icon="pi pi-trash" class="p-button-danger p-button-outlined" (click)="deleteStructure()"></button>
+		</div>
+	</p-dialog>
+
+	<!-- Complete EA dialog -->
+	<p-dialog
+		[(visible)]="showCompleteDialog"
+		header="Mark EA complete"
+		[modal]="true"
+		[closable]="!isCompleting"
+		(onHide)="showCompleteDialog = false"
+	>
+		<p>Mark this enumeration area as completed? You can no longer add structures after this.</p>
+		<ng-template pTemplate="footer">
+			<button pButton label="Cancel" class="p-button-text" (click)="showCompleteDialog = false" [disabled]="isCompleting"></button>
+			<button pButton label="Complete" class="p-button-success" (click)="markComplete()" [loading]="isCompleting"></button>
+		</ng-template>
+	</p-dialog>
+
+	<p-confirmDialog></p-confirmDialog>
+</div>

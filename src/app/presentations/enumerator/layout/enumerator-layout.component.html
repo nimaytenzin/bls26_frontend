@@ -9,7 +9,7 @@
 			<div class="flex items-center gap-3">
 				<img src="logo.png" alt="" class="w-8" />
 				<div>
-					<h1 class="text-lg font-bold leading-tight">NSFD</h1>
+					<h1 class="text-lg font-bold leading-tight">BLS 2026</h1>
 					<p class="text-xs text-primary-100">Enumerator</p>
 				</div>
 			</div>
@@ -35,73 +35,21 @@
 		<router-outlet></router-outlet>
 	</main>
 
-	<!-- Bottom Navigation Bar (Mobile-First) -->
+	<!-- Bottom Navigation Bar: Home only (Past & Profile removed) -->
 	<nav
 		*ngIf="showBottomNav"
 		class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg safe-area-bottom z-50"
 	>
-		<div class="grid grid-cols-3 h-16">
-			<!-- Active Surveys Tab -->
+		<div class="flex justify-center h-16">
 			<button
-				(click)="navigateToTab('active-surveys')"
-				[class.text-gray-500]="activeTab !== 'active-surveys'"
-				class="flex flex-col items-center justify-center gap-1 hover:bg-gray-50 transition-colors active:bg-gray-100 relative"
-				[style.color]="activeTab === 'active-surveys' ? '#1A58AF' : ''"
+				(click)="navigateToTab('active')"
+				[class.text-gray-500]="activeTab !== 'active'"
+				class="flex flex-col items-center justify-center gap-1 px-8 hover:bg-gray-50 transition-colors active:bg-gray-100 relative"
+				[style.color]="activeTab === 'active' ? '#1A58AF' : ''"
 			>
 				<i class="pi pi-briefcase text-xl"></i>
-				<span
-					class="text-xs font-medium"
-					[class.font-semibold]="activeTab === 'active-surveys'"
-				>
-					Active
-				</span>
-				<div
-					*ngIf="activeTab === 'active-surveys'"
-					class="absolute bottom-0 left-0 right-0 h-0.5"
-					style="background-color: #1A58AF;"
-				></div>
-			</button>
-
-			<!-- Past Surveys Tab -->
-			<button
-				(click)="navigateToTab('past-surveys')"
-				[class.text-gray-500]="activeTab !== 'past-surveys'"
-				class="flex flex-col items-center justify-center gap-1 hover:bg-gray-50 transition-colors active:bg-gray-100 relative"
-				[style.color]="activeTab === 'past-surveys' ? '#1A58AF' : ''"
-			>
-				<i class="pi pi-history text-xl"></i>
-				<span
-					class="text-xs font-medium"
-					[class.font-semibold]="activeTab === 'past-surveys'"
-				>
-					Past
-				</span>
-				<div
-					*ngIf="activeTab === 'past-surveys'"
-					class="absolute bottom-0 left-0 right-0 h-0.5"
-					style="background-color: #1A58AF;"
-				></div>
-			</button>
-
-			<!-- Profile Tab -->
-			<button
-				(click)="navigateToTab('profile')"
-				[class.text-gray-500]="activeTab !== 'profile'"
-				class="flex flex-col items-center justify-center gap-1 hover:bg-gray-50 transition-colors active:bg-gray-100 relative"
-				[style.color]="activeTab === 'profile' ? '#1A58AF' : ''"
-			>
-				<i class="pi pi-user text-xl"></i>
-				<span
-					class="text-xs font-medium"
-					[class.font-semibold]="activeTab === 'profile'"
-				>
-					Profile
-				</span>
-				<div
-					*ngIf="activeTab === 'profile'"
-					class="absolute bottom-0 left-0 right-0 h-0.5"
-					style="background-color: #1A58AF;"
-				></div>
+				<span class="text-xs font-medium" [class.font-semibold]="activeTab === 'active'">Active</span>
+				<div *ngIf="activeTab === 'active'" class="absolute bottom-0 left-0 right-0 h-0.5" style="background-color: #1A58AF;"></div>
 			</button>
 		</div>
 	</nav>

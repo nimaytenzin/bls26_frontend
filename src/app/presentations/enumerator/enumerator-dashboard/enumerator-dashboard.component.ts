@@ -1,114 +1,85 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { EnumeratorDataService } from '../../../core/dataservice/enumerator-service/enumerator.dataservice';
-import {
-	Survey,
-} from '../../../core/dataservice/survey/survey.dto';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { PrimeNgModules } from '../../../primeng.modules';
-import { SurveyStatus } from '../../../core/constants/enums';
+import { DzongkhagService } from '../../../core/dataservice/dzongkhag/dzongkhag.service';
+import { EnumerationAreaService } from '../../../core/dataservice/enumeration-area/enumeration-area.service';
+import type { Dzongkhag } from '../../../core/dataservice/dzongkhag/dzongkhag.service';
+import type { EnumerationArea } from '../../../core/dataservice/enumeration-area/enumeration-area.service';
 
 @Component({
 	selector: 'app-enumerator-dashboard',
 	standalone: true,
-	imports: [CommonModule, PrimeNgModules],
+	imports: [CommonModule, FormsModule, PrimeNgModules],
 	templateUrl: './enumerator-dashboard.component.html',
 	styleUrls: ['./enumerator-dashboard.component.scss'],
 })
-export class EnumeratorDashboardComponent implements OnInit {
-	surveys: Survey[] = [];
-	loading = true;
-	error: string | null = null;
+export class EnumeratorDashboardComponent implements OnInit, OnDestroy {
+	private destroy$ = new Subject<void>();
+
+	dzongkhags: Dzongkhag[] = [];
+	enumerationAreas: EnumerationArea[] = [];
+	selectedDzongkhagId: number | null = null;
+	selectedEaId: number | null = null;
+	loadingDzongkhags = false;
+	loadingEas = false;
 
 	constructor(
-		private enumeratorService: EnumeratorDataService,
+		private dzongkhagService: DzongkhagService,
+		private eaService: EnumerationAreaService,
 		private router: Router
 	) {}
 
-	ngOnInit() {
-		this.loadActiveSurveys();
+	ngOnInit(): void {
+		this.loadDzongkhags();
 	}
 
-	/**
-	 * Load active surveys assigned to the enumerator
-	 */
-	loadActiveSurveys() {
-		this.loading = true;
-		this.error = null;
-
-		this.enumeratorService.getMySurveys().subscribe({
-			next: (surveys) => {
-				this.surveys = surveys;
-				this.loading = false;
-			},
-			error: (error) => {
-				console.error('Error loading surveys:', error);
-				this.error = 'Failed to load surveys. Please try again.';
-				this.loading = false;
-			},
-		});
+	ngOnDestroy(): void {
+		this.destroy$.next();
+		this.destroy$.complete();
 	}
 
-	/**
-	 * Navigate to survey details or enumeration form
-	 */
-	selectSurvey(survey: Survey) {
-		this.router.navigate(['/enumerator/survey', survey.id]);
+	loadDzongkhags(): void {
+		this.loadingDzongkhags = true;
+		this.dzongkhagService
+			.getAll()
+			.pipe(
+				takeUntil(this.destroy$),
+				finalize(() => (this.loadingDzongkhags = false))
+			)
+			.subscribe({
+				next: (list) => (this.dzongkhags = list),
+				error: () => (this.dzongkhags = []),
+			});
 	}
 
-	/**
-	 * Refresh the surveys list
-	 */
-	refresh() {
-		this.loadActiveSurveys();
-	}
-
-	/**
-	 * Format date for display
-	 */
-	formatDate(date: string | Date): string {
-		if (!date) return 'N/A';
-		const d = new Date(date);
-		return d.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		});
-	}
-
-	/**
-	 * Get status badge severity
-	 */
-	getStatusSeverity(
-		status: SurveyStatus
-	): 'success' | 'danger' | 'warning' | 'info' {
-		switch (status) {
-			case SurveyStatus.ACTIVE:
-				return 'success';
-			case SurveyStatus.ENDED:
-				return 'danger';
-			default:
-				return 'info';
+	onDzongkhagChange(): void {
+		this.selectedEaId = null;
+		this.enumerationAreas = [];
+		if (this.selectedDzongkhagId != null) {
+			this.loadingEas = true;
+			this.eaService
+				.getAll({ dzongkhagId: this.selectedDzongkhagId })
+				.pipe(
+					takeUntil(this.destroy$),
+					finalize(() => (this.loadingEas = false))
+				)
+				.subscribe({
+					next: (list) => (this.enumerationAreas = list),
+					error: () => (this.enumerationAreas = []),
+				});
 		}
 	}
 
-	/**
-	 * Calculate days remaining for survey
-	 */
-	getDaysRemaining(endDate: string | Date): number {
-		if (!endDate) return 0;
-		const end = new Date(endDate);
-		const today = new Date();
-		const diffTime = end.getTime() - today.getTime();
-		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-		return diffDays;
+	openMap(): void {
+		if (!this.selectedEaId) return;
+		this.router.navigate(['/enumerator/ea', this.selectedEaId, 'map']);
 	}
 
-	/**
-	 * Check if survey is ending soon (within 7 days)
-	 */
-	isEndingSoon(endDate: string | Date): boolean {
-		const daysRemaining = this.getDaysRemaining(endDate);
-		return daysRemaining > 0 && daysRemaining <= 7;
+	canOpenMap(): boolean {
+		return this.selectedEaId != null;
 	}
 }

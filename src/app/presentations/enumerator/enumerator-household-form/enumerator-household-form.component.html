@@ -1,0 +1,62 @@
+<div class="p-4 max-w-lg mx-auto">
+	<p-toast></p-toast>
+
+	<div class="flex items-center gap-2 mb-4">
+		<button pButton type="button" icon="pi pi-arrow-left" class="p-button-text" (click)="cancel()"></button>
+		<h2 class="text-xl font-bold text-gray-800">{{ isEdit ? 'Edit household' : 'Add household' }}</h2>
+	</div>
+
+	<div *ngIf="loading">
+		<p-progressSpinner></p-progressSpinner>
+	</div>
+
+	<form *ngIf="!loading" (ngSubmit)="submit()" class="space-y-4">
+		<div>
+			<label class="block text-sm font-medium mb-1">Structure <span class="text-red-500">*</span></label>
+			<p-dropdown
+				[options]="structures"
+				optionLabel="structureNumber"
+				optionValue="id"
+				[(ngModel)]="form.structureId"
+				name="structureId"
+				[disabled]="!!structureId"
+				(onChange)="onStructureChange()"
+				styleClass="w-full"
+			></p-dropdown>
+		</div>
+		<div>
+			<label class="block text-sm font-medium mb-1">Household identification <span class="text-red-500">*</span></label>
+			<input pInputText [(ngModel)]="form.householdIdentification" name="householdIdentification" class="w-full" />
+		</div>
+		<div>
+			<label class="block text-sm font-medium mb-1">Household serial number</label>
+			<input pInputNumber [(ngModel)]="form.householdSerialNumber" name="householdSerialNumber" class="w-full" />
+		</div>
+		<div>
+			<label class="block text-sm font-medium mb-1">Name of head of household <span class="text-red-500">*</span></label>
+			<input pInputText [(ngModel)]="form.nameOfHOH" name="nameOfHOH" class="w-full" />
+		</div>
+		<div class="grid grid-cols-2 gap-4">
+			<div>
+				<label class="block text-sm font-medium mb-1">Total male</label>
+				<input pInputNumber [(ngModel)]="form.totalMale" name="totalMale" class="w-full" />
+			</div>
+			<div>
+				<label class="block text-sm font-medium mb-1">Total female</label>
+				<input pInputNumber [(ngModel)]="form.totalFemale" name="totalFemale" class="w-full" />
+			</div>
+		</div>
+		<div>
+			<label class="block text-sm font-medium mb-1">Phone number</label>
+			<input pInputText [(ngModel)]="form.phoneNumber" name="phoneNumber" class="w-full" />
+		</div>
+		<div>
+			<label class="block text-sm font-medium mb-1">Remarks</label>
+			<textarea pInputTextarea [(ngModel)]="form.remarks" name="remarks" class="w-full" rows="2"></textarea>
+		</div>
+		<div class="flex gap-2 pt-2">
+			<button pButton type="button" label="Cancel" class="p-button-text" (click)="cancel()" [disabled]="submitting"></button>
+			<button pButton type="submit" [label]="isEdit ? 'Update' : 'Add'" [loading]="submitting"></button>
+		</div>
+	</form>
+</div>

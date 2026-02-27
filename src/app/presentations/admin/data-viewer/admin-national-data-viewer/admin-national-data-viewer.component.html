@@ -1,1096 +1,153 @@
-<!-- Admin Dashboard -->
-<div class="h-[calc(100vh-5rem)] border-red-500">
-	<!-- Loading State -->
-	<section
-		*ngIf="loading"
-		class="rounded-lg border border-slate-200 bg-white p-10 text-center shadow-sm"
-	>
-		<div class="flex flex-col items-center gap-4 text-slate-600">
-			<p-progressSpinner styleClass="w-12 h-12"></p-progressSpinner>
+<div class="h-[calc(100vh-5rem)] bg-slate-50 flex flex-col">
+	<div class="bg-white border-b border-slate-200 shadow-sm flex-shrink-0 p-6">
+		<div class="flex justify-between items-center mb-4">
 			<div>
-				<p class="text-lg font-semibold text-slate-900">
-					Loading national statistics
-				</p>
-				<p class="text-sm text-slate-500">
-					Fetching dzongkhag data and generating insights…
-				</p>
+				<h1 class="text-3xl font-bold text-slate-900 mb-1">Data Viewer</h1>
+				<p class="text-sm text-slate-500">View structures and household listings by scope</p>
 			</div>
-		</div>
-	</section>
-
-	<!-- Error State -->
-	<section
-		*ngIf="!loading && errorMessage"
-		class="rounded-lg border border-red-200 bg-red-50 p-8 text-center text-red-700 shadow-sm"
-	>
-		<h2 class="text-lg font-semibold">Failed to load dashboard data</h2>
-		<p class="mt-2 text-sm">{{ errorMessage }}</p>
-		<div class="mt-6 flex flex-wrap justify-center gap-3">
 			<button
+				pButton
 				type="button"
-				(click)="loadDzongkhagStatistics()"
-				class="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
-			>
-				Try Again
-			</button>
+				label="Refresh"
+				icon="pi pi-refresh"
+				size="small"
+				(click)="refresh()"
+			></button>
 		</div>
-	</section>
 
-	<!-- Main Content -->
-	<ng-container *ngIf="!loading && !errorMessage">
-		<!-- Split UI Layout -->
-		<section class="flex gap-4 h-[calc(100vh-5rem)] bg-white">
-			<!-- Left Pane: Data and Statistics -->
-			<div class="w-[25vw] flex flex-col gap-4 overflow-y-auto p-3">
-				
+		<div class="flex flex-wrap gap-3 items-center">
+			<label class="font-medium text-slate-700">View:</label>
+			<button
+				pButton
+				type="button"
+				[label]="'All'"
+				[outlined]="viewMode !== 'all'"
+				(click)="setMode('all')"
+				class="p-button-sm"
+			></button>
+			<button
+				pButton
+				type="button"
+				[label]="'Dzongkhag-wise'"
+				[outlined]="viewMode !== 'dzongkhag'"
+				(click)="setMode('dzongkhag')"
+				class="p-button-sm"
+			></button>
+			<button
+				pButton
+				type="button"
+				[label]="'EA-wise'"
+				[outlined]="viewMode !== 'ea'"
+				(click)="setMode('ea')"
+				class="p-button-sm"
+			></button>
 
-				<div class="p-4">
-					<div class="space-y-4">
-						<!-- Main Tabs: Frame Insights & Dzongkhag List -->
-						<div class="flex gap-2 border-b border-slate-200">
-							<button
-								type="button"
-								(click)="activeMainTab = 'insights'"
-								class="px-4 py-2 font-semibold transition border-b-2"
-								[ngClass]="
-									activeMainTab === 'insights'
-										? 'border-primary-600 text-primary-600'
-										: 'border-transparent text-slate-600 hover:text-slate-900'
-								"
-							>
-								Overview
-							</button>
-							<button
-								type="button"
-								(click)="activeMainTab = 'list'"
-								class="px-4 py-2 font-semibold transition border-b-2"
-								[ngClass]="
-									activeMainTab === 'list'
-										? 'border-primary-600 text-primary-600'
-										: 'border-transparent text-slate-600 hover:text-slate-900'
-								"
-							>
-								Dzongkhag 
-							</button>
-						</div>
-						<!-- Frame Insights Tab Content -->
-						<div *ngIf="activeMainTab === 'insights'" class="space-y-4">
-							<div class="space-y-4 text-base text-slate-600">
-								<!-- Total Enumeration Areas Card -->
-							<div
-							(click)="switchVisualizationMode('enumerationAreas')"
-							class="p-4 rounded-lg border border-slate-200 bg-white transition-all duration-200 cursor-pointer relative"
-							[style.border-color]="
-								mapVisualizationMode === 'enumerationAreas' ? '#67A4CA' : ''
-							"
-						>
-							<div class="space-y-2">
-								<div class="flex items-center justify-between">
-									<p class="text-base font-semibold text-slate-800">
-										Total Enumeration Areas
-									</p>
-									<i
-										*ngIf="mapVisualizationMode === 'enumerationAreas'"
-										class="pi pi-bookmark-fill text-2xl"
-										style="color: #67a4ca"
-									></i>
-								</div>
-								<div class="mb-3">
-									<p class="text-3xl font-bold text-primary-600">
-										{{ stats.totalEnumerationAreas | number }}
-									</p>
-								</div>
-								<div class="space-y-3">
-									<!-- Urban/Rural proportional bar -->
-									<div>
-										<div
-											class="flex h-10 rounded-lg overflow-hidden border border-slate-200"
-										>
-											<div
-												class="flex items-center justify-center bg-primary-600 text-white text-sm font-semibold px-2 transition-all"
-												[style.width.%]="
-													getPercentageValue(
-														stats.urbanEnumerationAreas,
-														stats.totalEnumerationAreas
-													)
-												"
-											>
-												<span
-													*ngIf="
-														getPercentageValue(
-															stats.urbanEnumerationAreas,
-															stats.totalEnumerationAreas
-														) > 15
-													"
-													>{{
-														getPercentage(
-															stats.urbanEnumerationAreas,
-															stats.totalEnumerationAreas
-														)
-													}}%</span
-												>
-											</div>
-											<div
-												class="flex items-center justify-center text-slate-800 text-sm font-semibold px-2 transition-all"
-												[style.width.%]="
-													getPercentageValue(
-														stats.ruralEnumerationAreas,
-														stats.totalEnumerationAreas
-													)
-												"
-												style="background-color: #cbe7f8"
-											>
-												<span
-													*ngIf="
-														getPercentageValue(
-															stats.ruralEnumerationAreas,
-															stats.totalEnumerationAreas
-														) > 15
-													"
-													>{{
-														getPercentage(
-															stats.ruralEnumerationAreas,
-															stats.totalEnumerationAreas
-														)
-													}}%</span
-												>
-											</div>
-										</div>
-										<!-- Percentages below bar -->
-										<div
-											class="flex justify-between text-xs text-slate-600 mt-1"
-										>
-											<span
-												>Urban:
-												{{
-													getPercentage(
-														stats.urbanEnumerationAreas,
-														stats.totalEnumerationAreas
-													)
-												}}%</span
-											>
-											<span
-												>Rural:
-												{{
-													getPercentage(
-														stats.ruralEnumerationAreas,
-														stats.totalEnumerationAreas
-													)
-												}}%</span
-											>
-										</div>
-									</div>
-									<!-- Average Stats -->
-									<div class="space-y-1 text-sm text-slate-600">
-										<div class="flex items-center justify-between">
-											<span>Avg Households/EA:</span>
-											<span class="font-semibold text-slate-900">{{
-												stats.totalEnumerationAreas > 0 ? (
-													stats.totalHouseholds / stats.totalEnumerationAreas
-												).toFixed(1) : '0.0'
-											}}</span>
-										</div>
-										<div class="flex items-center justify-between">
-											<span>Urban Households/EA:</span>
-											<span class="font-semibold text-slate-900">{{
-												stats.urbanEnumerationAreas > 0 ? (
-													stats.urbanHouseholds / stats.urbanEnumerationAreas
-												).toFixed(1) : '0.0'
-											}}</span>
-										</div>
-										<div class="flex items-center justify-between">
-											<span>Rural Households/EA:</span>
-											<span class="font-semibold text-slate-900">{{
-												stats.ruralEnumerationAreas > 0 ? (
-													stats.ruralHouseholds / stats.ruralEnumerationAreas
-												).toFixed(1) : '0.0'
-											}}</span>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
+			<ng-container *ngIf="isDzongkhag || isEa">
+				<p-dropdown
+					[options]="dzongkhags"
+					optionLabel="name"
+					optionValue="id"
+					[(ngModel)]="selectedDzongkhagId"
+					placeholder="Select Dzongkhag"
+					[loading]="loadingDzongkhags"
+					(onChange)="onDzongkhagChange()"
+					styleClass="w-52"
+				></p-dropdown>
+				<p-dropdown
+					*ngIf="isEa"
+					[options]="enumerationAreas"
+					optionLabel="name"
+					optionValue="id"
+					[(ngModel)]="selectedEaId"
+					placeholder="Select Enumeration Area"
+					[loading]="loadingEas"
+					[disabled]="!selectedDzongkhagId"
+					(onChange)="onEaChange()"
+					styleClass="w-64"
+				></p-dropdown>
+			</ng-container>
+		</div>
+	</div>
 
-								<!-- Total Households Card -->
-								<div
-									class="space-y-3 rounded-lg border border-slate-200 bg-white p-4 cursor-pointer transition-all relative"
-									[style.border-color]="
-										mapVisualizationMode === 'households' ? '#67A4CA' : ''
-									"
-									(click)="switchVisualizationMode('households')"
-								>
-									<div class="flex items-center justify-between">
-										<p class="text-lg font-semibold text-slate-800">
-											Total Households
-										</p>
-										<i
-											*ngIf="mapVisualizationMode === 'households'"
-											class="pi pi-bookmark-fill text-2xl"
-											style="color: #67a4ca"
-										></i>
-									</div>
-									<div class="mb-3">
-										<p class="text-3xl font-bold text-primary-600">
-											{{ stats.totalHouseholds | number }}
-										</p>
-									</div>
-									<div class="space-y-3">
-										<!-- Urban/Rural proportional bar -->
-										<div>
-											<div
-												class="flex h-10 rounded-lg overflow-hidden border border-slate-200"
-											>
-												<div
-													class="flex items-center justify-center bg-primary-600 text-white text-sm font-semibold px-2 transition-all"
-													[style.width.%]="
-														getPercentageValue(
-															stats.urbanHouseholds,
-															stats.totalHouseholds
-														)
-													"
-												>
-													<span
-														*ngIf="
-															getPercentageValue(
-																stats.urbanHouseholds,
-																stats.totalHouseholds
-															) > 15
-														"
-														>{{
-															getPercentage(
-																stats.urbanHouseholds,
-																stats.totalHouseholds
-															)
-														}}%</span
-													>
-												</div>
-												<div
-													class="flex items-center justify-center text-slate-800 text-sm font-semibold px-2 transition-all"
-													[style.width.%]="
-														getPercentageValue(
-															stats.ruralHouseholds,
-															stats.totalHouseholds
-														)
-													"
-													style="background-color: #cbe7f8"
-												>
-													<span
-														*ngIf="
-															getPercentageValue(
-																stats.ruralHouseholds,
-																stats.totalHouseholds
-															) > 15
-														"
-														>{{
-															getPercentage(
-																stats.ruralHouseholds,
-																stats.totalHouseholds
-															)
-														}}%</span
-													>
-												</div>
-											</div>
-											<!-- Percentages below bar -->
-											<div
-												class="flex justify-between text-xs text-slate-600 mt-1"
-											>
-												<span
-													>Urban:
-													{{
-														getPercentage(
-															stats.urbanHouseholds,
-															stats.totalHouseholds
-														)
-													}}%</span
-												>
-												<span
-													>Rural:
-													{{
-														getPercentage(
-															stats.ruralHouseholds,
-															stats.totalHouseholds
-														)
-													}}%</span
-												>
-											</div>
-										</div>
-										<!-- Legend -->
-										<div class="flex flex-wrap gap-4 text-xs">
-											<div class="flex items-center gap-1.5">
-												<div
-													class="w-3 h-3 rounded-sm bg-primary-600 border border-primary-700"
-												></div>
-												<span class="text-slate-600"
-													>Urban:
-													<span class="font-semibold text-slate-900"
-														>{{ stats.urbanHouseholds | number }} ({{
-															getPercentage(
-																stats.urbanHouseholds,
-																stats.totalHouseholds
-															)
-														}}%)</span
-													></span
-												>
-											</div>
-											<div class="flex items-center gap-1.5">
-												<div
-													class="w-3 h-3 rounded-sm border border-slate-300"
-													style="background-color: #cbe7f8"
-												></div>
-												<span class="text-slate-600"
-													>Rural:
-													<span class="font-semibold text-slate-900"
-														>{{ stats.ruralHouseholds | number }} ({{
-															getPercentage(
-																stats.ruralHouseholds,
-																stats.totalHouseholds
-															)
-														}}%)</span
-													></span
-												>
-											</div>
-										</div>
-									</div>
-								</div>
-
-								<!-- Total Population Card -->
-								<div
-									class="space-y-3 rounded-lg border border-slate-200 bg-white p-4 cursor-pointer transition-all relative"
-									[style.border-color]="
-										mapVisualizationMode === 'population' ? '#67A4CA' : ''
-									"
-									(click)="switchVisualizationMode('population')"
-								>
-									<div class="flex items-center justify-between">
-										<p class="text-base font-semibold text-slate-800">
-											Total Population
-										</p>
-										<i
-											*ngIf="mapVisualizationMode === 'population'"
-											class="pi pi-bookmark-fill text-2xl"
-											style="color: #67a4ca"
-										></i>
-									</div>
-									<div class="mb-3">
-										<p class="text-3xl font-bold text-primary-600">
-											{{ stats.totalPopulation | number }}
-										</p>
-									</div>
-									<div class="space-y-3">
-										<!-- Urban/Rural bar -->
-										<div>
-											<p class="text-xs text-slate-600 mb-1">
-												By Settlement Type
-											</p>
-											<div
-												class="flex h-10 rounded-lg overflow-hidden border border-slate-200"
-											>
-												<div
-													class="flex items-center justify-center bg-primary-600 text-white text-xs font-semibold px-2"
-													[style.width.%]="
-														getPercentageValue(
-															stats.urbanPopulation,
-															stats.totalPopulation
-														)
-													"
-												>
-													<span
-														*ngIf="
-															getPercentageValue(
-																stats.urbanPopulation,
-																stats.totalPopulation
-															) > 15
-														"
-														>{{
-															getPercentage(
-																stats.urbanPopulation,
-																stats.totalPopulation
-															)
-														}}%</span
-													>
-												</div>
-												<div
-													class="flex items-center justify-center text-slate-800 text-sm font-semibold px-2"
-													[style.width.%]="
-														getPercentageValue(
-															stats.ruralPopulation,
-															stats.totalPopulation
-														)
-													"
-													style="background-color: #cbe7f8"
-												>
-													<span
-														*ngIf="
-															getPercentageValue(
-																stats.ruralPopulation,
-																stats.totalPopulation
-															) > 15
-														"
-														>{{
-															getPercentage(
-																stats.ruralPopulation,
-																stats.totalPopulation
-															)
-														}}%</span
-													>
-												</div>
-											</div>
-											<!-- Percentages below bar -->
-											<div
-												class="flex justify-between text-xs text-slate-600 mt-1"
-											>
-												<span
-													>Urban:
-													{{
-														getPercentage(
-															stats.urbanPopulation,
-															stats.totalPopulation
-														)
-													}}%</span
-												>
-												<span
-													>Rural:
-													{{
-														getPercentage(
-															stats.ruralPopulation,
-															stats.totalPopulation
-														)
-													}}%</span
-												>
-											</div>
-										</div>
-										<!-- Male/Female bar -->
-										<div>
-											<p class="text-sm text-slate-600 mb-1">By Gender</p>
-											<div
-												class="flex h-10 rounded-lg overflow-hidden border border-slate-200"
-											>
-												<div
-													class="flex items-center justify-center bg-primary-600 text-white text-sm font-semibold px-2"
-													[style.width.%]="
-														getPercentageValue(
-															stats.totalMale,
-															stats.totalPopulation
-														)
-													"
-												>
-													{{
-														getPercentage(
-															stats.totalMale,
-															stats.totalPopulation
-														)
-													}}%
-												</div>
-												<div
-													class="flex items-center justify-center text-slate-800 text-sm font-semibold px-2"
-													[style.width.%]="
-														getPercentageValue(
-															stats.totalFemale,
-															stats.totalPopulation
-														)
-													"
-													style="background-color: #cbe7f8"
-												>
-													{{
-														getPercentage(
-															stats.totalFemale,
-															stats.totalPopulation
-														)
-													}}%
-												</div>
-											</div>
-											<!-- Percentages below bar -->
-											<div
-												class="flex justify-between text-xs text-slate-600 mt-1"
-											>
-												<span
-													>Male:
-													{{
-														getPercentage(
-															stats.totalMale,
-															stats.totalPopulation
-														)
-													}}%</span
-												>
-												<span
-													>Female:
-													{{
-														getPercentage(
-															stats.totalFemale,
-															stats.totalPopulation
-														)
-													}}%</span
-												>
-											</div>
-										</div>
-										<!-- Legend -->
-										<div class="flex flex-wrap gap-4 text-sm">
-											<div class="flex items-center gap-1.5">
-												<div
-													class="w-3 h-3 rounded-sm bg-primary-600 border border-primary-700"
-												></div>
-												<span class="text-slate-600"
-													>Male:
-													<span class="font-semibold text-slate-900"
-														>{{ stats.totalMale | number }} ({{
-															getPercentage(
-																stats.totalMale,
-																stats.totalPopulation
-															)
-														}}%)</span
-													></span
-												>
-											</div>
-											<div class="flex items-center gap-1.5">
-												<div
-													class="w-3 h-3 rounded-sm border border-slate-300"
-													style="background-color: #cbe7f8"
-												></div>
-												<span class="text-slate-600"
-													>Female:
-													<span class="font-semibold text-slate-900"
-														>{{ stats.totalFemale | number }} ({{
-															getPercentage(
-																stats.totalFemale,
-																stats.totalPopulation
-															)
-														}}%)</span
-													></span
-												>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-
-							
-						</div>
-
-						<!-- Dzongkhag List Tab Content -->
-						<div *ngIf="activeMainTab === 'list'" class="space-y-4">
-							<div class="space-y-3">
-								<div
-									*ngFor="let dzongkhag of dzongkhagStats"
-									(click)="viewDzongkhag(dzongkhag.dzongkhagId)"
-									class="p-4 rounded-lg border border-slate-200 bg-white hover:border-primary-300 cursor-pointer transition"
-								>
-									<!-- Header -->
-									<div class="flex items-center justify-between mb-3">
-										<p class="font-bold text-lg text-slate-900">
-											{{ dzongkhag.dzongkhagName }} Dzongkhag
-										</p>
-										<i class="pi pi-chevron-right text-slate-400"></i>
-									</div>
-
-									<!-- Stats Grid -->
-									<div class="space-y-3 text-sm">
-										<!-- Total Population -->
-										<div>
-											<div class="flex items-center justify-between mb-1">
-												<span class="text-slate-600">Population:</span>
-												<span class="font-bold text-primary-600">{{
-													dzongkhag.totalPopulation | number
-												}}</span>
-											</div>
-											<div
-												class="flex h-6 rounded overflow-hidden border border-slate-200"
-											>
-												<div
-													class="bg-primary-600"
-													[style.width.%]="
-														getPercentageValue(
-															dzongkhag.urbanPopulation,
-															dzongkhag.totalPopulation
-														)
-													"
-												></div>
-												<div
-													style="background-color: #cbe7f8"
-													[style.width.%]="
-														getPercentageValue(
-															dzongkhag.ruralPopulation,
-															dzongkhag.totalPopulation
-														)
-													"
-												></div>
-											</div>
-											<div
-												class="flex justify-between text-xs text-slate-500 mt-0.5"
-											>
-												<span
-													>Urban:
-													{{
-														getPercentage(
-															dzongkhag.urbanPopulation,
-															dzongkhag.totalPopulation
-														)
-													}}%</span
-												>
-												<span
-													>Rural:
-													{{
-														getPercentage(
-															dzongkhag.ruralPopulation,
-															dzongkhag.totalPopulation
-														)
-													}}%</span
-												>
-											</div>
-										</div>
-
-										<!-- Total Households -->
-										<div>
-											<div class="flex items-center justify-between mb-1">
-												<span class="text-slate-600">Households:</span>
-												<span class="font-bold text-primary-600">{{
-													dzongkhag.totalHouseholds | number
-												}}</span>
-											</div>
-											<div
-												class="flex h-6 rounded overflow-hidden border border-slate-200"
-											>
-												<div
-													class="bg-primary-600"
-													[style.width.%]="
-														getPercentageValue(
-															dzongkhag.urbanHouseholds,
-															dzongkhag.totalHouseholds
-														)
-													"
-												></div>
-												<div
-													style="background-color: #cbe7f8"
-													[style.width.%]="
-														getPercentageValue(
-															dzongkhag.ruralHouseholds,
-															dzongkhag.totalHouseholds
-														)
-													"
-												></div>
-											</div>
-											<div
-												class="flex justify-between text-xs text-slate-500 mt-0.5"
-											>
-												<span
-													>Urban:
-													{{
-														getPercentage(
-															dzongkhag.urbanHouseholds,
-															dzongkhag.totalHouseholds
-														)
-													}}%</span
-												>
-												<span
-													>Rural:
-													{{
-														getPercentage(
-															dzongkhag.ruralHouseholds,
-															dzongkhag.totalHouseholds
-														)
-													}}%</span
-												>
-											</div>
-										</div>
-
-										<!-- Total Enumeration Areas -->
-										<div>
-											<div class="flex items-center justify-between mb-1">
-												<span class="text-slate-600">Enumeration Areas:</span>
-												<span class="font-bold text-primary-600">{{
-													dzongkhag.totalEnumerationAreas
-												}}</span>
-											</div>
-											<div
-												class="flex h-6 rounded overflow-hidden border border-slate-200"
-											>
-												<div
-													class="bg-primary-600"
-													[style.width.%]="
-														getPercentageValue(
-															dzongkhag.urbanEnumerationAreas || 0,
-															dzongkhag.totalEnumerationAreas
-														)
-													"
-												></div>
-												<div
-													style="background-color: #cbe7f8"
-													[style.width.%]="
-														getPercentageValue(
-															dzongkhag.ruralEnumerationAreas || 0,
-															dzongkhag.totalEnumerationAreas
-														)
-													"
-												></div>
-											</div>
-											<div
-												class="flex justify-between text-xs text-slate-500 mt-0.5"
-											>
-												<span
-													>Urban:
-													{{
-														getPercentage(
-															dzongkhag.urbanEnumerationAreas || 0,
-															dzongkhag.totalEnumerationAreas
-														)
-													}}%</span
-												>
-												<span
-													>Rural:
-													{{
-														getPercentage(
-															dzongkhag.ruralEnumerationAreas || 0,
-															dzongkhag.totalEnumerationAreas
-														)
-													}}%</span
-												>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+	<div class="flex-1 overflow-auto p-6 space-y-6">
+		<!-- Structures -->
+		<div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+			<div class="p-4 border-b border-slate-200 bg-slate-50">
+				<h2 class="text-lg font-semibold text-slate-900">Structures ({{ structures.length }})</h2>
 			</div>
-
-			<!-- Right Pane: Map -->
-			<div class="flex-1 relative rounded-lg overflow-hidden shadow-sm">
-				<!-- Map Container -->
-				<div #mapContainer class="w-full h-full bg-slate-100"></div>
-
-				<!-- Popovers for Data Download and Filter (Top Right) -->
-				<div class="absolute top-4 left-4 flex gap-2 z-[1001]">
-					<!-- Download Popover -->
-					<p-button
-						(click)="downloadPopover.toggle($event)"
-						icon="pi pi-save"
-						severity="secondary"
-						[label]="'Download'"
-						size="small"
-					/>
-					<p-popover #downloadPopover>
-						<div class="flex flex-col gap-3 w-[18rem]">
-							<div>
-								<span class="font-semibold text-slate-900 block mb-3 text-sm">
-									Download Data
-								</span>
-								<div class="flex flex-col gap-2">
-									<button
-										type="button"
-										(click)="downloadHouseholdData(); downloadPopover.hide()"
-										class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition flex items-center justify-center gap-2"
-									>
-										<i class="pi pi-download text-xs"></i>
-										Export Household CSV
-									</button>
-								</div>
-							</div>
-							<div class="border-t border-slate-200 pt-3">
-								<span class="font-semibold text-slate-900 block mb-2 text-sm">
-									Spatial Data
-								</span>
-								<div class="space-y-2">
-									<!-- Dzongkhag -->
-									<div class="flex items-center justify-between text-sm">
-										<span class="text-slate-700">Dzongkhag</span>
-										<div class="flex gap-1">
-											<button
-												type="button"
-												(click)="downloadDzongkhagKml(); downloadPopover.hide()"
-												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
-												title="Download KML"
-											>
-												KML
-											</button>
-											<button
-												type="button"
-												(click)="
-													downloadDzongkhagGeojson(); downloadPopover.hide()
-												"
-												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
-												title="Download GeoJSON"
-											>
-												GEOJSON
-											</button>
-										</div>
-									</div>
-									<!-- Admin Zones -->
-									<div class="flex items-center justify-between text-sm">
-										<span class="text-slate-700">Gewog/Thromde</span>
-										<div class="flex gap-1">
-											<button
-												type="button"
-												(click)="
-													downloadAdminZonesKml(); downloadPopover.hide()
-												"
-												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
-												title="Download KML"
-											>
-												KML
-											</button>
-											<button
-												type="button"
-												(click)="
-													downloadAdminZonesGeojson(); downloadPopover.hide()
-												"
-												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
-												title="Download GeoJSON"
-											>
-												GEOJSON
-											</button>
-										</div>
-									</div>
-									<!-- Sub Admin Zones -->
-									<div class="flex items-center justify-between text-sm">
-										<span class="text-slate-700">Chiwog/Lap</span>
-										<div class="flex gap-1">
-											<button
-												type="button"
-												(click)="
-													downloadSubAdminZonesKml(); downloadPopover.hide()
-												"
-												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
-												title="Download KML"
-											>
-												KML
-											</button>
-											<button
-												type="button"
-												(click)="
-													downloadSubAdminZonesGeojson(); downloadPopover.hide()
-												"
-												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
-												title="Download GeoJSON"
-											>
-												GEOJSON
-											</button>
-										</div>
-									</div>
-									<!-- EA Zones -->
-									<div class="flex items-center justify-between text-sm">
-										<span class="text-slate-700">Enumeration Areas</span>
-										<div class="flex gap-1">
-											<button
-												type="button"
-												(click)="downloadEAZonesKml(); downloadPopover.hide()"
-												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
-												title="Download KML"
-											>
-												KML
-											</button>
-											<button
-												type="button"
-												(click)="
-													downloadEAZonesGeojson(); downloadPopover.hide()
-												"
-												class="px-2 py-1 text-xs text-slate-600 hover:text-primary-600"
-												title="Download GeoJSON"
-											>
-												GEOJSON
-											</button>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</p-popover>
-
-					<!-- Filter Popover -->
-					<p-button
-						(click)="filterPopover.toggle($event)"
-						icon="pi pi-filter"
-						severity="secondary"
-						size="small"
-						[label]="'Filter Locations'"
-					/>
-					<p-popover #filterPopover>
-						<div class="flex flex-col gap-3 w-[20rem]">
-							<div>
-								<span class="font-semibold text-slate-900 block mb-3 text-sm">
-									Filter Locations
-								</span>
-
-								<div class="space-y-3">
-									<!-- Dzongkhag Dropdown -->
-									<div>
-										<label class="block font-semibold text-slate-700 mb-1">
-											Select Dzongkhag
-										</label>
-										<p-dropdown
-											[options]="dzongkhagOptions"
-											[(ngModel)]="selectedDzongkhag"
-											placeholder="Choose Dzongkhag"
-											optionLabel="label"
-											optionValue="value"
-											(onChange)="onDzongkhagChange()"
-											[showClear]="true"
-											styleClass="w-full  "
-										></p-dropdown>
-									</div>
-
-									<!-- Admin Zone Dropdown -->
-									<div>
-										<label class="block font-semibold text-slate-700 mb-1">
-											Select Gewog/Thromde
-										</label>
-										<p-dropdown
-											[options]="adminZoneOptions"
-											[(ngModel)]="selectedAdminZone"
-											placeholder="Choose Admin Zone"
-											optionLabel="label"
-											optionValue="value"
-											(onChange)="onAdminZoneChange()"
-											[disabled]="
-												!selectedDzongkhag || adminZoneOptions.length === 0
-											"
-											[showClear]="true"
-											styleClass="w-full "
-										></p-dropdown>
-									</div>
-
-									<!-- Sub Admin Zone Dropdown -->
-									<div>
-										<label class="block font-semibold text-slate-700 mb-1">
-											Select Chiwog/Lap
-										</label>
-										<p-dropdown
-											[options]="subAdminZoneOptions"
-											[(ngModel)]="selectedSubAdminZone"
-											placeholder="Choose Sub Admin Zone"
-											optionLabel="label"
-											optionValue="value"
-											(onChange)="onSubAdminZoneChange()"
-											[disabled]="
-												!selectedAdminZone || subAdminZoneOptions.length === 0
-											"
-											[showClear]="true"
-											styleClass="w-full "
-										></p-dropdown>
-									</div>
-
-									<!-- EA Dropdown -->
-									<div>
-										<label class="block font-semibold text-slate-700 mb-1">
-											Select EA
-										</label>
-										<p-dropdown
-											[options]="eaOptions"
-											[(ngModel)]="selectedEA"
-											placeholder="Choose EA"
-											optionLabel="label"
-											optionValue="value"
-											[disabled]="
-												!selectedSubAdminZone || eaOptions.length === 0
-											"
-											[showClear]="true"
-											styleClass="w-full "
-										></p-dropdown>
-									</div>
-
-									<!-- Submit Button -->
-									<div class="pt-2">
-										<button
-											type="button"
-											(click)="submitFilter(); filterPopover.hide()"
-											[disabled]="!selectedDzongkhag"
-											class="w-full px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded transition disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-										>
-											<i class="pi pi-search"></i>
-											View Details
-										</button>
-									</div>
-								</div>
-							</div>
-						</div>
-					</p-popover>
-				</div>
-				<!-- Map Controls Overlay -->
-				<div
-					class="absolute top-4 right-4 bg-white rounded-lg border border-slate-200 shadow-lg p-3 space-y-3 z-[1000]"
+			<div class="overflow-x-auto">
+				<p-table
+					[value]="getStructurePaginated()"
+					[loading]="loadingStructures"
+					styleClass="p-datatable-sm"
+					
 				>
-					<div>
-						<p class="text-sm font-semibold text-slate-700 mb-2">
-							Map Controls
-						</p>
-						<!-- Basemap Selector -->
-						<div class="mb-3">
-							<label class="text-xs text-slate-600 mb-1 block">Basemap:</label>
-							<select
-								[(ngModel)]="selectedBasemapId"
-								(change)="switchBasemap()"
-								class="w-full text-sm border border-slate-300 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
-							>
-								<ng-container
-									*ngFor="let category of basemapCategories | keyvalue"
-								>
-									<optgroup [label]="category.value.label">
-										<option
-											*ngFor="let basemap of category.value.basemaps"
-											[value]="basemap.id"
-										>
-											{{ basemap.name }}
-										</option>
-									</optgroup>
-								</ng-container>
-							</select>
-						</div>
-
-						<!-- Dzongkhag Boundaries Toggle -->
-						<div class="flex items-center justify-between gap-2">
-							<span class="text-sm text-slate-600">Show Boundaries:</span>
-							<p-inputSwitch
-								[(ngModel)]="showDzongkhagBoundaries"
-								(onChange)="toggleDzongkhagBoundaries()"
-							/>
-						</div>
-					</div>
-
-					<!-- Legend -->
-					<div class="pt-2 border-t border-slate-200">
-						<p class="text-sm font-semibold text-slate-700 mb-2">
-							{{ getLegendTitle() }}
-						</p>
-						<div
-							*ngIf="getLegendBreaks().length > 0; else noDataLegend"
-							class="relative"
-						>
-							<div class="flex items-start gap-3">
-								<!-- Gradient Bar -->
-								<div class="relative flex-shrink-0">
-									<div
-										class="w-6 h-32 rounded border border-slate-300 shadow-sm"
-										[style.background]="getLegendGradient()"
-									></div>
-								</div>
-								<!-- Labels Container -->
-								<div class="relative flex-1" style="height: 8rem">
-									<div
-										*ngFor="let break of getLegendBreaks()"
-										class="absolute text-xs font-medium text-slate-700 whitespace-nowrap"
-										[style.bottom]="break.position + '%'"
-										[style.transform]="'translateY(50%)'"
-									>
-										{{ break.label }}
-									</div>
-								</div>
-							</div>
-						</div>
-						<ng-template #noDataLegend>
-							<div class="text-slate-500 italic text-xs">
-								No data available
-							</div>
-						</ng-template>
-					</div>
-				</div>
-
-				<!-- Loading Overlay -->
-				<div
-					*ngIf="loading"
-					class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center"
-				>
-					<p-progressSpinner styleClass="w-12 h-12"></p-progressSpinner>
-				</div>
+					<ng-template pTemplate="header">
+						<tr>
+							<th>ID</th>
+							<th>EA Id</th>
+							<th>Structure No</th>
+							<th>Latitude</th>
+							<th>Longitude</th>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="body" let-s>
+						<tr>
+							<td>{{ s.id }}</td>
+							<td>{{ s.enumerationAreaId }}</td>
+							<td>{{ s.structureNumber }}</td>
+							<td>{{ s.latitude ?? '—' }}</td>
+							<td>{{ s.longitude ?? '—' }}</td>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="emptymessage">
+						<tr><td colspan="5" class="text-center py-8 text-slate-500">No structures</td></tr>
+					</ng-template>
+				</p-table>
 			</div>
-		</section>
-	</ng-container>
+		</div>
+
+		<!-- Household Listings -->
+		<div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+			<div class="p-4 border-b border-slate-200 bg-slate-50">
+				<h2 class="text-lg font-semibold text-slate-900">Household Listings ({{ householdListings.length }})</h2>
+			</div>
+			<div class="overflow-x-auto">
+				<p-table
+					[value]="getHouseholdPaginated()"
+					[loading]="loadingHouseholds"
+					styleClass="p-datatable-sm"
+					
+				>
+					<ng-template pTemplate="header">
+						<tr>
+							<th>ID</th>
+							<th>Structure Id</th>
+							<th>User Id</th>
+							<th>HOH Name</th>
+							<th>Serial No</th>
+							<th>Male</th>
+							<th>Female</th>
+							<th>Phone</th>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="body" let-h>
+						<tr>
+							<td>{{ h.id }}</td>
+							<td>{{ h.structureId }}</td>
+							<td>{{ h.userId }}</td>
+							<td>{{ h.nameOfHOH }}</td>
+							<td>{{ h.householdSerialNumber }}</td>
+							<td>{{ h.totalMale }}</td>
+							<td>{{ h.totalFemale }}</td>
+							<td>{{ h.phoneNumber ?? '—' }}</td>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="emptymessage">
+						<tr><td colspan="8" class="text-center py-8 text-slate-500">No household listings</td></tr>
+					</ng-template>
+				</p-table>
+			</div>
+		</div>
+	</div>
 </div>

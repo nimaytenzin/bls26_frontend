@@ -1,584 +1,246 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
-import { Router } from '@angular/router';
-import { AuthDataService } from './auth.api';
-import {
-	AuthState,
-	LoginDto,
-	LoginResponse,
-	RegisterDto,
-	ChangePasswordDto,
-	UpdateProfileDto,
-	UpdateProfileResponse,
-	ChangePasswordResponse,
-	CreateSupervisorDto,
-	CreateEnumeratorDto,
-	UpdateUserDto,
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, BehaviorSubject, tap, map } from 'rxjs';
+import { environment } from '../../../../environments/environment';
+import type {
 	User,
 	UserRole,
-	AdminSignupDto,
-	Supervisor,
-	ActivateUserResponse,
-	DeactivateUserResponse,
+	LoginDto,
+	RegisterDto,
+	AuthResponse,
+	CreateUserDto,
+	UpdateProfileDto,
+	ChangePasswordDto,
+	ResetPasswordDto,
+	BulkEnumeratorsDto,
+	BulkEnumeratorsResponse,
 } from './auth.interface';
 
-@Injectable({
-	providedIn: 'root',
-})
+const TOKEN_KEY = 'livability_token';
+const USER_KEY = 'livability_user';
+
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-	private readonly TOKEN_KEY = 'auth_token';
-	private readonly USER_KEY = 'auth_user';
+	private readonly baseUrl = `${environment.BASEAPI_URL}/auth`;
+	private currentUser$ = new BehaviorSubject<User | null>(this.getStoredUser());
+	private token: string | null = this.getStoredToken();
 
-	private authStateSubject = new BehaviorSubject<AuthState>({
-		isAuthenticated: false,
-		user: null,
-		token: null,
-	});
+	constructor(private http: HttpClient) {}
 
-	public authState$ = this.authStateSubject.asObservable();
-
-	constructor(
-		private authDataService: AuthDataService,
-		private router: Router
-	) {
-		this.initializeAuthState();
-	}
-
-	// ========================
-	// COMMON AUTH METHODS
-	// ========================
-
-	/**
-	 * Initialize authentication state from localStorage
-	 */
-	private initializeAuthState(): void {
-		const token = this.getStoredToken();
-		const user = this.getStoredUser();
-
-		if (token && user) {
-			this.authStateSubject.next({
-				isAuthenticated: true,
-				user,
-				token,
-			});
-		}
-	}
-
-	/**
-	 * Login user
-	 * @param loginDto - Login credentials
-	 * @returns Observable<LoginResponse>
-	 */
-	login(loginDto: LoginDto): Observable<LoginResponse> {
-		return this.authDataService.login(loginDto).pipe(
-			tap((response) => {
-				if (response.token && response.user) {
-					this.setAuthData(response.token, response.user);
-					this.authStateSubject.next({
-						isAuthenticated: true,
-						user: response.user,
-						token: response.token,
-					});
-				}
-			}),
-			catchError((error) => throwError(() => error))
+	// --- Public (no auth) ---
+	login(dto: LoginDto): Observable<AuthResponse> {
+		return this.http.post<AuthResponse>(`${this.baseUrl}/login`, dto).pipe(
+			tap((res) => {
+				this.setSession(res.token, res.user);
+			})
 		);
 	}
 
-	/**
-	 * Register user
-	 * @param registerDto - Registration data
-	 * @returns Observable<LoginResponse>
-	 */
-	register(registerDto: RegisterDto): Observable<LoginResponse> {
-		return this.authDataService.register(registerDto).pipe(
-			tap((response) => {
-				if (response.token && response.user) {
-					this.setAuthData(response.token, response.user);
-					this.authStateSubject.next({
-						isAuthenticated: true,
-						user: response.user,
-						token: response.token,
-					});
-				}
-			}),
-			catchError((error) => throwError(() => error))
+	register(dto: RegisterDto): Observable<AuthResponse> {
+		return this.http.post<AuthResponse>(`${this.baseUrl}/register`, dto).pipe(
+			tap((res) => {
+				this.setSession(res.token, res.user);
+			})
 		);
 	}
 
-	/**
-	 * Get current user profile
-	 * @returns Observable<User>
-	 */
+	// --- Protected (authenticated) ---
 	getProfile(): Observable<User> {
-		return this.authDataService.getProfile().pipe(
+		return this.http.get<User>(`${this.baseUrl}/profile`).pipe(
 			tap((user) => {
-				// Update stored user data
-				const currentState = this.authStateSubject.value;
-				this.setAuthData(currentState.token!, user);
-				this.authStateSubject.next({
-					...currentState,
-					user,
-				});
-			}),
-			catchError((error) => throwError(() => error))
+				this.currentUser$.next(user);
+				this.setStoredUser(user);
+			})
 		);
 	}
 
-	/**
-	 * Change password
-	 * @param changePasswordDto - Change password data
-	 * @returns Observable<ChangePasswordResponse>
-	 */
-	changePassword(changePasswordDto: ChangePasswordDto): Observable<ChangePasswordResponse> {
-		return this.authDataService.changePassword(changePasswordDto);
-	}
-
-	/**
-	 * Update current user profile
-	 * @param updateProfileDto - Profile update data
-	 * @returns Observable<UpdateProfileResponse>
-	 */
-	updateProfile(updateProfileDto: UpdateProfileDto): Observable<UpdateProfileResponse> {
-		return this.authDataService.updateProfile(updateProfileDto).pipe(
-			tap((response) => {
-				// Update stored user data with the updated profile
-				const currentState = this.authStateSubject.value;
-				this.setAuthData(currentState.token!, response.user);
-				this.authStateSubject.next({
-					...currentState,
-					user: response.user,
-				});
-			}),
-			catchError((error) => throwError(() => error))
+	updateProfile(dto: UpdateProfileDto): Observable<User> {
+		return this.http.patch<User>(`${this.baseUrl}/profile`, dto).pipe(
+			tap((user) => {
+				this.currentUser$.next(user);
+				this.setStoredUser(user);
+			})
 		);
 	}
 
-	/**
-	 * Sign out user
-	 * @returns Observable<any>
-	 */
-	signOut(): Observable<any> {
-		return this.authDataService.signOut().pipe(
+	changePassword(dto: ChangePasswordDto): Observable<unknown> {
+		return this.http.post(`${this.baseUrl}/change-password`, dto);
+	}
+
+	signOut(): void {
+		this.http.post(`${this.baseUrl}/signout`, {}).subscribe({ error: () => {} });
+		this.clearSession();
+	}
+
+	// --- Admin: users list ---
+	getUsers(role?: UserRole): Observable<User[]> {
+		let params = new HttpParams();
+		if (role) params = params.set('role', role);
+		return this.http.get<User[]>(`${this.baseUrl}/users`, { params });
+	}
+
+	getAdmins(): Observable<User[]> {
+		return this.http.get<User[]>(`${this.baseUrl}/admins`);
+	}
+
+	getEnumerators(): Observable<User[]> {
+		return this.http.get<User[]>(`${this.baseUrl}/enumerators`);
+	}
+
+	getUserById(id: number): Observable<User> {
+		return this.http.get<User>(`${this.baseUrl}/users/${id}`);
+	}
+
+	// --- Admin: create ---
+	createUser(dto: CreateUserDto): Observable<AuthResponse> {
+		return this.http.post<AuthResponse>(`${this.baseUrl}/users`, dto);
+	}
+
+	createAdmin(dto: CreateUserDto): Observable<AuthResponse> {
+		return this.http.post<AuthResponse>(`${this.baseUrl}/admins`, {
+			...dto,
+			role: 'ADMIN',
+		});
+	}
+
+	createEnumerator(dto: CreateUserDto): Observable<AuthResponse> {
+		return this.http.post<AuthResponse>(`${this.baseUrl}/enumerators`, {
+			...dto,
+			role: 'ENUMERATOR',
+		});
+	}
+
+	bulkCreateEnumerators(dto: BulkEnumeratorsDto): Observable<BulkEnumeratorsResponse> {
+		return this.http.post<BulkEnumeratorsResponse>(
+			`${this.baseUrl}/enumerators/bulk`,
+			dto
+		);
+	}
+
+	// --- Admin: update / reset / activate / deactivate / delete ---
+	updateUser(id: number, dto: UpdateProfileDto): Observable<User> {
+		return this.http.patch<User>(`${this.baseUrl}/users/${id}`, dto);
+	}
+
+	adminResetPassword(id: number, dto: ResetPasswordDto): Observable<unknown> {
+		return this.http.patch(`${this.baseUrl}/users/${id}/reset-password`, dto);
+	}
+
+	activateUser(id: number): Observable<{ user: User; message?: string }> {
+		return this.http
+			.patch<{ user: User; message?: string }>(
+				`${this.baseUrl}/users/${id}/activate`,
+				{}
+			)
+			.pipe(
+				tap((res) => {
+					const current = this.currentUser$.value;
+					if (current?.id === id) {
+						this.currentUser$.next(res.user);
+						this.setStoredUser(res.user);
+					}
+				})
+			);
+	}
+
+	deactivateUser(id: number): Observable<{ user: User; message?: string }> {
+		return this.http
+			.patch<{ user: User; message?: string }>(
+				`${this.baseUrl}/users/${id}/deactivate`,
+				{}
+			)
+			.pipe(
+				tap((res) => {
+					const current = this.currentUser$.value;
+					if (current?.id === id) {
+						this.currentUser$.next(res.user);
+						this.setStoredUser(res.user);
+					}
+				})
+			);
+	}
+
+	deleteUser(id: number): Observable<void> {
+		return this.http.delete<void>(`${this.baseUrl}/users/${id}`).pipe(
 			tap(() => {
-				this.clearAuthData();
-				this.router.navigate(['/auth/login']);
-			}),
-			catchError((error) => {
-				// Even if server signOut fails, clear local auth data
-				this.clearAuthData();
-				this.router.navigate(['/auth/login']);
-				return throwError(() => error);
+				const current = this.currentUser$.value;
+				if (current?.id === id) this.clearSession();
 			})
 		);
 	}
 
-	/**
-	 * Force logout without server call (for token expiration, etc.)
-	 */
-	forceLogout(): void {
-		this.clearAuthData();
-		this.router.navigate(['/auth/login']);
-	}
-
-	// ========================
-	// USER MANAGEMENT METHODS
-	// ========================
-
-	/**
-	 * Get all users with optional role filter
-	 * @param role - Optional role filter
-	 * @returns Observable<User[]>
-	 */
-	getAllUsers(role?: UserRole): Observable<User[]> {
-		return this.authDataService.getAllUsers(role);
-	}
-
-	/**
-	 * Search users by query (phone, email, name, CID) with optional role filter
-	 * @param query - Search query string
-	 * @param role - Optional role filter
-	 * @returns Observable<User[]>
-	 */
-	searchUsers(query: string, role?: UserRole): Observable<User[]> {
-		return this.authDataService.searchUsers(query, role);
-	}
-
-	/**
-	 * Get user by ID
-	 * @param userId - User ID
-	 * @returns Observable<User>
-	 */
-	getUserById(userId: number): Observable<User> {
-		return this.authDataService.getUserById(userId);
-	}
-
-	/**
-	 * Get complete user profile with all role-specific assignments
-	 * @param userId - User ID
-	 * @returns Observable with comprehensive user profile data
-	 */
-	getUserProfile(userId: number): Observable<any> {
-		return this.authDataService.getUserProfile(userId);
-	}
-
-	/**
-	 * Update user
-	 * @param userId - User ID
-	 * @param updateUserDto - Update data
-	 * @returns Observable<User>
-	 */
-	updateUser(userId: number, updateUserDto: UpdateUserDto): Observable<User> {
-		return this.authDataService.updateUser(userId, updateUserDto);
-	}
-
-	/**
-	 * Delete user (Admin only)
-	 * @param userId - User ID
-	 * @returns Observable<any>
-	 */
-	deleteUser(userId: number): Observable<any> {
-		return this.authDataService.deleteUser(userId);
-	}
-
-	/**
-	 * Activate user (Admin only)
-	 * @param userId - User ID
-	 * @returns Observable<ActivateUserResponse>
-	 */
-	activateUser(userId: number): Observable<ActivateUserResponse> {
-		return this.authDataService.activateUser(userId);
-	}
-
-	/**
-	 * Deactivate user (Admin only)
-	 * @param userId - User ID
-	 * @returns Observable<DeactivateUserResponse>
-	 */
-	deactivateUser(userId: number): Observable<DeactivateUserResponse> {
-		return this.authDataService.deactivateUser(userId);
-	}
-
-	// ========================
-	// SUPERVISOR SPECIFIC METHODS
-	// ========================
-
-	/**
-	 * Get all supervisors (Admin only)
-	 * @returns Observable<User[]>
-	 */
-	getAllSupervisors(): Observable<User[]> {
-		return this.authDataService.getAllSupervisors();
-	}
-
-	/**
-	 * Get all supervisors with their assigned dzongkhags (Admin only)
-	 * @returns Observable<Supervisor[]>
-	 */
-	getAllSupervisorsWithDzongkhags(): Observable<Supervisor[]> {
-		return this.authDataService.getAllSupervisorsWithDzongkhags();
-	}
-
-	/**
-	 * Create supervisor (Admin only)
-	 * @param createSupervisorDto - Supervisor data
-	 * @returns Observable<User>
-	 */
-	createSupervisor(createSupervisorDto: CreateSupervisorDto): Observable<User> {
-		return this.authDataService.createSupervisor(createSupervisorDto);
-	}
-
-	/**
-	 * Get all enumerators (Admin, Supervisor)
-	 * @returns Observable<User[]>
-	 */
-	getAllEnumerators(): Observable<User[]> {
-		return this.authDataService.getAllEnumerators();
-	}
-
-	/**
-	 * Create enumerator (Admin, Supervisor)
-	 * @param createEnumeratorDto - Enumerator data
-	 * @returns Observable<User>
-	 */
-	createEnumerator(createEnumeratorDto: CreateEnumeratorDto): Observable<User> {
-		return this.authDataService.createEnumerator(createEnumeratorDto);
-	}
-
-	// ========================
-	// SUPERVISOR-DZONGKHAG ASSIGNMENT METHODS
-	// ========================
-
-	/**
-	 * Assign dzongkhags to supervisor (Admin only)
-	 * @param supervisorId - Supervisor ID
-	 * @param dzongkhagIds - Array of dzongkhag IDs to assign
-	 * @returns Observable<AssignDzongkhagResponse>
-	 */
-	assignDzongkhagsToSupervisor(
-		supervisorId: number,
-		dzongkhagIds: number[]
-	): Observable<any> {
-		return this.authDataService.assignDzongkhagsToSupervisor(supervisorId, {
-			dzongkhagIds,
-		});
-	}
-
-	/**
-	 * Remove dzongkhag assignments from supervisor (Admin only)
-	 * @param supervisorId - Supervisor ID
-	 * @param dzongkhagIds - Array of dzongkhag IDs to remove
-	 * @returns Observable<RemoveDzongkhagResponse>
-	 */
-	removeDzongkhagsFromSupervisor(
-		supervisorId: number,
-		dzongkhagIds: number[]
-	): Observable<any> {
-		return this.authDataService.removeDzongkhagsFromSupervisor(supervisorId, {
-			dzongkhagIds,
-		});
-	}
-
-	/**
-	 * Get dzongkhag assignments for a supervisor
-	 * @param supervisorId - Supervisor ID
-	 * @returns Observable<SupervisorDzongkhagAssignment[]>
-	 */
-	getSupervisorDzongkhagAssignments(supervisorId: number): Observable<any[]> {
-		return this.authDataService.getSupervisorDzongkhagAssignments(supervisorId);
-	}
-
-	/**
-	 * Get dzongkhag assignments for the current authenticated supervisor
-	 * Uses the current user's ID from the JWT token
-	 * @returns Observable<SupervisorDzongkhagAssignment[]>
-	 */
-	getMyDzongkhagAssignments(): Observable<any[]> {
-		return this.authDataService.getMyDzongkhagAssignments();
-	}
-
-	// ========================
-	// AUTH STATE & UTILITY METHODS
-	// ========================
-
-	/**
-	 * Check if user is authenticated
-	 * @returns boolean
-	 */
-	isAuthenticated(): boolean {
-		return this.authStateSubject.value.isAuthenticated;
-	}
-
-	/**
-	 * Get current user
-	 * @returns User | null
-	 */
-	getCurrentUser(): User | null {
-		return this.authStateSubject.value.user;
-	}
-
-	/**
-	 * Get current token
-	 * @returns string | null
-	 */
+	// --- Helpers ---
 	getToken(): string | null {
-		return this.authStateSubject.value.token;
+		return this.token;
 	}
 
-	/**
-	 * Check if user has specific role
-	 * @param role - UserRole
-	 * @returns boolean
-	 */
-	hasRole(role: UserRole): boolean {
-		const user = this.getCurrentUser();
-		return user ? user.role === role : false;
+	getCurrentUser(): User | null {
+		return this.currentUser$.value;
 	}
 
-	/**
-	 * Check if user has any of the specified roles
-	 * @param roles - Array of UserRole
-	 * @returns boolean
-	 */
-	hasAnyRole(roles: UserRole[]): boolean {
-		const user = this.getCurrentUser();
-		return user ? roles.includes(user.role) : false;
+	getCurrentUser$(): Observable<User | null> {
+		return this.currentUser$.asObservable();
 	}
 
-	/**
-	 * Check if user is admin
-	 * @returns boolean
-	 */
+	isAuthenticated(): boolean {
+		return !!this.token;
+	}
+
 	isAdmin(): boolean {
-		return this.hasRole(UserRole.ADMIN);
+		return this.currentUser$.value?.role === 'ADMIN';
 	}
 
-	/**
-	 * Check if user is supervisor
-	 * @returns boolean
-	 */
-	isSupervisor(): boolean {
-		return this.hasRole(UserRole.SUPERVISOR);
-	}
-
-	/**
-	 * Check if user is enumerator
-	 * @returns boolean
-	 */
 	isEnumerator(): boolean {
-		return this.hasRole(UserRole.ENUMERATOR);
+		return this.currentUser$.value?.role === 'ENUMERATOR';
 	}
 
-	/**
-	 * Check if user is general user (public dashboard access only).
-	 * @returns boolean
-	 */
-	isGeneralUser(): boolean {
-		return this.hasRole(UserRole.GENERAL_USER);
+	forceLogout(): void {
+		this.clearSession();
 	}
 
-	/**
-	 * Check if user can manage enumerators (Admin or Supervisor)
-	 * @returns boolean
-	 */
-	canManageEnumerators(): boolean {
-		return this.hasAnyRole([UserRole.ADMIN, UserRole.SUPERVISOR]);
+	getAllUsers(role: UserRole): Observable<User[]> {
+		if (role === 'ADMIN') return this.getAdmins();
+		return this.getEnumerators();
 	}
 
-	/**
-	 * Check if user can manage supervisors (Admin only)
-	 * @returns boolean
-	 */
-	canManageSupervisors(): boolean {
-		return this.isAdmin();
-	}
-
-	/**
-	 * Check if user can manage all users (Admin only)
-	 * @returns boolean
-	 */
-	canManageAllUsers(): boolean {
-		return this.isAdmin();
-	}
-
-	// ========================
-	// LEGACY METHODS (for backward compatibility)
-	// ========================
-
-	/**
-	 * Legacy logout method
-	 * @returns Observable<any>
-	 */
-	logout(): Observable<any> {
-		return this.signOut();
-	}
-
-	/**
-	 * Admin signup (Legacy)
-	 * @param adminSignupDto - Admin signup data
-	 * @returns Observable<any>
-	 */
-	adminSignup(adminSignupDto: AdminSignupDto): Observable<any> {
-		return this.authDataService.adminSignup(adminSignupDto);
-	}
-
-	/**
-	 * Admin reset password
-	 * @param userId - User ID
-	 * @param resetPasswordData - Reset password data with newPassword
-	 * @returns Observable<any>
-	 */
-	adminResetPassword(
-		userId: number,
-		resetPasswordData: { newPassword: string }
-	): Observable<any> {
-		return this.authDataService.adminResetPassword(userId, resetPasswordData);
-	}
-
-	/**
-	 * Refresh authentication token (legacy)
-	 * @returns Observable<LoginResponse>
-	 */
-	refreshToken(): Observable<LoginResponse> {
-		return this.authDataService.refreshToken().pipe(
-			tap((response) => {
-				if (response.token && response.user) {
-					this.setAuthData(response.token, response.user);
-					this.authStateSubject.next({
-						isAuthenticated: true,
-						user: response.user,
-						token: response.token,
-					});
-				}
-			}),
-			catchError((error) => {
-				this.forceLogout();
-				return throwError(() => error);
-			})
-		);
-	}
-
-	// ========================
-	// PRIVATE HELPER METHODS
-	// ========================
-
-	/**
-	 * Store authentication data
-	 * @param token - JWT token
-	 * @param user - User data
-	 */
-	private setAuthData(token: string, user: User): void {
+	private setSession(token: string, user: User): void {
+		this.token = token;
+		this.currentUser$.next(user);
 		try {
-			localStorage.setItem(this.TOKEN_KEY, token);
-			localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-		} catch (error) {
-			console.error('Error storing auth data:', error);
-		}
+			localStorage.setItem(TOKEN_KEY, token);
+			localStorage.setItem(USER_KEY, JSON.stringify(user));
+		} catch {}
 	}
 
-	/**
-	 * Clear authentication data
-	 */
-	private clearAuthData(): void {
+	private clearSession(): void {
+		this.token = null;
+		this.currentUser$.next(null);
 		try {
-			localStorage.removeItem(this.TOKEN_KEY);
-			localStorage.removeItem(this.USER_KEY);
-
-			this.authStateSubject.next({
-				isAuthenticated: false,
-				user: null,
-				token: null,
-			});
-		} catch (error) {
-			console.error('Error clearing auth data:', error);
-		}
+			localStorage.removeItem(TOKEN_KEY);
+			localStorage.removeItem(USER_KEY);
+		} catch {}
 	}
 
-	/**
-	 * Get stored token
-	 * @returns string | null
-	 */
 	private getStoredToken(): string | null {
 		try {
-			return localStorage.getItem(this.TOKEN_KEY);
-		} catch (error) {
-			console.error('Error getting stored token:', error);
+			return localStorage.getItem(TOKEN_KEY);
+		} catch {
 			return null;
 		}
 	}
 
-	/**
-	 * Get stored user
-	 * @returns User | null
-	 */
 	private getStoredUser(): User | null {
 		try {
-			const userStr = localStorage.getItem(this.USER_KEY);
-			return userStr ? JSON.parse(userStr) : null;
-		} catch (error) {
-			console.error('Error getting stored user:', error);
+			const raw = localStorage.getItem(USER_KEY);
+			return raw ? JSON.parse(raw) : null;
+		} catch {
 			return null;
 		}
+	}
+
+	private setStoredUser(user: User): void {
+		try {
+			localStorage.setItem(USER_KEY, JSON.stringify(user));
+		} catch {}
 	}
 }

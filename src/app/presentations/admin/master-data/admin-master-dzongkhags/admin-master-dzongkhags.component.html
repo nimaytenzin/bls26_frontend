@@ -1,461 +1,154 @@
-<!-- Toast Messages -->
-<p-toast></p-toast>
+<div class="p-6 md:p-8 bg-slate-50 min-h-screen">
+	<div class="flex flex-col md:flex-row justify-between md:items-end mb-8 gap-4">
+		<div>
+			<h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
+				Dzongkhags &amp; Enumeration Areas
+			</h1>
+			<p class="text-sm text-slate-500">
+				One row per EA grouped by Dzongkhag, with structure and household counts.
+			</p>
+		</div>
+		<button
+			pButton
+			type="button"
+			label="Refresh Data"
+			icon="pi pi-refresh"
+			class="p-button-outlined p-button-secondary bg-white shadow-sm whitespace-nowrap"
+			(click)="load()"
+			[loading]="loading"
+		></button>
+	</div>
 
-<!-- Dzongkhag Management -->
-<div class="h-[calc(100vh-5rem)] bg-white flex flex-col">
-	<!-- Header Section -->
-	<div class="p-6 border-b border-slate-200 flex-shrink-0">
-		<div class="flex justify-between items-center">
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
+			<div class="bg-blue-50 text-blue-600 rounded-lg p-3">
+				<i class="pi pi-map text-xl"></i>
+			</div>
 			<div>
-				<h1 class="text-3xl font-semibold text-slate-900">Dzongkhag Management</h1>
-				<p class="text-sm text-slate-600 mt-1">
-					Manage administrative divisions and geographic boundaries
-				</p>
+				<p class="text-sm text-slate-500 font-medium">Total Dzongkhags</p>
+				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalDzongkhags }}</p>
 			</div>
-
-			<!-- Action Button -->
-			<button
-				type="button"
-				(click)="openNew()"
-				class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-semibold flex items-center gap-2"
-			>
-				<i class="pi pi-plus"></i>
-				Add Dzongkhag
-			</button>
+		</div>
+		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
+			<div class="bg-indigo-50 text-indigo-600 rounded-lg p-3">
+				<i class="pi pi-sitemap text-xl"></i>
+			</div>
+			<div>
+				<p class="text-sm text-slate-500 font-medium">Total EAs</p>
+				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalEas | number }}</p>
+			</div>
+		</div>
+		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
+			<div class="bg-amber-50 text-amber-600 rounded-lg p-3">
+				<i class="pi pi-home text-xl"></i>
+			</div>
+			<div>
+				<p class="text-sm text-slate-500 font-medium">Total Structures</p>
+				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalStructures | number }}</p>
+			</div>
+		</div>
+		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
+			<div class="bg-emerald-50 text-emerald-600 rounded-lg p-3">
+				<i class="pi pi-users text-xl"></i>
+			</div>
+			<div>
+				<p class="text-sm text-slate-500 font-medium">Total Households</p>
+				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalHouseholds | number }}</p>
+			</div>
 		</div>
 	</div>
 
-	<!-- Content Area - Split View -->
-	<div class="flex-1 overflow-hidden flex gap-6 p-6">
-		<!-- Left: Table (50%) -->
-		<div class="w-1/2 flex flex-col bg-white rounded-lg border border-slate-200">
-			<!-- Table Header -->
-			<div class="p-4 border-b border-slate-200 flex-shrink-0">
-				<div class="flex justify-between items-center">
-					<h2 class="text-lg font-semibold text-slate-900">
-						Dzongkhag List
-					</h2>
-					<div class="flex items-center gap-3">
-						<p-inputGroup class="w-auto">
-							<p-inputGroupAddon>
-								<i class="pi pi-search"></i>
-							</p-inputGroupAddon>
-							<input
-								pInputText
-								type="text"
-								[(ngModel)]="globalFilterValue"
-								placeholder="Search dzongkhags..."
-								(input)="onGlobalFilter($event)"
-							/>
-							<p-inputGroupAddon *ngIf="globalFilterValue">
-								<button
-									pButton
-									type="button"
-									icon="pi pi-times"
-									class="p-button-text "
-									(click)="clearSearch()"
-									pTooltip="Clear search"
-								></button>
-							</p-inputGroupAddon>
-						</p-inputGroup>
-					</div>
-				</div>
-			</div>
-
-			<!-- Table Content -->
-			<div class="flex-1 overflow-auto p-4">
-				<p-table
-					#dt
-					[value]="dzongkhags"
-					[paginator]="false"
-					responsiveLayout="scroll"
-					[loading]="loading"
-					selectionMode="single"
-					[(selection)]="selectedDzongkhag"
-					(onRowSelect)="onRowSelect($event)"
-					styleClass="p-datatable-sm"
-					[globalFilterFields]="['id', 'name', 'areaCode']"
-					[filterDelay]="0"
-					[scrollable]="true"
-					scrollHeight="100%"
-				>
-					<ng-template pTemplate="header">
-						<tr>
-							<th>ID</th>
-							<th pSortableColumn="name">
-								Name <p-sortIcon field="name"></p-sortIcon>
-							</th>
-							<th pSortableColumn="areaCode">
-								Dzongkhag Code <p-sortIcon field="areaCode"></p-sortIcon>
-							</th>
-							<th>Actions</th>
-						</tr>
-					</ng-template>
-
-					<ng-template pTemplate="body" let-dzongkhag>
-						<tr [class.bg-primary-50]="selectedDzongkhag?.id === dzongkhag.id">
-							<td>{{ dzongkhag.id }}</td>
-							<td>
-								<div class="font-semibold text-slate-900">
-									{{ dzongkhag.name }}
-								</div>
-							</td>
-							<td>
-								<span *ngIf="dzongkhag.areaCode" class="font-mono text-sm text-slate-700">
-									{{ dzongkhag.areaCode }}
-								</span>
-								<span *ngIf="!dzongkhag.areaCode" class="text-slate-400 text-xs italic">
-									—
-								</span>
-							</td>
-							<td>
-								<div class="flex items-center gap-2">
-									<button
-										pButton
-										type="button"
-										icon="pi pi-eye"
-										class="p-button-outlined p-button-sm p-button-secondary"
-										(click)="viewDzongkhagData(dzongkhag)"
-										pTooltip="View Details"
-									></button>
-									<button
-										pButton
-										type="button"
-										icon="pi pi-pencil"
-										class="p-button-outlined p-button-sm p-button-info"
-										(click)="editDzongkhag(dzongkhag)"
-										pTooltip="Edit"
-									></button>
-									<button
-										pButton
-										type="button"
-										icon="pi pi-file-arrow-up"
-										class="p-button-outlined p-button-sm"
-										(click)="openUploadGeojson(dzongkhag)"
-										pTooltip="Upload GeoJSON"
-									></button>
-									<button
-										pButton
-										type="button"
-										icon="pi pi-trash"
-										class="p-button-outlined p-button-sm p-button-danger"
-										(click)="confirmDelete(dzongkhag)"
-										pTooltip="Delete"
-									></button>
-								</div>
-							</td>
-						</tr>
-					</ng-template>
-
-					<ng-template pTemplate="emptymessage">
-						<tr>
-							<td colspan="4" class="text-center py-8">
-								<div class="text-slate-500">
-									<i class="pi pi-inbox text-3xl mb-2 block"></i>
-									<p class="text-sm">No dzongkhags found</p>
-								</div>
-							</td>
-						</tr>
-					</ng-template>
-				</p-table>
-			</div>
+	<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+		<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 px-4 pt-4 pb-2">
+			<p class="text-sm text-slate-600">
+				Filter by Dzongkhag
+			</p>
+			<p-dropdown
+				[options]="dzongkhags"
+				optionLabel="dzongkhagName"
+				optionValue="dzongkhagId"
+				[(ngModel)]="selectedDzongkhagId"
+				[showClear]="true"
+				placeholder="All dzongkhags"
+				styleClass="w-full md:w-64"
+			></p-dropdown>
 		</div>
 
-		<!-- Right: Map (50%) -->
-		<div class="w-1/2 flex flex-col bg-white rounded-lg border border-slate-200">
-			<!-- Map Header -->
-			<div class="p-4 border-b border-slate-200 flex-shrink-0">
-				<div class="flex justify-between items-center">
-					<div>
-						<h2 class="text-lg font-semibold text-slate-900">Geographic View</h2>
-						<p class="text-xs text-slate-600 mt-1">Click on dzongkhags to view details</p>
-					</div>
-					<div class="flex items-center gap-2">
-						<!-- Basemap Selector -->
-						<select
-							[(ngModel)]="selectedBasemapId"
-							(change)="switchBasemap()"
-							class="text-sm border border-slate-300 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 w-48"
-						>
-							<ng-container
-								*ngFor="let category of basemapCategories | keyvalue"
-							>
-								<optgroup [label]="category.value.label">
-									<option
-										*ngFor="let basemap of category.value.basemaps"
-										[value]="basemap.id"
-									>
-										{{ basemap.name }}
-									</option>
-								</optgroup>
-							</ng-container>
-						</select>
-						
-						<button
-							type="button"
-							(click)="reloadMap()"
-							class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 transition-colors"
-							pTooltip="Reload Map"
-						>
-							<i class="pi pi-refresh text-sm"></i>
-						</button>
-					</div>
-				</div>
-			</div>
+		<p-table
+			[value]="filteredEaRows"
+			[loading]="loading"
+			rowGroupMode="rowspan"
+			groupRowsBy="dzongkhagName"
+			styleClass="p-datatable-sm p-datatable-striped"
+			responsiveLayout="scroll"
+		>
+			<ng-template pTemplate="header">
+				<tr>
+					<th>Dzongkhag</th>
+					<th>Enumeration area</th>
+					<th>Code</th>
+					<th>Status</th>
+					<th>Structures</th>
+					<th>Households</th>
+					<th style="width: 9rem">Actions</th>
+				</tr>
+			</ng-template>
 
-			<!-- Map Container -->
-			<div class="flex-1 relative">
-				<div id="dzongkhag-map" class="w-full h-full rounded-b-lg"></div>
+			<ng-template pTemplate="body" let-row>
+				<tr>
+					<td pRowGroup>
+						<div class="flex flex-col">
+							<span class="font-semibold text-slate-800">{{ row.dzongkhagName }}</span>
+							<span class="text-xs text-slate-400">ID: {{ row.dzongkhagId }}</span>
+						</div>
+					</td>
+					<td>{{ row.eaName }}</td>
+					<td>{{ row.eaCode }}</td>
+					<td>
+						<ng-container *ngIf="row.eaStatus; else noStatus">
+							<p-tag
+								[value]="row.eaStatus"
+								[severity]="row.eaStatus === 'completed' ? 'success' : row.eaStatus === 'in_progress' ? 'info' : 'warn'"
+							></p-tag>
+						</ng-container>
+					</td>
+					<td>{{ row.structureCount }}</td>
+					<td>{{ row.householdCount }}</td>
+					<td>
+						<div class="flex gap-1">
+							<button
+								pButton
+								type="button"
+								icon="pi pi-pencil"
+								class="p-button-rounded p-button-text p-button-sm text-slate-500 hover:text-blue-600"
+								pTooltip="Edit Dzongkhag"
+							></button>
+							<a
+								[routerLink]="['/admin/data-view', 'eazone', row.eaId]"
+								pButton
+								type="button"
+								icon="pi pi-eye"
+								class="p-button-rounded p-button-text p-button-sm"
+								pTooltip="View EA details"
+							></a>
+						</div>
+					</td>
+				</tr>
+			</ng-template>
 
-				<!-- Map Loading Overlay -->
-				<div
-					*ngIf="!dzongkhagGeoJSON"
-					class="absolute inset-0 bg-slate-50 flex items-center justify-center rounded-b-lg"
-				>
-					<div class="text-center">
-						<div
-							class="animate-spin rounded-full w-8 h-8 border-b-2 border-primary-600 mx-auto mb-3"
-						></div>
-						<p class="text-sm text-slate-600">Loading map data...</p>
-					</div>
-				</div>
-			</div>
-		</div>
+			<ng-template pTemplate="emptymessage">
+				<tr>
+					<td colspan="7" class="text-center py-12 text-slate-500 flex flex-col items-center">
+						<i class="pi pi-folder-open text-slate-200 text-5xl mb-3"></i>
+						<span>No dzongkhags or enumeration areas found.</span>
+					</td>
+				</tr>
+			</ng-template>
+		</p-table>
 	</div>
+
+	<!-- Fallback for status tag -->
+	<ng-template #noStatus>
+		<span class="text-slate-400">—</span>
+	</ng-template>
 </div>
-
-<!-- Add/Edit Dialog -->
-<p-dialog
-	[(visible)]="dzongkhagDialog"
-	[style]="{ width: '450px' }"
-	[header]="isEditMode ? 'Edit Dzongkhag' : 'Add New Dzongkhag'"
-	[modal]="true"
-	styleClass="p-fluid"
->
-	<ng-template pTemplate="content">
-		<form [formGroup]="dzongkhagForm" class="space-y-4">
-			<!-- Name Field -->
-			<div>
-				<label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-					Dzongkhag Name *
-				</label>
-				<input
-					id="name"
-					type="text"
-					pInputText
-					formControlName="name"
-					placeholder="Enter dzongkhag name"
-					[class.ng-invalid]="hasFormError('name')"
-					class="w-full"
-				/>
-				<small *ngIf="hasFormError('name')" class="p-error">
-					{{ getFormError("name") }}
-				</small>
-			</div>
-
-			<!-- Dzongkhag Code Field -->
-			<div>
-				<label
-					for="areaCode"
-					class="block text-sm font-medium text-gray-700 mb-2"
-				>
-					Dzongkhag Code *
-				</label>
-				<input
-					id="areaCode"
-					type="text"
-					pInputText
-					formControlName="areaCode"
-					placeholder="e.g., TH, PA, HA"
-					[class.ng-invalid]="hasFormError('areaCode')"
-					class="w-full"
-				/>
-				<small *ngIf="hasFormError('areaCode')" class="p-error">
-					{{ getFormError("areaCode") }}
-				</small>
-			</div>
-
-			<!-- Area Field -->
-			<div>
-			</div>
-		</form>
-	</ng-template>
-
-	<ng-template pTemplate="footer">
-		<button
-			pButton
-			type="button"
-			label="Cancel"
-			icon="pi pi-times"
-			class="p-button-text"
-			(click)="dzongkhagDialog = false"
-		></button>
-		<button
-			pButton
-			type="button"
-			[label]="isEditMode ? 'Update' : 'Save'"
-			icon="pi pi-check"
-			class="p-button-primary"
-			[disabled]="dzongkhagForm.invalid"
-			(click)="saveDzongkhag()"
-		></button>
-	</ng-template>
-</p-dialog>
-
-<!-- Delete Confirmation Dialog -->
-<p-confirmDialog></p-confirmDialog>
-
-<!-- Custom Delete Dialog -->
-<p-dialog
-	[(visible)]="deleteDialog"
-	[style]="{ width: '450px' }"
-	header="Confirm Delete"
-	[modal]="true"
->
-	<ng-template pTemplate="content">
-		<div class="flex items-center mb-4">
-			<i class="pi pi-exclamation-triangle text-orange-500 text-2xl mr-3"></i>
-			<span
-				>Are you sure you want to delete
-				<strong>{{ selectedDzongkhag?.name }}</strong
-				>?</span
-			>
-		</div>
-		<p class="text-sm text-gray-600">This action cannot be undone.</p>
-	</ng-template>
-
-	<ng-template pTemplate="footer">
-		<button
-			pButton
-			type="button"
-			label="Cancel"
-			icon="pi pi-times"
-			class="p-button-text"
-			(click)="deleteDialog = false"
-		></button>
-		<button
-			pButton
-			type="button"
-			label="Delete"
-			icon="pi pi-trash"
-			class="p-button-danger"
-			(click)="deleteDzongkhag()"
-		></button>
-	</ng-template>
-</p-dialog>
-
-<!-- Upload GeoJSON Dialog -->
-<p-dialog
-	[(visible)]="uploadGeojsonDialog"
-	[style]="{ width: '600px' }"
-	header="Upload GeoJSON"
-	[modal]="true"
-	styleClass="p-fluid"
->
-	<ng-template pTemplate="content">
-		<div class="space-y-4">
-			<!-- Info Section -->
-			<div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-				<div class="flex items-start">
-					<i class="pi pi-info-circle text-blue-600 text-xl mr-3 mt-0.5"></i>
-					<div>
-						<h4 class="font-semibold text-blue-900 mb-2">
-							Important Guidelines
-						</h4>
-						<ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
-							<li>
-								Ensure the GeoJSON file is in
-								<strong>WGS84 (EPSG:4326)</strong> projection
-							</li>
-							<li>
-								The file must contain a <strong>single Feature</strong> or
-								FeatureCollection with one feature
-							</li>
-							<li>Supported geometry types: Polygon, MultiPolygon</li>
-							<li>File format: .json or .geojson</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-
-			<!-- Selected Dzongkhag -->
-			<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-sm text-gray-600">Uploading for:</p>
-						<p class="font-semibold text-gray-900 text-lg">
-							{{ selectedDzongkhag?.name }}
-						</p>
-					</div>
-					<div class="text-right">
-						<p class="text-sm text-gray-600">Dzongkhag Code:</p>
-						<p class="font-mono font-semibold text-gray-900">
-							{{ selectedDzongkhag?.areaCode }}
-						</p>
-					</div>
-				</div>
-			</div>
-
-			<!-- File Upload -->
-			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-2">
-					Select GeoJSON File *
-				</label>
-				<p-fileUpload
-					mode="basic"
-					[auto]="false"
-					accept=".json,.geojson"
-					[maxFileSize]="10000000"
-					chooseLabel="Choose File"
-					chooseIcon="pi pi-upload"
-					(onSelect)="onFileSelect($event)"
-					[showUploadButton]="false"
-					[showCancelButton]="false"
-					styleClass="w-full"
-				></p-fileUpload>
-				<small class="text-gray-500 mt-1 block">
-					Maximum file size: 10 MB
-				</small>
-			</div>
-
-			<!-- Selected File Info -->
-			<div
-				*ngIf="selectedFile"
-				class="bg-green-50 border border-green-200 rounded-lg p-3"
-			>
-				<div class="flex items-center">
-					<i class="pi pi-file text-green-600 text-xl mr-3"></i>
-					<div class="flex-1">
-						<p class="font-medium text-green-900">{{ selectedFile.name }}</p>
-						<p class="text-sm text-green-700">
-							{{ (selectedFile.size / 1024).toFixed(2) }} KB
-						</p>
-					</div>
-					<i class="pi pi-check-circle text-green-600 text-xl"></i>
-				</div>
-			</div>
-		</div>
-	</ng-template>
-
-	<ng-template pTemplate="footer">
-		<button
-			pButton
-			type="button"
-			label="Cancel"
-			icon="pi pi-times"
-			class="p-button-text"
-			(click)="cancelUpload()"
-			[disabled]="uploadLoading"
-		></button>
-		<button
-			pButton
-			type="button"
-			label="Upload"
-			icon="pi pi-upload"
-			class="p-button-success"
-			[disabled]="!selectedFile || uploadLoading"
-			[loading]="uploadLoading"
-			(click)="uploadGeojson()"
-		></button>
-	</ng-template>
-</p-dialog>

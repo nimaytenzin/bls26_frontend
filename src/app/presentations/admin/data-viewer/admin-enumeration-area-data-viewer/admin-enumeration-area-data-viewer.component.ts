@@ -1,385 +1,234 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {
+	Component,
+	OnInit,
+	OnDestroy,
+	AfterViewInit,
+	ViewChild,
+	ElementRef,
+	ChangeDetectorRef,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { PrimeNgModules } from '../../../../primeng.modules';
+import * as L from 'leaflet';
+import { EnumerationAreaService } from '../../../../core/dataservice/enumeration-area/enumeration-area.service';
+import { StructureService } from '../../../../core/dataservice/structure/structure.service';
+import { HouseholdListingService } from '../../../../core/dataservice/household-listing/household-listing.service';
+import { DzongkhagService } from '../../../../core/dataservice/dzongkhag/dzongkhag.service';
+import type { EnumerationArea, EaProgress, EaGeom } from '../../../../core/dataservice/enumeration-area/enumeration-area.service';
+import type { Structure } from '../../../../core/dataservice/structure/structure.service';
+import type { HouseholdListing } from '../../../../core/dataservice/household-listing/household-listing.service';
 
-import { EnumerationAreaDataService } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dataservice';
-import { AdministrativeZoneDataService } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dataservice';
-import { SubAdministrativeZoneDataService } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dataservice';
-import { DzongkhagDataService } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
-import { EnumerationArea } from '../../../../core/dataservice/location/enumeration-area/enumeration-area.dto';
-import { AdministrativeZone, AdministrativeZoneType } from '../../../../core/dataservice/location/administrative-zone/administrative-zone.dto';
-import { SubAdministrativeZone, SubAdministrativeZoneType } from '../../../../core/dataservice/location/sub-administrative-zone/sub-administrative-zone.dto';
-import { Dzongkhag } from '../../../../core/dataservice/location/dzongkhag/dzongkhag.interface';
-// Import child components
-import { CurrentHouseholdListingComponent } from './current-household-listing/current-household-listing.component';
-import { AdminEnumerationAreaTrendsComponent } from './admin-enumeration-area-trends/admin-enumeration-area-trends.component';
-import { EnumerationAreaMapComponent } from './enumeration-area-map/enumeration-area-map.component';
-import { GenerateFullEACode } from '../../../../core/utility/utility.service';
-import { LocationDownloadService } from '../../../../core/dataservice/downloads/location.download.service';
+export interface StructureWithHouseholds extends Structure {
+	householdListings: HouseholdListing[];
+}
 
 @Component({
 	selector: 'app-admin-enumeration-area-data-viewer',
 	templateUrl: './admin-enumeration-area-data-viewer.component.html',
 	styleUrls: ['./admin-enumeration-area-data-viewer.component.css'],
 	standalone: true,
-	imports: [
-		CommonModule,
-		FormsModule,
-		RouterModule,
-		PrimeNgModules,
-		CurrentHouseholdListingComponent,
-		AdminEnumerationAreaTrendsComponent,
-		EnumerationAreaMapComponent,
-	],
-	providers: [MessageService],
+	imports: [CommonModule, RouterModule, PrimeNgModules],
 })
-export class AdminEnumerationAreaDataViewerComponent
-	implements OnInit, OnDestroy
-{
-	// Data
-	enumerationArea: EnumerationArea | null = null;
-	eaId: number = 0;
-	subAdministrativeZone: any = null;
-	administrativeZone: any = null;
-	dzongkhag: any = null;
-	activeMainTab: 'insights' | 'households' | 'historical-trends' = 'insights';
-	activeHouseholdTab: 'current' | 'Trends' = 'current';
+export class AdminEnumerationAreaDataViewerComponent implements OnInit, OnDestroy, AfterViewInit {
+	@ViewChild('mapContainer', { static: false }) mapContainerRef!: ElementRef<HTMLDivElement>;
 
-	// Filter/Navigation properties
-	dzongkhagOptions: any[] = [];
-	adminZoneOptions: any[] = [];
-	subAdminZoneOptions: any[] = [];
-	eaOptions: any[] = [];
-	selectedDzongkhag: number | null = null;
-	selectedAdminZone: number | null = null;
-	selectedSubAdminZone: number | null = null;
-	selectedEAFilter: number | null = null;
+	private destroy$ = new Subject<void>();
+	private map?: L.Map;
+	private structureMarkers = new Map<number, L.Marker>();
+	private geomLayer?: L.GeoJSON;
 
-	getFullEACode = GenerateFullEACode;
+	eaId!: number;
+	ea: EnumerationArea | null = null;
+	progress: EaProgress | null = null;
+	dzongkhagName = '';
+	structures: StructureWithHouseholds[] = [];
+	loading = true;
+	error: string | null = null;
 
 	constructor(
 		private route: ActivatedRoute,
 		private router: Router,
-		private enumerationAreaService: EnumerationAreaDataService,
-		private administrativeZoneService: AdministrativeZoneDataService,
-		private subAdministrativeZoneService: SubAdministrativeZoneDataService,
-		private dzongkhagService: DzongkhagDataService,
-		private messageService: MessageService,
-		private locationDownloadService: LocationDownloadService,
-		private location: Location,
+		private eaService: EnumerationAreaService,
+		private structureService: StructureService,
+		private householdService: HouseholdListingService,
+		private dzongkhagService: DzongkhagService,
+		private cdr: ChangeDetectorRef
 	) {}
 
-	ngOnInit() {
-		// Load all dzongkhags for filter dropdown
-		this.loadDzongkhags();
-
-		this.route.params.subscribe((params) => {
+	ngOnInit(): void {
+		this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
 			this.eaId = +params['id'];
-			if (this.eaId) {
-				this.loadData();
+			if (this.eaId) this.load();
+		});
+	}
+
+	ngAfterViewInit(): void {}
+
+	ngOnDestroy(): void {
+		this.destroy$.next();
+		this.destroy$.complete();
+		if (this.geomLayer && this.map) this.map.removeLayer(this.geomLayer);
+		if (this.map) this.map.remove();
+	}
+
+	load(): void {
+		this.loading = true;
+		this.error = null;
+		this.eaService
+			.getById(this.eaId, true)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (ea) => {
+					this.ea = ea;
+					if (ea.dzongkhagId != null) {
+						this.dzongkhagService
+							.getById(ea.dzongkhagId)
+							.pipe(takeUntil(this.destroy$))
+							.subscribe({ next: (d) => (this.dzongkhagName = d.name) });
+					}
+					this.eaService
+						.getProgress(this.eaId)
+						.pipe(takeUntil(this.destroy$))
+						.subscribe({ next: (p) => (this.progress = p) });
+					this.loadStructures();
+				},
+				error: (err) => {
+					this.error = err.error?.message || 'Failed to load EA';
+					this.loading = false;
+					this.cdr.markForCheck();
+				},
+			});
+	}
+
+	loadStructures(): void {
+		this.structureService
+			.getAll(this.eaId)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (structs) => {
+					const withHouseholds: StructureWithHouseholds[] = structs.map((s) => ({
+						...s,
+						householdListings: [],
+					}));
+					if (withHouseholds.length === 0) {
+						this.structures = [];
+						this.loading = false;
+						this.cdr.markForCheck();
+						setTimeout(() => this.initMap(), 100);
+						return;
+					}
+					this.householdService
+						.getAll({ eaId: this.eaId })
+						.pipe(takeUntil(this.destroy$))
+						.subscribe({
+							next: (listings) => {
+								withHouseholds.forEach((s) => {
+									s.householdListings = listings.filter((h) => h.structureId === s.id);
+								});
+								this.structures = withHouseholds;
+								this.loading = false;
+								this.cdr.markForCheck();
+								setTimeout(() => this.initMap(), 100);
+							},
+							error: () => {
+								this.structures = withHouseholds;
+								this.loading = false;
+								this.cdr.markForCheck();
+								setTimeout(() => this.initMap(), 100);
+							},
+						});
+				},
+				error: () => {
+					this.structures = [];
+					this.loading = false;
+					this.cdr.markForCheck();
+					setTimeout(() => this.initMap(), 100);
+				},
+			});
+	}
+
+	private initMap(): void {
+		if (!this.mapContainerRef?.nativeElement || this.map) return;
+		this.map = L.map(this.mapContainerRef.nativeElement, {
+			center: [27.5142, 90.4336],
+			zoom: 13,
+			zoomControl: false,
+		});
+		L.control.zoom({ position: 'bottomright' }).addTo(this.map);
+		L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+			subdomains: '0123',
+			maxZoom: 21,
+			attribution: '© Google',
+		}).addTo(this.map);
+
+		// Render EA boundary (geom) if present
+		const geom = this.ea?.geom;
+		const geomObj = this.normalizeGeom(geom);
+		if (geomObj) {
+			const geoJsonFeature = {
+				type: 'Feature',
+				geometry: geomObj,
+				properties: {},
+			};
+			this.geomLayer = L.geoJSON(geoJsonFeature as any, {
+				style: {
+					color: '#1d4ed8',
+					weight: 2,
+					fillColor: '#3b82f6',
+					fillOpacity: 0.15,
+				},
+			}).addTo(this.map);
+			const bounds = this.geomLayer.getBounds();
+			if (bounds.isValid()) this.map.fitBounds(bounds, { padding: [20, 20], maxZoom: 16 });
+		}
+
+		this.structureMarkers.forEach((m) => this.map!.removeLayer(m));
+		this.structureMarkers.clear();
+		this.structures.forEach((s) => {
+			if (s.latitude != null && s.longitude != null) {
+				const icon = L.divIcon({
+					className: 'structure-marker',
+					html: `<div style="width:24px;height:24px;border-radius:50%;background:#10b981;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>`,
+					iconSize: [24, 24],
+					iconAnchor: [12, 12],
+				});
+				const marker = L.marker([s.latitude, s.longitude], { icon }).addTo(this.map!);
+				marker.bindTooltip(s.structureNumber, { permanent: false, direction: 'top' });
+				this.structureMarkers.set(s.id, marker);
 			}
 		});
 	}
 
-	ngOnDestroy() {
-		// Map cleanup is handled by the child component
-	}
-
-	loadData() {
-		// Only load the enumeration area - map component will handle the rest
-		// Include sub-administrative zones to enable hierarchy loading
-		this.enumerationAreaService.findEnumerationAreaById(this.eaId, false, true).subscribe({
-			next: (ea) => {
-				this.enumerationArea = ea;
-			},
-			error: (error) => {
-				console.error('Error loading enumeration area:', error);
-				this.messageService.add({
-					severity: 'error',
-					summary: 'Error',
-					detail: 'Failed to load enumeration area details',
-					life: 3000,
-				});
-			},
-		});
-	}
-
-	// Event handlers for map component
-	handleMapNavigation(event: {
-		type: 'dzongkhag' | 'adminzone' | 'subadminzone' | 'ea';
-		id: number;
-	}) {
-		switch (event.type) {
-			case 'dzongkhag':
-				this.router.navigate(['/admin/data-view/dzongkhag', event.id]);
-				break;
-			case 'adminzone':
-				this.router.navigate(['/admin/data-view/admzone', event.id]);
-				break;
-			case 'subadminzone':
-				this.router.navigate(['/admin/data-view/sub-admzone', event.id]);
-				break;
-			case 'ea':
-				this.router.navigate(['/admin/data-view/eazone', event.id]);
-				break;
+	/** Normalize geom from API (object or JSON string) to GeoJSON geometry. */
+	private normalizeGeom(geom: EnumerationArea['geom']): EaGeom | null {
+		if (geom == null) return null;
+		if (typeof geom === 'string') {
+			try {
+				const parsed = JSON.parse(geom) as EaGeom;
+				return parsed?.type && parsed?.coordinates ? parsed : null;
+			} catch {
+				return null;
+			}
 		}
+		return geom?.type && geom?.coordinates ? geom : null;
 	}
 
-	onDownloadKML() {
-		// Delegate to map component - this is handled by the map component
+	goBack(): void {
+		this.router.navigate(['/admin/master/dzongkhags']);
 	}
 
-	onDownloadGeoJSON() {
-		// Delegate to map component - this is handled by the map component
+	totalHouseholds(): number {
+		return this.structures.reduce((sum, s) => sum + s.householdListings.length, 0);
 	}
 
-	onDownloadHouseholdData() {
-			this.messageService.add({
-			severity: 'info',
-			summary: 'Not Available',
-			detail: 'Household CSV export is available in the Households tab',
-				life: 3000,
-			});
-		}
-
-	onNavigateToLocation(event: {
-		type: 'dzongkhag' | 'adminzone' | 'subadminzone' | 'ea';
-		id: number;
-	}) {
-		this.handleMapNavigation(event);
+	totalPopulation(): number {
+		return this.structures.reduce(
+			(sum, s) =>
+				sum + s.householdListings.reduce((s2, h) => s2 + (h.totalMale || 0) + (h.totalFemale || 0), 0),
+			0
+		);
 	}
-
-	onDzongkhagChangeForMap(dzongkhagId: number | null) {
-		this.selectedDzongkhag = dzongkhagId;
-		this.onDzongkhagChange();
-	}
-
-	onAdminZoneChangeForMap(adminZoneId: number | null) {
-		this.selectedAdminZone = adminZoneId;
-		this.onAdminZoneChange();
-	}
-
-	onSubAdminZoneChangeForMap(subAdminZoneId: number | null) {
-		this.selectedSubAdminZone = subAdminZoneId;
-		this.onSubAdminZoneChange();
-	}
-
-	onHierarchyLoaded(event: {
-		subAdministrativeZone: any;
-		administrativeZone: any;
-		dzongkhag: any;
-	}) {
-		this.subAdministrativeZone = event.subAdministrativeZone;
-		this.administrativeZone = event.administrativeZone;
-		this.dzongkhag = event.dzongkhag;
-	}
-
-	// Filter/Navigation methods
-	loadDzongkhags() {
-		this.dzongkhagService.findAllDzongkhags().subscribe({
-			next: (dzongkhags) => {
-				this.dzongkhagOptions = dzongkhags.map((d) => ({
-					label: d.name,
-					value: d.id,
-				}));
-			},
-			error: (error) => {
-				console.error('Error loading dzongkhags:', error);
-			},
-		});
-	}
-
-	onDzongkhagChange() {
-		// Reset dependent selections
-		this.selectedAdminZone = null;
-		this.selectedSubAdminZone = null;
-		this.selectedEAFilter = null;
-		this.adminZoneOptions = [];
-		this.subAdminZoneOptions = [];
-		this.eaOptions = [];
-
-		if (this.selectedDzongkhag) {
-			this.administrativeZoneService
-				.findAdministrativeZonesByDzongkhag(this.selectedDzongkhag)
-				.subscribe({
-					next: (zones: AdministrativeZone[]) => {
-						this.adminZoneOptions = zones.map((z: AdministrativeZone) => ({
-							label: z.name,
-							value: z.id,
-						}));
-					},
-					error: (error: any) => {
-						console.error('Error loading administrative zones:', error);
-					},
-				});
-		}
-	}
-
-	onAdminZoneChange() {
-		// Reset dependent selections
-		this.selectedSubAdminZone = null;
-		this.selectedEAFilter = null;
-		this.subAdminZoneOptions = [];
-		this.eaOptions = [];
-
-		if (this.selectedAdminZone) {
-			this.subAdministrativeZoneService
-				.findSubAdministrativeZonesByAdministrativeZone(this.selectedAdminZone)
-				.subscribe({
-					next: (subZones: any[]) => {
-						this.subAdminZoneOptions = subZones.map((sz: any) => ({
-							label: sz.name,
-							value: sz.id,
-						}));
-					},
-					error: (error: any) => {
-						console.error('Error loading sub administrative zones:', error);
-					},
-				});
-		}
-	}
-
-	onSubAdminZoneChange() {
-		// Reset dependent selections
-		this.selectedEAFilter = null;
-		this.eaOptions = [];
-
-		if (this.selectedSubAdminZone) {
-			this.enumerationAreaService
-				.findEnumerationAreasBySubAdministrativeZone(this.selectedSubAdminZone)
-				.subscribe({
-					next: (eas: EnumerationArea[]) => {
-						this.eaOptions = eas.map((ea: EnumerationArea) => ({
-							label: `${ea.name} (${ea.areaCode})`,
-							value: ea.id,
-						}));
-					},
-					error: (error: any) => {
-						console.error('Error loading enumeration areas:', error);
-					},
-				});
-		}
-	}
-
-	submitNavigation() {
-		if (this.selectedEAFilter) {
-			this.router.navigate([
-				'/admin/data-view/enumeration-area',
-				this.selectedEAFilter,
-			]);
-		} else if (this.selectedSubAdminZone) {
-			this.router.navigate([
-				'/admin/data-view/sub-admzone',
-				this.selectedSubAdminZone,
-			]);
-		} else if (this.selectedAdminZone) {
-			this.router.navigate([
-				'/admin/data-view/admzone',
-				this.selectedAdminZone,
-			]);
-		} else if (this.selectedDzongkhag) {
-			this.router.navigate([
-				'/admin/data-view/dzongkhag',
-				this.selectedDzongkhag,
-			]);
-		}
-	}
-
-
-	navigateTo(type: 'dzongkhag' | 'adminzone' | 'subadminzone', id: number) {
-		switch (type) {
-			case 'dzongkhag':
-				this.router.navigate(['/admin/data-view/dzongkhag', id]);
-				break;
-			case 'adminzone':
-				this.router.navigate(['/admin/data-view/admzone', id]);
-				break;
-			case 'subadminzone':
-				this.router.navigate(['/admin/data-view/sub-admzone', id]);
-				break;
-		}
-	}
-
-	goBack() {
-		this.router.navigate(['/admin/master/enumeration-areas']);
-	}
-
-	onHouseholdListingUploadComplete() {
-		// Refresh the current household listing data
-		this.messageService.add({
-			severity: 'success',
-			summary: 'Upload Complete',
-			detail: 'Household listing has been uploaded successfully',
-			life: 5000,
-		});
-
-		// You can add logic here to refresh the current household listing component
-		// or emit an event to refresh data
-	}
-
-	/**
-	 * Check if enumeration area is active
-	 */
-	isActive(): boolean {
-		return this.enumerationArea?.isActive !== false; // Default to true if undefined
-	}
-
-	/**
-	 * Get status label
-	 */
-	getStatusLabel(): string {
-		return this.isActive() ? 'Active' : 'Inactive';
-	}
-
-	/**
-	 * Get status severity for tag
-	 */
-	getStatusSeverity(): 'success' | 'danger' {
-		return this.isActive() ? 'success' : 'danger';
-	}
-
-	/**
-	 * Format date for display
-	 */
-	formatDate(date: Date | string | undefined): string {
-		if (!date) return '—';
-		const d = typeof date === 'string' ? new Date(date) : date;
-		return d.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric',
-		});
-	}
-
-	/**
-	 * Get admin zone label based on type
-	 */
-	getAdminZoneLabel(): string {
-		if (!this.administrativeZone) return '';
-		if (this.administrativeZone.type === AdministrativeZoneType.Thromde) {
-			return 'Thromde';
-		} else if (this.administrativeZone.type === AdministrativeZoneType.Gewog) {
-			return 'Gewog';
-		}
-		return 'Admin Zone';
-	}
-
-	/**
-	 * Get sub admin zone label based on type
-	 * For rural: Chiwog
-	 * For urban: LAP
-	 */
-	getSubAdminZoneLabel(): string {
-		if (!this.subAdministrativeZone) return '';
-		if (this.subAdministrativeZone.type === SubAdministrativeZoneType.LAP) {
-			return 'LAP';
-		} else if (this.subAdministrativeZone.type === SubAdministrativeZoneType.CHIWOG) {
-			return 'Chiwog';
-		}
-		return 'Sub-Admin Zone';
-	}
-
 }

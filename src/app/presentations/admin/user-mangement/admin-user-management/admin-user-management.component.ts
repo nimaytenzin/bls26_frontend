@@ -1,144 +1,71 @@
-import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import {
+	Component,
+	OnInit,
+	OnDestroy,
+	ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PrimeNgModules } from '../../../../primeng.modules';
-import { MessageService, ConfirmationService } from 'primeng/api';
-import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
-
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { PrimeNgModules } from '../../../../primeng.modules';
 import { AuthService } from '../../../../core/dataservice/auth/auth.service';
-import {
-	User,
-	UserRole,
-	Supervisor,
-} from '../../../../core/dataservice/auth/auth.interface';
-
-// Import shared components
-import { AdminAssignDzongkhagComponent } from '../components/admin-assign-dzongkhag/admin-assign-dzongkhag.component';
-import { AdminUserCreateComponent } from '../components/admin-user-create/admin-user-create.component';
-import { AdminUserUpdateComponent } from '../components/admin-user-update/admin-user-update.component';
-import { AdminUserResetPasswordComponent } from '../components/admin-user-reset-password/admin-user-reset-password.component';
-import { AdminUserProfileViewComponent } from '../components/admin-user-profile-view/admin-user-profile-view.component';
-import { AdminUserAdminListComponent } from '../components/admin-user-admin-list/admin-user-admin-list.component';
-import { AdminUserSupervisorListComponent } from '../components/admin-user-supervisor-list/admin-user-supervisor-list.component';
-import { AdminUserEnumeratorListComponent } from '../components/admin-user-enumerator-list/admin-user-enumerator-list.component';
-import { AdminUserGeneralListComponent } from '../components/admin-user-general-list/admin-user-general-list.component';
+import type { User } from '../../../../core/dataservice/auth/auth.interface';
+import { UserRole } from '../../../../core/dataservice/auth/auth.interface';
 
 @Component({
 	selector: 'app-admin-user-management',
 	templateUrl: './admin-user-management.component.html',
 	styleUrls: ['./admin-user-management.component.css'],
 	standalone: true,
-	imports: [
-		CommonModule,
-		FormsModule,
-		PrimeNgModules,
-		AdminUserAdminListComponent,
-		AdminUserSupervisorListComponent,
-		AdminUserEnumeratorListComponent,
-		AdminUserGeneralListComponent,
-	],
-	providers: [MessageService, ConfirmationService, DialogService],
+	imports: [CommonModule, FormsModule, PrimeNgModules],
+	providers: [MessageService, ConfirmationService],
 })
-export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterViewInit {
+export class AdminUserManagementComponent implements OnInit, OnDestroy {
 	private destroy$ = new Subject<void>();
 
-	@ViewChild(AdminUserAdminListComponent) adminListRef!: AdminUserAdminListComponent;
-	@ViewChild(AdminUserSupervisorListComponent) supervisorListRef!: AdminUserSupervisorListComponent;
-	@ViewChild(AdminUserEnumeratorListComponent) enumeratorListRef!: AdminUserEnumeratorListComponent;
-	@ViewChild(AdminUserGeneralListComponent) generalListRef!: AdminUserGeneralListComponent;
-
-	selectedUser: User | Supervisor | null = null;
-
-	// Counts and loading from child components (for header stats and Refresh button)
-	adminsCount = 0;
-	supervisorsCount = 0;
-	enumeratorsCount = 0;
-	generalUsersCount = 0;
+	admins: User[] = [];
+	enumerators: User[] = [];
 	loadingAdmins = false;
-	loadingSupervisors = false;
 	loadingEnumerators = false;
-	loadingGeneralUsers = false;
-
-	// Search and filter
-	searchValue = '';
-	selectedRole: UserRole | null = null;
-
-	// Active tab
 	activeTabIndex = 0;
 
-	// Expose enum to template
-	UserRole = UserRole;
+	showCreateDialog = false;
+	showEditDialog = false;
+	showResetPasswordDialog = false;
+	createRole: UserRole = UserRole.ENUMERATOR;
+	formCreate = {
+		name: '',
+		cid: '',
+		phoneNumber: '' as string | undefined,
+		password: '',
+	};
+	formEdit = {
+		name: '',
+		phoneNumber: '' as string | undefined,
+	};
+	formResetPassword = {
+		newPassword: '',
+	};
+	selectedUser: User | null = null;
+	submitting = false;
+
+	showBulkDialog = false;
+	bulkCsvText = '';
+	bulkSubmitting = false;
+	bulkResult: { created: number; failed: number; errors: Array<{ row?: number; message: string }> } | null = null;
 
 	constructor(
 		private authService: AuthService,
 		private messageService: MessageService,
 		private confirmationService: ConfirmationService,
-		private dialogService: DialogService,
 		private cdr: ChangeDetectorRef
 	) {}
 
-	/** Defer child loading/count updates to next tick to avoid NG0100 ExpressionChangedAfterItHasBeenCheckedError */
-	private deferUpdate(fn: () => void): void {
-		setTimeout(fn, 0);
-	}
-
-	onLoadingAdminsChange(value: boolean): void {
-		this.deferUpdate(() => {
-			this.loadingAdmins = value;
-			this.cdr.markForCheck();
-		});
-	}
-	onLoadingSupervisorsChange(value: boolean): void {
-		this.deferUpdate(() => {
-			this.loadingSupervisors = value;
-			this.cdr.markForCheck();
-		});
-	}
-	onLoadingEnumeratorsChange(value: boolean): void {
-		this.deferUpdate(() => {
-			this.loadingEnumerators = value;
-			this.cdr.markForCheck();
-		});
-	}
-	onLoadingGeneralUsersChange(value: boolean): void {
-		this.deferUpdate(() => {
-			this.loadingGeneralUsers = value;
-			this.cdr.markForCheck();
-		});
-	}
-	onAdminsCountChange(value: number): void {
-		this.deferUpdate(() => {
-			this.adminsCount = value;
-			this.cdr.markForCheck();
-		});
-	}
-	onSupervisorsCountChange(value: number): void {
-		this.deferUpdate(() => {
-			this.supervisorsCount = value;
-			this.cdr.markForCheck();
-		});
-	}
-	onEnumeratorsCountChange(value: number): void {
-		this.deferUpdate(() => {
-			this.enumeratorsCount = value;
-			this.cdr.markForCheck();
-		});
-	}
-	onGeneralUsersCountChange(value: number): void {
-		this.deferUpdate(() => {
-			this.generalUsersCount = value;
-			this.cdr.markForCheck();
-		});
-	}
-
 	ngOnInit(): void {
-		this.loadAllUsers();
-	}
-
-	ngAfterViewInit(): void {
-		// Tables are now available
+		this.loadAdmins();
+		this.loadEnumerators();
 	}
 
 	ngOnDestroy(): void {
@@ -146,470 +73,412 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy, AfterVie
 		this.destroy$.complete();
 	}
 
-	/**
-	 * Refresh all role lists (each component loads its own data)
-	 */
-	loadAllUsers(): void {
-		this.adminListRef?.refresh();
-		this.supervisorListRef?.refresh();
-		this.enumeratorListRef?.refresh();
-		this.generalListRef?.refresh();
-	}
-
-	/**
-	 * Open dialog to create a new general user
-	 */
-	openCreateGeneralUserDialog(): void {
-		const ref: DynamicDialogRef = this.dialogService.open(
-			AdminUserCreateComponent,
-			{
-				header: 'Create New General User',
-				modal: true,
-				dismissableMask: true,
-				styleClass: 'p-fluid',
-				contentStyle: { overflow: 'auto' },
-				baseZIndex: 10000,
-				data: {
-					userType: UserRole.GENERAL_USER,
-				},
-			}
-		);
-
-		ref.onClose
-			.pipe(takeUntil(this.destroy$))
-			.subscribe((result) => {
-				if (result) {
-					this.generalListRef?.refresh();
+	loadAdmins(): void {
+		this.loadingAdmins = true;
+		this.authService
+			.getAdmins()
+			.pipe(
+				takeUntil(this.destroy$),
+				finalize(() => {
+					this.loadingAdmins = false;
+					this.cdr.markForCheck();
+				})
+			)
+			.subscribe({
+				next: (list) => (this.admins = list),
+				error: () => {
+					this.admins = [];
 					this.messageService.add({
-						severity: 'success',
-						summary: 'Success',
-						detail: 'General user created successfully',
+						severity: 'error',
+						summary: 'Failed to load admins',
 						life: 3000,
 					});
-				}
+				},
 			});
 	}
 
-	/**
-	 * Open dialog to create new supervisor
-	 */
-	/**
-	 * Open dialog to create a new admin
-	 */
-	openCreateAdminDialog(): void {
-		const ref: DynamicDialogRef = this.dialogService.open(
-			AdminUserCreateComponent,
-			{
-				header: 'Create New Admin',
-				modal: true,
-				dismissableMask: true,
-				styleClass: 'p-fluid',
-				contentStyle: { overflow: 'auto' },
-				baseZIndex: 10000,
-				data: {
-					userType: UserRole.ADMIN,
-				},
-			}
-		);
-
-		ref.onClose
-			.pipe(takeUntil(this.destroy$))
-			.subscribe((result) => {
-				if (result) {
-					this.adminListRef?.refresh();
+	loadEnumerators(): void {
+		this.loadingEnumerators = true;
+		this.authService
+			.getEnumerators()
+			.pipe(
+				takeUntil(this.destroy$),
+				finalize(() => {
+					this.loadingEnumerators = false;
+					this.cdr.markForCheck();
+				})
+			)
+			.subscribe({
+				next: (list) => (this.enumerators = list),
+				error: () => {
+					this.enumerators = [];
 					this.messageService.add({
-						severity: 'success',
-						summary: 'Success',
-						detail: 'Admin created successfully',
+						severity: 'error',
+						summary: 'Failed to load enumerators',
 						life: 3000,
 					});
-				}
+				},
 			});
 	}
 
-	/**
-	 * Open dialog to create a new supervisor
-	 */
-	openCreateSupervisorDialog(): void {
-		const ref: DynamicDialogRef = this.dialogService.open(
-			AdminUserCreateComponent,
-			{
-				header: 'Create New Supervisor',
-				modal: true,
-				dismissableMask: true,
-				styleClass: 'p-fluid',
-				contentStyle: { overflow: 'auto' },
-				baseZIndex: 10000,
-				data: {
-					userType: UserRole.SUPERVISOR,
-				},
-			}
-		);
+	openCreate(role: UserRole): void {
+		this.createRole = role;
+		this.formCreate = { name: '', cid: '', phoneNumber: '', password: '' };
+		this.showCreateDialog = true;
+	}
 
-		ref.onClose
-			.pipe(takeUntil(this.destroy$))
-			.subscribe((result) => {
-				if (result) {
-					this.supervisorListRef?.refresh();
+	closeCreate(): void {
+		this.showCreateDialog = false;
+	}
+
+	submitCreate(): void {
+		const { name, cid, phoneNumber, password } = this.formCreate;
+		if (!name?.trim() || !cid?.trim() || !password?.trim()) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Name, CID and password are required',
+				life: 3000,
+			});
+			return;
+		}
+		if (password.length < 6) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Password must be at least 6 characters',
+				life: 3000,
+			});
+			return;
+		}
+		this.submitting = true;
+		const dto = {
+			name: name.trim(),
+			cid: cid.trim(),
+			phoneNumber: phoneNumber?.trim() || undefined,
+			password,
+			role: this.createRole,
+		};
+		const req =
+			this.createRole === UserRole.ADMIN
+				? this.authService.createAdmin(dto)
+				: this.authService.createEnumerator(dto);
+		req
+			.pipe(
+				takeUntil(this.destroy$),
+				finalize(() => {
+					this.submitting = false;
+					this.cdr.markForCheck();
+				})
+			)
+			.subscribe({
+				next: () => {
 					this.messageService.add({
 						severity: 'success',
-						summary: 'Success',
-						detail: 'Supervisor created successfully',
+						summary: 'User created',
 						life: 3000,
 					});
-				}
+					this.closeCreate();
+					if (this.createRole === UserRole.ADMIN) this.loadAdmins();
+					else this.loadEnumerators();
+				},
+				error: (err) =>
+					this.messageService.add({
+						severity: 'error',
+						summary: err.error?.message || 'Create failed',
+						life: 5000,
+					}),
 			});
 	}
 
-	/**
-	 * Open dialog to edit user
-	 */
-	openEditDialog(user: User | Supervisor): void {
-		const userType = user.role;
-		const ref: DynamicDialogRef = this.dialogService.open(
-			AdminUserUpdateComponent,
-			{
-				header: `Edit ${this.getRoleTitle(userType)}`,
-				modal: true,
-				dismissableMask: true,
-				styleClass: 'p-fluid',
-				contentStyle: { overflow: 'auto' },
-				baseZIndex: 10000,
-				data: {
-					user: user,
-					userType: userType,
-				},
-			}
-		);
+	openEdit(user: User): void {
+		this.selectedUser = user;
+		this.formEdit = {
+			name: user.name,
+			phoneNumber: user.phoneNumber ?? '',
+		};
+		this.showEditDialog = true;
+	}
 
-		ref.onClose
-			.pipe(takeUntil(this.destroy$))
-			.subscribe((result) => {
-				if (result) {
-					this.loadAllUsers();
+	closeEdit(): void {
+		this.showEditDialog = false;
+		this.selectedUser = null;
+	}
+
+	submitEdit(): void {
+		if (!this.selectedUser) return;
+		const { name, phoneNumber } = this.formEdit;
+		this.submitting = true;
+		this.authService
+			.updateUser(this.selectedUser.id, {
+				name: name?.trim(),
+				phoneNumber: phoneNumber?.trim() || undefined,
+			})
+			.pipe(
+				takeUntil(this.destroy$),
+				finalize(() => {
+					this.submitting = false;
+					this.cdr.markForCheck();
+				})
+			)
+			.subscribe({
+				next: (updated) => {
 					this.messageService.add({
 						severity: 'success',
-						summary: 'Success',
-						detail: `${this.getRoleTitle(userType)} updated successfully`,
+						summary: 'User updated',
 						life: 3000,
 					});
-				}
+					this.closeEdit();
+					if (this.selectedUser?.role === UserRole.ADMIN) {
+						this.admins = this.admins.map((u) =>
+							u.id === updated.id ? updated : u
+						);
+					} else {
+						this.enumerators = this.enumerators.map((u) =>
+							u.id === updated.id ? updated : u
+						);
+					}
+					this.selectedUser = null;
+				},
+				error: (err) =>
+					this.messageService.add({
+						severity: 'error',
+						summary: err.error?.message || 'Update failed',
+						life: 5000,
+					}),
 			});
 	}
 
-	/**
-	 * Open dialog to manage dzongkhag assignments (supervisors only)
-	 */
-	openAssignDzongkhagDialog(supervisor: Supervisor): void {
-		const ref: DynamicDialogRef = this.dialogService.open(
-			AdminAssignDzongkhagComponent,
-			{
-				header: 'Manage Dzongkhag Assignments',
-				modal: true,
-				dismissableMask: true,
-				styleClass: 'p-fluid',
-				contentStyle: { overflow: 'auto' },
-				baseZIndex: 10000,
-				data: {
-					supervisor: supervisor,
-				},
-			}
-		);
+	openResetPassword(user: User): void {
+		this.selectedUser = user;
+		this.formResetPassword = { newPassword: '' };
+		this.showResetPasswordDialog = true;
+	}
 
-		ref.onClose
-			.pipe(takeUntil(this.destroy$))
-			.subscribe((result) => {
-				if (result) {
-					this.supervisorListRef?.refresh();
+	closeResetPassword(): void {
+		this.showResetPasswordDialog = false;
+		this.selectedUser = null;
+	}
+
+	submitResetPassword(): void {
+		if (!this.selectedUser) return;
+		const pwd = this.formResetPassword.newPassword?.trim();
+		if (!pwd || pwd.length < 6) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Password must be at least 6 characters',
+				life: 3000,
+			});
+			return;
+		}
+		this.submitting = true;
+		this.authService
+			.adminResetPassword(this.selectedUser.id, { newPassword: pwd })
+			.pipe(
+				takeUntil(this.destroy$),
+				finalize(() => {
+					this.submitting = false;
+					this.cdr.markForCheck();
+				})
+			)
+			.subscribe({
+				next: () => {
 					this.messageService.add({
 						severity: 'success',
-						summary: 'Success',
-						detail: 'Dzongkhag assignments updated successfully',
+						summary: 'Password reset',
 						life: 3000,
 					});
-				}
-			});
-	}
-
-	/**
-	 * Open reset password dialog
-	 */
-	openResetPasswordDialog(user: User | Supervisor): void {
-		const ref: DynamicDialogRef = this.dialogService.open(
-			AdminUserResetPasswordComponent,
-			{
-				header: 'Reset Password',
-				modal: true,
-				dismissableMask: true,
-				styleClass: 'p-fluid',
-				contentStyle: { overflow: 'auto' },
-				baseZIndex: 10000,
-				data: {
-					user: user,
+					this.closeResetPassword();
 				},
-			}
-		);
-
-		ref.onClose
-			.pipe(takeUntil(this.destroy$))
-			.subscribe((result) => {
-				if (result) {
+				error: (err) =>
 					this.messageService.add({
-						severity: 'success',
-						summary: 'Success',
-						detail: 'Password reset successfully',
-						life: 3000,
-					});
-				}
+						severity: 'error',
+						summary: err.error?.message || 'Reset failed',
+						life: 5000,
+					}),
 			});
 	}
 
-	/**
-	 * Open user profile view dialog
-	 */
-	openProfileViewDialog(user: User | Supervisor): void {
-		const ref: DynamicDialogRef = this.dialogService.open(
-			AdminUserProfileViewComponent,
-			{
-				header: `View ${this.getRoleTitle(user.role)} Profile`,
-				modal: true,
-				dismissableMask: true,
-				styleClass: 'p-fluid',
-				contentStyle: { overflow: 'auto', maxHeight: '90vh' },
-				baseZIndex: 10000,
-				maximizable: true,
-				data: {
-					user: user,
-				},
-			}
-		);
-
-		ref.onClose
-			.pipe(takeUntil(this.destroy$))
-			.subscribe(() => {
-				// Profile view is read-only, no refresh needed
-			});
-	}
-
-	/**
-	 * Delete supervisor with confirmation
-	 */
-	deleteSupervisor(supervisor: User, event: Event): void {
+	toggleActive(user: User): void {
+		const action = user.isActive ? 'Deactivate' : 'Activate';
 		this.confirmationService.confirm({
-			target: event.target as EventTarget,
-			message: `Are you sure you want to delete ${supervisor.name}? This action cannot be undone.`,
-			header: 'Confirm Delete',
+			message: `${action} user "${user.name}"?`,
+			header: 'Confirm',
+			icon: 'pi pi-exclamation-triangle',
+			acceptButtonStyleClass: user.isActive ? 'p-button-warn' : 'p-button-success',
+			accept: () => {
+				const req = user.isActive
+					? this.authService.deactivateUser(user.id)
+					: this.authService.activateUser(user.id);
+				req.pipe(takeUntil(this.destroy$)).subscribe({
+					next: (res) => {
+						const u = res.user;
+						if (user.role === UserRole.ADMIN) {
+							this.admins = this.admins.map((x) =>
+								x.id === u.id ? u : x
+							);
+						} else {
+							this.enumerators = this.enumerators.map((x) =>
+								x.id === u.id ? u : x
+							);
+						}
+						this.messageService.add({
+							severity: 'success',
+							summary: `${action}d`,
+							life: 3000,
+						});
+						this.cdr.markForCheck();
+					},
+					error: (err) =>
+						this.messageService.add({
+							severity: 'error',
+							summary: err.error?.message || 'Failed',
+							life: 5000,
+						}),
+				});
+			},
+		});
+	}
+
+	deleteUser(user: User): void {
+		this.confirmationService.confirm({
+			message: `Delete user "${user.name}" (${user.cid})? This cannot be undone.`,
+			header: 'Delete user',
 			icon: 'pi pi-exclamation-triangle',
 			acceptButtonStyleClass: 'p-button-danger',
 			accept: () => {
 				this.authService
-					.deleteUser(supervisor.id)
+					.deleteUser(user.id)
 					.pipe(takeUntil(this.destroy$))
 					.subscribe({
 						next: () => {
-							this.supervisorListRef?.refresh();
+							if (user.role === UserRole.ADMIN) {
+								this.admins = this.admins.filter((u) => u.id !== user.id);
+							} else {
+								this.enumerators = this.enumerators.filter(
+									(u) => u.id !== user.id
+								);
+							}
 							this.messageService.add({
 								severity: 'success',
-								summary: 'Success',
-								detail: 'Supervisor deleted successfully',
+								summary: 'User deleted',
+								life: 3000,
 							});
+							this.cdr.markForCheck();
 						},
-						error: (error) => {
-							console.error('Error deleting supervisor:', error);
+						error: (err) =>
 							this.messageService.add({
 								severity: 'error',
-								summary: 'Error',
-								detail: error.error?.message || 'Failed to delete supervisor',
-							});
-						},
+								summary: err.error?.message || 'Delete failed',
+								life: 5000,
+							}),
 					});
 			},
 		});
 	}
 
-
-	/**
-	 * Format date for display
-	 */
-	formatDate(date: Date | string | undefined): string {
-		if (!date) return 'N/A';
-		const d = new Date(date);
-		return d.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		});
+	openBulkCreate(): void {
+		this.bulkCsvText = '';
+		this.bulkResult = null;
+		this.showBulkDialog = true;
 	}
 
-	/**
-	 * Get dzongkhag names for display
-	 */
-	getDzongkhagNames(supervisor: Supervisor): string {
-		if (!supervisor.dzongkhags || supervisor.dzongkhags.length === 0) {
-			return 'None';
+	closeBulk(): void {
+		this.showBulkDialog = false;
+		this.loadEnumerators();
+	}
+
+	submitBulk(): void {
+		const lines = this.bulkCsvText
+			.trim()
+			.split(/\n/)
+			.map((s) => s.trim())
+			.filter(Boolean);
+		if (lines.length === 0) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Enter at least one line (name,cid,phone,password)',
+				life: 3000,
+			});
+			return;
 		}
-		return supervisor.dzongkhags.map((dz) => dz.name).join(', ');
-	}
-
-	/**
-	 * Get role title
-	 */
-	getRoleTitle(role: UserRole): string {
-		switch (role) {
-			case UserRole.ADMIN:
-				return 'Admin';
-			case UserRole.SUPERVISOR:
-				return 'Supervisor';
-			case UserRole.ENUMERATOR:
-				return 'Enumerator';
-			case UserRole.GENERAL_USER:
-				return 'General User';
-			default:
-				return 'User';
+		const enumerators: Array<{
+			name: string;
+			cid: string;
+			phoneNumber?: string;
+			password: string;
+		}> = [];
+		for (let i = 0; i < lines.length; i++) {
+			const parts = lines[i].split(',').map((p) => p.trim());
+			if (parts.length < 3) {
+				this.bulkResult = {
+					created: 0,
+					failed: lines.length,
+					errors: [{ row: i + 1, message: 'Need at least name,cid,password (or name,cid,phone,password)' }],
+				};
+				return;
+			}
+			// name, cid, password OR name, cid, phone, password
+			const hasPhone = parts.length >= 4;
+			enumerators.push({
+				name: parts[0],
+				cid: parts[1],
+				phoneNumber: hasPhone ? parts[2] || undefined : undefined,
+				password: hasPhone ? parts[3] : parts[2],
+			});
 		}
-	}
-
-	/**
-	 * Check if user is supervisor
-	 */
-	isSupervisor(user: User | Supervisor): user is Supervisor {
-		return user.role === UserRole.SUPERVISOR;
-	}
-
-	/**
-	 * Get first character of name for avatar
-	 */
-	getAvatarInitial(name: string | undefined): string {
-		if (!name) return 'U';
-		return name.charAt(0).toUpperCase();
-	}
-
-	/**
-	 * Get avatar color based on name for consistency
-	 */
-	getAvatarColor(name: string | undefined): string {
-		if (!name) return '#6366f1'; // Default indigo
-		
-		// Generate a consistent color based on the name
-		const colors = [
-			'#6366f1', // indigo
-			'#8b5cf6', // violet
-			'#ec4899', // pink
-			'#f59e0b', // amber
-			'#10b981', // emerald
-			'#3b82f6', // blue
-			'#ef4444', // red
-			'#14b8a6', // teal
-			'#f97316', // orange
-			'#06b6d4', // cyan
-		];
-		
-		// Simple hash function to get consistent color
-		let hash = 0;
-		for (let i = 0; i < name.length; i++) {
-			hash = name.charCodeAt(i) + ((hash << 5) - hash);
-		}
-		return colors[Math.abs(hash) % colors.length];
-	}
-
-	/**
-	 * Activate user account
-	 * @param user - User to activate
-	 * @param event - Event object for confirmation dialog
-	 */
-	activateUser(user: User | Supervisor, event: Event): void {
-		this.confirmationService.confirm({
-			target: event.target as EventTarget,
-			message: `Are you sure you want to activate ${user.name}? They will be able to log in to the system.`,
-			header: 'Confirm Activation',
-			icon: 'pi pi-check-circle',
-			acceptButtonStyleClass: 'p-button-success',
-			accept: () => {
-				this.authService
-					.activateUser(user.id)
-					.pipe(takeUntil(this.destroy$))
-					.subscribe({
-						next: (response) => {
-							this.refreshListByRole(response.user.role);
-							this.messageService.add({
-								severity: 'success',
-								summary: 'Success',
-								detail: response.message || 'User activated successfully',
-								life: 3000,
-							});
-						},
-						error: (error) => {
-							console.error('Error activating user:', error);
-							this.messageService.add({
-								severity: 'error',
-								summary: 'Error',
-								detail: error.error?.message || 'Failed to activate user',
-								life: 3000,
-							});
-						},
+		this.bulkSubmitting = true;
+		this.bulkResult = null;
+		this.authService
+			.bulkCreateEnumerators({ enumerators })
+			.pipe(
+				takeUntil(this.destroy$),
+				finalize(() => {
+					this.bulkSubmitting = false;
+					this.cdr.markForCheck();
+				})
+			)
+			.subscribe({
+				next: (res) => {
+					this.bulkResult = {
+						created: res.created,
+						failed: res.failed,
+						errors: res.errors || [],
+					};
+					this.messageService.add({
+						severity: res.failed === 0 ? 'success' : 'info',
+						summary: `Created ${res.created}, failed ${res.failed}`,
+						life: 5000,
 					});
-			},
-		});
-	}
-
-	/**
-	 * Deactivate user account
-	 * @param user - User to deactivate
-	 * @param event - Event object for confirmation dialog
-	 */
-	deactivateUser(user: User | Supervisor, event: Event): void {
-		this.confirmationService.confirm({
-			target: event.target as EventTarget,
-			message: `Are you sure you want to deactivate ${user.name}? They will not be able to log in to the system, and any existing authentication tokens will become invalid.`,
-			header: 'Confirm Deactivation',
-			icon: 'pi pi-exclamation-triangle',
-			acceptButtonStyleClass: 'p-button-danger',
-			accept: () => {
-				this.authService
-					.deactivateUser(user.id)
-					.pipe(takeUntil(this.destroy$))
-					.subscribe({
-						next: (response) => {
-							this.refreshListByRole(response.user.role);
-							this.messageService.add({
-								severity: 'success',
-								summary: 'Success',
-								detail: response.message || 'User deactivated successfully',
-								life: 3000,
-							});
-						},
-						error: (error) => {
-							console.error('Error deactivating user:', error);
-							this.messageService.add({
-								severity: 'error',
-								summary: 'Error',
-								detail: error.error?.message || 'Failed to deactivate user',
-								life: 3000,
-							});
-						},
+					if (res.created > 0) this.loadEnumerators();
+				},
+				error: (err) => {
+					this.bulkResult = {
+						created: 0,
+						failed: enumerators.length,
+						errors: [{ message: err.error?.message || 'Bulk create failed' }],
+					};
+					this.messageService.add({
+						severity: 'error',
+						summary: err.error?.message || 'Bulk create failed',
+						life: 5000,
 					});
-			},
-		});
+				},
+			});
 	}
 
-	/**
-	 * Refresh the list component for the given role after activate/deactivate
-	 */
-	private refreshListByRole(role: UserRole): void {
-		switch (role) {
-			case UserRole.ADMIN:
-				this.adminListRef?.refresh();
-				break;
-			case UserRole.SUPERVISOR:
-				this.supervisorListRef?.refresh();
-				break;
-			case UserRole.ENUMERATOR:
-				this.enumeratorListRef?.refresh();
-				break;
-			case UserRole.GENERAL_USER:
-				this.generalListRef?.refresh();
-				break;
-		}
+	exportEnumeratorsCsv(): void {
+		const headers = ['Name', 'CID', 'Phone', 'Role', 'Active'];
+		const rows = this.enumerators.map((u) =>
+			[u.name, u.cid, u.phoneNumber ?? '', u.role, u.isActive ? 'Yes' : 'No']
+		);
+		const csv = [headers.join(','), ...rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))].join('\n');
+		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+		const a = document.createElement('a');
+		a.href = URL.createObjectURL(blob);
+		a.download = `enumerators-${new Date().toISOString().slice(0, 10)}.csv`;
+		a.click();
+		URL.revokeObjectURL(a.href);
+		this.messageService.add({ severity: 'success', summary: 'CSV downloaded', life: 2000 });
 	}
+
+	readonly UserRole = UserRole;
 }
-

@@ -1,0 +1,14 @@
+:host { display: block; height: 100%; }
+.ea-map-view { height: 100%; }
+
+/* Map container fills available space */
+.ea-map-view .map-container {
+  z-index: 0;
+  height: 90dvh;
+}
+
+/* Ensure Leaflet controls are visible above the map */
+:host ::ng-deep .leaflet-control-zoom,
+:host ::ng-deep .leaflet-control-attribution {
+  z-index: 10;
+}

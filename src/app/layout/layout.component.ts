@@ -98,9 +98,9 @@ export class LayoutComponent implements OnInit {
 	}
 	ngOnInit(): void {
 		// Get current user information
-		this.authService.authState$.subscribe((authState) => {
-			this.currentUser = authState.user;
-		});
+		// this.authService.authState$.subscribe((authState: AuthState) => {
+		// 	this.currentUser = authState.user;
+		// });
 	}
 
 	hideMenu() {
@@ -171,6 +171,6 @@ export class LayoutComponent implements OnInit {
 	}
 
 	logout(): void {
-		this.authService.logout();
+		// this.authService.logout();
 	}
 }

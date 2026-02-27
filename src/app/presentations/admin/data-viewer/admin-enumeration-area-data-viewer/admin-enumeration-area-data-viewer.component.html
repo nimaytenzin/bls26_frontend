@@ -1,270 +1,91 @@
-<!-- Admin Enumeration Area Data Viewer -->
-<div class="h-[calc(100vh-5rem)]">
-	<!-- Main Content -->
-	<ng-container *ngIf="enumerationArea">
-		<!-- Split UI Layout -->
-		<section class="flex gap-4 h-[calc(100vh-5rem)] bg-white">
-			<!-- Left Pane: Data and Statistics -->
-			<div class="w-[40vw] flex flex-col gap-4 overflow-y-auto p-6">
-				<!-- Header Section -->
-				<div class="space-y-4">
-					<!-- Header Content -->
-					<p class="text-slate-800 text-xl font-bold"> 
-						{{ enumerationArea?.name || "Enumeration Area" }}
-					</p>
+<div class="ea-data-viewer flex flex-col lg:flex-row min-h-screen bg-slate-50">
+	<!-- Left: Details + Household listings (2/3) -->
+	<div class="lg:flex-[2] min-w-0 flex flex-col overflow-auto">
+		<div class="p-6">
+			<button
+				pButton
+				type="button"
+				icon="pi pi-arrow-left"
+				label="Back to Dzongkhags"
+				class="p-button-text mb-4"
+				(click)="goBack()"
+			></button>
 
-					<!-- Breadcrumb Navigation -->
-					<div class="my-2 text-xs">
-						<div class="flex flex-wrap items-center gap-1 min-w-0">
-							<a
-								class="cursor-pointer text-slate-600 hover:text-primary-600 hover:underline"
-								[routerLink]="['/admin']"
-							>
-								Home
-							</a>
-							<span class="text-slate-400"> / </span>
-							<a 
-								class="cursor-pointer text-slate-600 hover:text-primary-600 hover:underline"
-								[routerLink]="['/admin/data-view/dzongkhag', dzongkhag?.id]"
-								*ngIf="dzongkhag"
-							>
-								{{ dzongkhag?.name || "Dzongkhag" }} Dzongkhag
-							</a>
-							<span class="text-slate-400" *ngIf="dzongkhag"> / </span>
-							<a 
-								class="cursor-pointer text-slate-600 hover:text-primary-600 hover:underline"
-								[routerLink]="['/admin/data-view/admzone', administrativeZone?.id]"
-								*ngIf="administrativeZone"
-							>
-								{{ administrativeZone?.name || "Gewog/Thromde" }} {{ administrativeZone?.type || "" }}
-							</a>
-							<span class="text-slate-400" *ngIf="administrativeZone"> / </span>
-							<a 
-								class="cursor-pointer text-slate-600 hover:text-primary-600 hover:underline"
-								[routerLink]="['/admin/data-view/sub-admzone', subAdministrativeZone?.id]"
-								*ngIf="subAdministrativeZone"
-							>
-								{{ subAdministrativeZone?.name || "Chiwog/LAP" }} {{ subAdministrativeZone?.type || "" }}
-							</a>
-							<span class="text-slate-400" *ngIf="subAdministrativeZone"> / </span>
-							<span class="text-slate-900 font-bold">
-								{{ enumerationArea?.name || "Enumeration Area" }}
-							</span>
-						</div>
-					</div>
-					<p-divider type="dashed" />
-				</div>
-
-				<!-- Tabs Section -->
-				<div class="p-4">
-					<div class="space-y-4">
-						<!-- Main Tabs -->
-						<div class="flex gap-2 border-b border-slate-200">
-							<button
-								type="button"
-								(click)="activeMainTab = 'insights'"
-								class="px-4 py-2 font-semibold transition border-b-2"
-								[ngClass]="
-									activeMainTab === 'insights'
-										? 'border-primary-600 text-primary-600'
-										: 'border-transparent text-slate-600 hover:text-slate-900'
-								"
-							>
-								Area Details
-							</button>
-							<button
-								type="button"
-								(click)="activeMainTab = 'households'"
-								class="px-4 py-2 font-semibold transition border-b-2"
-								[ngClass]="
-									activeMainTab === 'households'
-										? 'border-primary-600 text-primary-600'
-										: 'border-transparent text-slate-600 hover:text-slate-900'
-								"
-							>
-								Households
-							</button>
-							<button
-								type="button"
-								(click)="activeMainTab = 'historical-trends'"
-								class="px-4 py-2 font-semibold transition border-b-2"
-								[ngClass]="
-									activeMainTab === 'historical-trends'
-										? 'border-primary-600 text-primary-600'
-										: 'border-transparent text-slate-600 hover:text-slate-900'
-								"
-							>
-								Historical Trends
-							</button>
-						</div>
-
-						<!-- Area Details Tab Content -->
-						<div *ngIf="activeMainTab === 'insights'" class="space-y-4">
-							<div class="space-y-4 text-base text-slate-600">
-								<!-- Basic Information -->
-								<div
-									class="space-y-3 rounded-lg border border-slate-200 bg-white p-4"
-								>
-									<p class="text-lg font-semibold text-slate-800">
-										Basic Information
-									</p>
-									<div class="space-y-2 text-base">
-										<div class="flex justify-between">
-											<span class="text-slate-500">Name:</span>
-											<span class="font-semibold text-slate-900">{{
-												enumerationArea.name || "—"
-											}}</span>
-										</div>
-										<div class="flex justify-between">
-											<span class="text-slate-500">EA Code:</span>
-											<span class="font-semibold text-slate-900">{{
-												enumerationArea.areaCode || "—"
-											}}</span>
-										</div>
-										<div class="flex justify-between" *ngIf="enumerationArea">
-											<span class="text-slate-500">Full EA Code:</span>
-											<span class="font-mono font-semibold text-primary-600">{{
-												getFullEACode(enumerationArea)
-											}}</span>
-										</div>
-										<div class="flex justify-between">
-											<span class="text-slate-500">Status:</span>
-											<p-tag
-												[value]="getStatusLabel()"
-												[severity]="getStatusSeverity()"
-											></p-tag>
-										</div>
-										<div
-											*ngIf="enumerationArea.description"
-											class="pt-2 border-t border-slate-100"
-										>
-											<p class="text-sm text-slate-500 mb-1">Description:</p>
-											<p class="text-base text-slate-700">
-												{{ enumerationArea.description }}
-											</p>
-										</div>
-										<!-- Deactivation Information -->
-										<div
-											*ngIf="!isActive()"
-											class="pt-2 border-t border-slate-100 space-y-2"
-										>
-											<div
-												*ngIf="enumerationArea.deactivatedAt"
-												class="flex justify-between"
-											>
-												<span class="text-slate-500">Deactivated At:</span>
-												<span class="font-semibold text-slate-900">{{
-													formatDate(enumerationArea.deactivatedAt)
-												}}</span>
-											</div>
-											<div
-												*ngIf="enumerationArea.deactivatedReason"
-												class="pt-2"
-											>
-												<p class="text-sm text-slate-500 mb-1">Deactivation Reason:</p>
-												<p class="text-base text-red-700 bg-red-50 p-2 rounded border border-red-200">
-													{{ enumerationArea.deactivatedReason }}
-												</p>
-											</div>
-										</div>
-									</div>
-								</div>
-
-								<!-- Location Hierarchy -->
-								<div
-									class="space-y-3 rounded-lg border border-slate-200 bg-white p-4"
-								>
-									<p class="text-lg font-semibold text-slate-800">
-										Location Hierarchy
-									</p>
-									<div class="space-y-2 text-base">
-										<div
-											class="flex justify-between items-center"
-											*ngIf="subAdministrativeZone"
-										>
-											<span class="text-slate-500">{{ getSubAdminZoneLabel() }}:</span>
-											<span
-												class="font-semibold text-primary-600 cursor-pointer hover:text-primary-700"
-												(click)="
-													navigateTo('subadminzone', subAdministrativeZone.id!)
-												"
-											>
-												{{ subAdministrativeZone.name }}
-											</span>
-										</div>
-										<div
-											class="flex justify-between items-center"
-											*ngIf="administrativeZone"
-										>
-											<span class="text-slate-500">{{ getAdminZoneLabel() }}:</span>
-											<span
-												class="font-semibold text-primary-600 cursor-pointer hover:text-primary-700"
-												(click)="
-													navigateTo('adminzone', administrativeZone.id!)
-												"
-											>
-												{{ administrativeZone.name }}
-											</span>
-										</div>
-										<div
-											class="flex justify-between items-center"
-											*ngIf="dzongkhag"
-										>
-											<span class="text-slate-500">Dzongkhag:</span>
-											<span
-												class="font-semibold text-primary-600 cursor-pointer hover:text-primary-700"
-												(click)="navigateTo('dzongkhag', dzongkhag.id!)"
-											>
-												{{ dzongkhag.name }}
-											</span>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<!-- Households Tab Content -->
-						<div *ngIf="activeMainTab === 'households'" class="space-y-4">
-							<app-current-household-listing
-								[enumerationAreaId]="enumerationArea.id!"
-							>
-							</app-current-household-listing>
-						</div>
-
-						<!-- Historical Trends Tab Content -->
-						<div
-							*ngIf="activeMainTab === 'historical-trends'"
-							class="space-y-4"
-						>
-							<app-admin-enumeration-area-trends
-								[enumerationAreaId]="enumerationArea.id!"
-							>
-							</app-admin-enumeration-area-trends>
-						</div>
-					</div>
-				</div>
+			<div *ngIf="loading" class="flex justify-center py-12">
+				<p-progressSpinner></p-progressSpinner>
+			</div>
+			<div *ngIf="error && !loading" class="p-4 text-red-600">
+				{{ error }}
 			</div>
 
-			<!-- Right Pane: Map -->
-			<app-enumeration-area-map
-				[enumerationArea]="enumerationArea"
-				[enumerationAreaId]="eaId"
-				[dzongkhagOptions]="dzongkhagOptions"
-				[adminZoneOptions]="adminZoneOptions"
-				[subAdminZoneOptions]="subAdminZoneOptions"
-				[eaOptions]="eaOptions"
-				(downloadKML)="onDownloadKML()"
-				(downloadGeoJSON)="onDownloadGeoJSON()"
-				(downloadHouseholdData)="onDownloadHouseholdData()"
-				(navigateToLocation)="onNavigateToLocation($event)"
-				(dzongkhagChange)="onDzongkhagChangeForMap($event)"
-				(adminZoneChange)="onAdminZoneChangeForMap($event)"
-				(subAdminZoneChange)="onSubAdminZoneChangeForMap($event)"
-				(hierarchyLoaded)="onHierarchyLoaded($event)"
-			></app-enumeration-area-map>
-		</section>
-	</ng-container>
-</div>
+			<ng-container *ngIf="!loading && !error && ea">
+				<!-- EA details -->
+				<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6">
+					<h1 class="text-2xl font-bold text-slate-800 mb-1">{{ ea.name }}</h1>
+					<p *ngIf="dzongkhagName" class="text-sm text-slate-500 mb-3">{{ dzongkhagName }}</p>
+					<p *ngIf="ea.description" class="text-slate-600 mb-4">{{ ea.description }}</p>
+					<div class="flex flex-wrap gap-4 items-center">
+						<span class="text-sm text-slate-500">Area code: <strong>{{ ea.areaCode }}</strong></span>
+						<p-tag [value]="ea.status" [severity]="ea.status === 'completed' ? 'success' : ea.status === 'in_progress' ? 'info' : 'warn'"></p-tag>
+						<span *ngIf="progress" class="text-sm text-slate-600">
+							{{ progress.totalStructures }} structures · {{ progress.totalHouseholds }} households
+						</span>
+					</div>
+				</div>
 
-<!-- Toast Messages -->
-<p-toast></p-toast>
+				<!-- Household listings by structure -->
+				<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+					<div class="px-6 py-4 border-b border-slate-100">
+						<h2 class="text-lg font-bold text-slate-800">Household listings</h2>
+						<p class="text-sm text-slate-500">{{ totalHouseholds() }} households · {{ totalPopulation() }} population</p>
+					</div>
+					<div class="p-6">
+						<div *ngIf="structures.length === 0" class="text-center py-8 text-slate-500">
+							No structures or households in this EA.
+						</div>
+						<div *ngFor="let structure of structures" class="mb-6 last:mb-0">
+							<div class="flex items-center gap-2 mb-3">
+								<span class="font-semibold text-slate-700">Structure {{ structure.structureNumber }}</span>
+								<span class="text-sm text-slate-500">({{ structure.householdListings.length }} households)</span>
+							</div>
+							<p-table
+								[value]="structure.householdListings"
+								styleClass="p-datatable-sm p-datatable-striped"
+								[tableStyle]="{ 'min-width': '36rem' }"
+							>
+								<ng-template pTemplate="header">
+									<tr>
+										<th>Serial</th>
+										<th>HOH Name</th>
+										<th>ID</th>
+										<th>Male</th>
+										<th>Female</th>
+										<th>Phone</th>
+									</tr>
+								</ng-template>
+								<ng-template pTemplate="body" let-h>
+									<tr>
+										<td>{{ h.householdSerialNumber }}</td>
+										<td>{{ h.nameOfHOH }}</td>
+										<td>{{ h.householdIdentification }}</td>
+										<td>{{ h.totalMale }}</td>
+										<td>{{ h.totalFemale }}</td>
+										<td>{{ h.phoneNumber || '—' }}</td>
+									</tr>
+								</ng-template>
+								<ng-template pTemplate="emptymessage">
+									<tr><td colspan="6" class="text-center py-3 text-slate-500">No households in this structure</td></tr>
+								</ng-template>
+							</p-table>
+						</div>
+					</div>
+				</div>
+			</ng-container>
+		</div>
+	</div>
+
+	<!-- Right: Map (1/3) -->
+	<div class="ea-map-panel lg:flex-[1] lg:min-w-[320px] lg:flex-shrink-0 h-[400px] lg:h-screen lg:sticky lg:top-0 bg-slate-200">
+		<div #mapContainer class="map-container w-full h-full"></div>
+	</div>
+</div>

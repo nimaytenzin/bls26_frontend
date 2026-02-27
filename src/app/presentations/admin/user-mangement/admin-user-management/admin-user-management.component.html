@@ -1,185 +1,245 @@
-<!-- Toast Messages -->
-<p-toast></p-toast>
+<div class="p-4">
+	<p-toast></p-toast>
+	<p-confirmDialog></p-confirmDialog>
 
-<!-- User Management -->
-<div class="h-[calc(100vh-5rem)] bg-slate-50 flex flex-col">
-	<!-- Header Section -->
-	<div class="bg-white border-b border-slate-200 shadow-sm flex-shrink-0">
-		<div class="p-6">
-			<div class="flex justify-between items-center mb-6">
-				<div>
-					<h1 class="text-3xl font-bold text-slate-900 mb-1">
-						User Management
-					</h1>
-					<p class="text-sm text-slate-500">
-						Manage users across all roles: Admins, Supervisors, Enumerators, and General Users
-					</p>
-				</div>
-
-				<!-- Action Buttons -->
-				<div class="flex items-center gap-3">
-					<button
-						pButton
-						type="button"
-						label="Refresh All"
-						icon="pi pi-refresh"
-						size="small"
-						[loading]="
-							loadingAdmins || loadingSupervisors || loadingEnumerators || loadingGeneralUsers
-						"
-						[disabled]="
-							loadingAdmins || loadingSupervisors || loadingEnumerators || loadingGeneralUsers
-						"
-						(click)="loadAllUsers()"
-					></button>
-				</div>
-			</div>
-
-			<!-- Stats Section -->
-			<div class="grid grid-cols-4 gap-4">
-				<div
-					class="bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-300 hover:shadow-sm transition-all"
-				>
-					<div
-						class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
-					>
-						Admins
-					</div>
-					<div class="text-3xl font-bold text-slate-900">
-						{{ adminsCount }}
-					</div>
-				</div>
-				<div
-					class="bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-300 hover:shadow-sm transition-all"
-				>
-					<div
-						class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
-					>
-						Supervisors
-					</div>
-					<div class="text-3xl font-bold text-slate-900">
-						{{ supervisorsCount }}
-					</div>
-				</div>
-				<div
-					class="bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-300 hover:shadow-sm transition-all"
-				>
-					<div
-						class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
-					>
-						Enumerators
-					</div>
-					<div class="text-3xl font-bold text-slate-900">
-						{{ enumeratorsCount }}
-					</div>
-				</div>
-				<div
-					class="bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-300 hover:shadow-sm transition-all"
-				>
-					<div
-						class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1"
-					>
-						General Users
-					</div>
-					<div class="text-3xl font-bold text-slate-900">
-						{{ generalUsersCount }}
-					</div>
-				</div>
-			</div>
-		</div>
+	<div class="flex justify-content-between align-items-center mb-4">
+		<h2 class="text-2xl font-bold m-0">User Management</h2>
 	</div>
 
-	<!-- Content Area -->
-	<div class="flex-1 flex flex-col p-6">
-		<!-- Tab View for Role-based Management -->
-		<div
-			class="flex-1 flex flex-col overflow-hidden bg-white rounded-lg border border-slate-200 shadow-sm"
-		>
-			<p-tabView [(activeIndex)]="activeTabIndex" class="flex-1 flex flex-col">
-				<!-- Admins Tab -->
-				<p-tabPanel>
-					<ng-template pTemplate="header">
-						<span>Admins</span>
-					</ng-template>
-					<app-admin-user-admin-list
-						[searchValue]="searchValue"
-						(searchValueChange)="searchValue = $event"
-						[(selectedUser)]="selectedUser"
-						(loadingChange)="onLoadingAdminsChange($event)"
-						(usersCountChange)="onAdminsCountChange($event)"
-						(add)="openCreateAdminDialog()"
-						(viewProfile)="openProfileViewDialog($event)"
-						(edit)="openEditDialog($event)"
-						(resetPassword)="openResetPasswordDialog($event)"
-						(deactivate)="deactivateUser($event.user, $event.event)"
-						(activate)="activateUser($event.user, $event.event)"
-					></app-admin-user-admin-list>
-				</p-tabPanel>
+	<p-tabView [(activeIndex)]="activeTabIndex">
+		<p-tabPanel header="Admins">
+			<div class="flex flex-wrap gap-2 mb-3">
+				<button
+					pButton
+					label="Create Admin"
+					icon="pi pi-plus"
+					class="p-button-primary"
+					(click)="openCreate(UserRole.ADMIN)"
+				></button>
+			</div>
+			<p-table
+				[value]="admins"
+				[loading]="loadingAdmins"
+				styleClass="p-datatable-sm p-datatable-striped"
+				[tableStyle]="{ 'min-width': '50rem' }"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th>Name</th>
+						<th>CID</th>
+						<th>Phone</th>
+						<th>Status</th>
+						<th style="width: 12rem">Actions</th>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="body" let-u>
+					<tr>
+						<td>{{ u.name }}</td>
+						<td>{{ u.cid }}</td>
+						<td>{{ u.phoneNumber || '—' }}</td>
+						<td>
+							<p-tag [value]="u.isActive ? 'Active' : 'Inactive'" [severity]="u.isActive ? 'success' : 'secondary'"></p-tag>
+						</td>
+						<td>
+							<button pButton icon="pi pi-pencil" class="p-button-text p-button-sm" pTooltip="Edit" (click)="openEdit(u)"></button>
+							<button pButton icon="pi pi-key" class="p-button-text p-button-sm" pTooltip="Reset password" (click)="openResetPassword(u)"></button>
+							<button
+								pButton
+								[icon]="u.isActive ? 'pi pi-ban' : 'pi pi-check'"
+								class="p-button-text p-button-sm"
+								[pTooltip]="u.isActive ? 'Deactivate' : 'Activate'"
+								(click)="toggleActive(u)"
+							></button>
+							<button pButton icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger" pTooltip="Delete" (click)="deleteUser(u)"></button>
+						</td>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="emptymessage">
+					<tr><td colspan="5" class="text-center py-4">No admins yet. Create one above.</td></tr>
+				</ng-template>
+			</p-table>
+		</p-tabPanel>
 
-				<!-- Supervisors Tab -->
-				<p-tabPanel>
-					<ng-template pTemplate="header">
-						<span>Supervisors</span>
-					</ng-template>
-					<app-admin-user-supervisor-list
-						[searchValue]="searchValue"
-						(searchValueChange)="searchValue = $event"
-						[(selectedUser)]="selectedUser"
-						(loadingChange)="onLoadingSupervisorsChange($event)"
-						(usersCountChange)="onSupervisorsCountChange($event)"
-						(add)="openCreateSupervisorDialog()"
-						(viewProfile)="openProfileViewDialog($event)"
-						(edit)="openEditDialog($event)"
-						(resetPassword)="openResetPasswordDialog($event)"
-						(deactivate)="deactivateUser($event.user, $event.event)"
-						(activate)="activateUser($event.user, $event.event)"
-						(assignDzongkhag)="openAssignDzongkhagDialog($event)"
-						(deleteUser)="deleteSupervisor($event.user, $event.event)"
-					></app-admin-user-supervisor-list>
-				</p-tabPanel>
+		<p-tabPanel header="Enumerators">
+			<div class="flex flex-wrap gap-2 mb-3">
+				<button
+					pButton
+					label="Create Enumerator"
+					icon="pi pi-plus"
+					class="p-button-primary"
+					(click)="openCreate(UserRole.ENUMERATOR)"
+				></button>
+				<button
+					pButton
+					label="Bulk create"
+					icon="pi pi-upload"
+					class="p-button-outlined"
+					(click)="openBulkCreate()"
+				></button>
+				<button
+					pButton
+					label="Export CSV"
+					icon="pi pi-download"
+					class="p-button-outlined"
+					(click)="exportEnumeratorsCsv()"
+					[disabled]="enumerators.length === 0"
+				></button>
+			</div>
+			<p-table
+				[value]="enumerators"
+				[loading]="loadingEnumerators"
+				styleClass="p-datatable-sm p-datatable-striped"
+				[tableStyle]="{ 'min-width': '50rem' }"
+			>
+				<ng-template pTemplate="header">
+					<tr>
+						<th>Name</th>
+						<th>CID</th>
+						<th>Phone</th>
+						<th>Status</th>
+						<th style="width: 12rem">Actions</th>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="body" let-u>
+					<tr>
+						<td>{{ u.name }}</td>
+						<td>{{ u.cid }}</td>
+						<td>{{ u.phoneNumber || '—' }}</td>
+						<td>
+							<p-tag [value]="u.isActive ? 'Active' : 'Inactive'" [severity]="u.isActive ? 'success' : 'secondary'"></p-tag>
+						</td>
+						<td>
+							<button pButton icon="pi pi-pencil" class="p-button-text p-button-sm" pTooltip="Edit" (click)="openEdit(u)"></button>
+							<button pButton icon="pi pi-key" class="p-button-text p-button-sm" pTooltip="Reset password" (click)="openResetPassword(u)"></button>
+							<button
+								pButton
+								[icon]="u.isActive ? 'pi pi-ban' : 'pi pi-check'"
+								class="p-button-text p-button-sm"
+								[pTooltip]="u.isActive ? 'Deactivate' : 'Activate'"
+								(click)="toggleActive(u)"
+							></button>
+							<button pButton icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger" pTooltip="Delete" (click)="deleteUser(u)"></button>
+						</td>
+					</tr>
+				</ng-template>
+				<ng-template pTemplate="emptymessage">
+					<tr><td colspan="5" class="text-center py-4">No enumerators yet. Create one or use bulk create.</td></tr>
+				</ng-template>
+			</p-table>
+		</p-tabPanel>
+	</p-tabView>
 
-				<!-- Enumerators Tab -->
-				<p-tabPanel>
-					<ng-template pTemplate="header">
-						<span>Enumerators</span>
-					</ng-template>
-					<app-admin-user-enumerator-list
-						[searchValue]="searchValue"
-						(searchValueChange)="searchValue = $event"
-						[(selectedUser)]="selectedUser"
-						(loadingChange)="onLoadingEnumeratorsChange($event)"
-						(usersCountChange)="onEnumeratorsCountChange($event)"
-						(viewProfile)="openProfileViewDialog($event)"
-						(edit)="openEditDialog($event)"
-						(resetPassword)="openResetPasswordDialog($event)"
-						(deactivate)="deactivateUser($event.user, $event.event)"
-						(activate)="activateUser($event.user, $event.event)"
-					></app-admin-user-enumerator-list>
-				</p-tabPanel>
-
-				<!-- General Users Tab -->
-				<p-tabPanel>
-					<ng-template pTemplate="header">
-						<span>General Users</span>
-					</ng-template>
-					<app-admin-user-general-list
-						[searchValue]="searchValue"
-						(searchValueChange)="searchValue = $event"
-						[(selectedUser)]="selectedUser"
-						(loadingChange)="onLoadingGeneralUsersChange($event)"
-						(usersCountChange)="onGeneralUsersCountChange($event)"
-						(add)="openCreateGeneralUserDialog()"
-						(viewProfile)="openProfileViewDialog($event)"
-						(edit)="openEditDialog($event)"
-						(resetPassword)="openResetPasswordDialog($event)"
-						(deactivate)="deactivateUser($event.user, $event.event)"
-						(activate)="activateUser($event.user, $event.event)"
-					></app-admin-user-general-list>
-				</p-tabPanel>
-			</p-tabView>
+	<!-- Create user dialog -->
+	<p-dialog
+		[(visible)]="showCreateDialog"
+		[header]="createRole === UserRole.ADMIN ? 'Create Admin' : 'Create Enumerator'"
+		[modal]="true"
+		[closable]="!submitting"
+		[style]="{ width: '24rem' }"
+		(onHide)="closeCreate()"
+	>
+		<div class="flex flex-col gap-3">
+			<div>
+				<label class="block font-medium mb-1">Name <span class="text-red-500">*</span></label>
+				<input pInputText [(ngModel)]="formCreate.name" class="w-full" />
+			</div>
+			<div>
+				<label class="block font-medium mb-1">CID (11 digits) <span class="text-red-500">*</span></label>
+				<input pInputText [(ngModel)]="formCreate.cid" class="w-full" maxlength="11" />
+			</div>
+			<div>
+				<label class="block font-medium mb-1">Phone</label>
+				<input pInputText [(ngModel)]="formCreate.phoneNumber" class="w-full" />
+			</div>
+			<div>
+				<label class="block font-medium mb-1">Password (min 6) <span class="text-red-500">*</span></label>
+				<p-password [(ngModel)]="formCreate.password" [feedback]="true" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full"></p-password>
+			</div>
 		</div>
-	</div>
+		<ng-template pTemplate="footer">
+			<button pButton label="Cancel" class="p-button-text" (click)="closeCreate()" [disabled]="submitting"></button>
+			<button pButton label="Create" (click)="submitCreate()" [loading]="submitting" [disabled]="!formCreate.name?.trim() || !formCreate.cid?.trim() || !formCreate.password"></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Edit user dialog -->
+	<p-dialog
+		[(visible)]="showEditDialog"
+		header="Edit user"
+		[modal]="true"
+		[closable]="!submitting"
+		[style]="{ width: '24rem' }"
+		(onHide)="closeEdit()"
+	>
+		<div *ngIf="selectedUser" class="flex flex-col gap-3">
+			<p class="text-color-secondary text-sm">CID: {{ selectedUser.cid }} (read-only)</p>
+			<div>
+				<label class="block font-medium mb-1">Name</label>
+				<input pInputText [(ngModel)]="formEdit.name" class="w-full" />
+			</div>
+			<div>
+				<label class="block font-medium mb-1">Phone</label>
+				<input pInputText [(ngModel)]="formEdit.phoneNumber" class="w-full" />
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<button pButton label="Cancel" class="p-button-text" (click)="closeEdit()" [disabled]="submitting"></button>
+			<button pButton label="Save" (click)="submitEdit()" [loading]="submitting"></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Reset password dialog -->
+	<p-dialog
+		[(visible)]="showResetPasswordDialog"
+		header="Reset password"
+		[modal]="true"
+		[closable]="!submitting"
+		[style]="{ width: '24rem' }"
+		(onHide)="closeResetPassword()"
+	>
+		<div *ngIf="selectedUser" class="flex flex-col gap-3">
+			<p class="text-color-secondary">Set new password for {{ selectedUser.name }} ({{ selectedUser.cid }}). Min 6 characters.</p>
+			<div>
+				<label class="block font-medium mb-1">New password</label>
+				<p-password [(ngModel)]="formResetPassword.newPassword" [feedback]="true" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full"></p-password>
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<button pButton label="Cancel" class="p-button-text" (click)="closeResetPassword()" [disabled]="submitting"></button>
+			<button pButton label="Reset" (click)="submitResetPassword()" [loading]="submitting" [disabled]="!formResetPassword.newPassword || formResetPassword.newPassword.length < 6"></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Bulk create enumerators dialog -->
+	<p-dialog
+		[(visible)]="showBulkDialog"
+		header="Bulk create enumerators"
+		[modal]="true"
+		[closable]="!bulkSubmitting"
+		[style]="{ width: '36rem' }"
+		(onHide)="closeBulk()"
+	>
+		<div class="flex flex-col gap-3">
+			<p class="text-color-secondary text-sm">
+				One line per user. Format: <code>name,cid,password</code> or <code>name,cid,phone,password</code>. Password min 6 characters.
+			</p>
+			<textarea
+				pInputTextarea
+				[(ngModel)]="bulkCsvText"
+				rows="10"
+				class="w-full font-mono text-sm"
+				placeholder="name,cid,password (one per line) or name,cid,phone,password"
+			></textarea>
+			<div *ngIf="bulkResult" class="p-3 surface-100 border-round">
+				<p class="font-medium">Result: {{ bulkResult.created }} created, {{ bulkResult.failed }} failed.</p>
+				<ul *ngIf="bulkResult.errors?.length" class="list-none pl-0 mt-2 text-sm text-red-600">
+					<li *ngFor="let e of bulkResult.errors">Row {{ e.row }}: {{ e.message }}</li>
+				</ul>
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<button pButton label="Cancel" class="p-button-text" (click)="closeBulk()" [disabled]="bulkSubmitting"></button>
+			<button pButton label="Create" (click)="submitBulk()" [loading]="bulkSubmitting" [disabled]="!bulkCsvText?.trim()"></button>
+		</ng-template>
+	</p-dialog>
 </div>
-
-<!-- Confirmation Dialog -->
-<p-confirmDialog></p-confirmDialog>

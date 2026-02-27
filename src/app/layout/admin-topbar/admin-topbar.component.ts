@@ -17,16 +17,15 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { PasswordModule } from 'primeng/password';
 import { AvatarModule } from 'primeng/avatar';
-import { AuthService } from '../../core/dataservice/auth/auth.service';
 import {
 	User,
 	UpdateProfileDto,
 	ChangePasswordDto,
 	UserRole,
-	SupervisorDzongkhagAssignment,
 } from '../../core/dataservice/auth/auth.interface';
-import { DzongkhagDataService } from '../../core/dataservice/location/dzongkhag/dzongkhag.dataservice';
-import { Dzongkhag } from '../../core/dataservice/location/dzongkhag/dzongkhag.interface';
+import { DzongkhagService } from '../../core/dataservice/dzongkhag/dzongkhag.service';
+import type { Dzongkhag } from '../../core/dataservice/dzongkhag/dzongkhag.service';
+import { AuthService } from '../../core/dataservice/auth/auth.service';
 
 @Component({
 	selector: 'app-admin-topbar',
@@ -75,7 +74,6 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 	showEditProfileDialog: boolean = false;
 	editProfileForm: UpdateProfileDto = {
 		name: '',
-		emailAddress: '',
 		phoneNumber: '',
 	};
 	isUpdatingProfile: boolean = false;
@@ -95,23 +93,15 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 		private messageService: MessageService,
 		private authService: AuthService,
 		private router: Router,
-		private dzongkhagService: DzongkhagDataService
-	) { }
+		private dzongkhagService: DzongkhagService
+	) {}
 
 	ngOnInit(): void {
-		// Get initial user profile
 		this.userProfile = this.authService.getCurrentUser();
-
-		// Subscribe to auth state changes
-		this.authStateSubscription = this.authService.authState$.subscribe(
-			(authState) => {
-				this.userProfile = authState.user;
-				// Load dzongkhags if user is supervisor
-				if (this.isSupervisor()) {
-					this.loadSupervisorDzongkhags();
-				} else {
-					this.assignedDzongkhags = [];
-				}
+		this.authStateSubscription = this.authService.getCurrentUser$().subscribe(
+			(user: User | null) => {
+				this.userProfile = user;
+				this.assignedDzongkhags = [];
 			}
 		);
 	}
@@ -126,9 +116,6 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 	 * Get avatar label (first letter of name) if no profile image
 	 */
 	getAvatarLabel(): string {
-		if (this.userProfile?.profileImage) {
-			return '';
-		}
 		return this.userProfile?.name?.charAt(0)?.toUpperCase() || 'U';
 	}
 
@@ -143,33 +130,17 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 			icon: 'pi pi-sign-out',
 			acceptButtonStyleClass: 'p-button-danger',
 			accept: () => {
-				// Hide profile popover only when user confirms logout
 				this.profilePopover.hide();
 				this.isLoggingOut = true;
-				this.authService.logout().subscribe({
-					next: () => {
-						this.messageService.add({
-							severity: 'success',
-							summary: 'Success',
-							detail: 'You have been signed out successfully',
-						});
-						// The AuthService will handle navigation to login
-					},
-					error: (error) => {
-						console.error('Logout error:', error);
-						this.messageService.add({
-							severity: 'error',
-							summary: 'Error',
-							detail:
-								'An error occurred during sign out. You have been logged out locally.',
-						});
-						// Force logout even if server call fails
-						this.authService.forceLogout();
-					},
-					complete: () => {
-						this.isLoggingOut = false;
-					},
+				this.authService.signOut();
+				this.authService.forceLogout();
+				this.router.navigate(['/auth/login']);
+				this.messageService.add({
+					severity: 'success',
+					summary: 'Success',
+					detail: 'You have been signed out successfully',
 				});
+				this.isLoggingOut = false;
 			},
 			reject: () => {
 				// User cancelled, keep profile popover open
@@ -184,7 +155,6 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 		if (this.userProfile) {
 			this.editProfileForm = {
 				name: this.userProfile.name || '',
-				emailAddress: this.userProfile.emailAddress || '',
 				phoneNumber: this.userProfile.phoneNumber || '',
 			};
 			this.showEditProfileDialog = true;
@@ -192,16 +162,9 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	/**
-	 * Close Edit Profile dialog and reset form
-	 */
 	closeEditProfileDialog(): void {
 		this.showEditProfileDialog = false;
-		this.editProfileForm = {
-			name: '',
-			emailAddress: '',
-			phoneNumber: '',
-		};
+		this.editProfileForm = { name: '', phoneNumber: '' };
 	}
 
 	/**
@@ -212,14 +175,9 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 			return;
 		}
 
-		// Validate that at least one field is provided
 		const hasChanges =
-			(this.editProfileForm.name &&
-				this.editProfileForm.name !== this.userProfile.name) ||
-			(this.editProfileForm.emailAddress &&
-				this.editProfileForm.emailAddress !== this.userProfile.emailAddress) ||
-			(this.editProfileForm.phoneNumber &&
-				this.editProfileForm.phoneNumber !== this.userProfile.phoneNumber);
+			(this.editProfileForm.name && this.editProfileForm.name !== this.userProfile.name) ||
+			(this.editProfileForm.phoneNumber && this.editProfileForm.phoneNumber !== this.userProfile.phoneNumber);
 
 		if (!hasChanges) {
 			this.messageService.add({
@@ -232,32 +190,20 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 
 		// Build update payload with only changed fields
 		const updatePayload: UpdateProfileDto = {};
-		if (
-			this.editProfileForm.name &&
-			this.editProfileForm.name !== this.userProfile.name
-		) {
+		if (this.editProfileForm.name && this.editProfileForm.name !== this.userProfile.name) {
 			updatePayload.name = this.editProfileForm.name;
 		}
-		if (
-			this.editProfileForm.emailAddress &&
-			this.editProfileForm.emailAddress !== this.userProfile.emailAddress
-		) {
-			updatePayload.emailAddress = this.editProfileForm.emailAddress;
-		}
-		if (
-			this.editProfileForm.phoneNumber &&
-			this.editProfileForm.phoneNumber !== this.userProfile.phoneNumber
-		) {
+		if (this.editProfileForm.phoneNumber !== undefined && this.editProfileForm.phoneNumber !== this.userProfile.phoneNumber) {
 			updatePayload.phoneNumber = this.editProfileForm.phoneNumber;
 		}
 
 		this.isUpdatingProfile = true;
 		this.authService.updateProfile(updatePayload).subscribe({
-			next: (response) => {
+			next: () => {
 				this.messageService.add({
 					severity: 'success',
 					summary: 'Success',
-					detail: response.message || 'Profile updated successfully',
+					detail: 'Profile updated successfully',
 				});
 				this.closeEditProfileDialog();
 			},
@@ -359,15 +305,15 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 
 		this.isChangingPassword = true;
 		this.authService.changePassword(this.changePasswordForm).subscribe({
-			next: (response) => {
+			next: () => {
 				this.messageService.add({
 					severity: 'success',
 					summary: 'Success',
-					detail: response.message || 'Password changed successfully',
+					detail: 'Password changed successfully',
 				});
 				this.closeChangePasswordDialog();
 			},
-			error: (error) => {
+			error: (error: any) => {
 				console.error('Password change error:', error);
 				const errorMessage =
 					error?.error?.message ||
@@ -392,51 +338,12 @@ export class AdminTopbarComponent implements OnInit, OnDestroy {
 		this.openChangePasswordDialog();
 	}
 
-	/**
-	 * Check if current user is a supervisor
-	 */
 	isSupervisor(): boolean {
-		return this.userProfile?.role === UserRole.SUPERVISOR;
+		return false; // Livability backend has only ADMIN | ENUMERATOR
 	}
 
-	/**
-	 * Load assigned dzongkhags for supervisor
-	 * Tries the new /auth/my-dzongkhags endpoint first, falls back to the old endpoint if it doesn't exist
-	 */
-	loadSupervisorDzongkhags(): void {
-		console.log('Loading supervisor dzongkhags');
-		if (!this.userProfile?.id) {
-			console.warn('Cannot load dzongkhags: user profile ID is missing');
-			return;
-		}
-
-		this.loadingDzongkhags = true;
-
-
-		// Try the new endpoint first (uses JWT token)
-		this.authService
-			.getMyDzongkhagAssignments()
-			.subscribe({
-				next: (assiignedDzongkhags: Dzongkhag[]) => {
-					this.assignedDzongkhags = assiignedDzongkhags;
-					this.loadingDzongkhags = false;
-				},
-				error: (error) => {
-					console.error('Error loading dzongkhags:', error);
-					this.assignedDzongkhags = [];
-					this.loadingDzongkhags = false;
-				},
-
-			});
-	}
-
-	/**
-	 * Get formatted string of assigned dzongkhag names
-	 */
-	getDzongkhagNames(): string {
-		if (this.assignedDzongkhags.length === 0) {
-			return '';
-		}
-		return this.assignedDzongkhags.map((dz) => dz.name + " Dzongkhag").join(', ');
+	getDzongkhagsDisplay(): string {
+		if (this.assignedDzongkhags.length === 0) return '';
+		return this.assignedDzongkhags.map((dz) => dz.name + ' Dzongkhag').join(', ');
 	}
 }

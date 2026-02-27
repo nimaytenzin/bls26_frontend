@@ -15,7 +15,7 @@ import { filter } from 'rxjs/operators';
 })
 export class EnumeratorLayoutComponent implements OnInit {
 	currentUser: User | null = null;
-	activeTab: string = 'active-surveys';
+	activeTab: string = 'active';
 	showHeader: boolean = true;
 	showBottomNav: boolean = true;
 
@@ -43,10 +43,7 @@ export class EnumeratorLayoutComponent implements OnInit {
 	checkHeaderVisibility() {
 		const url = this.router.url;
 		const hideHeaderRoutes = [
-			'/enumerator/survey/',
-			'/enumerator/survey-enumeration-area-detail/',
-			'/enumerator/household-listing-form/',
-			'/enumerator/survey-enumeration-area/',
+			'/enumerator/ea/',
 		];
 
 		this.showHeader = !hideHeaderRoutes.some((route) => url.includes(route));
@@ -58,10 +55,7 @@ export class EnumeratorLayoutComponent implements OnInit {
 	checkBottomNavVisibility() {
 		const url = this.router.url;
 		const hideBottomNavRoutes = [
-			'/enumerator/survey/',
-			'/enumerator/survey-enumeration-area-detail/',
-			'/enumerator/household-listing-form/',
-			'/enumerator/survey-enumeration-area/',
+			'/enumerator/ea/',
 		];
 
 		this.showBottomNav = !hideBottomNavRoutes.some((route) =>
@@ -73,14 +67,7 @@ export class EnumeratorLayoutComponent implements OnInit {
 	 * Set active tab based on current route
 	 */
 	setActiveTabFromRoute() {
-		const url = this.router.url;
-		if (url.includes('past-surveys')) {
-			this.activeTab = 'past-surveys';
-		} else if (url.includes('profile')) {
-			this.activeTab = 'profile';
-		} else {
-			this.activeTab = 'active-surveys';
-		}
+		this.activeTab = 'active';
 	}
 
 	/**
@@ -88,16 +75,8 @@ export class EnumeratorLayoutComponent implements OnInit {
 	 */
 	navigateToTab(tab: string) {
 		this.activeTab = tab;
-		switch (tab) {
-			case 'active-surveys':
-				this.router.navigate(['/enumerator']);
-				break;
-			case 'past-surveys':
-				this.router.navigate(['/enumerator/past-surveys']);
-				break;
-			case 'profile':
-				this.router.navigate(['/enumerator/profile']);
-				break;
+		if (tab === 'active') {
+			this.router.navigate(['/enumerator']);
 		}
 	}
 
@@ -105,7 +84,7 @@ export class EnumeratorLayoutComponent implements OnInit {
 	 * Logout user
 	 */
 	logout() {
-		this.authService.logout();
+		this.authService.signOut();
 		this.router.navigate(['/auth/login']);
 	}
 

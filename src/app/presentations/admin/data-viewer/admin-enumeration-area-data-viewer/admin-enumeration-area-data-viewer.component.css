@@ -1,6 +1,7 @@
-/* Map Container Styling */
-#enumerationAreaMap {
+/* Map container fills right panel */
+.ea-data-viewer .map-container {
   z-index: 0;
+  min-height: 300px;
 }
 
 /* Ensure Leaflet controls are visible */

@@ -11,8 +11,8 @@
 
 	<!-- Mobile Logo (shown only on small screens) -->
 	<a routerLink="/" class="flex lg:hidden items-center gap-2 ml-2 hover:opacity-80 transition-opacity">
-		<img src="logo.png" class="h-8 w-auto" alt="Logo" />
-		<span class="text-lg font-black text-slate-900 tracking-tighter">NSB</span>
+		<img src="logo.png" class="h-8 w-auto" alt="BLS 2026 Logo" />
+		<span class="text-lg font-black text-slate-900 tracking-tighter">BLS 2026</span>
 	</a>
 
 	<!-- Spacer to push menu to the right -->
@@ -24,7 +24,7 @@
 			class="relative focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-full transition-all hover:scale-105">
 			<p-avatar size="normal" shape="circle"
 				class="ring-2 ring-slate-200 hover:ring-primary-300 cursor-pointer transition-all shadow-sm hover:shadow-md"
-				[image]="userProfile.profileImage || undefined" [label]="getAvatarLabel()"
+				[label]="getAvatarLabel()"
 				styleClass="bg-primary-500 text-white"></p-avatar>
 		</button>
 		<div class="text-right hidden md:block">
@@ -36,7 +36,7 @@
 			</p>
 			<p class="text-xs text-slate-600 m-0 leading-tight mt-0.5 font-medium"
 				*ngIf="isSupervisor() && assignedDzongkhags.length > 0">
-				{{ getDzongkhagNames() }}
+				{{ getDzongkhagsDisplay() }}
 			</p>
 			<p class="text-xs text-slate-400 m-0 leading-tight mt-0.5 italic"
 				*ngIf="isSupervisor() && loadingDzongkhags">
@@ -53,7 +53,7 @@
 					<!-- Profile Header -->
 					<div class="flex items-center gap-3 p-4 border-b border-slate-200">
 						<p-avatar size="large" shape="circle" class="ring-2 ring-primary-100"
-							[image]="userProfile.profileImage || undefined" [label]="getAvatarLabel()"
+							[label]="getAvatarLabel()"
 							styleClass="bg-primary-500 text-white"></p-avatar>
 						<div class="flex-1 min-w-0">
 							<h3 class="text-base font-semibold text-slate-900 m-0 truncate">
@@ -64,7 +64,7 @@
 							</p>
 							<p class="text-xs text-slate-600 m-0 mt-1 font-medium"
 								*ngIf="isSupervisor() && assignedDzongkhags.length > 0">
-								{{ getDzongkhagNames() }}
+								{{ getDzongkhagsDisplay() }}
 							</p>
 							<p class="text-xs text-slate-400 m-0 mt-1 italic"
 								*ngIf="isSupervisor() && loadingDzongkhags">
@@ -79,18 +79,6 @@
 
 					<!-- Profile Details -->
 					<div class="p-4 space-y-3">
-						<div class="flex items-center gap-3">
-							<div class="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-								<i class="pi pi-envelope text-xs text-slate-600"></i>
-							</div>
-							<div class="flex-1 min-w-0">
-								<p class="text-xs text-slate-500 m-0">Email</p>
-								<p class="text-sm font-semibold text-slate-900 m-0 truncate">
-									{{ userProfile.emailAddress }}
-								</p>
-							</div>
-						</div>
-
 						<div class="flex items-center gap-3" *ngIf="userProfile.phoneNumber">
 							<div class="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
 								<i class="pi pi-phone text-xs text-slate-600"></i>
@@ -147,15 +135,6 @@
 				</label>
 				<input pInputText id="editName" [(ngModel)]="editProfileForm.name" [disabled]="isUpdatingProfile"
 					placeholder="Enter your full name" class="w-full" />
-			</div>
-
-			<!-- Email Field -->
-			<div class="flex flex-col">
-				<label for="editEmail" class="text-sm font-medium text-slate-700 mb-1">
-					Email Address
-				</label>
-				<input pInputText id="editEmail" type="email" [(ngModel)]="editProfileForm.emailAddress"
-					[disabled]="isUpdatingProfile" placeholder="Enter your email address" class="w-full" />
 			</div>
 
 			<!-- Phone Number Field -->

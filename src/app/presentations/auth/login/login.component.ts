@@ -32,9 +32,9 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 	) {}
 
 	ngOnInit(): void {
-		// Initialize the form first
+		// Initialize the form: CID + password (Livability backend)
 		this.loginForm = this.fb.group({
-			email: ['', [Validators.required, Validators.email]],
+			cid: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
 			password: ['', [Validators.required, Validators.minLength(6)]],
 		});
 
@@ -206,7 +206,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 		this.errorMessage = '';
 
 		const loginDto: LoginDto = {
-			email: this.loginForm.value.email,
+			cid: this.loginForm.value.cid,
 			password: this.loginForm.value.password,
 		};
 
@@ -233,12 +233,8 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 		if (user) {
 			if (this.authService.isAdmin()) {
 				this.router.navigate(['/admin']);
-			} else if (this.authService.isSupervisor()) {
-				this.router.navigate(['/supervisor']);
 			} else if (this.authService.isEnumerator()) {
 				this.router.navigate(['/enumerator']);
-			} else if (this.authService.isGeneralUser()) {
-				this.router.navigate(['/']);
 			} else {
 				this.router.navigate(['/']);
 			}
@@ -273,15 +269,13 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
 		if (field && field.errors && field.touched) {
 			if (field.errors['required']) {
-				return `${
-					fieldName === 'phoneNumber' ? 'Email address' : 'Password'
-				} is required`;
+				return fieldName === 'cid' ? 'CID is required' : 'Password is required';
 			}
 			if (field.errors['minlength']) {
 				return `Password must be at least ${field.errors['minlength'].requiredLength} characters`;
 			}
-			if (field.errors['email']) {
-				return 'Please enter a valid email address';
+			if (field.errors['pattern'] && fieldName === 'cid') {
+				return 'CID must be exactly 11 digits';
 			}
 		}
 

@@ -1,0 +1,74 @@
+<div class="p-4 pb-6">
+	<p-toast></p-toast>
+	<p-confirmDialog></p-confirmDialog>
+
+	<div class="flex items-center justify-between mb-4">
+		<div>
+			<button pButton type="button" icon="pi pi-arrow-left" class="p-button-text mr-2" (click)="goBack()"></button>
+			<h2 class="text-xl font-bold text-gray-800 inline">{{ eaName || 'Households' }}</h2>
+		</div>
+		<button pButton label="Map" icon="pi pi-map" class="p-button-outlined" (click)="goToMap()"></button>
+	</div>
+
+	<div class="mb-4 flex flex-wrap gap-2">
+		<input
+			pInputText
+			type="text"
+			[(ngModel)]="searchQuery"
+			placeholder="Search by name, ID, phone..."
+			class="flex-1 min-w-[200px]"
+		/>
+	</div>
+
+	<div *ngIf="loading">
+		<p-progressSpinner></p-progressSpinner>
+	</div>
+
+	<div *ngIf="!loading && filteredStructures.length === 0" class="text-center py-8 text-gray-500">
+		No households found. Add structures and households from the map.
+	</div>
+
+	<div *ngIf="!loading && filteredStructures.length > 0" class="space-y-6">
+		<p class="text-sm text-gray-600">
+			{{ totalHouseholds() }} household(s), {{ totalPopulation() }} population
+		</p>
+		<div *ngFor="let structure of filteredStructures" class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+			<div class="px-4 py-3 bg-gray-50 border-b flex justify-between items-center">
+				<span class="font-semibold">Structure {{ structure.structureNumber }}</span>
+				<button pButton type="button" icon="pi pi-plus" label="Add household" class="p-button-sm" (click)="addHousehold(structure.id)"></button>
+			</div>
+			<div class="p-4">
+				<p-table [value]="structure.householdListings" styleClass="p-datatable-sm" [tableStyle]="{ 'min-width': '40rem' }">
+					<ng-template pTemplate="header">
+						<tr>
+							<th>Serial</th>
+							<th>HOH Name</th>
+							<th>ID</th>
+							<th>Male</th>
+							<th>Female</th>
+							<th>Phone</th>
+							<th></th>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="body" let-h>
+						<tr>
+							<td>{{ h.householdSerialNumber }}</td>
+							<td>{{ h.nameOfHOH }}</td>
+							<td>{{ h.householdIdentification }}</td>
+							<td>{{ h.totalMale }}</td>
+							<td>{{ h.totalFemale }}</td>
+							<td>{{ h.phoneNumber || '—' }}</td>
+							<td>
+								<button pButton type="button" icon="pi pi-pencil" class="p-button-text p-button-sm" (click)="editHousehold(h.id)"></button>
+								<button pButton type="button" icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger" (click)="deleteHousehold(h)"></button>
+							</td>
+						</tr>
+					</ng-template>
+					<ng-template pTemplate="emptymessage">
+						<tr><td colspan="7" class="text-center py-4 text-gray-500">No households in this structure</td></tr>
+					</ng-template>
+				</p-table>
+			</div>
+		</div>
+	</div>
+</div>

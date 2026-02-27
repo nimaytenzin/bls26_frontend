@@ -1,197 +1,46 @@
 <div class="enumerator-dashboard p-4 pb-6">
-	<!-- Header Section -->
-	<div class="mb-4">
-		<div class="flex items-center justify-between mb-2">
-			<div class="flex-1">
-				<h2 class="text-xl font-bold text-gray-800 mb-1">Active Surveys</h2>
-				<p class="text-sm text-gray-600">Tap on a survey to start enumeration</p>
-			</div>
-			<button
-				*ngIf="!loading && surveys.length > 0"
-				pButton
-				type="button"
-				icon="pi pi-refresh"
-				class="p-button-rounded p-button-primary shadow-md"
-				(click)="refresh()"
-				style="background-color: #1A58AF; border-color: #1A58AF;"
-				pTooltip="Refresh surveys"
-				tooltipPosition="bottom"
-			></button>
+	<div class="mb-6">
+		<h2 class="text-xl font-bold text-gray-800 mb-1">Select area</h2>
+		<p class="text-sm text-gray-600">Choose Dzongkhag and Enumeration Area to open the map</p>
+	</div>
+
+	<div class="space-y-4 max-w-md">
+		<div>
+			<label class="block text-sm font-medium text-gray-700 mb-2">Dzongkhag</label>
+			<p-dropdown
+				[options]="dzongkhags"
+				optionLabel="name"
+				optionValue="id"
+				[(ngModel)]="selectedDzongkhagId"
+				placeholder="Select Dzongkhag"
+				[loading]="loadingDzongkhags"
+				(onChange)="onDzongkhagChange()"
+				styleClass="w-full"
+			></p-dropdown>
 		</div>
-	</div>
-
-	<!-- Loading State -->
-	<div *ngIf="loading" class="flex flex-col items-center justify-center py-12">
-		<p-progressSpinner
-			styleClass="w-12 h-12"
-			strokeWidth="4"
-		></p-progressSpinner>
-		<p class="text-sm text-gray-600 mt-4">Loading your surveys...</p>
-	</div>
-
-	<!-- Error State -->
-	<div *ngIf="!loading && error" class="my-4">
-		<p-message severity="error" [text]="error" styleClass="w-full"></p-message>
+		<div>
+			<label class="block text-sm font-medium text-gray-700 mb-2">Enumeration Area</label>
+			<p-dropdown
+				[options]="enumerationAreas"
+				optionLabel="name"
+				optionValue="id"
+				[(ngModel)]="selectedEaId"
+				placeholder="Select EA"
+				[loading]="loadingEas"
+				[disabled]="!selectedDzongkhagId"
+				styleClass="w-full"
+			></p-dropdown>
+		</div>
 		<button
 			pButton
 			type="button"
-			label="Retry"
-			icon="pi pi-refresh"
-			class="p-button-outlined p-button-danger mt-3 w-full"
-			(click)="refresh()"
+			label="Open map"
+			icon="pi pi-map"
+			class="w-full"
+			[disabled]="!canOpenMap()"
+			(click)="openMap()"
+			styleClass="p-button-primary"
+			[style]="{ 'background-color': '#1A58AF', 'border-color': '#1A58AF' }"
 		></button>
-	</div>
-
-	<!-- Empty State -->
-	<div
-		*ngIf="!loading && !error && surveys.length === 0"
-		class="flex flex-col items-center justify-center py-12 px-4"
-	>
-		<i class="pi pi-inbox text-6xl text-gray-300 mb-4"></i>
-		<h3 class="text-lg font-semibold text-gray-700 mb-2">No Active Surveys</h3>
-		<p class="text-sm text-gray-500 text-center mb-4">
-			You don't have any active surveys assigned at the moment.
-		</p>
-		<button
-			pButton
-			type="button"
-			label="Refresh"
-			icon="pi pi-refresh"
-			class="p-button-outlined"
-			(click)="refresh()"
-		></button>
-	</div>
-
-	<!-- Surveys List -->
-	<div *ngIf="!loading && !error && surveys.length > 0" class="space-y-4">
-		<!-- Survey Card -->
-		<div
-			*ngFor="let survey of surveys"
-			class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-			
-		>
-			<!-- Card Header -->
-			<div class="p-4 border-b border-gray-200">
-				<div class="flex items-start justify-between mb-2">
-					<div class="flex-1">
-						<h3 class="text-lg font-bold text-gray-900 leading-tight mb-1">
-							{{ survey.name }}
-						</h3>
-						<p class="text-xs text-gray-600">
-							<i class="pi pi-calendar mr-1"></i>
-							Year {{ survey.year }}
-						</p>
-					</div>
-					<p-tag
-						[value]="survey.status"
-						[severity]="getStatusSeverity(survey.status)"
-						styleClass="text-xs font-semibold"
-					></p-tag>
-				</div>
-
-				<!-- Description -->
-				<p
-					*ngIf="survey.description"
-					class="text-sm text-gray-600 line-clamp-2 mt-2"
-				>
-					{{ survey.description }}
-				</p>
-			</div>
-
-			<!-- Card Body -->
-			<div class="p-4">
-				<!-- Date Information -->
-				<div class="grid grid-cols-2 gap-4 mb-4">
-					<div class="flex items-start gap-2">
-						<i class="pi pi-calendar-plus text-green-600 mt-1"></i>
-						<div>
-							<p class="text-xs text-gray-500 uppercase tracking-wide">
-								Start Date
-							</p>
-							<p class="text-sm font-semibold text-gray-800">
-								{{ formatDate(survey.startDate) }}
-							</p>
-						</div>
-					</div>
-					<div class="flex items-start gap-2">
-						<i class="pi pi-calendar-minus text-red-600 mt-1"></i>
-						<div>
-							<p class="text-xs text-gray-500 uppercase tracking-wide">
-								End Date
-							</p>
-							<p class="text-sm font-semibold text-gray-800">
-								{{ formatDate(survey.endDate) }}
-							</p>
-						</div>
-					</div>
-				</div>
-
-				<!-- Days Remaining Alert -->
-				<div
-					*ngIf="getDaysRemaining(survey.endDate) > 0"
-					class="rounded-xl p-3 mb-3"
-					[ngClass]="{
-						'bg-amber-50 border border-amber-200': isEndingSoon(survey.endDate),
-						'border border-[#E8F0FF]': !isEndingSoon(survey.endDate)
-					}"
-					[style.background-color]="!isEndingSoon(survey.endDate) ? '#E8F0FF' : ''"
-				>
-						<div class="flex items-center gap-2">
-							<i
-								class="pi"
-								[ngClass]="{
-									'pi-exclamation-triangle text-amber-600': isEndingSoon(
-										survey.endDate
-									),
-									'pi-clock': !isEndingSoon(survey.endDate)
-								}"
-								[style.color]="!isEndingSoon(survey.endDate) ? '#1A58AF' : ''"
-							></i>
-						<div class="flex-1">
-							<p
-								class="text-sm font-semibold"
-								[ngClass]="{
-									'text-amber-800': isEndingSoon(survey.endDate)
-								}"
-								[style.color]="!isEndingSoon(survey.endDate) ? '#103975' : ''"
-							>
-								<span *ngIf="isEndingSoon(survey.endDate)">Ending Soon!</span>
-								<span *ngIf="!isEndingSoon(survey.endDate)"
-									>{{ getDaysRemaining(survey.endDate) }} days remaining</span
-								>
-							</p>
-							<p
-								*ngIf="isEndingSoon(survey.endDate)"
-								class="text-xs text-amber-600"
-							>
-								Only {{ getDaysRemaining(survey.endDate) }} days left
-							</p>
-						</div>
-					</div>
-				</div>
-
-				<!-- Survey ended message -->
-				<div
-					*ngIf="survey.status !== 'ACTIVE'"
-					class="bg-red-50 border border-red-200 rounded-lg p-3 mb-3"
-				>
-					<div class="flex items-center gap-2">
-						<i class="pi pi-times-circle text-red-600"></i>
-						<p class="text-sm font-semibold text-red-800">Survey Ended</p>
-					</div>
-				</div>
-
- 							<!-- Action Button -->
-				<button
-					pButton
-					type="button"
-					label="Start Enumeration"
-					icon="pi pi-arrow-right"
- 					class="w-full p-button-primary"
-					[disabled]="survey.status !== 'ACTIVE'"
-					(click)="selectSurvey(survey)"
-				></button>
-			</div>
-		</div>
 	</div>
 </div>
