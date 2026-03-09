@@ -1,13 +1,146 @@
-:host { display: block; height: 100%; }
-.ea-map-view { height: 100%; }
-
-/* Map container fills available space */
-.ea-map-view .map-container {
-  z-index: 0;
-  height: 90dvh;
+/* True full-screen: dynamic viewport height on root only */
+:host {
+  display: block;
+  height: 100dvh;
+  height: 100vh; /* fallback for older browsers */
+  background-color: #f8fafc;
 }
 
-/* Ensure Leaflet controls are visible above the map */
+.ea-map-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Header: blue fills status bar area on iOS/Android */
+header {
+  background-color: #1a58af;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Toolbar: standard mobile height, above Leaflet */
+.map-controls-toolbar {
+  min-height: 56px;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 1000;
+}
+
+/* PrimeNG overrides for mobile touch ergonomics */
+:host ::ng-deep {
+  .p-button.p-button-sm {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .p-button.p-button-rounded {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+  }
+
+  .p-tag {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+  }
+}
+
+/* Map panel & container */
+.ea-map-panel {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #cbd5e1;
+}
+
+.map-container {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  touch-action: none;
+}
+
+.leaflet-safe-area-spacer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: env(safe-area-inset-bottom, 0);
+  pointer-events: none;
+}
+
+.toast-overlay {
+  z-index: 2000;
+}
+
+/* Floating map action buttons (zoom to extent / zoom to location) */
+.map-fab-controls {
+  position: absolute;
+  right: 12px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.map-fab {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #1a58af;
+  font-size: 17px;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active:not(:disabled) {
+    transform: scale(0.9);
+    background: #eef2ff;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  &--locating {
+    color: #f59e0b;
+  }
+}
+
+/* User "you are here" location dot */
+:host ::ng-deep .user-location-marker {
+  .user-location-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2563eb;
+    border: 3px solid #ffffff;
+    box-shadow:
+      0 0 0 4px rgba(37, 99, 235, 0.3),
+      0 2px 6px rgba(0, 0, 0, 0.25);
+  }
+}
+
 :host ::ng-deep .leaflet-control-zoom,
 :host ::ng-deep .leaflet-control-attribution {
   z-index: 10;

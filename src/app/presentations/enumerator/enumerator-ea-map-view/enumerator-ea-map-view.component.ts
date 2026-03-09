@@ -52,9 +52,11 @@ export class EnumeratorEaMapViewComponent implements OnInit, OnDestroy, AfterVie
 	isAddingStructure = false;
 	isCompleting = false;
 	eaCompleted = false;
+	locating = false;
 	toastMessage: string | null = null;
 	toastSeverity: 'success' | 'error' | 'info' = 'info';
 	private toastTimeout: ReturnType<typeof setTimeout> | null = null;
+	private userLocationMarker?: L.Marker;
 
 	constructor(
 		private route: ActivatedRoute,
@@ -81,6 +83,7 @@ export class EnumeratorEaMapViewComponent implements OnInit, OnDestroy, AfterVie
 		this.destroy$.next();
 		this.destroy$.complete();
 		if (this.geomLayer && this.map) this.map.removeLayer(this.geomLayer);
+		if (this.userLocationMarker && this.map) this.map.removeLayer(this.userLocationMarker);
 		if (this.map) this.map.remove();
 		if (this.toastTimeout) clearTimeout(this.toastTimeout);
 	}
@@ -112,12 +115,23 @@ export class EnumeratorEaMapViewComponent implements OnInit, OnDestroy, AfterVie
 				next: (list) => {
 					this.structures = list;
 					this.loading = false;
-					setTimeout(() => this.initMap(), 50);
+					if (this.map) {
+						// Map already exists (e.g. after adding a structure): just refresh markers
+						const geomObj = this.normalizeGeom(this.ea?.geom);
+						this.renderStructures(!!geomObj);
+					} else {
+						setTimeout(() => this.initMap(), 50);
+					}
 				},
 				error: (err) => {
 					this.structures = [];
 					this.loading = false;
-					setTimeout(() => this.initMap(), 50);
+					if (this.map) {
+						const geomObj = this.normalizeGeom(this.ea?.geom);
+						this.renderStructures(!!geomObj);
+					} else {
+						setTimeout(() => this.initMap(), 50);
+					}
 				},
 			});
 	}
@@ -167,6 +181,9 @@ export class EnumeratorEaMapViewComponent implements OnInit, OnDestroy, AfterVie
 		});
 
 		this.renderStructures(!!geomObj);
+
+		// Recalc size after layout so map is visible (fixes flex/safe-area timing)
+		setTimeout(() => this.map?.invalidateSize(), 150);
 	}
 
 	private renderStructures(hasGeom: boolean): void {
@@ -306,6 +323,58 @@ export class EnumeratorEaMapViewComponent implements OnInit, OnDestroy, AfterVie
 				});
 			},
 		});
+	}
+
+	zoomToExtent(): void {
+		if (!this.map) return;
+		if (this.geomLayer) {
+			const bounds = this.geomLayer.getBounds();
+			if (bounds.isValid()) {
+				this.map.fitBounds(bounds, { padding: [32, 32], maxZoom: 18 });
+				return;
+			}
+		}
+		if (this.structureMarkers.size > 0) {
+			const bounds = L.latLngBounds([]);
+			this.structureMarkers.forEach((m) => bounds.extend(m.getLatLng()));
+			if (bounds.isValid()) {
+				this.map.fitBounds(bounds, { padding: [32, 32], maxZoom: 18 });
+			}
+		}
+	}
+
+	zoomToLocation(): void {
+		if (!this.map || this.locating) return;
+		if (!navigator.geolocation) {
+			this.showToast('Geolocation is not supported on this device', 'error');
+			return;
+		}
+		this.locating = true;
+		navigator.geolocation.getCurrentPosition(
+			(pos) => {
+				this.locating = false;
+				const latlng: L.LatLngExpression = [pos.coords.latitude, pos.coords.longitude];
+				if (this.userLocationMarker) {
+					this.userLocationMarker.setLatLng(latlng);
+				} else {
+					const icon = L.divIcon({
+						className: 'user-location-marker',
+						html: '<div class="user-location-dot"></div>',
+						iconSize: [20, 20],
+						iconAnchor: [10, 10],
+					});
+					this.userLocationMarker = L.marker(latlng, { icon })
+						.bindTooltip('Your location', { permanent: false, direction: 'top' })
+						.addTo(this.map!);
+				}
+				this.map!.flyTo(latlng, 17, { duration: 1.2 });
+			},
+			() => {
+				this.locating = false;
+				this.showToast('Could not get your location', 'error');
+			},
+			{ enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+		);
 	}
 
 	goBack(): void {

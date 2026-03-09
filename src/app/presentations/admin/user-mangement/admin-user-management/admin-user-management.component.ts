@@ -53,6 +53,7 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy {
 
 	showBulkDialog = false;
 	bulkCsvText = '';
+	bulkUploadFile: File | null = null;
 	bulkSubmitting = false;
 	bulkResult: { created: number; failed: number; errors: Array<{ row?: number; message: string }> } | null = null;
 
@@ -378,7 +379,109 @@ export class AdminUserManagementComponent implements OnInit, OnDestroy {
 	openBulkCreate(): void {
 		this.bulkCsvText = '';
 		this.bulkResult = null;
+		this.bulkUploadFile = null;
 		this.showBulkDialog = true;
+	}
+
+	/** Download CSV template with headers: name,cid,phoneNumber,password */
+	downloadBulkTemplate(): void {
+		this.authService
+			.getBulkEnumeratorsTemplate()
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (blob) => {
+					const url = URL.createObjectURL(blob);
+					const a = document.createElement('a');
+					a.href = url;
+					a.download = 'enumerators-bulk-template.csv';
+					a.click();
+					URL.revokeObjectURL(url);
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Template downloaded',
+						life: 2000,
+					});
+				},
+				error: (err) =>
+					this.messageService.add({
+						severity: 'error',
+						summary: err.error?.message || 'Download failed',
+						life: 5000,
+					}),
+			});
+	}
+
+	onBulkFileSelect(event: Event): void {
+		const input = event.target as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+		if (!file.name.toLowerCase().endsWith('.csv')) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Please select a CSV file',
+				life: 3000,
+			});
+			input.value = '';
+			return;
+		}
+		this.bulkUploadFile = file;
+		this.bulkResult = null;
+		this.cdr.markForCheck();
+	}
+
+	submitBulkUpload(): void {
+		if (!this.bulkUploadFile) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Select a CSV file first',
+				life: 3000,
+			});
+			return;
+		}
+		this.bulkSubmitting = true;
+		this.bulkResult = null;
+		this.authService
+			.uploadBulkEnumeratorsCsv(this.bulkUploadFile)
+			.pipe(
+				takeUntil(this.destroy$),
+				finalize(() => {
+					this.bulkSubmitting = false;
+					this.cdr.markForCheck();
+				})
+			)
+			.subscribe({
+				next: (res) => {
+					this.bulkResult = {
+						created: res.created,
+						failed: res.failed ?? 0,
+						errors: (res.errors ?? []).map((e) => ({
+							row: e.row,
+							message: e.message,
+						})),
+					};
+					this.messageService.add({
+						severity: res.failed === 0 ? 'success' : 'info',
+						summary: `Created ${res.created}, failed ${res.failed ?? 0}`,
+						life: 5000,
+					});
+					if (res.created > 0) {
+						this.loadEnumerators();
+						this.bulkUploadFile = null;
+					}
+				},
+				error: (err) => {
+					this.bulkResult = {
+						created: 0,
+						failed: 1,
+						errors: [{ message: err.error?.message || 'Upload failed' }],
+					};
+					this.messageService.add({
+						severity: 'error',
+						summary: err.error?.message || 'Upload failed',
+						life: 5000,
+					});
+				},
+			});
 	}
 
 	closeBulk(): void {

@@ -1,68 +1,99 @@
-<div class="ea-map-view h-screen flex flex-col bg-gray-50 m-3">
-	<div *ngIf="loading" class="flex items-center justify-center flex-1">
+<div class="ea-map-view">
+	<!-- Loading -->
+	<div *ngIf="loading" class="flex items-center justify-center flex-1 min-h-0">
 		<p-progressSpinner></p-progressSpinner>
 	</div>
-	<div *ngIf="error && !loading" class="p-6 flex flex-col items-center justify-center">
-		<p class="text-red-600 mb-4">{{ error }}</p>
-		<button pButton label="Go back" icon="pi pi-arrow-left" (click)="goBack()"></button>
+
+	<!-- Error -->
+	<div *ngIf="error && !loading" class="flex flex-1 min-h-0 items-center justify-center p-6">
+		<div class="flex flex-col items-center">
+			<p class="text-red-600 mb-4">{{ error }}</p>
+			<button pButton label="Go back" icon="pi pi-arrow-left" (click)="goBack()"></button>
+		</div>
 	</div>
 
-	<div *ngIf="!loading && !error" class="relative flex-1 flex flex-col">
-		<!-- Header -->
-		<div class="flex-shrink-0 px-3 py-2 bg-[#1A58AF] text-white flex items-center justify-between gap-2">
-			<button pButton type="button" icon="pi pi-arrow-left" class="p-button-text p-button-plain !text-white" (click)="goBack()"></button>
-			<h1 class="font-bold text-sm truncate flex-1 text-center">{{ ea?.name || 'EA Map' }}</h1>
-			<span class="flex-shrink-0">
-				<p-tag *ngIf="eaCompleted" value="Completed" severity="success"></p-tag>
-				<p-tag *ngIf="!eaCompleted" value="In progress" severity="warn"></p-tag>
-			</span>
+	<!-- Main: header + toolbar + map (mobile-app polish) -->
+	<ng-container *ngIf="!loading && !error">
+		<header class="flex-shrink-0 text-white safe-area-top">
+			<div class="flex items-center h-14 px-2 gap-1">
+				<button pButton type="button" icon="pi pi-arrow-left" class="p-button-text p-button-plain !text-white !p-2" (click)="goBack()"></button>
+				<div class="flex-1 min-w-0">
+					<h1 class="text-[15px] font-semibold truncate m-0 text-center leading-tight">{{ ea?.name || 'EA Map' }}</h1>
+				</div>
+				<div class="flex-shrink-0 pr-2">
+					<p-tag *ngIf="eaCompleted" value="Completed" severity="success"></p-tag>
+					<p-tag *ngIf="!eaCompleted" value="In progress" severity="warn"></p-tag>
+				</div>
+			</div>
+		</header>
+
+		<div class="bg-[#1a58af] map-controls-toolbar flex-shrink-0 flex items-center justify-between px-4 py-2 bg-white/90 backdrop-blur-md">
+			<div class="flex items-center">
+				<button
+					*ngIf="!eaCompleted"
+					pButton
+					type="button"
+					label="Mark Complete"
+					icon="pi pi-check"
+					class="p-button-success p-button-sm font-medium shadow-sm"
+					(click)="openCompleteDialog()"
+				></button>
+			</div>
+			<div class="flex items-center gap-3">
+				<button
+					pButton
+					type="button"
+					[icon]="editMode ? 'pi pi-times' : 'pi pi-plus'"
+					class="p-button-rounded shadow-md transition-all"
+					[class.p-button-danger]="editMode"
+					[class.p-button-primary]="!editMode"
+					[disabled]="eaCompleted"
+					(click)="toggleEditMode()"
+					[pTooltip]="editMode ? 'Cancel add structure' : 'Add structure'"
+				></button>
+				<button
+					pButton
+					type="button"
+					icon="pi pi-list"					(click)="viewHouseholdList()"
+					pTooltip="View household list"
+				></button>
+			</div>
 		</div>
 
-		<!-- Map -->
-		<div class="ea-map-panel flex-1 min-h-0 w-full bg-slate-200">
-			<div #mapContainer class="map-container w-full h-full"></div>
-		</div>
+		<main class="ea-map-panel">
+			<div #mapContainer class="map-container"></div>
 
-		<!-- Map controls -->
-		<div class="absolute bottom-24 right-2 flex flex-col gap-2 z-[1000]">
-			<button
-				pButton
-				type="button"
-				icon="pi pi-plus"
-				class="p-button-rounded"
-				[class.p-button-success]="editMode"
-				[class.p-button-secondary]="!editMode"
-				[disabled]="eaCompleted"
-				(click)="toggleEditMode()"
-				pTooltip="Add structure"
-			></button>
-			<button
-				pButton
-				type="button"
-				icon="pi pi-list"
-				class="p-button-rounded p-button-info"
-				(click)="viewHouseholdList()"
-				pTooltip="View household list"
-			></button>
-		</div>
+			<!-- Floating map controls: zoom to extent & zoom to location -->
+			<div class="map-fab-controls">
+				<button
+					class="map-fab"
+					(click)="zoomToExtent()"
+					pTooltip="Zoom to extent"
+					tooltipPosition="left"
+					title="Zoom to extent"
+				>
+					<i class="pi pi-expand"></i>
+				</button>
+				<button
+					class="map-fab"
+					[class.map-fab--locating]="locating"
+					(click)="zoomToLocation()"
+					pTooltip="Zoom to my location"
+					tooltipPosition="left"
+					title="Zoom to my location"
+					[disabled]="locating"
+				>
+					<i [class]="locating ? 'pi pi-spin pi-spinner' : 'pi pi-map-marker'"></i>
+				</button>
+			</div>
 
-		<!-- Mark complete -->
-		<div class="absolute bottom-4 left-3 z-[1000]">
-			<button
-				*ngIf="!eaCompleted"
-				pButton
-				type="button"
-				label="Mark complete"
-				icon="pi pi-check"
-				class="p-button-success"
-				(click)="openCompleteDialog()"
-			></button>
-		</div>
+			<div class="leaflet-safe-area-spacer" aria-hidden="true"></div>
+		</main>
 
-		<!-- Toast -->
+		<!-- Toast (above Leaflet UI) -->
 		<div
 			*ngIf="toastMessage"
-			class="absolute top-14 left-4 right-4 z-[1001] rounded-lg shadow-lg p-3 text-white text-sm"
+			class="absolute top-24 left-4 right-4 rounded-lg shadow-lg p-3 text-white text-sm toast-overlay"
 			[ngClass]="{
 				'bg-green-600': toastSeverity === 'success',
 				'bg-red-600': toastSeverity === 'error',
@@ -71,7 +102,7 @@
 		>
 			{{ toastMessage }}
 		</div>
-	</div>
+	</ng-container>
 
 	<!-- Add structure dialog -->
 	<p-dialog

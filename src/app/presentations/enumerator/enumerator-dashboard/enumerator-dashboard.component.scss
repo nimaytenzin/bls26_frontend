@@ -5,6 +5,13 @@
 	margin: 0 auto;
 	padding: 1rem;
 	padding-bottom: 2rem;
+	overflow: visible;
+}
+
+/* Keep dropdown overlays above the Open map button */
+.enumerator-dashboard .p-dropdown {
+	position: relative;
+	z-index: 1;
 }
 
 /* Survey Card Interactions */

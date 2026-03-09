@@ -117,6 +117,23 @@ export class AuthService {
 		);
 	}
 
+	/** Download CSV template for bulk enumerator upload (name, cid, phoneNumber, password). */
+	getBulkEnumeratorsTemplate(): Observable<Blob> {
+		return this.http.get(`${this.baseUrl}/enumerators/bulk/template`, {
+			responseType: 'blob',
+		});
+	}
+
+	/** Upload CSV file to bulk create enumerators. */
+	uploadBulkEnumeratorsCsv(file: File): Observable<BulkEnumeratorsResponse> {
+		const form = new FormData();
+		form.append('file', file);
+		return this.http.post<BulkEnumeratorsResponse>(
+			`${this.baseUrl}/enumerators/bulk/upload`,
+			form
+		);
+	}
+
 	// --- Admin: update / reset / activate / deactivate / delete ---
 	updateUser(id: number, dto: UpdateProfileDto): Observable<User> {
 		return this.http.patch<User>(`${this.baseUrl}/users/${id}`, dto);

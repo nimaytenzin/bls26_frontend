@@ -4,7 +4,8 @@ import { authRoutes } from './presentations/auth/auth.routes';
 import { enumeratorRoutes } from './presentations/enumerator/enumerator.route';
 
 export const routes: Routes = [
-	...authRoutes,
+	{ path: '', redirectTo: 'auth/login', pathMatch: 'full' },
+	{ path: 'auth', children: authRoutes },
 	...adminRoutes,
 	...enumeratorRoutes,
 ];

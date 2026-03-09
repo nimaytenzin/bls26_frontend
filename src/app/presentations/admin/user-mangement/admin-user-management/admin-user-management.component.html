@@ -220,26 +220,73 @@
 		(onHide)="closeBulk()"
 	>
 		<div class="flex flex-col gap-3">
-			<p class="text-color-secondary text-sm">
-				One line per user. Format: <code>name,cid,password</code> or <code>name,cid,phone,password</code>. Password min 6 characters.
+			<p class="text-color-secondary text-sm mb-0">
+				Use the template (exact headers: <strong>name</strong>, <strong>cid</strong>, <strong>phoneNumber</strong>, <strong>password</strong>). Password min 6 characters.
 			</p>
-			<textarea
-				pInputTextarea
-				[(ngModel)]="bulkCsvText"
-				rows="10"
-				class="w-full font-mono text-sm"
-				placeholder="name,cid,password (one per line) or name,cid,phone,password"
-			></textarea>
+			<div class="flex flex-wrap gap-2">
+				<button
+					pButton
+					label="Download CSV template"
+					icon="pi pi-download"
+					class="p-button-outlined p-button-secondary"
+					(click)="downloadBulkTemplate()"
+				></button>
+				<span class="flex align-items-center text-color-secondary text-sm">Then fill it and upload below.</span>
+			</div>
+			<div class="flex align-items-center gap-2">
+				<input
+					type="file"
+					accept=".csv"
+					class="hidden"
+					#bulkFileInput
+					(change)="onBulkFileSelect($event)"
+				/>
+				<button
+					pButton
+					label="Choose CSV file"
+					icon="pi pi-upload"
+					class="p-button-outlined"
+					(click)="bulkFileInput.click()"
+					[disabled]="bulkSubmitting"
+				></button>
+				<span *ngIf="bulkUploadFile" class="text-sm text-color-secondary">{{ bulkUploadFile.name }}</span>
+			</div>
+			<button
+				pButton
+				label="Upload and create enumerators"
+				icon="pi pi-check"
+				class="p-button-primary"
+				[loading]="bulkSubmitting"
+				[disabled]="!bulkUploadFile"
+				(click)="submitBulkUpload()"
+			></button>
 			<div *ngIf="bulkResult" class="p-3 surface-100 border-round">
 				<p class="font-medium">Result: {{ bulkResult.created }} created, {{ bulkResult.failed }} failed.</p>
 				<ul *ngIf="bulkResult.errors?.length" class="list-none pl-0 mt-2 text-sm text-red-600">
 					<li *ngFor="let e of bulkResult.errors">Row {{ e.row }}: {{ e.message }}</li>
 				</ul>
 			</div>
+			<p class="text-color-secondary text-sm border-top-1 surface-border pt-2 mt-1">
+				Or paste CSV below (one line per user: name,cid,phoneNumber,password).
+			</p>
+			<textarea
+				pInputTextarea
+				[(ngModel)]="bulkCsvText"
+				rows="5"
+				class="w-full font-mono text-sm"
+				placeholder="name,cid,phoneNumber,password (one row per line)"
+			></textarea>
+			<button
+				pButton
+				label="Create from pasted data"
+				class="p-button-outlined"
+				[loading]="bulkSubmitting"
+				[disabled]="!bulkCsvText?.trim()"
+				(click)="submitBulk()"
+			></button>
 		</div>
 		<ng-template pTemplate="footer">
-			<button pButton label="Cancel" class="p-button-text" (click)="closeBulk()" [disabled]="bulkSubmitting"></button>
-			<button pButton label="Create" (click)="submitBulk()" [loading]="bulkSubmitting" [disabled]="!bulkCsvText?.trim()"></button>
+			<button pButton label="Close" class="p-button-text" (click)="closeBulk()" [disabled]="bulkSubmitting"></button>
 		</ng-template>
 	</p-dialog>
 </div>
