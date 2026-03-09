@@ -138,8 +138,8 @@ export class EnumeratorHouseholdFormComponent implements OnInit, OnDestroy {
 	}
 
 	submit(): void {
-		if (!this.form.structureId || !this.form.householdIdentification?.trim() || !this.form.nameOfHOH?.trim()) {
-			this.messageService.add({ severity: 'warn', summary: 'Fill required fields', life: 3000 });
+		if (!this.form.structureId || !this.form.householdSerialNumber) {
+			this.messageService.add({ severity: 'warn', summary: 'Household serial number is required', life: 3000 });
 			return;
 		}
 		this.submitting = true;

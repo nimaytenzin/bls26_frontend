@@ -40,11 +40,11 @@
 			<div class="bg-white rounded-xl shadow-sm p-4">
 				<p class="text-[11px] font-bold tracking-widest uppercase text-slate-400 mb-3">Identification</p>
 				<div class="space-y-1 mb-3">
-					<label class="block text-sm font-medium text-gray-700">Household ID <span class="text-red-500">*</span></label>
+					<label class="block text-sm font-medium text-gray-700">Household ID</label>
 					<input pInputText [(ngModel)]="form.householdIdentification" name="householdIdentification" class="w-full" placeholder="e.g. HH-001" />
 				</div>
 				<div class="space-y-1">
-					<label class="block text-sm font-medium text-gray-700">Serial number</label>
+					<label class="block text-sm font-medium text-gray-700">Serial number <span class="text-red-500">*</span></label>
 					<p-inputNumber
 						[(ngModel)]="form.householdSerialNumber"
 						name="householdSerialNumber"
@@ -65,7 +65,7 @@
 			<div class="bg-white rounded-xl shadow-sm p-4">
 				<p class="text-[11px] font-bold tracking-widest uppercase text-slate-400 mb-3">Head of household</p>
 				<div class="space-y-1">
-					<label class="block text-sm font-medium text-gray-700">Full name <span class="text-red-500">*</span></label>
+					<label class="block text-sm font-medium text-gray-700">Full name</label>
 					<input pInputText [(ngModel)]="form.nameOfHOH" name="nameOfHOH" class="w-full" placeholder="Enter full name" />
 				</div>
 			</div>
