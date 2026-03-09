@@ -17,7 +17,9 @@ export interface EnumerationArea {
 	name: string;
 	description: string;
 	areaCode: string;
+	fullEaCode?: string;
 	dzongkhagId?: number;
+	lapId?: number;
 	status: EaStatus;
 	geom?: string | EaGeom;
 }

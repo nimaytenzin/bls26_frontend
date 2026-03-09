@@ -22,10 +22,15 @@
 				<!-- EA details -->
 				<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6">
 					<h1 class="text-2xl font-bold text-slate-800 mb-1">{{ ea.name }}</h1>
-					<p *ngIf="dzongkhagName" class="text-sm text-slate-500 mb-3">{{ dzongkhagName }}</p>
+					<p class="text-sm text-slate-500 mb-3">
+						<span *ngIf="dzongkhagName">{{ dzongkhagName }}</span>
+						<span *ngIf="townName"> &rsaquo; {{ townName }}</span>
+						<span *ngIf="lapName"> &rsaquo; {{ lapName }}</span>
+					</p>
 					<p *ngIf="ea.description" class="text-slate-600 mb-4">{{ ea.description }}</p>
 					<div class="flex flex-wrap gap-4 items-center">
 						<span class="text-sm text-slate-500">Area code: <strong>{{ ea.areaCode }}</strong></span>
+						<span *ngIf="ea.fullEaCode" class="text-sm text-slate-500">Full EA code: <strong class="font-mono">{{ ea.fullEaCode }}</strong></span>
 						<p-tag [value]="ea.status" [severity]="ea.status === 'completed' ? 'success' : ea.status === 'in_progress' ? 'info' : 'warn'"></p-tag>
 						<span *ngIf="progress" class="text-sm text-slate-600">
 							{{ progress.totalStructures }} structures · {{ progress.totalHouseholds }} households

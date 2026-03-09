@@ -3,12 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { EnumerationArea } from '../enumeration-area/enumeration-area.service';
+import { Town } from '../town/town.service';
 
 export interface Dzongkhag {
 	id: number;
 	name: string;
 	areaCode: string;
-	enumerationAreas:EnumerationArea[]
+	towns?: Town[];
+	enumerationAreas?: EnumerationArea[];
 }
 
 export interface DzongkhagStatistics {

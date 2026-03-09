@@ -5,7 +5,7 @@
 				Dzongkhags &amp; Enumeration Areas
 			</h1>
 			<p class="text-sm text-slate-500">
-				One row per EA grouped by Dzongkhag, with structure and household counts.
+				One row per EA grouped by Dzongkhag, Town, and LAP with structure and household counts.
 			</p>
 		</div>
 		<button
@@ -19,14 +19,32 @@
 		></button>
 	</div>
 
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+	<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
 		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
 			<div class="bg-blue-50 text-blue-600 rounded-lg p-3">
 				<i class="pi pi-map text-xl"></i>
 			</div>
 			<div>
-				<p class="text-sm text-slate-500 font-medium">Total Dzongkhags</p>
+				<p class="text-sm text-slate-500 font-medium">Dzongkhags</p>
 				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalDzongkhags }}</p>
+			</div>
+		</div>
+		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
+			<div class="bg-cyan-50 text-cyan-600 rounded-lg p-3">
+				<i class="pi pi-building text-xl"></i>
+			</div>
+			<div>
+				<p class="text-sm text-slate-500 font-medium">Towns</p>
+				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalTowns }}</p>
+			</div>
+		</div>
+		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
+			<div class="bg-violet-50 text-violet-600 rounded-lg p-3">
+				<i class="pi pi-th-large text-xl"></i>
+			</div>
+			<div>
+				<p class="text-sm text-slate-500 font-medium">LAPs</p>
+				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalLaps }}</p>
 			</div>
 		</div>
 		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
@@ -34,7 +52,7 @@
 				<i class="pi pi-sitemap text-xl"></i>
 			</div>
 			<div>
-				<p class="text-sm text-slate-500 font-medium">Total EAs</p>
+				<p class="text-sm text-slate-500 font-medium">EAs</p>
 				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalEas | number }}</p>
 			</div>
 		</div>
@@ -43,7 +61,7 @@
 				<i class="pi pi-home text-xl"></i>
 			</div>
 			<div>
-				<p class="text-sm text-slate-500 font-medium">Total Structures</p>
+				<p class="text-sm text-slate-500 font-medium">Structures</p>
 				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalStructures | number }}</p>
 			</div>
 		</div>
@@ -52,7 +70,7 @@
 				<i class="pi pi-users text-xl"></i>
 			</div>
 			<div>
-				<p class="text-sm text-slate-500 font-medium">Total Households</p>
+				<p class="text-sm text-slate-500 font-medium">Households</p>
 				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalHouseholds | number }}</p>
 			</div>
 		</div>
@@ -68,6 +86,7 @@
 				optionLabel="dzongkhagName"
 				optionValue="dzongkhagId"
 				[(ngModel)]="selectedDzongkhagId"
+				(onChange)="onDzongkhagChange($event.value)"
 				[showClear]="true"
 				placeholder="All dzongkhags"
 				styleClass="w-full md:w-64"
@@ -85,8 +104,11 @@
 			<ng-template pTemplate="header">
 				<tr>
 					<th>Dzongkhag</th>
-					<th>Enumeration area</th>
-					<th>Code</th>
+					<th>Town</th>
+					<th>LAP</th>
+					<th>Enumeration Area</th>
+					<th>Full EA Code</th>
+					<th>Geom</th>
 					<th>Status</th>
 					<th>Structures</th>
 					<th>Households</th>
@@ -99,11 +121,25 @@
 					<td pRowGroup>
 						<div class="flex flex-col">
 							<span class="font-semibold text-slate-800">{{ row.dzongkhagName }}</span>
-							<span class="text-xs text-slate-400">ID: {{ row.dzongkhagId }}</span>
+							<span class="text-xs text-slate-400">{{ row.dzongkhagCode }}</span>
 						</div>
 					</td>
+					<td>
+						<span class="text-slate-700">{{ row.townName }}</span>
+					</td>
+					<td>
+						<span class="text-slate-700">{{ row.lapName }}</span>
+					</td>
 					<td>{{ row.eaName }}</td>
-					<td>{{ row.eaCode }}</td>
+					<td>
+						<span class="font-mono text-sm text-slate-600">{{ row.fullEaCode || '—' }}</span>
+					</td>
+					<td>
+						<p-tag
+							[value]="row.hasGeom ? 'Geom' : 'No geom'"
+							[severity]="row.hasGeom ? 'success' : 'danger'"
+						></p-tag>
+					</td>
 					<td>
 						<ng-container *ngIf="row.eaStatus; else noStatus">
 							<p-tag
@@ -116,13 +152,6 @@
 					<td>{{ row.householdCount }}</td>
 					<td>
 						<div class="flex gap-1">
-							<button
-								pButton
-								type="button"
-								icon="pi pi-pencil"
-								class="p-button-rounded p-button-text p-button-sm text-slate-500 hover:text-blue-600"
-								pTooltip="Edit Dzongkhag"
-							></button>
 							<a
 								[routerLink]="['/admin/data-view', 'eazone', row.eaId]"
 								pButton
@@ -138,7 +167,7 @@
 
 			<ng-template pTemplate="emptymessage">
 				<tr>
-					<td colspan="7" class="text-center py-12 text-slate-500 flex flex-col items-center">
+					<td colspan="10" class="text-center py-12 text-slate-500 flex flex-col items-center">
 						<i class="pi pi-folder-open text-slate-200 text-5xl mb-3"></i>
 						<span>No dzongkhags or enumeration areas found.</span>
 					</td>

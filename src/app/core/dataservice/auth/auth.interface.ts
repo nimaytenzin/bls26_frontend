@@ -22,6 +22,7 @@ export interface User {
 export interface LoginDto {
 	cid: string;
 	password: string;
+	role?: UserRole;
 }
 
 export interface RegisterDto {

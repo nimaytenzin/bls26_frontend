@@ -38,11 +38,11 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 			password: ['', [Validators.required, Validators.minLength(6)]],
 		});
 
-		// // Check if user is already authenticated
-		// if (this.authService.isAuthenticated()) {
-		// 	this.redirectToUserDashboard();
-		// 	return;
-		// }
+		// Redirect if already authenticated
+		if (this.authService.isAuthenticated()) {
+			this.redirectToUserDashboard();
+			return;
+		}
 	}
 
 	ngAfterViewInit(): void {
@@ -210,17 +210,15 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 			password: this.loginForm.value.password,
 		};
 
-		console.log('Attempting login with:', loginDto);
 		this.authService.login(loginDto).subscribe({
-			next: (response) => {
-				console.log('Login successful:', response);
+			next: () => {
 				this.isLoading = false;
 				this.redirectToUserDashboard();
 			},
 			error: (error) => {
-				console.error('Login error:', error);
 				this.isLoading = false;
-				this.errorMessage = error.message || 'Login failed. Please try again.';
+				this.errorMessage =
+					error?.error?.message || error.message || 'Login failed. Please try again.';
 			},
 		});
 	}

@@ -11,15 +11,14 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
-import { PrimeNgModules } from '../../../../primeng.modules';
 import * as L from 'leaflet';
-import { EnumerationAreaService } from '../../../../core/dataservice/enumeration-area/enumeration-area.service';
-import { StructureService } from '../../../../core/dataservice/structure/structure.service';
-import { HouseholdListingService } from '../../../../core/dataservice/household-listing/household-listing.service';
-import { DzongkhagService } from '../../../../core/dataservice/dzongkhag/dzongkhag.service';
-import type { EnumerationArea, EaProgress, EaGeom } from '../../../../core/dataservice/enumeration-area/enumeration-area.service';
-import type { Structure } from '../../../../core/dataservice/structure/structure.service';
-import type { HouseholdListing } from '../../../../core/dataservice/household-listing/household-listing.service';
+import { DzongkhagService } from '../../../core/dataservice/dzongkhag/dzongkhag.service';
+import { EnumerationArea, EaProgress, EnumerationAreaService, EaGeom } from '../../../core/dataservice/enumeration-area/enumeration-area.service';
+import { HouseholdListing, HouseholdListingService } from '../../../core/dataservice/household-listing/household-listing.service';
+import { Structure, StructureService } from '../../../core/dataservice/structure/structure.service';
+import { LapService } from '../../../core/dataservice/lap/lap.service';
+import { TownService } from '../../../core/dataservice/town/town.service';
+import { PrimeNgModules } from '../../../primeng.modules';
 
 export interface StructureWithHouseholds extends Structure {
 	householdListings: HouseholdListing[];
@@ -44,6 +43,8 @@ export class AdminEnumerationAreaDataViewerComponent implements OnInit, OnDestro
 	ea: EnumerationArea | null = null;
 	progress: EaProgress | null = null;
 	dzongkhagName = '';
+	townName = '';
+	lapName = '';
 	structures: StructureWithHouseholds[] = [];
 	loading = true;
 	error: string | null = null;
@@ -55,6 +56,8 @@ export class AdminEnumerationAreaDataViewerComponent implements OnInit, OnDestro
 		private structureService: StructureService,
 		private householdService: HouseholdListingService,
 		private dzongkhagService: DzongkhagService,
+		private lapService: LapService,
+		private townService: TownService,
 		private cdr: ChangeDetectorRef
 	) {}
 
@@ -88,6 +91,22 @@ export class AdminEnumerationAreaDataViewerComponent implements OnInit, OnDestro
 							.getById(ea.dzongkhagId)
 							.pipe(takeUntil(this.destroy$))
 							.subscribe({ next: (d) => (this.dzongkhagName = d.name) });
+					}
+					if (ea.lapId != null) {
+						this.lapService
+							.getById(ea.lapId)
+							.pipe(takeUntil(this.destroy$))
+							.subscribe({
+								next: (lap) => {
+									this.lapName = lap.name;
+									if (lap.townId != null) {
+										this.townService
+											.getById(lap.townId)
+											.pipe(takeUntil(this.destroy$))
+											.subscribe({ next: (t) => (this.townName = t.name) });
+									}
+								},
+							});
 					}
 					this.eaService
 						.getProgress(this.eaId)
@@ -217,7 +236,7 @@ export class AdminEnumerationAreaDataViewerComponent implements OnInit, OnDestro
 	}
 
 	goBack(): void {
-		this.router.navigate(['/admin/master/dzongkhags']);
+		this.router.navigate(['/admin']);
 	}
 
 	totalHouseholds(): number {
