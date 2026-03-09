@@ -1,5 +1,5 @@
 <div class="p-6 md:p-8 bg-slate-50 min-h-screen">
-	<div class="flex flex-col md:flex-row justify-between md:items-end mb-8 gap-4">
+	<div class="flex flex-col md:flex-row justify-between md:items-end mb-6 gap-4">
 		<div>
 			<h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
 				Dzongkhags &amp; Enumeration Areas
@@ -19,6 +19,51 @@
 		></button>
 	</div>
 
+	<!-- Completion status (dynamic per selection) -->
+	<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+		<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+			<div>
+				<p class="text-[11px] font-semibold tracking-widest uppercase text-slate-400">
+					Completion status
+				</p>
+				<p class="text-sm text-slate-700 mt-1">
+					{{ selectionLabel }} ·
+					<span class="font-semibold text-slate-900">
+						{{ selectionStats.completedEas | number }} / {{ selectionStats.totalEas | number }}
+					</span>
+					EAs completed
+				</p>
+			</div>
+			<div *ngIf="selectionStats.totalEas > 0" class="flex items-center gap-2">
+				<p-tag
+					[value]="selectionStats.completionPercent + '%'"
+					[severity]="selectionStats.completionPercent === 100 ? 'success' : 'info'"
+				></p-tag>
+			</div>
+		</div>
+
+		<p-progressBar
+			[value]="selectionStats.completionPercent"
+			[showValue]="false"
+			styleClass="h-2 rounded-full"
+		></p-progressBar>
+
+		<div class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-600">
+			<span class="flex items-center gap-1">
+				<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+				Completed: <span class="font-semibold">{{ selectionStats.completedEas | number }}</span>
+			</span>
+			<span class="flex items-center gap-1">
+				<span class="inline-block w-2 h-2 rounded-full bg-sky-500"></span>
+				In progress: <span class="font-semibold">{{ selectionStats.inProgressEas | number }}</span>
+			</span>
+			<span class="flex items-center gap-1">
+				<span class="inline-block w-2 h-2 rounded-full bg-slate-400"></span>
+				Not started: <span class="font-semibold">{{ selectionStats.notStartedEas | number }}</span>
+			</span>
+		</div>
+	</div>
+
 	<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
 		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
 			<div class="bg-blue-50 text-blue-600 rounded-lg p-3">
@@ -26,7 +71,7 @@
 			</div>
 			<div>
 				<p class="text-sm text-slate-500 font-medium">Dzongkhags</p>
-				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalDzongkhags }}</p>
+				<p class="text-2xl font-bold text-slate-800">{{ displayedStats.totalDzongkhags }}</p>
 			</div>
 		</div>
 		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
@@ -35,7 +80,7 @@
 			</div>
 			<div>
 				<p class="text-sm text-slate-500 font-medium">Towns</p>
-				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalTowns }}</p>
+				<p class="text-2xl font-bold text-slate-800">{{ displayedStats.totalTowns }}</p>
 			</div>
 		</div>
 		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
@@ -44,7 +89,7 @@
 			</div>
 			<div>
 				<p class="text-sm text-slate-500 font-medium">LAPs</p>
-				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalLaps }}</p>
+				<p class="text-2xl font-bold text-slate-800">{{ displayedStats.totalLaps }}</p>
 			</div>
 		</div>
 		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
@@ -53,7 +98,7 @@
 			</div>
 			<div>
 				<p class="text-sm text-slate-500 font-medium">EAs</p>
-				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalEas | number }}</p>
+				<p class="text-2xl font-bold text-slate-800">{{ displayedStats.totalEas | number }}</p>
 			</div>
 		</div>
 		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
@@ -62,7 +107,7 @@
 			</div>
 			<div>
 				<p class="text-sm text-slate-500 font-medium">Structures</p>
-				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalStructures | number }}</p>
+				<p class="text-2xl font-bold text-slate-800">{{ displayedStats.totalStructures | number }}</p>
 			</div>
 		</div>
 		<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center gap-4">
@@ -71,26 +116,41 @@
 			</div>
 			<div>
 				<p class="text-sm text-slate-500 font-medium">Households</p>
-				<p class="text-2xl font-bold text-slate-800">{{ globalStats.totalHouseholds | number }}</p>
+				<p class="text-2xl font-bold text-slate-800">{{ displayedStats.totalHouseholds | number }}</p>
 			</div>
 		</div>
 	</div>
 
 	<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
 		<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 px-4 pt-4 pb-2">
-			<p class="text-sm text-slate-600">
-				Filter by Dzongkhag
-			</p>
-			<p-dropdown
-				[options]="dzongkhags"
-				optionLabel="dzongkhagName"
-				optionValue="dzongkhagId"
-				[(ngModel)]="selectedDzongkhagId"
-				(onChange)="onDzongkhagChange($event.value)"
-				[showClear]="true"
-				placeholder="All dzongkhags"
-				styleClass="w-full md:w-64"
-			></p-dropdown>
+			<div class="flex flex-col gap-1">
+				<p class="text-sm text-slate-600">
+					Filter by Dzongkhag
+				</p>
+				<p class="text-xs text-slate-400">
+					Use completion filter to focus on EAs by status.
+				</p>
+			</div>
+			<div class="flex flex-col md:flex-row md:items-center gap-3 w-full md:w-auto">
+				<p-dropdown
+					[options]="dzongkhags"
+					optionLabel="dzongkhagName"
+					optionValue="dzongkhagId"
+					[(ngModel)]="selectedDzongkhagId"
+					(onChange)="onDzongkhagChange($event.value)"
+					[showClear]="true"
+					placeholder="All dzongkhags"
+					styleClass="w-full md:w-64"
+				></p-dropdown>
+				<p-selectButton
+					[options]="statusFilterOptions"
+					[(ngModel)]="statusFilter"
+					optionLabel="label"
+					optionValue="value"
+					ariaLabel="Filter by completion status"
+					class="w-full md:w-auto"
+				></p-selectButton>
+			</div>
 		</div>
 
 		<p-table

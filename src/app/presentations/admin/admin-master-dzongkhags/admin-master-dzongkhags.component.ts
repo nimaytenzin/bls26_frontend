@@ -48,6 +48,16 @@ interface GlobalStats {
 	totalHouseholds: number;
 }
 
+interface SelectionStats {
+	totalEas: number;
+	completedEas: number;
+	inProgressEas: number;
+	notStartedEas: number;
+	completionPercent: number;
+}
+
+type StatusFilter = 'all' | 'completed' | 'in_progress' | 'not_started';
+
 @Component({
 	selector: 'app-admin-master-dzongkhags',
 	standalone: true,
@@ -72,6 +82,22 @@ export class AdminMasterDzongkhagsComponent implements OnInit, OnDestroy {
 		totalStructures: 0,
 		totalHouseholds: 0,
 	};
+
+	selectionStats: SelectionStats = {
+		totalEas: 0,
+		completedEas: 0,
+		inProgressEas: 0,
+		notStartedEas: 0,
+		completionPercent: 0,
+	};
+
+	statusFilter: StatusFilter = 'all';
+	statusFilterOptions = [
+		{ label: 'All statuses', value: 'all' as StatusFilter },
+		{ label: 'Completed', value: 'completed' as StatusFilter },
+		{ label: 'In progress', value: 'in_progress' as StatusFilter },
+		{ label: 'Not started', value: 'not_started' as StatusFilter },
+	];
 
 	constructor(private dzongkhagService: DzongkhagService) {}
 
@@ -98,6 +124,7 @@ export class AdminMasterDzongkhagsComponent implements OnInit, OnDestroy {
 					this.dzongkhags = this.buildSummaries(list);
 					this.eaRows = this.buildEaRows(list);
 					this.calculateGlobalStats(list);
+					this.updateSelectionStats();
 				},
 				error: (err) => {
 					console.error('Failed to load Dzongkhags', err);
@@ -110,6 +137,13 @@ export class AdminMasterDzongkhagsComponent implements OnInit, OnDestroy {
 						totalEas: 0,
 						totalStructures: 0,
 						totalHouseholds: 0,
+					};
+					this.selectionStats = {
+						totalEas: 0,
+						completedEas: 0,
+						inProgressEas: 0,
+						notStartedEas: 0,
+						completionPercent: 0,
 					};
 				},
 			});
@@ -126,6 +160,7 @@ export class AdminMasterDzongkhagsComponent implements OnInit, OnDestroy {
 		} catch (err) {
 			console.warn('Unable to persist selected Dzongkhag', err);
 		}
+		this.updateSelectionStats();
 	}
 
 	private buildSummaries(list: Dzongkhag[]): DzongkhagSummary[] {
@@ -242,6 +277,45 @@ export class AdminMasterDzongkhagsComponent implements OnInit, OnDestroy {
 		};
 	}
 
+	private updateSelectionStats(): void {
+		const eas: EaSummary[] = [];
+		if (this.selectedDzongkhagId == null) {
+			for (const dz of this.dzongkhags) {
+				eas.push(...dz.eas);
+			}
+		} else {
+			const dz = this.dzongkhags.find((d) => d.dzongkhagId === this.selectedDzongkhagId);
+			if (dz) {
+				eas.push(...dz.eas);
+			}
+		}
+
+		const totalEas = eas.length;
+		let completedEas = 0;
+		let inProgressEas = 0;
+		let notStartedEas = 0;
+
+		for (const ea of eas) {
+			if (ea.eaStatus === 'completed') {
+				completedEas++;
+			} else if (ea.eaStatus === 'in_progress') {
+				inProgressEas++;
+			} else {
+				notStartedEas++;
+			}
+		}
+
+		const completionPercent = totalEas ? Math.round((completedEas / totalEas) * 100) : 0;
+
+		this.selectionStats = {
+			totalEas,
+			completedEas,
+			inProgressEas,
+			notStartedEas,
+			completionPercent,
+		};
+	}
+
 	private restoreSelectedDzongkhag(): void {
 		try {
 			const stored = localStorage.getItem(this.STORAGE_KEY_SELECTED_DZONGKHAG);
@@ -257,7 +331,73 @@ export class AdminMasterDzongkhagsComponent implements OnInit, OnDestroy {
 	}
 
 	get filteredEaRows(): EaRow[] {
-		if (this.selectedDzongkhagId == null) return this.eaRows;
-		return this.eaRows.filter((row) => row.dzongkhagId === this.selectedDzongkhagId);
+		let rows = this.eaRows;
+
+		if (this.selectedDzongkhagId != null) {
+			rows = rows.filter((row) => row.dzongkhagId === this.selectedDzongkhagId);
+		}
+
+		if (this.statusFilter === 'all') {
+			return rows;
+		}
+
+		return rows.filter((row) => {
+			if (this.statusFilter === 'completed') {
+				return row.eaStatus === 'completed';
+			}
+			if (this.statusFilter === 'in_progress') {
+				return row.eaStatus === 'in_progress';
+			}
+			// not_started: anything else
+			return row.eaStatus !== 'completed' && row.eaStatus !== 'in_progress';
+		});
+	}
+
+	get selectionLabel(): string {
+		if (this.selectedDzongkhagId == null) {
+			return 'All dzongkhags';
+		}
+		const dz = this.dzongkhags.find((d) => d.dzongkhagId === this.selectedDzongkhagId);
+		return dz ? dz.dzongkhagName : 'Selected dzongkhag';
+	}
+
+	get displayedStats(): GlobalStats {
+		// No Dzongkhag filter: show global totals
+		if (this.selectedDzongkhagId == null) {
+			return this.globalStats;
+		}
+
+		const rows = this.eaRows.filter((row) => row.dzongkhagId === this.selectedDzongkhagId);
+		if (!rows.length) {
+			return {
+				totalDzongkhags: 0,
+				totalTowns: 0,
+				totalLaps: 0,
+				totalEas: 0,
+				totalStructures: 0,
+				totalHouseholds: 0,
+			};
+		}
+
+		const townSet = new Set<string>();
+		const lapSet = new Set<string>();
+		let totalStructures = 0;
+		let totalHouseholds = 0;
+
+		for (const row of rows) {
+			townSet.add(`${row.townCode}|${row.townName}`);
+			lapSet.add(`${row.lapCode}|${row.lapName}`);
+			totalStructures += row.structureCount;
+			totalHouseholds += row.householdCount;
+		}
+
+		return {
+			totalDzongkhags: 1,
+			totalTowns: townSet.size,
+			totalLaps: lapSet.size,
+			totalEas: rows.length,
+			totalStructures,
+			totalHouseholds,
+		};
 	}
 }
