@@ -8,15 +8,26 @@
 				One row per EA grouped by Dzongkhag, Town, and LAP with structure and household counts.
 			</p>
 		</div>
-		<button
-			pButton
-			type="button"
-			label="Refresh Data"
-			icon="pi pi-refresh"
-			class="p-button-outlined p-button-secondary bg-white shadow-sm whitespace-nowrap"
-			(click)="load()"
-			[loading]="loading"
-		></button>
+		<div class="flex flex-col md:flex-row gap-2">
+			<button
+				pButton
+				type="button"
+				label="Refresh Data"
+				icon="pi pi-refresh"
+				class="p-button-outlined p-button-secondary bg-white shadow-sm whitespace-nowrap"
+				(click)="load()"
+				[loading]="loading"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Download..."
+				icon="pi pi-download"
+				class="p-button bg-white shadow-sm whitespace-nowrap"
+				(click)="openDownloadDialog()"
+				[disabled]="loading"
+			></button>
+		</div>
 	</div>
 
 	<!-- Completion status (dynamic per selection) -->
@@ -240,4 +251,148 @@
 	<ng-template #noStatus>
 		<span class="text-slate-400">—</span>
 	</ng-template>
+	<p-dialog
+		header="Download data"
+		[(visible)]="showDownloadDialog"
+		[modal]="true"
+		[style]="{ width: '540px', maxWidth: '100%' }"
+		[draggable]="false"
+		[resizable]="false"
+	>
+		<div class="space-y-5">
+			<!-- 1. Download all stats -->
+			<div class="flex items-start gap-3">
+				<div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold text-slate-600">
+					1
+				</div>
+				<div class="flex-1 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+					<div>
+						<p class="font-medium text-slate-800">Download all EA summary stats</p>
+						<p class="text-xs text-slate-500">All Dzongkhags, Towns, LAPs and EAs.</p>
+					</div>
+					<button
+						pButton
+						type="button"
+						label="Download"
+						class="p-button-sm"
+						(click)="downloadAllStats()"
+					></button>
+				</div>
+			</div>
+
+			<!-- 2. Stats for Dzongkhag -->
+			<div class="flex items-start gap-3">
+				<div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold text-slate-600">
+					2
+				</div>
+				<div class="flex-1 space-y-2">
+					<p class="font-medium text-slate-800">Download EA summary stats for Dzongkhag</p>
+					<div class="flex flex-col md:flex-row md:items-center gap-3">
+						<p-dropdown
+							[options]="dzongkhags"
+							optionLabel="dzongkhagName"
+							optionValue="dzongkhagId"
+							[(ngModel)]="downloadDzongkhagIdForStats"
+							placeholder="Select Dzongkhag"
+							styleClass="w-full md:w-60"
+						></p-dropdown>
+						<button
+							pButton
+							type="button"
+							label="Download"
+							class="p-button-sm"
+							(click)="downloadStatsForDzongkhag()"
+							[disabled]="!downloadDzongkhagIdForStats"
+						></button>
+					</div>
+				</div>
+			</div>
+
+			<!-- 3. All households -->
+			<div class="flex items-start gap-3">
+				<div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold text-slate-600">
+					3
+				</div>
+				<div class="flex-1 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+					<div>
+						<p class="font-medium text-slate-800">Download all households</p>
+						<p class="text-xs text-slate-500">All Dzongkhags, all EAs.</p>
+					</div>
+					<button
+						pButton
+						type="button"
+						label="Download"
+						class="p-button-sm"
+						(click)="downloadAllHouseholds()"
+					></button>
+				</div>
+			</div>
+
+			<!-- 4. Households for Dzongkhag -->
+			<div class="flex items-start gap-3">
+				<div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold text-slate-600">
+					4
+				</div>
+				<div class="flex-1 space-y-2">
+					<p class="font-medium text-slate-800">Download households for Dzongkhag</p>
+					<div class="flex flex-col md:flex-row md:items-center gap-3">
+						<p-dropdown
+							[options]="dzongkhags"
+							optionLabel="dzongkhagName"
+							optionValue="dzongkhagId"
+							[(ngModel)]="downloadDzongkhagIdForHouseholds"
+							placeholder="Select Dzongkhag"
+							styleClass="w-full md:w-60"
+						></p-dropdown>
+						<button
+							pButton
+							type="button"
+							label="Download"
+							class="p-button-sm"
+							(click)="downloadHouseholdsForDzongkhag()"
+							[disabled]="!downloadDzongkhagIdForHouseholds"
+						></button>
+					</div>
+				</div>
+			</div>
+
+			<!-- 5. Households for Dzongkhag + EA -->
+			<div class="flex items-start gap-3">
+				<div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold text-slate-600">
+					5
+				</div>
+				<div class="flex-1 space-y-2">
+					<p class="font-medium text-slate-800">Download households for Dzongkhag &amp; EA</p>
+					<div class="flex flex-col md:flex-row md:items-center gap-3">
+						<p-dropdown
+							[options]="dzongkhags"
+							optionLabel="dzongkhagName"
+							optionValue="dzongkhagId"
+							[(ngModel)]="downloadDzongkhagIdForHouseholdsEa"
+							(onChange)="onDownloadDzongkhagForEaChange($event.value)"
+							placeholder="Select Dzongkhag"
+							styleClass="w-full md:w-48"
+						></p-dropdown>
+						<p-dropdown
+							[options]="downloadEaOptions"
+							optionLabel="name"
+							optionValue="id"
+							[(ngModel)]="downloadEaIdForHouseholdsEa"
+							placeholder="Select EA"
+							[disabled]="!downloadDzongkhagIdForHouseholdsEa"
+							styleClass="w-full md:w-48"
+						></p-dropdown>
+						<button
+							pButton
+							type="button"
+							label="Download"
+							class="p-button-sm"
+							(click)="downloadHouseholdsForDzongkhagEa()"
+							[disabled]="!downloadEaIdForHouseholdsEa"
+						></button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</p-dialog>
 </div>

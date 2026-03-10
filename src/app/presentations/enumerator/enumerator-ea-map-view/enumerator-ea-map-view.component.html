@@ -123,7 +123,7 @@
 		</div>
 		<ng-template pTemplate="footer">
 			<button pButton label="Cancel" class="p-button-text" (click)="closeAddStructureDialog()" [disabled]="isAddingStructure"></button>
-			<button pButton label="Add" (click)="createStructure()" [loading]="isAddingStructure" [disabled]="!newStructureNumber?.trim()"></button>
+			<button pButton label="Add" (click)="createStructure()" [loading]="isAddingStructure" [disabled]="!newStructureNumber.trim()"></button>
 		</ng-template>
 	</p-dialog>
 
@@ -138,8 +138,51 @@
 		<div *ngIf="selectedStructure" class="flex flex-col gap-2">
 			<button pButton label="Add household" icon="pi pi-plus" (click)="addHousehold()"></button>
 			<button pButton label="View households" icon="pi pi-list" class="p-button-outlined" (click)="viewHouseholdsForStructure()"></button>
+			<button
+				pButton
+				label="Edit structure number"
+				icon="pi pi-pencil"
+				class="p-button-outlined"
+				(click)="openEditStructureNumber()"
+				[disabled]="eaCompleted"
+			></button>
 			<button *ngIf="!eaCompleted" pButton label="Delete structure" icon="pi pi-trash" class="p-button-danger p-button-outlined" (click)="deleteStructure()"></button>
 		</div>
+	</p-dialog>
+
+	<!-- Edit structure number dialog -->
+	<p-dialog
+		[(visible)]="showEditStructureNumberDialog"
+		header="Edit structure number"
+		[modal]="true"
+		[closable]="!isAddingStructure"
+		(onHide)="showEditStructureNumberDialog = false"
+	>
+		<div class="space-y-3" *ngIf="selectedStructure">
+			<p class="text-sm text-gray-600">
+				Current: <span class="font-semibold">{{ selectedStructure.structureNumber }}</span>
+			</p>
+			<div>
+				<label class="block text-sm font-medium mb-1">New structure number</label>
+				<input pInputText [(ngModel)]="editStructureNumber" class="w-full" />
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				label="Cancel"
+				class="p-button-text"
+				(click)="showEditStructureNumberDialog = false"
+				[disabled]="isAddingStructure"
+			></button>
+			<button
+				pButton
+				label="Save"
+				(click)="updateStructureNumber()"
+				[loading]="isAddingStructure"
+				[disabled]="!editStructureNumber.trim()"
+			></button>
+		</ng-template>
 	</p-dialog>
 
 	<!-- Complete EA dialog -->

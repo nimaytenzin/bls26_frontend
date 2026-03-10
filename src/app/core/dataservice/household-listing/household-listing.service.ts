@@ -99,4 +99,8 @@ export class HouseholdListingService {
 	delete(id: number): Observable<void> {
 		return this.http.delete<void>(`${this.baseUrl}/${id}`);
 	}
+
+	deleteByEa(eaId: number): Observable<number> {
+		return this.http.delete<number>(`${this.baseUrl}/by-ea/${eaId}`);
+	}
 }

@@ -8,17 +8,26 @@ import {
 	ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import * as L from 'leaflet';
 import { DzongkhagService } from '../../../core/dataservice/dzongkhag/dzongkhag.service';
-import { EnumerationArea, EaProgress, EnumerationAreaService, EaGeom } from '../../../core/dataservice/enumeration-area/enumeration-area.service';
+import {
+	EnumerationArea,
+	EaProgress,
+	EnumerationAreaService,
+	EaGeom,
+	EaStatus,
+} from '../../../core/dataservice/enumeration-area/enumeration-area.service';
 import { HouseholdListing, HouseholdListingService } from '../../../core/dataservice/household-listing/household-listing.service';
 import { Structure, StructureService } from '../../../core/dataservice/structure/structure.service';
 import { LapService } from '../../../core/dataservice/lap/lap.service';
 import { TownService } from '../../../core/dataservice/town/town.service';
 import { PrimeNgModules } from '../../../primeng.modules';
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { StatisticsService } from '../../../core/dataservice/statistics/statistics.service';
 
 export interface StructureWithHouseholds extends Structure {
 	householdListings: HouseholdListing[];
@@ -29,7 +38,8 @@ export interface StructureWithHouseholds extends Structure {
 	templateUrl: './admin-enumeration-area-data-viewer.component.html',
 	styleUrls: ['./admin-enumeration-area-data-viewer.component.css'],
 	standalone: true,
-	imports: [CommonModule, RouterModule, PrimeNgModules],
+	imports: [CommonModule, FormsModule, RouterModule, PrimeNgModules],
+	providers: [MessageService, ConfirmationService],
 })
 export class AdminEnumerationAreaDataViewerComponent implements OnInit, OnDestroy, AfterViewInit {
 	@ViewChild('mapContainer', { static: false }) mapContainerRef!: ElementRef<HTMLDivElement>;
@@ -48,6 +58,16 @@ export class AdminEnumerationAreaDataViewerComponent implements OnInit, OnDestro
 	structures: StructureWithHouseholds[] = [];
 	loading = true;
 	error: string | null = null;
+	updatingStatus = false;
+	deleteAllHouseholdsBusy = false;
+
+	// Inline edit dialog state
+	showEditDialog = false;
+	editModel: Partial<HouseholdListing> | null = null;
+
+	// Delete-all confirmation dialog
+	showDeleteAllDialog = false;
+	deleteAllConfirmName = '';
 
 	constructor(
 		private route: ActivatedRoute,
@@ -58,7 +78,10 @@ export class AdminEnumerationAreaDataViewerComponent implements OnInit, OnDestro
 		private dzongkhagService: DzongkhagService,
 		private lapService: LapService,
 		private townService: TownService,
-		private cdr: ChangeDetectorRef
+		private cdr: ChangeDetectorRef,
+		private messageService: MessageService,
+		private confirmationService: ConfirmationService,
+		private statisticsService: StatisticsService
 	) {}
 
 	ngOnInit(): void {
@@ -249,5 +272,176 @@ export class AdminEnumerationAreaDataViewerComponent implements OnInit, OnDestro
 				sum + s.householdListings.reduce((s2, h) => s2 + (h.totalMale || 0) + (h.totalFemale || 0), 0),
 			0
 		);
+	}
+
+	revertStatus(status: EaStatus = 'incomplete'): void {
+		if (!this.ea) return;
+		this.updatingStatus = true;
+		this.eaService
+			.updateStatus(this.ea.id, status)
+			.pipe(
+				takeUntil(this.destroy$),
+				finalize(() => {
+					this.updatingStatus = false;
+				})
+			)
+			.subscribe({
+				next: () => {
+					this.messageService.add({
+						severity: 'success',
+						summary: 'EA status updated',
+						life: 3000,
+					});
+					this.load();
+				},
+				error: (err) => {
+					this.messageService.add({
+						severity: 'error',
+						summary: err.error?.message || 'Failed to update EA status',
+						life: 3000,
+					});
+				},
+			});
+	}
+
+	editHousehold(h: HouseholdListing): void {
+		this.editModel = {
+			id: h.id,
+			householdIdentification: h.householdIdentification,
+			householdSerialNumber: h.householdSerialNumber,
+			nameOfHOH: h.nameOfHOH,
+			totalMale: h.totalMale,
+			totalFemale: h.totalFemale,
+			phoneNumber: h.phoneNumber,
+			remarks: h.remarks,
+		} as HouseholdListing;
+		this.showEditDialog = true;
+	}
+
+	saveHouseholdEdits(): void {
+		if (!this.editModel || this.editModel.id == null) {
+			return;
+		}
+
+		const payload: Partial<HouseholdListing> = {
+			householdIdentification: this.editModel.householdIdentification,
+			householdSerialNumber: this.editModel.householdSerialNumber,
+			nameOfHOH: this.editModel.nameOfHOH,
+			totalMale: this.editModel.totalMale ?? 0,
+			totalFemale: this.editModel.totalFemale ?? 0,
+			phoneNumber: this.editModel.phoneNumber,
+			remarks: this.editModel.remarks,
+		};
+
+		this.householdService
+			.patch(this.editModel.id, payload)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: () => {
+					this.messageService.add({
+						severity: 'success',
+						summary: 'Household updated',
+						life: 3000,
+					});
+					this.showEditDialog = false;
+					this.editModel = null;
+					this.loadStructures();
+				},
+				error: (err) => {
+					this.messageService.add({
+						severity: 'error',
+						summary: err.error?.message || 'Failed to update household',
+						life: 3000,
+					});
+				},
+			});
+	}
+
+	deleteHousehold(h: HouseholdListing): void {
+		this.confirmationService.confirm({
+			message: `Delete household "${h.nameOfHOH}"?`,
+			header: 'Confirm',
+			icon: 'pi pi-exclamation-triangle',
+			acceptButtonStyleClass: 'p-button-danger',
+			accept: () => {
+				this.householdService
+					.delete(h.id)
+					.pipe(takeUntil(this.destroy$))
+					.subscribe({
+						next: () => {
+							this.messageService.add({
+								severity: 'success',
+								summary: 'Household deleted',
+								life: 3000,
+							});
+							this.loadStructures();
+						},
+						error: (err) => {
+							this.messageService.add({
+								severity: 'error',
+								summary: err.error?.message || 'Delete failed',
+								life: 3000,
+							});
+						},
+					});
+			},
+		});
+	}
+
+	downloadHouseholdsCsvForEa(): void {
+		if (!this.eaId) return;
+		this.statisticsService.downloadHouseholdsCsv({ eaId: this.eaId });
+	}
+
+	openDeleteAllHouseholdsDialog(): void {
+		if (!this.ea) return;
+		this.deleteAllConfirmName = '';
+		this.showDeleteAllDialog = true;
+	}
+
+	confirmDeleteAllHouseholds(): void {
+		if (!this.ea) return;
+		const eaName = this.ea.name ?? '';
+		if (!this.deleteAllConfirmName || this.deleteAllConfirmName.trim() !== eaName) {
+			this.messageService.add({
+				severity: 'warn',
+				summary: 'Confirmation text did not match EA name',
+				life: 3000,
+			});
+			return;
+		}
+
+		this.deleteAllHouseholdsBusy = true;
+		this.householdService
+			.deleteByEa(this.eaId)
+			.pipe(
+				takeUntil(this.destroy$),
+				finalize(() => {
+					this.deleteAllHouseholdsBusy = false;
+				})
+			)
+			.subscribe({
+				next: (deletedCount) => {
+					this.showDeleteAllDialog = false;
+					this.deleteAllConfirmName = '';
+					this.messageService.add({
+						severity: 'success',
+						summary: `Deleted ${deletedCount} households for this EA`,
+						life: 3000,
+					});
+					this.loadStructures();
+					if (this.progress) {
+						this.progress.totalHouseholds = 0;
+					}
+				},
+				error: (err) => {
+					this.messageService.add({
+						severity: 'error',
+						summary: err.error?.message || 'Failed to delete households',
+						life: 3000,
+					});
+					this.showDeleteAllDialog = false;
+				},
+			});
 	}
 }

@@ -2,6 +2,8 @@
 	<!-- Left: Details + Household listings (2/3) -->
 	<div class="lg:flex-[2] min-w-0 flex flex-col overflow-auto">
 		<div class="p-6">
+			<p-toast></p-toast>
+			<p-confirmDialog></p-confirmDialog>
 			<button
 				pButton
 				type="button"
@@ -21,20 +23,58 @@
 			<ng-container *ngIf="!loading && !error && ea">
 				<!-- EA details -->
 				<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6">
-					<h1 class="text-2xl font-bold text-slate-800 mb-1">{{ ea.name }}</h1>
-					<p class="text-sm text-slate-500 mb-3">
-						<span *ngIf="dzongkhagName">{{ dzongkhagName }}</span>
-						<span *ngIf="townName"> &rsaquo; {{ townName }}</span>
-						<span *ngIf="lapName"> &rsaquo; {{ lapName }}</span>
-					</p>
-					<p *ngIf="ea.description" class="text-slate-600 mb-4">{{ ea.description }}</p>
-					<div class="flex flex-wrap gap-4 items-center">
-						<span class="text-sm text-slate-500">Area code: <strong>{{ ea.areaCode }}</strong></span>
-						<span *ngIf="ea.fullEaCode" class="text-sm text-slate-500">Full EA code: <strong class="font-mono">{{ ea.fullEaCode }}</strong></span>
-						<p-tag [value]="ea.status" [severity]="ea.status === 'completed' ? 'success' : ea.status === 'in_progress' ? 'info' : 'warn'"></p-tag>
-						<span *ngIf="progress" class="text-sm text-slate-600">
-							{{ progress.totalStructures }} structures · {{ progress.totalHouseholds }} households
-						</span>
+					<div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+						<div>
+							<h1 class="text-2xl font-bold text-slate-800 mb-1">{{ ea.name }}</h1>
+							<p class="text-sm text-slate-500 mb-3">
+								<span *ngIf="dzongkhagName">{{ dzongkhagName }}</span>
+								<span *ngIf="townName"> &rsaquo; {{ townName }}</span>
+								<span *ngIf="lapName"> &rsaquo; {{ lapName }}</span>
+							</p>
+							<p *ngIf="ea.description" class="text-slate-600 mb-4">{{ ea.description }}</p>
+							<div class="flex flex-wrap gap-4 items-center">
+								<span class="text-sm text-slate-500">Area code: <strong>{{ ea.areaCode }}</strong></span>
+								<span *ngIf="ea.fullEaCode" class="text-sm text-slate-500"
+									>Full EA code: <strong class="font-mono">{{ ea.fullEaCode }}</strong></span
+								>
+								<p-tag
+									[value]="ea.status"
+									[severity]="ea.status === 'completed' ? 'success' : ea.status === 'in_progress' ? 'info' : 'warn'"
+								></p-tag>
+								<span *ngIf="progress" class="text-sm text-slate-600">
+									{{ progress.totalStructures }} structures · {{ progress.totalHouseholds }} households
+								</span>
+							</div>
+						</div>
+						<div class="flex flex-col gap-2 items-stretch md:items-end" *ngIf="ea.status === 'completed'">
+							<button
+								pButton
+								type="button"
+								icon="pi pi-undo"
+								label="Revert to incomplete"
+								class="p-button-outlined p-button-sm w-full md:w-auto"
+								(click)="revertStatus('incomplete')"
+								[disabled]="updatingStatus"
+							></button>
+							<button
+								pButton
+								type="button"
+								icon="pi pi-download"
+								label="Download households (CSV)"
+								class="p-button-outlined p-button-sm w-full md:w-auto"
+								(click)="downloadHouseholdsCsvForEa()"
+								[disabled]="loading"
+							></button>
+							<button
+								pButton
+								type="button"
+								icon="pi pi-trash"
+								label="Delete ALL households"
+								class="p-button-danger p-button-outlined p-button-sm w-full md:w-auto"
+								(click)="openDeleteAllHouseholdsDialog()"
+								[disabled]="deleteAllHouseholdsBusy || loading"
+							></button>
+						</div>
 					</div>
 				</div>
 
@@ -62,10 +102,11 @@
 									<tr>
 										<th>Serial</th>
 										<th>HOH Name</th>
-										<th>ID</th>
+										<th>Household identification</th>
 										<th>Male</th>
 										<th>Female</th>
 										<th>Phone</th>
+										<th class="w-28 text-right">Actions</th>
 									</tr>
 								</ng-template>
 								<ng-template pTemplate="body" let-h>
@@ -76,10 +117,28 @@
 										<td>{{ h.totalMale }}</td>
 										<td>{{ h.totalFemale }}</td>
 										<td>{{ h.phoneNumber || '—' }}</td>
+										<td class="text-right">
+											<button
+												pButton
+												type="button"
+												icon="pi pi-pencil"
+												class="p-button-text p-button-sm mr-1"
+												(click)="editHousehold(h)"
+											></button>
+											<button
+												pButton
+												type="button"
+												icon="pi pi-trash"
+												class="p-button-text p-button-sm p-button-danger"
+												(click)="deleteHousehold(h)"
+											></button>
+										</td>
 									</tr>
 								</ng-template>
 								<ng-template pTemplate="emptymessage">
-									<tr><td colspan="6" class="text-center py-3 text-slate-500">No households in this structure</td></tr>
+									<tr>
+										<td colspan="7" class="text-center py-3 text-slate-500">No households in this structure</td>
+									</tr>
 								</ng-template>
 							</p-table>
 						</div>
@@ -94,3 +153,156 @@
 		<div #mapContainer class="map-container w-full h-full"></div>
 	</div>
 </div>
+
+<p-dialog
+	header="Edit household"
+	[(visible)]="showEditDialog"
+	[modal]="true"
+	[style]="{ width: '480px', maxWidth: '100%' }"
+	[draggable]="false"
+	[resizable]="false"
+	(onHide)="editModel = null"
+>
+	<div *ngIf="editModel" class="space-y-3">
+		<div class="grid grid-cols-2 gap-3">
+			<div class="col-span-1">
+				<label class="block text-xs font-medium text-slate-500 mb-1">Serial</label>
+				<input
+					pInputText
+					type="number"
+					class="w-full"
+					[(ngModel)]="editModel.householdSerialNumber"
+				/>
+			</div>
+			<div class="col-span-1">
+				<label class="block text-xs font-medium text-slate-500 mb-1">Household identification</label>
+				<input
+					pInputText
+					type="text"
+					class="w-full"
+					[(ngModel)]="editModel.householdIdentification"
+				/>
+			</div>
+		</div>
+
+		<div>
+			<label class="block text-xs font-medium text-slate-500 mb-1">Head of Household name</label>
+			<input
+				pInputText
+				type="text"
+				class="w-full"
+				[(ngModel)]="editModel.nameOfHOH"
+			/>
+		</div>
+
+		<div class="grid grid-cols-2 gap-3">
+			<div>
+				<label class="block text-xs font-medium text-slate-500 mb-1">Total male</label>
+				<input
+					pInputText
+					type="number"
+					class="w-full"
+					[(ngModel)]="editModel.totalMale"
+				/>
+			</div>
+			<div>
+				<label class="block text-xs font-medium text-slate-500 mb-1">Total female</label>
+				<input
+					pInputText
+					type="number"
+					class="w-full"
+					[(ngModel)]="editModel.totalFemale"
+				/>
+			</div>
+		</div>
+
+		<div>
+			<label class="block text-xs font-medium text-slate-500 mb-1">Phone</label>
+			<input
+				pInputText
+				type="text"
+				class="w-full"
+				[(ngModel)]="editModel.phoneNumber"
+			/>
+		</div>
+
+		<div>
+			<label class="block text-xs font-medium text-slate-500 mb-1">Remarks</label>
+			<textarea
+				pInputTextarea
+				rows="3"
+				class="w-full"
+				[(ngModel)]="editModel.remarks"
+			></textarea>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<button
+			pButton
+			type="button"
+			label="Cancel"
+			class="p-button-text"
+			(click)="showEditDialog = false; editModel = null"
+		></button>
+		<button
+			pButton
+			type="button"
+			label="Save"
+			icon="pi pi-check"
+			(click)="saveHouseholdEdits()"
+			[disabled]="!editModel"
+		></button>
+	</ng-template>
+</p-dialog>
+
+<p-dialog
+	header="Delete ALL households"
+	[(visible)]="showDeleteAllDialog"
+	[modal]="true"
+	[style]="{ width: '480px', maxWidth: '100%' }"
+	[draggable]="false"
+	[resizable]="false"
+	(onHide)="deleteAllConfirmName = ''"
+>
+	<div *ngIf="ea" class="space-y-3">
+		<p class="text-sm text-slate-700">
+			This will permanently delete
+			<span class="font-semibold">{{ totalHouseholds() }}</span>
+			households in EA
+			<span class="font-semibold">"{{ ea.name }}"</span>. This action cannot be undone.
+		</p>
+		<div>
+			<label class="block text-xs font-medium text-red-600 mb-1">
+				Type the EA name exactly to confirm
+			</label>
+			<input
+				pInputText
+				type="text"
+				class="w-full"
+				[(ngModel)]="deleteAllConfirmName"
+				placeholder="{{ ea.name }}"
+			/>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<button
+			pButton
+			type="button"
+			label="Cancel"
+			class="p-button-text"
+			(click)="showDeleteAllDialog = false; deleteAllConfirmName = ''"
+			[disabled]="deleteAllHouseholdsBusy"
+		></button>
+		<button
+			pButton
+			type="button"
+			label="Delete ALL"
+			icon="pi pi-trash"
+			class="p-button-danger"
+			(click)="confirmDeleteAllHouseholds()"
+			[disabled]="deleteAllHouseholdsBusy"
+		></button>
+	</ng-template>
+</p-dialog>

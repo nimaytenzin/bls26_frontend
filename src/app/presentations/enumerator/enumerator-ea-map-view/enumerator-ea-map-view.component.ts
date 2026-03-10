@@ -38,6 +38,8 @@ export class EnumeratorEaMapViewComponent implements OnInit, OnDestroy, AfterVie
 	loading = true;
 	error: string | null = null;
 
+	private readonly labelZoomThreshold = 18;
+
 	private map?: L.Map;
 	private structureMarkers = new Map<number, L.Marker>();
 	private geomLayer?: L.GeoJSON;
@@ -46,9 +48,11 @@ export class EnumeratorEaMapViewComponent implements OnInit, OnDestroy, AfterVie
 	editMode = false;
 	showAddStructureDialog = false;
 	showStructureActionsDialog = false;
+	showEditStructureNumberDialog = false;
 	showCompleteDialog = false;
 	clickedLatLng: { lat: number; lng: number } | null = null;
 	newStructureNumber = '';
+	editStructureNumber = '';
 	isAddingStructure = false;
 	isCompleting = false;
 	eaCompleted = false;
@@ -182,6 +186,8 @@ export class EnumeratorEaMapViewComponent implements OnInit, OnDestroy, AfterVie
 
 		this.renderStructures(!!geomObj);
 
+		this.map.on('zoomend', () => this.updateStructureLabelsVisibility());
+
 		// Recalc size after layout so map is visible (fixes flex/safe-area timing)
 		setTimeout(() => this.map?.invalidateSize(), 150);
 	}
@@ -191,6 +197,7 @@ export class EnumeratorEaMapViewComponent implements OnInit, OnDestroy, AfterVie
 		this.structureMarkers.forEach((m) => this.map!.removeLayer(m));
 		this.structureMarkers.clear();
 		const markerBounds = !hasGeom ? L.latLngBounds([0, 0], [0, 0]) : null;
+		const showLabels = this.map.getZoom() >= this.labelZoomThreshold;
 		this.structures.forEach((s) => {
 			if (s.latitude != null && s.longitude != null) {
 				const isSelected = this.selectedStructure?.id === s.id;
@@ -207,7 +214,14 @@ export class EnumeratorEaMapViewComponent implements OnInit, OnDestroy, AfterVie
 					this.renderStructures(hasGeom);
 					this.showStructureActionsDialog = true;
 				});
-				marker.bindTooltip(s.structureNumber, { permanent: false, direction: 'top' });
+				marker.bindTooltip(s.structureNumber, {
+					permanent: false,
+					direction: 'top',
+					className: 'structure-label',
+				});
+				if (showLabels) {
+					marker.openTooltip();
+				}
 				this.structureMarkers.set(s.id, marker);
 				if (markerBounds) {
 					markerBounds.extend(marker.getLatLng());
@@ -218,6 +232,22 @@ export class EnumeratorEaMapViewComponent implements OnInit, OnDestroy, AfterVie
 		if (!hasGeom && markerBounds && markerBounds.isValid()) {
 			this.map!.fitBounds(markerBounds, { padding: [32, 32], maxZoom: 18 });
 		}
+
+		this.updateStructureLabelsVisibility();
+	}
+
+	private updateStructureLabelsVisibility(): void {
+		if (!this.map) return;
+		const show = this.map.getZoom() >= this.labelZoomThreshold;
+		this.structureMarkers.forEach((marker) => {
+			const tooltip = marker.getTooltip();
+			if (!tooltip) return;
+			if (show) {
+				marker.openTooltip();
+			} else {
+				marker.closeTooltip();
+			}
+		});
 	}
 
 	private getNextStructureNumber(): string {
@@ -323,6 +353,36 @@ export class EnumeratorEaMapViewComponent implements OnInit, OnDestroy, AfterVie
 				});
 			},
 		});
+	}
+
+	openEditStructureNumber(): void {
+		if (!this.selectedStructure || this.eaCompleted) return;
+		this.editStructureNumber = this.selectedStructure.structureNumber;
+		this.showEditStructureNumberDialog = true;
+	}
+
+	updateStructureNumber(): void {
+		if (!this.selectedStructure || !this.editStructureNumber?.trim()) return;
+		const trimmed = this.editStructureNumber.trim();
+		if (trimmed === this.selectedStructure.structureNumber) {
+			this.showEditStructureNumberDialog = false;
+			return;
+		}
+		this.isAddingStructure = true;
+		this.structureService
+			.update(this.selectedStructure.id, { structureNumber: trimmed })
+			.pipe(takeUntil(this.destroy$), finalize(() => (this.isAddingStructure = false)))
+			.subscribe({
+				next: () => {
+					this.showToast('Structure number updated', 'success');
+					this.showEditStructureNumberDialog = false;
+					this.showStructureActionsDialog = false;
+					this.selectedStructure = null;
+					this.loadStructures();
+				},
+				error: (err) =>
+					this.showToast(err.error?.message || 'Failed to update structure number', 'error'),
+			});
 	}
 
 	zoomToExtent(): void {

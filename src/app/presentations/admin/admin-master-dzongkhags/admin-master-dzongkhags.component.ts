@@ -4,8 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
-import { DzongkhagService, Dzongkhag } from '../../../core/dataservice/dzongkhag/dzongkhag.service';
+import {
+	DzongkhagService,
+	Dzongkhag,
+	EnumerationAreaSummary,
+} from '../../../core/dataservice/dzongkhag/dzongkhag.service';
 import { PrimeNgModules } from '../../../primeng.modules';
+import { StatisticsService } from '../../../core/dataservice/statistics/statistics.service';
 
 
 interface EaSummary {
@@ -99,7 +104,18 @@ export class AdminMasterDzongkhagsComponent implements OnInit, OnDestroy {
 		{ label: 'Not started', value: 'not_started' as StatusFilter },
 	];
 
-	constructor(private dzongkhagService: DzongkhagService) {}
+	// Download dialog state
+	showDownloadDialog = false;
+	downloadDzongkhagIdForStats: number | null = null;
+	downloadDzongkhagIdForHouseholds: number | null = null;
+	downloadDzongkhagIdForHouseholdsEa: number | null = null;
+	downloadEaIdForHouseholdsEa: number | null = null;
+	downloadEaOptions: EnumerationAreaSummary[] = [];
+
+	constructor(
+		private dzongkhagService: DzongkhagService,
+		private statisticsService: StatisticsService
+	) {}
 
 	ngOnInit(): void {
 		this.restoreSelectedDzongkhag();
@@ -399,5 +415,69 @@ export class AdminMasterDzongkhagsComponent implements OnInit, OnDestroy {
 			totalStructures,
 			totalHouseholds,
 		};
+	}
+
+	openDownloadDialog(): void {
+		this.showDownloadDialog = true;
+		this.downloadDzongkhagIdForStats = null;
+		this.downloadDzongkhagIdForHouseholds = null;
+		this.downloadDzongkhagIdForHouseholdsEa = null;
+		this.downloadEaIdForHouseholdsEa = null;
+		this.downloadEaOptions = [];
+	}
+
+	// Option 1: download all EA stats
+	downloadAllStats(): void {
+		this.statisticsService.downloadEaSummaryCsv(undefined);
+	}
+
+	// Option 2: download EA stats for selected Dzongkhag
+	downloadStatsForDzongkhag(): void {
+		if (this.downloadDzongkhagIdForStats == null) return;
+		this.statisticsService.downloadEaSummaryCsv(this.downloadDzongkhagIdForStats);
+	}
+
+	// Option 3: download all households
+	downloadAllHouseholds(): void {
+		this.statisticsService.downloadHouseholdsCsv({});
+	}
+
+	// Option 4: download households for Dzongkhag
+	downloadHouseholdsForDzongkhag(): void {
+		if (this.downloadDzongkhagIdForHouseholds == null) return;
+		this.statisticsService.downloadHouseholdsCsv({
+			dzongkhagId: this.downloadDzongkhagIdForHouseholds,
+		});
+	}
+
+	// Option 5: download households for Dzongkhag + EA
+	onDownloadDzongkhagForEaChange(dzongkhagId: number | null): void {
+		this.downloadDzongkhagIdForHouseholdsEa = dzongkhagId;
+		this.downloadEaIdForHouseholdsEa = null;
+		this.downloadEaOptions = [];
+
+		if (dzongkhagId == null) {
+			return;
+		}
+
+		this.dzongkhagService
+			.getEnumerationAreas(dzongkhagId)
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: (eas) => {
+					this.downloadEaOptions = eas;
+				},
+				error: (err) => {
+					console.error('Failed to load enumeration areas', err);
+					this.downloadEaOptions = [];
+				},
+			});
+	}
+
+	downloadHouseholdsForDzongkhagEa(): void {
+		if (this.downloadEaIdForHouseholdsEa == null) return;
+		this.statisticsService.downloadHouseholdsCsv({
+			eaId: this.downloadEaIdForHouseholdsEa,
+		});
 	}
 }
