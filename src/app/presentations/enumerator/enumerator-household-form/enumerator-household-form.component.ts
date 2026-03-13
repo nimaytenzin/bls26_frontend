@@ -165,28 +165,54 @@ export class EnumeratorHouseholdFormComponent implements OnInit, OnDestroy {
 						this.messageService.add({ severity: 'error', summary: err.error?.message || 'Update failed', life: 3000 }),
 				});
 		} else {
-			this.householdService
-				.create({
-					structureId: this.form.structureId,
-					userId: this.form.userId,
-					householdIdentification: this.form.householdIdentification.trim(),
-					householdSerialNumber: this.form.householdSerialNumber,
-					nameOfHOH: this.form.nameOfHOH.trim(),
-					totalMale: this.form.totalMale,
-					totalFemale: this.form.totalFemale,
-					phoneNumber: this.form.phoneNumber || undefined,
-					remarks: this.form.remarks || undefined,
-				})
-				.pipe(takeUntil(this.destroy$), finalize(() => (this.submitting = false)))
-				.subscribe({
-					next: () => {
-						this.messageService.add({ severity: 'success', summary: 'Household added', life: 3000 });
-						this.router.navigate(['/enumerator/ea', this.eaId, 'households']);
-					},
-					error: (err) =>
-						this.messageService.add({ severity: 'error', summary: err.error?.message || 'Create failed', life: 3000 }),
-				});
+			this.createHousehold();
 		}
+	}
+
+	private createHousehold(retryCount = 0): void {
+		this.householdService
+			.create({
+				structureId: this.form.structureId,
+				userId: this.form.userId,
+				householdIdentification: this.form.householdIdentification.trim(),
+				householdSerialNumber: this.form.householdSerialNumber,
+				nameOfHOH: this.form.nameOfHOH.trim(),
+				totalMale: this.form.totalMale,
+				totalFemale: this.form.totalFemale,
+				phoneNumber: this.form.phoneNumber || undefined,
+				remarks: this.form.remarks || undefined,
+			})
+			.pipe(takeUntil(this.destroy$))
+			.subscribe({
+				next: () => {
+					this.submitting = false;
+					this.messageService.add({ severity: 'success', summary: 'Household added', life: 3000 });
+					this.router.navigate(['/enumerator/ea', this.eaId, 'households']);
+				},
+				error: (err) => {
+					const msg = err.error?.message || '';
+					const isValidationError = err.status === 400 || msg.toLowerCase().includes('validation');
+					if (isValidationError && retryCount < 2) {
+						this.householdService
+							.getByStructure(this.form.structureId)
+							.pipe(takeUntil(this.destroy$))
+							.subscribe({
+								next: (list) => {
+									const max = list.length ? Math.max(...list.map((h) => h.householdSerialNumber)) : 0;
+									this.form.householdSerialNumber = max + 1;
+									this.createHousehold(retryCount + 1);
+								},
+								error: () => {
+									this.submitting = false;
+									this.messageService.add({ severity: 'error', summary: 'Failed to resolve serial number conflict. Please try again.', life: 5000 });
+								},
+							});
+					} else {
+						this.submitting = false;
+						this.messageService.add({ severity: 'error', summary: msg || 'Create failed', life: 3000 });
+					}
+				},
+			});
 	}
 
 	cancel(): void {
